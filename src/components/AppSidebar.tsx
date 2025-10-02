@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, Plus, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, FileText, Plus, Settings, LogOut, BarChart3, Users, CheckSquare, ClipboardList, Gauge, BadgeCheck, Clock, TrendingUp } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
   Sidebar,
@@ -16,23 +16,48 @@ import {
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { toast } from "sonner";
 
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Visão Geral", url: "/visao-geral", icon: Gauge },
+  { title: "Setores Demandantes", url: "/setores-demandantes", icon: ClipboardList },
+  { title: "Controle de Prazos", url: "/controle-prazos", icon: Clock },
+  { title: "Prioridades de Contratação", url: "/prioridades-contratacao", icon: BadgeCheck },
+  { title: "Avaliação e Conformidade", url: "/avaliacao-conformidade", icon: CheckSquare },
+  { title: "Resultados Alcançados", url: "/resultados-alcancados", icon: TrendingUp },
   { title: "Contratações", url: "/contratacoes", icon: FileText },
   { title: "Nova Contratação", url: "/nova-contratacao", icon: Plus },
+  { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
+  { title: "Gerenciamento de Usuários", url: "/gerenciamento-usuarios", icon: Users },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    toast.success("Logout realizado com sucesso");
-    navigate("/auth");
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      const { error } = await supabase.auth.signOut({ scope: "local" });
+      if (error) {
+        console.error("Erro ao fazer logout:", error);
+        toast.error(error.message || "Erro ao sair");
+      } else {
+        toast.success("Logout realizado com sucesso");
+      }
+    } catch (err: any) {
+      console.error("Falha inesperada no logout:", err);
+      toast.error("Falha no logout; sessão será encerrada.");
+    } finally {
+      setIsLoggingOut(false);
+      // Garanta retorno à tela de autenticação mesmo se a requisição for abortada
+      navigate("/auth");
+    }
   };
 
   return (
@@ -41,7 +66,7 @@ export function AppSidebar() {
         {!collapsed && (
           <div>
             <h2 className="text-lg font-bold text-sidebar-foreground">PCA 2026</h2>
-            <p className="text-xs text-sidebar-foreground/60">MP-PI</p>
+            <p className="text-[10px] font-bold text-sidebar-foreground/60">MINISTÉRIO PÚBLICO DO ESTADO DO PIAUÍ</p>
           </div>
         )}
         {collapsed && (
@@ -63,8 +88,8 @@ export function AppSidebar() {
                       to={item.url}
                       className={({ isActive }) =>
                         isActive
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                          : "hover:bg-sidebar-accent/50"
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_0_0_1px_hsl(var(--sidebar-border))]"
+                          : "hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
                       }
                     >
                       <item.icon className="h-4 w-4" />
@@ -83,6 +108,7 @@ export function AppSidebar() {
           variant="ghost"
           size={collapsed ? "icon" : "default"}
           onClick={handleLogout}
+          disabled={isLoggingOut}
           className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
         >
           <LogOut className="h-4 w-4" />

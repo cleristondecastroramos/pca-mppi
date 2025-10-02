@@ -6,11 +6,38 @@
 All colors MUST be HSL.
 */
 
+/* Custom font: AmericanCaptain-MdEY from public folder */
+@font-face {
+  font-family: 'AmericanCaptain-MdEY';
+  src: url('/AmericanCaptain-MdEY.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Custom font: Bella-yw64Z from public folder */
+@font-face {
+  font-family: 'Bella-yw64Z';
+  src: url('/Bella-yw64Z.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Custom font: QueensidesLight-ZVj3l from public folder */
+@font-face {
+  font-family: 'QueensidesLight-ZVj3l';
+  src: url('/QueensidesLight-ZVj3l.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   :root {
-    /* Core institutional colors */
-    --background: 210 20% 98%;
-    --foreground: 222 47% 11%;
+    /* Core palette: professional red + neutral grays */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 15%;
 
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
@@ -18,22 +45,22 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Primary - Institutional Blue */
-    --primary: 217 91% 40%;
+    /* Primary - Brand Red */
+    --primary: 349 67% 55%; /* #D9415D */
     --primary-foreground: 0 0% 100%;
-    --primary-light: 217 91% 55%;
-    --primary-dark: 217 91% 30%;
+    --primary-light: 349 67% 65%;
+    --primary-dark: 349 67% 45%;
 
     /* Secondary - Neutral Gray */
-    --secondary: 215 16% 47%;
+    --secondary: 0 0% 40%;
     --secondary-foreground: 0 0% 100%;
 
     /* Muted backgrounds */
-    --muted: 210 17% 95%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
 
-    /* Accent - Highlight color */
-    --accent: 217 91% 55%;
+    /* Accent - Highlight color (red variant) */
+    --accent: 349 67% 60%;
     --accent-foreground: 0 0% 100%;
 
     /* Status colors */
@@ -50,24 +77,24 @@ All colors MUST be HSL.
     --info-foreground: 0 0% 100%;
 
     /* UI Elements */
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 217 91% 40%;
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
+    --ring: 349 67% 55%;
 
     --radius: 0.5rem;
 
     /* Sidebar specific */
-    --sidebar-background: 222 47% 11%;
+    --sidebar-background: 349 67% 55%; /* #D9415D */
     --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 217 91% 40%;
+    --sidebar-primary: 349 67% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 47% 15%;
-    --sidebar-accent-foreground: 217 91% 55%;
-    --sidebar-border: 222 47% 20%;
-    --sidebar-ring: 217 91% 40%;
+    --sidebar-accent: 349 67% 45%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 349 67% 40%;
+    --sidebar-ring: 349 67% 55%;
 
     /* Chart colors */
-    --chart-1: 217 91% 40%;
+    --chart-1: 349 67% 55%;
     --chart-2: 142 71% 45%;
     --chart-3: 38 92% 50%;
     --chart-4: 0 84% 60%;
@@ -80,28 +107,28 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    --background: 0 0% 10%;
+    --foreground: 0 0% 96%;
 
-    --card: 222 47% 13%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 222 47% 13%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 217 91% 55%;
-    --primary-foreground: 222 47% 11%;
-    --primary-light: 217 91% 65%;
-    --primary-dark: 217 91% 45%;
+    --primary: 349 67% 55%;
+    --primary-foreground: 0 0% 10%;
+    --primary-light: 349 67% 65%;
+    --primary-dark: 349 67% 45%;
 
-    --secondary: 215 16% 35%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 0% 35%;
+    --secondary-foreground: 0 0% 96%;
 
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 70%;
 
-    --accent: 217 91% 55%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 349 67% 60%;
+    --accent-foreground: 0 0% 10%;
 
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
@@ -109,24 +136,24 @@ All colors MUST be HSL.
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
     
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 63% 35%;
+    --destructive-foreground: 0 0% 96%;
 
     --info: 199 89% 48%;
     --info-foreground: 0 0% 100%;
 
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 217 91% 55%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 349 67% 55%;
 
-    --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 217 91% 55%;
-    --sidebar-primary-foreground: 222 47% 11%;
-    --sidebar-accent: 222 47% 12%;
-    --sidebar-accent-foreground: 217 91% 65%;
-    --sidebar-border: 222 47% 15%;
-    --sidebar-ring: 217 91% 55%;
+    --sidebar-background: 349 67% 45%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-primary: 349 67% 55%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 349 67% 40%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 349 67% 38%;
+    --sidebar-ring: 349 67% 55%;
 
     --chart-1: 217 91% 55%;
     --chart-2: 142 71% 45%;

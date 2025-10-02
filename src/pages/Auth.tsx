@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// Removido alternador de abas e componentes de cadastro
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -14,7 +14,17 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  // Removido estado de confirmação de senha (cadastro desativado)
+
+  // Override theme colors locally for the login page to use red (#D9415D)
+  const loginThemeVars = {
+    ["--primary" as any]: "349 67% 55%", // #D9415D
+    ["--primary-foreground" as any]: "0 0% 100%",
+    ["--primary-light" as any]: "349 67% 65%",
+    ["--primary-dark" as any]: "349 67% 45%",
+    ["--accent" as any]: "349 67% 60%",
+    ["--ring" as any]: "349 67% 55%",
+  } as React.CSSProperties;
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -51,61 +61,45 @@ export default function Auth() {
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (password !== confirmPassword) {
-      toast.error("As senhas não coincidem");
-      return;
-    }
-
-    if (password.length < 6) {
-      toast.error("A senha deve ter no mínimo 6 caracteres");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
-
-      if (error) throw error;
-      toast.success("Cadastro realizado! Você já pode fazer login.");
-    } catch (error: any) {
-      toast.error(error.message || "Erro ao criar conta");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Removido handler de cadastro
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-1 text-center">
-          <div className="mb-4">
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <span className="text-2xl font-bold">P</span>
-            </div>
+    <div
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4"
+      style={loginThemeVars}
+    >
+      <Card className="w-full max-w-3xl shadow-2xl overflow-hidden">
+        <CardHeader className="text-center">
+          <div className="mb-2">
+            <img
+              src="/logo-mppi.png"
+              alt="Logo oficial do MPPI"
+              className="mx-auto h-12 w-auto object-contain"
+            />
           </div>
-          <CardTitle className="text-2xl font-bold">PCA 2026</CardTitle>
+          <CardTitle
+            className="text-lg font-bold"
+            style={{ fontFamily: 'QueensidesLight-ZVj3l, sans-serif' }}
+          >
+            PLANO DE CONTRATAÇÕES ANUAL - PCA 2026
+          </CardTitle>
           <CardDescription>
-            Sistema de Gerenciamento de Contratações - MP-PI
+            Sistema de Gerenciamento de Contratações - MPPI
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Entrar</TabsTrigger>
-              <TabsTrigger value="signup">Cadastrar</TabsTrigger>
-            </TabsList>
+        <CardContent className="pt-0">
+          <div className="grid grid-cols-1 md:grid-cols-12">
+            {/* Lado esquerdo: imagem ilustrativa */}
+            <div className="flex items-center justify-center px-6 pt-0 pb-6 bg-card md:col-span-5 md:col-start-2">
+              <img
+                src="/22933-removebg-preview.png"
+                alt="Ilustração PCA"
+                className="h-56 md:h-72 w-auto object-contain"
+              />
+            </div>
 
-            <TabsContent value="login">
+            {/* Lado direito: login */}
+            <div className="p-6 md:col-span-5">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="login-email">E-mail</Label>
@@ -133,48 +127,8 @@ export default function Auth() {
                   Entrar
                 </Button>
               </form>
-            </TabsContent>
-
-            <TabsContent value="signup">
-              <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">E-mail</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="seu.email@mppi.mp.br"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Senha</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirmar Senha</Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Cadastrar
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
