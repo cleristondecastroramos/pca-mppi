@@ -3,12 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { PerfilAcesso } from "@/lib/auth";
+import { Shield } from "lucide-react";
 
 type Profile = {
   id: string;
@@ -25,6 +27,8 @@ const GerenciamentoUsuarios = () => {
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<UserWithRoles | null>(null);
   const [roleSel, setRoleSel] = useState<PerfilAcesso | undefined>(undefined);
+  const [showAdminWarning, setShowAdminWarning] = useState(false);
+  const [pendingRole, setPendingRole] = useState<PerfilAcesso | null>(null);
 
   async function loadUsers() {
     try {
@@ -72,23 +76,56 @@ const GerenciamentoUsuarios = () => {
 
   async function saveRole() {
     if (!editing || !roleSel) return;
+
+    // Check if assigning admin role
+    if (roleSel === "administrador") {
+      setPendingRole(roleSel);
+      setShowAdminWarning(true);
+      return;
+    }
+
+    await performRoleSave(roleSel);
+  }
+
+  async function performRoleSave(role: PerfilAcesso) {
+    if (!editing) return;
+    
     try {
-      const exists = editing.roles.includes(roleSel);
+      const exists = editing.roles.includes(role);
       if (exists) {
         toast.message("Perfil já atribuído");
         return;
       }
+
       const { error } = (supabase as any)
         .from("user_roles")
-        .insert({ user_id: editing.id, role: roleSel });
+        .insert({ user_id: editing.id, role });
+      
       if (error) throw error;
-      toast.success("Perfil atribuído");
+
+      // Log the role assignment
+      await (supabase as any).from("contratacoes_historico").insert({
+        user_id: editing.id,
+        contratacao_id: editing.id,
+        acao: "role_assigned",
+        dados_novos: { role, assigned_at: new Date().toISOString() },
+      });
+
+      toast.success("Perfil atribuído com sucesso");
       setEditing(null);
       setRoleSel(undefined);
+      setShowAdminWarning(false);
+      setPendingRole(null);
       loadUsers();
     } catch (e: any) {
       console.error(e);
       toast.error("Falha ao salvar perfil", { description: e.message });
+    }
+  }
+
+  function handleAdminConfirm() {
+    if (pendingRole) {
+      performRoleSave(pendingRole);
     }
   }
 
@@ -134,6 +171,9 @@ const GerenciamentoUsuarios = () => {
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>Editar Perfis</DialogTitle>
+                            <DialogDescription>
+                              Gerencie os perfis de acesso do usuário. Tenha cuidado ao atribuir perfil de administrador.
+                            </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-3">
                             <div>
@@ -147,7 +187,12 @@ const GerenciamentoUsuarios = () => {
                                   <SelectValue placeholder="Selecione" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="administrador">Administrador</SelectItem>
+                                  <SelectItem value="administrador">
+                                    <div className="flex items-center gap-2">
+                                      <Shield className="h-4 w-4 text-destructive" />
+                                      Administrador
+                                    </div>
+                                  </SelectItem>
                                   <SelectItem value="gestor">Gestor</SelectItem>
                                   <SelectItem value="setor_requisitante">Setor requisitante</SelectItem>
                                   <SelectItem value="consulta">Consulta</SelectItem>
@@ -167,6 +212,29 @@ const GerenciamentoUsuarios = () => {
             </Table>
           </CardContent>
         </Card>
+
+        <AlertDialog open={showAdminWarning} onOpenChange={setShowAdminWarning}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-destructive" />
+                Confirmar Atribuição de Administrador
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Você está prestes a conceder privilégios de administrador para este usuário. 
+                Administradores têm acesso total ao sistema, incluindo gerenciamento de usuários e configurações críticas.
+                <br /><br />
+                <strong>Tem certeza que deseja continuar?</strong>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleAdminConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Confirmar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </Layout>
   );

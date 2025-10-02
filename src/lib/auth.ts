@@ -8,52 +8,13 @@ export async function getSession() {
   return data.session;
 }
 
-async function rolesFromUserMetadata(): Promise<PerfilAcesso[]> {
-  try {
-    const { data } = await supabase.auth.getUser();
-    const user = data.user;
-    if (!user) return [];
-
-    const meta: any = user.user_metadata || {};
-    const appMeta: any = (user as any).app_metadata || {};
-
-    // Common keys that might store roles
-    const rawRole = meta.perfil_acesso || meta.role || appMeta.role;
-    const rawRoles = meta.roles || appMeta.roles;
-
-    if (Array.isArray(rawRoles) && rawRoles.length) {
-      return rawRoles.filter((r): r is PerfilAcesso => [
-        "administrador",
-        "gestor",
-        "setor_requisitante",
-        "consulta",
-      ].includes(r));
-    }
-
-    if (typeof rawRole === "string" && rawRole.length) {
-      const r = rawRole as PerfilAcesso;
-      if (["administrador", "gestor", "setor_requisitante", "consulta"].includes(r)) {
-        return [r];
-      }
-    }
-    return [];
-  } catch (e) {
-    console.warn("Falha ao ler user_metadata:", e);
-    return [];
-  }
-}
-
 export async function fetchUserRoles(userId?: string): Promise<PerfilAcesso[]> {
   try {
-    // Primeiro tenta via user_metadata
-    const metaRoles = await rolesFromUserMetadata();
-    if (metaRoles.length) return metaRoles;
-
     const uid = userId;
     const id = uid ?? (await getSession())?.user?.id;
     if (!id) return [];
 
-    // Using any to avoid type issues for new tables not in generated types
+    // Query only user_roles table as single source of truth
     const { data, error } = (supabase as any)
       .from("user_roles")
       .select("role")
