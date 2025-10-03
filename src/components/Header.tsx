@@ -9,8 +9,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useNavigate } from "react-router-dom";
 
 export function Header() {
+  const navigate = useNavigate();
   return (
     <header className="h-16 border-b border-border bg-card flex items-center px-6 justify-between">
       <div className="flex items-center gap-4">
@@ -34,8 +36,7 @@ export function Header() {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Perfil</DropdownMenuItem>
-            <DropdownMenuItem>Configurações</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/minha-conta")}>Configurações</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

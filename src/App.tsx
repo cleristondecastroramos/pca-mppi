@@ -16,6 +16,7 @@ import AvaliacaoConformidade from "./pages/AvaliacaoConformidade";
 import ResultadosAlcancados from "./pages/ResultadosAlcancados";
 import Relatorios from "./pages/Relatorios";
 import GerenciamentoUsuarios from "./pages/GerenciamentoUsuarios";
+import MinhaConta from "./pages/MinhaConta";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -82,6 +83,11 @@ const App = () => (
           <Route path="/gerenciamento-usuarios" element={
             <ProtectedRoute allowed={["administrador"]}>
               <GerenciamentoUsuarios />
+            </ProtectedRoute>
+          } />
+          <Route path="/minha-conta" element={
+            <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
+              <MinhaConta />
             </ProtectedRoute>
           } />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

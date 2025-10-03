@@ -31,6 +31,7 @@ const menuItems = [
   { title: "Nova Contratação", url: "/nova-contratacao", icon: Plus },
   { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
   { title: "Gerenciamento de Usuários", url: "/gerenciamento-usuarios", icon: Users },
+  { title: "Minha Conta", url: "/minha-conta", icon: Settings },
 ];
 
 export function AppSidebar() {

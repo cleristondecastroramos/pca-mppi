@@ -25,17 +25,42 @@ type UserWithRoles = Profile & { roles: PerfilAcesso[] };
 const GerenciamentoUsuarios = () => {
   const [usuarios, setUsuarios] = useState<UserWithRoles[]>([]);
   const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<PerfilAcesso | "todos">("todos");
   const [editing, setEditing] = useState<UserWithRoles | null>(null);
   const [roleSel, setRoleSel] = useState<PerfilAcesso | undefined>(undefined);
   const [showAdminWarning, setShowAdminWarning] = useState(false);
   const [pendingRole, setPendingRole] = useState<PerfilAcesso | null>(null);
+  const [showAdminRemoveWarning, setShowAdminRemoveWarning] = useState(false);
+  const [pendingRemoveRole, setPendingRemoveRole] = useState<PerfilAcesso | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalUsers, setTotalUsers] = useState(0);
+  // Cadastro de novo usuário
+  const [showCreate, setShowCreate] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newNome, setNewNome] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newSetor, setNewSetor] = useState("");
+  const [newCargo, setNewCargo] = useState("");
+  const [newRole, setNewRole] = useState<PerfilAcesso | undefined>(undefined);
+  const [newProvisionalPassword, setNewProvisionalPassword] = useState("");
+  // Exclusão de usuário
+  const [deleteTarget, setDeleteTarget] = useState<UserWithRoles | null>(null);
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [seeding, setSeeding] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   async function loadUsers() {
     try {
-      const { data: profiles, error } = (supabase as any)
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize - 1;
+      const { data: profiles, error, count } = (supabase as any)
         .from("profiles")
-        .select("id, nome_completo, email, setor, cargo")
-        .order("nome_completo", { ascending: true });
+        .select("id, nome_completo, email, setor, cargo", { count: "exact" })
+        .order("nome_completo", { ascending: true })
+        .range(start, end);
       if (error) throw error;
 
       const ids = (profiles || []).map((p: any) => p.id);
@@ -57,6 +82,7 @@ const GerenciamentoUsuarios = () => {
         roles: rolesMap.get(p.id) || [],
       }));
       setUsuarios(merged);
+      setTotalUsers(count || merged.length);
     } catch (e: any) {
       console.error(e);
       toast.error("Erro ao carregar usuários", { description: e.message });
@@ -65,14 +91,30 @@ const GerenciamentoUsuarios = () => {
 
   useEffect(() => {
     loadUsers();
-  }, []);
+    // Captura usuário atual para controles de demissão própria
+    supabase.auth.getSession().then(({ data }) => {
+      setCurrentUserId(data.session?.user?.id || null);
+    });
+    // Detecta se usuário atual é administrador
+    supabase.auth.getUser().then(async ({ data }) => {
+      const uid = data.user?.id;
+      if (uid) {
+        const { data: adminFlag } = await (supabase as any).rpc("has_role", { _user_id: uid, _role: "administrador" });
+        setIsAdmin(Boolean(adminFlag));
+      }
+    });
+  }, [page, pageSize]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    return usuarios.filter((u) =>
-      [u.nome_completo || "", u.email || "", u.setor || "", u.cargo || ""].some((f) => f.toLowerCase().includes(q)),
-    );
-  }, [usuarios, search]);
+    return usuarios.filter((u) => {
+      const textMatch = [u.nome_completo || "", u.email || "", u.setor || "", u.cargo || ""].some((f) =>
+        f.toLowerCase().includes(q),
+      );
+      const roleMatch = roleFilter === "todos" ? true : u.roles.includes(roleFilter as PerfilAcesso);
+      return textMatch && roleMatch;
+    });
+  }, [usuarios, search, roleFilter]);
 
   async function saveRole() {
     if (!editing || !roleSel) return;
@@ -123,6 +165,48 @@ const GerenciamentoUsuarios = () => {
     }
   }
 
+  async function performRoleRemove(role: PerfilAcesso) {
+    if (!editing) return;
+    try {
+      const { error } = (supabase as any)
+        .from("user_roles")
+        .delete()
+        .eq("user_id", editing.id)
+        .eq("role", role);
+      if (error) throw error;
+
+      // Log de remoção de perfil
+      await (supabase as any).from("contratacoes_historico").insert({
+        user_id: editing.id,
+        contratacao_id: editing.id,
+        acao: "role_removed",
+        dados_novos: { role, removed_at: new Date().toISOString() },
+      });
+
+      toast.success("Perfil removido com sucesso");
+      // Atualiza usuário em edição após remoção
+      setEditing(null);
+      setRoleSel(undefined);
+      setShowAdminRemoveWarning(false);
+      setPendingRemoveRole(null);
+      loadUsers();
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Falha ao remover perfil", { description: e.message });
+    }
+  }
+
+  function handleRemoveRole(role: PerfilAcesso) {
+    if (!editing) return;
+    // Proteção extra para remoção de administrador
+    if (role === "administrador") {
+      setPendingRemoveRole(role);
+      setShowAdminRemoveWarning(true);
+      return;
+    }
+    void performRoleRemove(role);
+  }
+
   function handleAdminConfirm() {
     if (pendingRole) {
       performRoleSave(pendingRole);
@@ -138,11 +222,163 @@ const GerenciamentoUsuarios = () => {
         <Card>
           <CardHeader>
             <CardTitle>Usuários</CardTitle>
+            <div className="flex items-center gap-2">
+              <Dialog open={showCreate} onOpenChange={setShowCreate}>
+                <DialogTrigger asChild>
+                  <Button onClick={() => setShowCreate(true)}>Cadastrar usuário</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Novo usuário</DialogTitle>
+                    <DialogDescription>
+                      Informe nome, e-mail, setor, cargo e perfil de acesso. Opcionalmente, defina uma senha provisória (mínimo 8 caracteres); o usuário deverá alterá-la no primeiro login.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-sm text-muted-foreground">Nome completo</label>
+                      <Input value={newNome} onChange={(e) => setNewNome(e.target.value)} placeholder="Ex.: Maria Silva" />
+                    </div>
+                    <div>
+                      <label className="text-sm text-muted-foreground">E-mail</label>
+                      <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="usuario@mppi.mp.br" />
+                    </div>
+                    <div>
+                      <label className="text-sm text-muted-foreground">Setor</label>
+                      <Input value={newSetor} onChange={(e) => setNewSetor(e.target.value)} placeholder="Ex.: TI" />
+                    </div>
+                    <div>
+                      <label className="text-sm text-muted-foreground">Cargo</label>
+                      <Input value={newCargo} onChange={(e) => setNewCargo(e.target.value)} placeholder="Ex.: Analista" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="text-sm text-muted-foreground">Perfil de acesso</label>
+                      <Select value={newRole} onValueChange={(v) => setNewRole(v as PerfilAcesso)}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="administrador">
+                            <div className="flex items-center gap-2">
+                              <Shield className="h-4 w-4 text-destructive" />
+                              Administrador
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="gestor">Gestor</SelectItem>
+                          <SelectItem value="setor_requisitante">Setor requisitante</SelectItem>
+                          <SelectItem value="consulta">Consulta</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="text-sm text-muted-foreground">Senha provisória (opcional)</label>
+                      <Input
+                        type="password"
+                        value={newProvisionalPassword}
+                        onChange={(e) => setNewProvisionalPassword(e.target.value)}
+                        placeholder="Mínimo 8 caracteres"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      onClick={async () => {
+                        if (!newEmail || !newNome || !newRole) {
+                          toast.error("Preencha nome, e-mail e perfil de acesso.");
+                          return;
+                        }
+                        setCreating(true);
+                        try {
+                          if (newProvisionalPassword && newProvisionalPassword.length < 8) {
+                            toast.error("A senha provisória deve ter pelo menos 8 caracteres.");
+                            setCreating(false);
+                            return;
+                          }
+                          const { data, error } = await supabase.functions.invoke("admin-create-user", {
+                            body: {
+                              email: newEmail,
+                              nome_completo: newNome,
+                              setor: newSetor,
+                              cargo: newCargo,
+                              role: newRole,
+                              provisional_password: newProvisionalPassword || undefined,
+                            },
+                          });
+                          if (error) throw error;
+                          toast.success("Usuário cadastrado e convidado com sucesso.");
+                          setShowCreate(false);
+                          setNewEmail("");
+                          setNewNome("");
+                          setNewSetor("");
+                          setNewCargo("");
+                          setNewRole(undefined);
+                          setNewProvisionalPassword("");
+                          loadUsers();
+                        } catch (e: any) {
+                          console.error(e);
+                          toast.error("Falha ao cadastrar usuário", { description: e.message || e.toString() });
+                        } finally {
+                          setCreating(false);
+                        }
+                      }}
+                      disabled={creating}
+                    >
+                      {creating ? "Cadastrando..." : "Cadastrar"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Input placeholder="Buscar por nome, e-mail, setor" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <div className="flex flex-wrap gap-2 items-center">
+              <Input
+                placeholder="Buscar por nome, e-mail, setor"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="min-w-[240px]"
+              />
+              <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as PerfilAcesso | "todos")}
+              >
+                <SelectTrigger className="w-[220px]">
+                  <SelectValue placeholder="Filtrar por perfil" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os perfis</SelectItem>
+                  <SelectItem value="administrador">Administrador</SelectItem>
+                  <SelectItem value="gestor">Gestor</SelectItem>
+                  <SelectItem value="setor_requisitante">Setor requisitante</SelectItem>
+                  <SelectItem value="consulta">Consulta</SelectItem>
+                </SelectContent>
+              </Select>
               <Button variant="outline" onClick={loadUsers}>Atualizar</Button>
+              {isAdmin && (
+                <Button
+                  variant="secondary"
+                  onClick={async () => {
+                    setSeeding(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke("admin-seed", {
+                        body: { create_contratacoes: true },
+                      });
+                      if (error) throw error;
+                      toast.success("Dados de teste gerados", {
+                        description: `Usuários criados: ${data?.results?.createdUsers || 0}, Contratações inseridas: ${data?.results?.insertedContratacoes || 0}`,
+                      });
+                      loadUsers();
+                    } catch (e: any) {
+                      console.error(e);
+                      toast.error("Falha ao gerar dados", { description: e.message || e.toString() });
+                    } finally {
+                      setSeeding(false);
+                    }
+                  }}
+                  disabled={seeding}
+                  title="Gerar usuários e contratações de exemplo"
+                >
+                  {seeding ? "Gerando..." : "Gerar dados de teste"}
+                </Button>
+              )}
             </div>
             <Table>
               <TableHeader>
@@ -178,7 +414,32 @@ const GerenciamentoUsuarios = () => {
                           <div className="space-y-3">
                             <div>
                               <div className="text-sm text-muted-foreground">Perfis atuais</div>
-                              <div className="text-sm">{editing?.roles.join(", ") || "—"}</div>
+                              <div className="flex flex-wrap gap-2 mt-1">
+                                {(editing?.roles || []).length === 0 && (
+                                  <span className="text-sm">—</span>
+                                )}
+                                {(editing?.roles || []).map((role) => {
+                                  const isSelfAdminRemoval =
+                                    role === "administrador" && editing?.id && currentUserId === editing.id;
+                                  return (
+                                    <div key={role} className="flex items-center gap-2">
+                                      <span className="text-sm px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                                        {role}
+                                      </span>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className={role === "administrador" ? "border-destructive text-destructive" : ""}
+                                        onClick={() => handleRemoveRole(role)}
+                                        disabled={isSelfAdminRemoval}
+                                        title={isSelfAdminRemoval ? "Você não pode remover seu próprio perfil de administrador" : "Remover perfil"}
+                                      >
+                                        Remover
+                                      </Button>
+                                    </div>
+                                  );
+                                })}
+                              </div>
                             </div>
                             <div>
                               <label className="text-sm text-muted-foreground">Adicionar perfil</label>
@@ -205,13 +466,99 @@ const GerenciamentoUsuarios = () => {
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="ml-2"
+                        onClick={() => { setDeleteTarget(u); setShowDelete(true); }}
+                        disabled={u.id === currentUserId}
+                        title={u.id === currentUserId ? "Você não pode excluir seu próprio usuário" : "Excluir usuário"}
+                      >
+                        Excluir
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+            <div className="flex items-center justify-between pt-4">
+              <div className="text-sm text-muted-foreground">
+                {filtered.length} de {totalUsers} usuários
+              </div>
+              <div className="flex items-center gap-2">
+                <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Itens por página" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10 por página</SelectItem>
+                    <SelectItem value="20">20 por página</SelectItem>
+                    <SelectItem value="50">50 por página</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                  >
+                    Anterior
+                  </Button>
+                  <div className="text-sm">Página {page}</div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => p + 1)}
+                    disabled={page * pageSize >= totalUsers}
+                  >
+                    Próxima
+                  </Button>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
+
+        {/* Confirmação de exclusão de usuário */}
+        <AlertDialog open={showDelete} onOpenChange={setShowDelete}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir Usuário</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta ação é permanente e removerá o usuário selecionado, incluindo seus perfis e dados relacionados. Tem certeza que deseja continuar?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={async () => {
+                  if (!deleteTarget) return;
+                  setDeleting(true);
+                  try {
+                    const { error } = await supabase.functions.invoke("admin-delete-user", {
+                      body: { user_id: deleteTarget.id },
+                    });
+                    if (error) throw error;
+                    toast.success("Usuário excluído com sucesso.");
+                    setShowDelete(false);
+                    setDeleteTarget(null);
+                    loadUsers();
+                  } catch (e: any) {
+                    console.error(e);
+                    toast.error("Falha ao excluir usuário", { description: e.message || e.toString() });
+                  } finally {
+                    setDeleting(false);
+                  }
+                }}
+                disabled={deleting}
+              >
+                {deleting ? "Excluindo..." : "Confirmar exclusão"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <AlertDialog open={showAdminWarning} onOpenChange={setShowAdminWarning}>
           <AlertDialogContent>
@@ -230,6 +577,36 @@ const GerenciamentoUsuarios = () => {
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
               <AlertDialogAction onClick={handleAdminConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Confirmar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={showAdminRemoveWarning} onOpenChange={setShowAdminRemoveWarning}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-destructive" />
+                Confirmar Remoção de Administrador
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Você está prestes a remover privilégios de administrador deste usuário.
+                Isso pode restringir acesso a funcionalidades críticas, inclusive o próprio gerenciamento de usuários.
+                <br /><br />
+                <strong>Tem certeza que deseja continuar?</strong>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (pendingRemoveRole) {
+                    void performRoleRemove(pendingRemoveRole);
+                  }
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
                 Confirmar
               </AlertDialogAction>
             </AlertDialogFooter>

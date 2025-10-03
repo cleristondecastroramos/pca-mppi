@@ -28,17 +28,14 @@ export default function Auth() {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        navigate("/dashboard");
+      // Redireciona apenas quando evento indica logged in
+      if (event === "SIGNED_IN" && session) {
+        navigate("/dashboard", { replace: true });
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate("/dashboard");
-      }
-    });
-
+    // Evita redirect imediato; deixa ProtectedRoute gerir acesso
+    // Mantém usuário em /auth até sign-in explícito
     return () => subscription.unsubscribe();
   }, [navigate]);
 
@@ -54,6 +51,8 @@ export default function Auth() {
 
       if (error) throw error;
       toast.success("Login realizado com sucesso!");
+      // Navega após sucesso para o dashboard, agora com sessão válida
+      navigate("/dashboard", { replace: true });
     } catch (error: any) {
       toast.error(error.message || "Erro ao fazer login");
     } finally {

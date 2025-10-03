@@ -24,7 +24,17 @@ export async function fetchUserRoles(userId?: string): Promise<PerfilAcesso[]> {
       console.error("Erro ao buscar roles:", error);
       return [];
     }
-    return (data || []).map((r: { role: PerfilAcesso }) => r.role);
+    let roles: PerfilAcesso[] = (data || []).map((r: { role: PerfilAcesso }) => r.role);
+
+    // Fallback: se e-mail do usuário corresponder ao admin padrão, garante perfil administrador
+    const defaultAdminEmail = import.meta.env.VITE_DEFAULT_ADMIN_EMAIL as string | undefined;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const email = sessionData.session?.user?.email;
+    if (defaultAdminEmail && email && email.toLowerCase() === defaultAdminEmail.toLowerCase()) {
+      if (!roles.includes("administrador")) roles = [...roles, "administrador"];
+    }
+
+    return roles;
   } catch (e) {
     console.error("Falha ao obter roles:", e);
     return [];
