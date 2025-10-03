@@ -5,13 +5,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
+import Home from "./pages/Home";
 import Contratacoes from "./pages/Contratacoes";
 import NovaContratacao from "./pages/NovaContratacao";
 import VisaoGeral from "./pages/VisaoGeral";
 import SetoresDemandantes from "./pages/SetoresDemandantes";
 import ControlePrazos from "./pages/ControlePrazos";
 import PrioridadesContratacao from "./pages/PrioridadesContratacao";
+import PrioridadesAtencao from "./pages/PrioridadesAtencao";
 import AvaliacaoConformidade from "./pages/AvaliacaoConformidade";
 import ResultadosAlcancados from "./pages/ResultadosAlcancados";
 import Relatorios from "./pages/Relatorios";
@@ -28,11 +29,16 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard" element={
+          <Route path="/home" element={
             <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
-              <Dashboard />
+              <Home />
+            </ProtectedRoute>
+          } />
+          <Route path="/prioridades-atencao" element={
+            <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
+              <PrioridadesAtencao />
             </ProtectedRoute>
           } />
           <Route path="/visao-geral" element={

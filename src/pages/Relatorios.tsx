@@ -8,7 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { useState } from "react";
 import { toast } from "sonner";
 import { DateRange } from "react-day-picker";
-import { Calendar as CalendarIcon, Filter } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
 
 const Relatorios = () => {
   const [status, setStatus] = useState<string>("todos");
@@ -34,8 +34,12 @@ const Relatorios = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">Relatórios</h1>
-        <p className="text-muted-foreground">Geração e exportação de relatórios.</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-foreground">Relatórios</h1>
+            <p className="text-sm text-muted-foreground">Geração e exportação de relatórios.</p>
+          </div>
+        </div>
 
         <Card>
           <CardHeader>
@@ -46,7 +50,7 @@ const Relatorios = () => {
               <div>
                 <label className="text-sm text-muted-foreground">Status</label>
                 <Select value={status} onValueChange={setStatus}>
-                  <SelectTrigger className="mt-1">
+                  <SelectTrigger className="mt-1 h-9">
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
@@ -65,7 +69,7 @@ const Relatorios = () => {
                 <label className="text-sm text-muted-foreground">Período</label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="mt-1 w-full justify-start text-left font-normal">
+                    <Button size="xs" variant="outline" className="mt-1 w-full justify-start text-left font-normal">
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {range?.from && range?.to
                         ? `${range.from.toLocaleDateString()} - ${range.to.toLocaleDateString()}`
@@ -85,11 +89,10 @@ const Relatorios = () => {
             </div>
 
             <div className="flex gap-2">
-              <Button onClick={() => handleGenerate("pdf")} disabled={loading} className="bg-primary hover:bg-primary-dark">
-                <Filter className="mr-2 h-4 w-4" />
+              <Button size="xs" onClick={() => handleGenerate("pdf")} disabled={loading} className="bg-primary hover:bg-primary-dark">
                 Exportar PDF
               </Button>
-              <Button onClick={() => handleGenerate("csv")} disabled={loading} variant="outline">
+              <Button size="xs" onClick={() => handleGenerate("csv")} disabled={loading} variant="outline">
                 Exportar CSV
               </Button>
             </div>

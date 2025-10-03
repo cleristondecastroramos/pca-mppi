@@ -30,7 +30,7 @@ export default function Auth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       // Redireciona apenas quando evento indica logged in
       if (event === "SIGNED_IN" && session) {
-        navigate("/dashboard", { replace: true });
+    navigate("/home", { replace: true });
       }
     });
 
@@ -52,7 +52,7 @@ export default function Auth() {
       if (error) throw error;
       toast.success("Login realizado com sucesso!");
       // Navega após sucesso para o dashboard, agora com sessão válida
-      navigate("/dashboard", { replace: true });
+    navigate("/home", { replace: true });
     } catch (error: any) {
       toast.error(error.message || "Erro ao fazer login");
     } finally {
@@ -121,7 +121,7 @@ export default function Auth() {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full" disabled={loading} size="xs">
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Entrar
                 </Button>

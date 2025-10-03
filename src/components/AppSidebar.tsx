@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, Plus, Settings, LogOut, BarChart3, Users, CheckSquare, ClipboardList, Gauge, BadgeCheck, Clock, TrendingUp } from "lucide-react";
+import { LayoutDashboard, FileText, Plus, Settings, LogOut, BarChart3, Users, CheckSquare, ClipboardList, Gauge, BadgeCheck, Clock, TrendingUp, AlertTriangle } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
   Sidebar,
@@ -20,10 +20,10 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 const menuItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Visão Geral", url: "/visao-geral", icon: Gauge },
   { title: "Setores Demandantes", url: "/setores-demandantes", icon: ClipboardList },
   { title: "Controle de Prazos", url: "/controle-prazos", icon: Clock },
+  { title: "Pontos de Atenção", url: "/prioridades-atencao", icon: AlertTriangle },
   { title: "Prioridades de Contratação", url: "/prioridades-contratacao", icon: BadgeCheck },
   { title: "Avaliação e Conformidade", url: "/avaliacao-conformidade", icon: CheckSquare },
   { title: "Resultados Alcançados", url: "/resultados-alcancados", icon: TrendingUp },
@@ -63,7 +63,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
-      <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
+      <SidebarHeader className="h-16 flex items-center border-b border-border px-4">
         {!collapsed && (
           <div>
             <h2 className="text-lg font-bold text-sidebar-foreground">PCA 2026</h2>
@@ -104,7 +104,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-4">
+      <SidebarFooter className="border-t border-sidebar-border px-4 py-2">
         <Button
           variant="ghost"
           size={collapsed ? "icon" : "default"}

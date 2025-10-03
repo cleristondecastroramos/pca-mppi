@@ -18,7 +18,7 @@ export function Header() {
       <div className="flex items-center gap-4">
         <SidebarTrigger />
         <h1 className="text-xl font-semibold text-foreground">
-          Sistema de Gerenciamento PCA 2026
+          Sistema de Gerenciamento PCA MPPI 2026
         </h1>
       </div>
 

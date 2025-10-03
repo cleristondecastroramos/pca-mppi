@@ -88,15 +88,15 @@ export default function NovaContratacao() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <Link to="/contratacoes">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Nova Contratação</h1>
-            <p className="text-muted-foreground">Cadastre uma nova contratação no PCA 2026</p>
+            <h1 className="text-xl font-bold text-foreground">Nova Contratação</h1>
+            <p className="text-sm text-muted-foreground">Cadastre uma nova contratação no PCA 2026</p>
           </div>
         </div>
 
@@ -106,8 +106,8 @@ export default function NovaContratacao() {
               <CardTitle>Informações Básicas</CardTitle>
               <CardDescription>Dados principais da contratação</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
+            <CardContent className="space-y-3">
+              <div className="grid gap-3 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="descricao">Descrição do Objeto *</Label>
                   <Input name="descricao" id="descricao" placeholder="Ex: Aquisição de Computadores" required />
@@ -122,7 +122,7 @@ export default function NovaContratacao() {
                 <div className="space-y-2">
                   <Label htmlFor="classe">Classe *</Label>
                   <Select name="classe" required>
-                    <SelectTrigger id="classe">
+                    <SelectTrigger id="classe" className="h-9">
                       <SelectValue placeholder="Selecione a classe" />
                     </SelectTrigger>
                     <SelectContent>
@@ -140,7 +140,7 @@ export default function NovaContratacao() {
                 <div className="space-y-2">
                   <Label htmlFor="setor">Setor Requisitante *</Label>
                   <Select name="setor_requisitante" required>
-                    <SelectTrigger id="setor">
+                    <SelectTrigger id="setor" className="h-9">
                       <SelectValue placeholder="Selecione o setor" />
                     </SelectTrigger>
                     <SelectContent>
@@ -164,7 +164,7 @@ export default function NovaContratacao() {
                 <div className="space-y-2">
                   <Label htmlFor="tipo-contratacao">Tipo de Contratação *</Label>
                   <Select name="tipo_contratacao" required>
-                    <SelectTrigger id="tipo-contratacao">
+                    <SelectTrigger id="tipo-contratacao" className="h-9">
                       <SelectValue placeholder="Selecione o tipo" />
                     </SelectTrigger>
                     <SelectContent>
@@ -180,7 +180,7 @@ export default function NovaContratacao() {
                 <div className="space-y-2">
                   <Label htmlFor="modalidade">Modalidade *</Label>
                   <Select name="modalidade" required>
-                    <SelectTrigger id="modalidade">
+                    <SelectTrigger id="modalidade" className="h-9">
                       <SelectValue placeholder="Selecione a modalidade" />
                     </SelectTrigger>
                     <SelectContent>
@@ -196,7 +196,7 @@ export default function NovaContratacao() {
                 <div className="space-y-2">
                   <Label htmlFor="prioridade">Grau de Prioridade *</Label>
                   <Select name="grau_prioridade" required>
-                    <SelectTrigger id="prioridade">
+                    <SelectTrigger id="prioridade" className="h-9">
                       <SelectValue placeholder="Selecione a prioridade" />
                     </SelectTrigger>
                     <SelectContent>
@@ -211,7 +211,7 @@ export default function NovaContratacao() {
                 <div className="space-y-2">
                   <Label htmlFor="unidade-orcamentaria">Unidade Orçamentária *</Label>
                   <Select name="unidade_orcamentaria" required>
-                    <SelectTrigger id="unidade-orcamentaria">
+                    <SelectTrigger id="unidade-orcamentaria" className="h-9">
                       <SelectValue placeholder="Selecione a unidade" />
                     </SelectTrigger>
                     <SelectContent>
@@ -243,8 +243,8 @@ export default function NovaContratacao() {
               <CardTitle>Valores e Quantidades</CardTitle>
               <CardDescription>Informações orçamentárias</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-3">
+            <CardContent className="space-y-3">
+              <div className="grid gap-3 md:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="quantidade">Quantidade de Itens</Label>
                   <Input name="quantidade_itens" id="quantidade" type="number" placeholder="0" />
@@ -276,7 +276,7 @@ export default function NovaContratacao() {
                 <div className="space-y-2">
                   <Label htmlFor="tipo-recurso">Tipo de Recurso *</Label>
                   <Select name="tipo_recurso" required>
-                    <SelectTrigger id="tipo-recurso">
+                    <SelectTrigger id="tipo-recurso" className="h-9">
                       <SelectValue placeholder="Selecione o tipo" />
                     </SelectTrigger>
                     <SelectContent>
@@ -290,14 +290,13 @@ export default function NovaContratacao() {
             </CardContent>
           </Card>
 
-          <div className="flex justify-end gap-4">
+          <div className="flex justify-end gap-2">
             <Link to="/contratacoes">
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" size="xs">
                 Cancelar
               </Button>
             </Link>
-            <Button type="submit" disabled={loading}>
-              <Save className="h-4 w-4 mr-2" />
+            <Button type="submit" disabled={loading} size="xs">
               {loading ? "Salvando..." : "Salvar Contratação"}
             </Button>
           </div>

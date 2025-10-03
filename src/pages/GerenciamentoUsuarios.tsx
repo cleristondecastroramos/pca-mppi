@@ -216,8 +216,12 @@ const GerenciamentoUsuarios = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">Gerenciamento de Usuários</h1>
-        <p className="text-muted-foreground">Listagem, edição e perfis de acesso.</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-foreground">Gerenciamento de Usuários</h1>
+            <p className="text-sm text-muted-foreground">Listagem, edição e perfis de acesso.</p>
+          </div>
+        </div>
 
         <Card>
           <CardHeader>
@@ -254,7 +258,7 @@ const GerenciamentoUsuarios = () => {
                     <div className="md:col-span-2">
                       <label className="text-sm text-muted-foreground">Perfil de acesso</label>
                       <Select value={newRole} onValueChange={(v) => setNewRole(v as PerfilAcesso)}>
-                        <SelectTrigger className="mt-1">
+                        <SelectTrigger className="mt-1 h-9">
                           <SelectValue placeholder="Selecione" />
                         </SelectTrigger>
                         <SelectContent>
@@ -340,7 +344,7 @@ const GerenciamentoUsuarios = () => {
               />
               <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as PerfilAcesso | "todos")}
               >
-                <SelectTrigger className="w-[220px]">
+                <SelectTrigger className="w-[220px] h-9">
                   <SelectValue placeholder="Filtrar por perfil" />
                 </SelectTrigger>
                 <SelectContent>
@@ -351,10 +355,11 @@ const GerenciamentoUsuarios = () => {
                   <SelectItem value="consulta">Consulta</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" onClick={loadUsers}>Atualizar</Button>
+              <Button variant="outline" size="xs" onClick={loadUsers}>Atualizar</Button>
               {isAdmin && (
                 <Button
                   variant="secondary"
+                  size="xs"
                   onClick={async () => {
                     setSeeding(true);
                     try {
@@ -402,7 +407,7 @@ const GerenciamentoUsuarios = () => {
                     <TableCell className="text-right">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button size="sm" variant="outline" onClick={() => { setEditing(u); setRoleSel(undefined); }}>Editar</Button>
+                          <Button size="xs" variant="outline" onClick={() => { setEditing(u); setRoleSel(undefined); }}>Editar</Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
@@ -427,7 +432,7 @@ const GerenciamentoUsuarios = () => {
                                         {role}
                                       </span>
                                       <Button
-                                        size="sm"
+                                        size="xs"
                                         variant="outline"
                                         className={role === "administrador" ? "border-destructive text-destructive" : ""}
                                         onClick={() => handleRemoveRole(role)}
@@ -444,7 +449,7 @@ const GerenciamentoUsuarios = () => {
                             <div>
                               <label className="text-sm text-muted-foreground">Adicionar perfil</label>
                               <Select value={roleSel} onValueChange={(v) => setRoleSel(v as PerfilAcesso)}>
-                                <SelectTrigger className="mt-1">
+                                <SelectTrigger className="mt-1 h-9">
                                   <SelectValue placeholder="Selecione" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -462,12 +467,12 @@ const GerenciamentoUsuarios = () => {
                             </div>
                           </div>
                           <DialogFooter>
-                            <Button onClick={saveRole} disabled={!roleSel}>Salvar</Button>
+                            <Button size="xs" onClick={saveRole} disabled={!roleSel}>Salvar</Button>
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
                       <Button
-                        size="sm"
+                        size="xs"
                         variant="destructive"
                         className="ml-2"
                         onClick={() => { setDeleteTarget(u); setShowDelete(true); }}
@@ -487,7 +492,7 @@ const GerenciamentoUsuarios = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
-                  <SelectTrigger className="w-[140px]">
+                  <SelectTrigger className="w-[140px] h-9">
                     <SelectValue placeholder="Itens por página" />
                   </SelectTrigger>
                   <SelectContent>
@@ -499,7 +504,7 @@ const GerenciamentoUsuarios = () => {
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
-                    size="sm"
+                    size="xs"
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1}
                   >
@@ -508,7 +513,7 @@ const GerenciamentoUsuarios = () => {
                   <div className="text-sm">Página {page}</div>
                   <Button
                     variant="outline"
-                    size="sm"
+                    size="xs"
                     onClick={() => setPage((p) => p + 1)}
                     disabled={page * pageSize >= totalUsers}
                   >

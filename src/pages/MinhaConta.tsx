@@ -48,7 +48,7 @@ const MinhaConta = () => {
               <div className="grid gap-2 mt-2">
                 <Input type="password" placeholder="Nova senha" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
                 <Input type="password" placeholder="Confirmar nova senha" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-                <Button onClick={handleChangePassword} disabled={loading}>
+                <Button onClick={handleChangePassword} disabled={loading} size="xs">
                   {loading ? "Salvando..." : "Salvar senha"}
                 </Button>
               </div>

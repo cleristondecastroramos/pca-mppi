@@ -5,8 +5,12 @@ const AvaliacaoConformidade = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">Avaliação e Conformidade</h1>
-        <p className="text-muted-foreground">Audite e verifique conformidade.</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-foreground">Avaliação e Conformidade</h1>
+            <p className="text-sm text-muted-foreground">Audite e verifique conformidade.</p>
+          </div>
+        </div>
 
         <Card>
           <CardHeader>

@@ -69,18 +69,15 @@ export default function Contratacoes() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Contratações</h1>
-            <p className="text-muted-foreground">Gerencie todas as contratações do PCA 2026</p>
+            <h1 className="text-xl font-bold text-foreground">Contratações</h1>
+            <p className="text-sm text-muted-foreground">Gerencie todas as contratações do PCA 2026</p>
           </div>
           <Link to="/nova-contratacao">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Contratação
-            </Button>
+            <Button size="xs">Nova Contratação</Button>
           </Link>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -88,10 +85,7 @@ export default function Contratacoes() {
               className="pl-10"
             />
           </div>
-          <Button variant="outline">
-            <Filter className="h-4 w-4 mr-2" />
-            Filtros
-          </Button>
+          <Button variant="outline" size="xs">Filtros</Button>
         </div>
 
         <div className="rounded-lg border border-border bg-card">
@@ -138,7 +132,7 @@ export default function Contratacoes() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="xs">
                       Ver Detalhes
                     </Button>
                   </TableCell>
