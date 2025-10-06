@@ -21,14 +21,13 @@ import { toast } from "sonner";
 
 const menuItems = [
   { title: "Visão Geral", url: "/visao-geral", icon: Gauge },
+  { title: "Contratações", url: "/contratacoes", icon: FileText },
   { title: "Setores Demandantes", url: "/setores-demandantes", icon: ClipboardList },
   { title: "Controle de Prazos", url: "/controle-prazos", icon: Clock },
   { title: "Pontos de Atenção", url: "/prioridades-atencao", icon: AlertTriangle },
   { title: "Prioridades de Contratação", url: "/prioridades-contratacao", icon: BadgeCheck },
   { title: "Avaliação e Conformidade", url: "/avaliacao-conformidade", icon: CheckSquare },
   { title: "Resultados Alcançados", url: "/resultados-alcancados", icon: TrendingUp },
-  { title: "Contratações", url: "/contratacoes", icon: FileText },
-  { title: "Nova Contratação", url: "/nova-contratacao", icon: Plus },
   { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
   { title: "Gerenciamento de Usuários", url: "/gerenciamento-usuarios", icon: Users },
   { title: "Minha Conta", url: "/minha-conta", icon: Settings },

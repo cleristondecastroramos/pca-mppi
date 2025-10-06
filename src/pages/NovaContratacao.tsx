@@ -155,7 +155,7 @@ export default function NovaContratacao() {
                       <SelectItem value="GAECO">GAECO</SelectItem>
                       <SelectItem value="GSI">GSI</SelectItem>
                       <SelectItem value="CONINT">CONINT</SelectItem>
-                      <SelectItem value="PLANEJAMENTO">PLANEJAMENTO</SelectItem>
+                      <SelectItem value="PLANEJAMENTO">PLAN</SelectItem>
                     </SelectContent>
                   </Select>
                   {errors.setor_requisitante && <p className="text-sm text-destructive">{errors.setor_requisitante}</p>}

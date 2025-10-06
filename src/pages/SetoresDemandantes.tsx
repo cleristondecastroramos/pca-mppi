@@ -34,12 +34,22 @@ const setores = [
   "CTI",
   "GAECO",
   "GSI",
+  "PLANEJAMENTO",
   "PROCON",
 ];
 
 const ALL = "__all__";
 
 const formatCurrencyBRL = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v || 0);
+
+const mapSetorName = (setor: string) => {
+  if (setor === "PLANEJAMENTO") return "PLAN";
+  return setor;
+};
+
+const formatId = (id: string) => {
+  return `#${id.slice(-8)}`;
+};
 
 const SetoresDemandantes = () => {
   const [setor, setSetor] = useState<string | undefined>(undefined);
@@ -127,7 +137,7 @@ const SetoresDemandantes = () => {
                   size="xs"
                   onClick={() => { setSetor(setor === s ? undefined : s); setPage(1); }}
                 >
-                  {s}
+                  {mapSetorName(s)}
                 </Button>
               ))}
             </div>
@@ -244,7 +254,7 @@ const SetoresDemandantes = () => {
                 <TableBody>
                   {rows.map((r) => (
                     <TableRow key={r.id}>
-                      <TableCell>{r.id}</TableCell>
+                      <TableCell className="font-medium">{formatId(r.id)}</TableCell>
                       <TableCell>{r.descricao}</TableCell>
                       <TableCell>{formatCurrencyBRL(r.valor_estimado)}</TableCell>
                       <TableCell>{formatCurrencyBRL(r.valor_contratado || 0)}</TableCell>
