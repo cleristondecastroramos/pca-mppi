@@ -9,7 +9,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { FileText, DollarSign, CheckCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis, LabelList, PieChart, Pie, Cell } from "recharts";
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, LabelList, PieChart, Pie, Cell, Legend } from "recharts";
 
 const ALL_VALUE = "__all__";
 
@@ -72,6 +72,7 @@ const VisaoGeral = () => {
   const [kpiStatus, setKpiStatus] = useState<Array<{ etapa_processo: string; total_demandas: number; total_estimado: number; total_contratado: number }>>([]);
   const [distinctOptionsRpc, setDistinctOptionsRpc] = useState<any>(null);
   const [metric, setMetric] = useState<"quantidade" | "valor_estimado">("quantidade");
+  const [metricPie, setMetricPie] = useState<"quantidade" | "valor_estimado">("valor_estimado");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -209,6 +210,17 @@ const VisaoGeral = () => {
       .sort((a, b) => b.percentage - a.percentage);
   }, [filteredRows]);
 
+  const distribuicaoPorClasseQuantidade = useMemo(() => {
+    const map = new Map<string, number>();
+    filteredRows.forEach((r) => {
+      const key = r.classe || "Não informado";
+      map.set(key, (map.get(key) || 0) + 1);
+    });
+    return Array.from(map.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [filteredRows]);
+
   const dadosQuantidadePorSetor = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
@@ -246,11 +258,35 @@ const VisaoGeral = () => {
     return result.length > 0 ? result : [{ name: "Sem dados", value: 1 }];
   }, [filteredRows]);
 
+  const dadosQuantidadePorUO = useMemo(() => {
+    const map = new Map<string, number>();
+    filteredRows.forEach((r) => {
+      const uo = r.unidade_orcamentaria || "Não informado";
+      map.set(uo, (map.get(uo) || 0) + 1);
+    });
+    const result = Array.from(map.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+    return result.length > 0 ? result : [{ name: "Sem dados", value: 1 }];
+  }, [filteredRows]);
+
   const dadosValoresPorTipoContratacao = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
       const tipo = r.tipo_contratacao || "Não informado";
       map.set(tipo, (map.get(tipo) || 0) + (r.valor_estimado || 0));
+    });
+    const result = Array.from(map.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+    return result.length > 0 ? result : [{ name: "Sem dados", value: 1 }];
+  }, [filteredRows]);
+
+  const dadosQuantidadePorTipoContratacao = useMemo(() => {
+    const map = new Map<string, number>();
+    filteredRows.forEach((r) => {
+      const tipo = r.tipo_contratacao || "Não informado";
+      map.set(tipo, (map.get(tipo) || 0) + 1);
     });
     const result = Array.from(map.entries())
       .map(([name, value]) => ({ name, value }))
@@ -457,23 +493,25 @@ const VisaoGeral = () => {
         {/* Gráfico único com alternância: Demandas vs Valores por Setor */}
         <div className="grid gap-6">
           <Card>
-            <CardHeader className="flex items-center justify-between">
-              <CardTitle>Demandas/Valores por Setor</CardTitle>
-              <div className="flex gap-2">
-                <Button
-                  size="xs"
-                  variant={metric === "quantidade" ? "default" : "outline"}
-                  onClick={() => setMetric("quantidade")}
-                >
-                  Número de processos
-                </Button>
-                <Button
-                  size="xs"
-                  variant={metric === "valor_estimado" ? "default" : "outline"}
-                  onClick={() => setMetric("valor_estimado")}
-                >
-                  Valores estimados
-                </Button>
+            <CardHeader className="space-y-0">
+              <div className="flex w-full items-center justify-between">
+                <CardTitle>Demandas/Valores por Setor</CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    size="xs"
+                    variant={metric === "quantidade" ? "default" : "outline"}
+                    onClick={() => setMetric("quantidade")}
+                  >
+                    Número de processos
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant={metric === "valor_estimado" ? "default" : "outline"}
+                    onClick={() => setMetric("valor_estimado")}
+                  >
+                    Valores estimados
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -482,8 +520,8 @@ const VisaoGeral = () => {
                   demandas: { label: "Demandas", color: "hsl(var(--chart-1))" },
                   valores: { label: "Valores (R$)", color: "hsl(var(--chart-2))" },
                 }}
-                className="w-full !aspect-auto h-[180px] min-h-[180px] overflow-visible"
-                style={{ height: 180 }}
+                className="w-full !aspect-auto h-[220px] min-h-[220px] overflow-visible"
+                style={{ height: 220 }}
               >
                 {(() => {
                   const chartData = metric === "quantidade" ? dadosQuantidadePorSetor : dadosValoresPorSetor;
@@ -491,7 +529,7 @@ const VisaoGeral = () => {
                   const fillColor = metric === "quantidade" ? "var(--color-demandas)" : "var(--color-valores)";
                   const formatter = (value: number) => (metric === "valor_estimado" ? formatCurrencyBRL(value) : value);
                   return (
-                    <BarChart data={chartData} width={400} height={180} margin={{ top: 24, right: 16, bottom: 8, left: 8 }}>
+                    <BarChart data={chartData} width={400} height={220} margin={{ top: 24, right: 16, bottom: 8, left: 8 }}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="setor" />
                       <YAxis hide domain={[0, 'dataMax + 1']} />
@@ -513,8 +551,26 @@ const VisaoGeral = () => {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Distribuição por Classe (Pizza) */}
           <Card>
-            <CardHeader>
-              <CardTitle>Distribuição por Classe</CardTitle>
+            <CardHeader className="space-y-0">
+              <div className="flex w-full items-center justify-between">
+                <CardTitle>Distribuição por Classe</CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    size="xs"
+                    variant={metricPie === "quantidade" ? "default" : "outline"}
+                    onClick={() => setMetricPie("quantidade")}
+                  >
+                    Número de processos
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant={metricPie === "valor_estimado" ? "default" : "outline"}
+                    onClick={() => setMetricPie("valor_estimado")}
+                  >
+                    Valores estimados
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <ChartContainer
@@ -522,109 +578,168 @@ const VisaoGeral = () => {
                 className="w-full !aspect-auto h-[180px] min-h-[180px] overflow-visible"
                 style={{ height: 180 }}
               >
-                <PieChart width={400} height={180}>
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        formatter={(value: number, name) => (
-                          <span>{formatCurrencyBRL(value as number)}</span>
-                        )}
+                {(() => {
+                  const chartData = (metricPie === "valor_estimado" ? distribuicaoPorClasse : distribuicaoPorClasseQuantidade) as any[];
+                  const data = chartData.length ? chartData : [{ name: "Sem dados", value: 1 }];
+                  const formatter = (v: number) => (metricPie === "valor_estimado" ? formatCurrencyBRL(v) : v);
+                  return (
+                    <PieChart width={400} height={180}>
+                      <ChartTooltip
+                        content={
+                          <ChartTooltipContent
+                            formatter={(value: number) => (
+                              <span>{formatter(value as number)}</span>
+                            )}
+                          />
+                        }
                       />
-                    }
-                  />
-                  <ChartLegend content={<ChartLegendContent />} />
-                  <Pie
-                    data={(distribuicaoPorClasse.length ? distribuicaoPorClasse : [{ name: "Sem dados", value: 1 }]) as any}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={40}
-                    outerRadius={80}
-                    labelLine={false}
-                    label={({ percent }) => `${Math.round((percent || 0) * 100)}%`}
-                  >
-                    {(distribuicaoPorClasse.length ? distribuicaoPorClasse : [{ name: "Sem dados", value: 1 }]).map((_, index) => (
-                      <Cell key={`cell-classe-${index}`} fill={pieColors[index % pieColors.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
+                      <ChartLegend content={<ChartLegendContent />} />
+                      <Pie
+                        data={data}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={40}
+                        outerRadius={80}
+                        labelLine={false}
+                        label={({ value, percent }) => `${formatter(value as number)} (${Math.round((percent || 0) * 100)}%)`}
+                      >
+                        {data.map((_: any, index: number) => (
+                          <Cell key={`cell-classe-${index}`} fill={pieColors[index % pieColors.length]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  );
+                })()}
               </ChartContainer>
             </CardContent>
           </Card>
 
           {/* Valores estimados por UO (Pizza) */}
           <Card>
-            <CardHeader>
-              <CardTitle>Valores estimados por UO</CardTitle>
+            <CardHeader className="space-y-0">
+              <div className="flex w-full items-center justify-between">
+                <CardTitle>Distribuição por UO</CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    size="xs"
+                    variant={metricPie === "quantidade" ? "default" : "outline"}
+                    onClick={() => setMetricPie("quantidade")}
+                  >
+                    Número de processos
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant={metricPie === "valor_estimado" ? "default" : "outline"}
+                    onClick={() => setMetricPie("valor_estimado")}
+                  >
+                    Valores estimados
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <ChartContainer
-                config={{ uo: { label: "Valores (R$)", color: "hsl(var(--chart-2))" } }}
+                config={{ uo: { label: "UO", color: "hsl(var(--chart-2))" } }}
                 className="w-full !aspect-auto h-[180px] min-h-[180px] overflow-visible"
                 style={{ height: 180 }}
               >
-                <PieChart width={400} height={180}>
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        formatter={(value: number, name) => (
-                          <span>{formatCurrencyBRL(value as number)}</span>
-                        )}
+                {(() => {
+                  const chartData = (metricPie === "valor_estimado" ? dadosValoresPorUO : dadosQuantidadePorUO) as any[];
+                  const data = chartData.length ? chartData : [{ name: "Sem dados", value: 1 }];
+                  const formatter = (v: number) => (metricPie === "valor_estimado" ? formatCurrencyBRL(v) : v);
+                  return (
+                    <PieChart width={400} height={180}>
+                      <ChartTooltip
+                        content={
+                          <ChartTooltipContent
+                            formatter={(value: number) => (
+                              <span>{formatter(value as number)}</span>
+                            )}
+                          />
+                        }
                       />
-                    }
-                  />
-                  <ChartLegend content={<ChartLegendContent />} />
-                  <Pie
-                    data={dadosValoresPorUO}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={40}
-                    outerRadius={80}
-                    labelLine={false}
-                  >
-                    {dadosValoresPorUO.map((_, index) => (
-                      <Cell key={`cell-uo-${index}`} fill={pieColors[index % pieColors.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
+                      <ChartLegend content={<ChartLegendContent />} />
+                      <Pie
+                        data={data}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={40}
+                        outerRadius={80}
+                        labelLine={false}
+                        label={({ value, percent }) => `${formatter(value as number)} (${Math.round((percent || 0) * 100)}%)`}
+                      >
+                        {data.map((_: any, index: number) => (
+                          <Cell key={`cell-uo-${index}`} fill={pieColors[index % pieColors.length]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  );
+                })()}
               </ChartContainer>
             </CardContent>
           </Card>
 
           {/* Valores estimados por tipo de contratação (Pizza) */}
           <Card>
-            <CardHeader>
-              <CardTitle>Valores estimados por tipo de contratação</CardTitle>
+            <CardHeader className="space-y-0">
+              <div className="flex w-full items-center justify-between">
+                <CardTitle>Distribuição por Tipo de Contratação</CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    size="xs"
+                    variant={metricPie === "quantidade" ? "default" : "outline"}
+                    onClick={() => setMetricPie("quantidade")}
+                  >
+                    Número de processos
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant={metricPie === "valor_estimado" ? "default" : "outline"}
+                    onClick={() => setMetricPie("valor_estimado")}
+                  >
+                    Valores estimados
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <ChartContainer
-                config={{ tipo: { label: "Valores (R$)", color: "hsl(var(--chart-3))" } }}
+                config={{ tipo: { label: "Tipo", color: "hsl(var(--chart-3))" } }}
                 className="w-full !aspect-auto h-[180px] min-h-[180px] overflow-visible"
                 style={{ height: 180 }}
               >
-                <PieChart width={400} height={180}>
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        formatter={(value: number, name) => (
-                          <span>{formatCurrencyBRL(value as number)}</span>
-                        )}
+                {(() => {
+                  const chartData = (metricPie === "valor_estimado" ? dadosValoresPorTipoContratacao : dadosQuantidadePorTipoContratacao) as any[];
+                  const data = chartData.length ? chartData : [{ name: "Sem dados", value: 1 }];
+                  const formatter = (v: number) => (metricPie === "valor_estimado" ? formatCurrencyBRL(v) : v);
+                  return (
+                    <PieChart width={400} height={180}>
+                      <ChartTooltip
+                        content={
+                          <ChartTooltipContent
+                            formatter={(value: number) => (
+                              <span>{formatter(value as number)}</span>
+                            )}
+                          />
+                        }
                       />
-                    }
-                  />
-                  <ChartLegend content={<ChartLegendContent />} />
-                  <Pie
-                    data={dadosValoresPorTipoContratacao}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={40}
-                    outerRadius={80}
-                    labelLine={false}
-                  >
-                    {dadosValoresPorTipoContratacao.map((_, index) => (
-                      <Cell key={`cell-tipo-${index}`} fill={pieColors[index % pieColors.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
+                      <ChartLegend content={<ChartLegendContent />} />
+                      <Pie
+                        data={data}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={40}
+                        outerRadius={80}
+                        labelLine={false}
+                        label={({ value, percent }) => `${formatter(value as number)} (${Math.round((percent || 0) * 100)}%)`}
+                      >
+                        {data.map((_: any, index: number) => (
+                          <Cell key={`cell-tipo-${index}`} fill={pieColors[index % pieColors.length]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  );
+                })()}
               </ChartContainer>
             </CardContent>
           </Card>
