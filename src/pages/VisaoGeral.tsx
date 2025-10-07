@@ -44,6 +44,46 @@ type Filtros = {
 const formatCurrencyBRL = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
+// Ordem fixa das legendas dos gráficos de pizza
+const FIXED_ORDER_UO = ["PGJ", "FMMP", "FEPDC"];
+const FIXED_ORDER_TIPO = [
+  "Nova Contratação",
+  "Renovação",
+  "Aditivo Quantitativo",
+  "Repactuação",
+];
+const FIXED_ORDER_CLASSE = [
+  "Material de Consumo",
+  "Material Permanente",
+  "Serviço",
+  "Serviço de TI",
+  "Engenharia",
+  "Obra",
+];
+
+type PieItem = { name: string; value: number };
+const sortByFixedOrder = (arr: PieItem[], order: string[]): PieItem[] => {
+  const fixed: PieItem[] = [];
+  const others: PieItem[] = [];
+  for (const item of arr) {
+    if (order.includes(item.name)) fixed.push(item);
+    else others.push(item);
+  }
+  fixed.sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
+  // Outros rótulos fora da ordem fixa aparecem ao final em ordem alfabética
+  others.sort((a, b) => a.name.localeCompare(b.name));
+  return [...fixed, ...others];
+};
+
+// Abreviação robusta para rótulos das classes na legenda
+const normalizeStr = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const abbreviateClasseLabel = (value: string) => {
+  const n = normalizeStr(value);
+  if (n.includes("material de consumo")) return "Mat. Consumo";
+  if (n.includes("material permanente")) return "Mat. Permanente";
+  return value;
+};
+
 const mapSetorName = (setor: string) => {
   if (setor === "PLANEJAMENTO") return "PLAN";
   return setor;
@@ -72,7 +112,9 @@ const VisaoGeral = () => {
   const [kpiStatus, setKpiStatus] = useState<Array<{ etapa_processo: string; total_demandas: number; total_estimado: number; total_contratado: number }>>([]);
   const [distinctOptionsRpc, setDistinctOptionsRpc] = useState<any>(null);
   const [metric, setMetric] = useState<"quantidade" | "valor_estimado">("quantidade");
-  const [metricPie, setMetricPie] = useState<"quantidade" | "valor_estimado">("valor_estimado");
+  const [metricPieClasse, setMetricPieClasse] = useState<"quantidade" | "valor_estimado">("quantidade");
+  const [metricPieUO, setMetricPieUO] = useState<"quantidade" | "valor_estimado">("quantidade");
+  const [metricPieTipo, setMetricPieTipo] = useState<"quantidade" | "valor_estimado">("quantidade");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -252,10 +294,9 @@ const VisaoGeral = () => {
       const uo = r.unidade_orcamentaria || "Não informado";
       map.set(uo, (map.get(uo) || 0) + (r.valor_estimado || 0));
     });
-    const result = Array.from(map.entries())
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-    return result.length > 0 ? result : [{ name: "Sem dados", value: 1 }];
+    const result = Array.from(map.entries()).map(([name, value]) => ({ name, value }));
+    const ordered = sortByFixedOrder(result, FIXED_ORDER_UO);
+    return ordered.length > 0 ? ordered : [{ name: "Sem dados", value: 1 }];
   }, [filteredRows]);
 
   const dadosQuantidadePorUO = useMemo(() => {
@@ -264,10 +305,9 @@ const VisaoGeral = () => {
       const uo = r.unidade_orcamentaria || "Não informado";
       map.set(uo, (map.get(uo) || 0) + 1);
     });
-    const result = Array.from(map.entries())
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-    return result.length > 0 ? result : [{ name: "Sem dados", value: 1 }];
+    const result = Array.from(map.entries()).map(([name, value]) => ({ name, value }));
+    const ordered = sortByFixedOrder(result, FIXED_ORDER_UO);
+    return ordered.length > 0 ? ordered : [{ name: "Sem dados", value: 1 }];
   }, [filteredRows]);
 
   const dadosValoresPorTipoContratacao = useMemo(() => {
@@ -276,10 +316,9 @@ const VisaoGeral = () => {
       const tipo = r.tipo_contratacao || "Não informado";
       map.set(tipo, (map.get(tipo) || 0) + (r.valor_estimado || 0));
     });
-    const result = Array.from(map.entries())
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-    return result.length > 0 ? result : [{ name: "Sem dados", value: 1 }];
+    const result = Array.from(map.entries()).map(([name, value]) => ({ name, value }));
+    const ordered = sortByFixedOrder(result, FIXED_ORDER_TIPO);
+    return ordered.length > 0 ? ordered : [{ name: "Sem dados", value: 1 }];
   }, [filteredRows]);
 
   const dadosQuantidadePorTipoContratacao = useMemo(() => {
@@ -288,10 +327,32 @@ const VisaoGeral = () => {
       const tipo = r.tipo_contratacao || "Não informado";
       map.set(tipo, (map.get(tipo) || 0) + 1);
     });
-    const result = Array.from(map.entries())
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-    return result.length > 0 ? result : [{ name: "Sem dados", value: 1 }];
+    const result = Array.from(map.entries()).map(([name, value]) => ({ name, value }));
+    const ordered = sortByFixedOrder(result, FIXED_ORDER_TIPO);
+    return ordered.length > 0 ? ordered : [{ name: "Sem dados", value: 1 }];
+  }, [filteredRows]);
+
+  // Dados para Classe (valores e quantidade) usados no terceiro gráfico de pizza
+  const dadosValoresPorClasse = useMemo(() => {
+    const map = new Map<string, number>();
+    filteredRows.forEach((r) => {
+      const classe = r.classe || "Não informado";
+      map.set(classe, (map.get(classe) || 0) + (r.valor_estimado || 0));
+    });
+    const result = Array.from(map.entries()).map(([name, value]) => ({ name, value }));
+    const ordered = sortByFixedOrder(result, FIXED_ORDER_CLASSE);
+    return ordered.length > 0 ? ordered : [{ name: "Sem dados", value: 1 }];
+  }, [filteredRows]);
+
+  const dadosQuantidadePorClasse = useMemo(() => {
+    const map = new Map<string, number>();
+    filteredRows.forEach((r) => {
+      const classe = r.classe || "Não informado";
+      map.set(classe, (map.get(classe) || 0) + 1);
+    });
+    const result = Array.from(map.entries()).map(([name, value]) => ({ name, value }));
+    const ordered = sortByFixedOrder(result, FIXED_ORDER_CLASSE);
+    return ordered.length > 0 ? ordered : [{ name: "Sem dados", value: 1 }];
   }, [filteredRows]);
 
   const pieColors = [
@@ -324,10 +385,10 @@ const VisaoGeral = () => {
         <Card>
           <CardContent className="p-2">
             <div className="flex flex-wrap md:flex-nowrap gap-2">
-              <div className="w-24 shrink-0">
+              <div className="w-28 shrink-0">
                 <div className="text-[10px] text-black px-1">UO:</div>
                 <Select onValueChange={(v) => setFiltro("unidade_orcamentaria", v)} value={filtros.unidade_orcamentaria}>
-                  <SelectTrigger className="h-8 w-[90px] truncate px-2 text-xs">
+                  <SelectTrigger className="h-9 w-[110px] truncate px-3 text-sm">
                     <SelectValue placeholder="" />
                   </SelectTrigger>
                   <SelectContent>
@@ -338,10 +399,10 @@ const VisaoGeral = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-[110px] shrink-0">
+              <div className="w-[130px] shrink-0">
                 <div className="text-[10px] text-black px-1">Setor Requisitante:</div>
                 <Select onValueChange={(v) => setFiltro("setor_requisitante", v)} value={filtros.setor_requisitante}>
-                  <SelectTrigger className="h-8 w-[96px] truncate px-2 text-xs">
+                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm">
                     <SelectValue placeholder="" />
                   </SelectTrigger>
                   <SelectContent>
@@ -352,10 +413,10 @@ const VisaoGeral = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-[140px] shrink-0 -ml-1">
+              <div className="w-[160px] shrink-0 -ml-1">
                 <div className="text-[10px] text-black px-1">Tipo de Contratação:</div>
                 <Select onValueChange={(v) => setFiltro("tipo_contratacao", v)} value={filtros.tipo_contratacao}>
-                  <SelectTrigger className="h-8 w-full truncate px-2 text-xs">
+                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm">
                     <SelectValue placeholder="" />
                   </SelectTrigger>
                   <SelectContent>
@@ -366,10 +427,10 @@ const VisaoGeral = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-[110px] shrink-0">
+              <div className="w-[130px] shrink-0">
                 <div className="text-[10px] text-black px-1">Tipo de Recurso:</div>
                 <Select onValueChange={(v) => setFiltro("tipo_recurso", v)} value={filtros.tipo_recurso}>
-                  <SelectTrigger className="h-8 w-[96px] truncate px-2 text-xs">
+                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm">
                     <SelectValue placeholder="" />
                   </SelectTrigger>
                   <SelectContent>
@@ -380,10 +441,10 @@ const VisaoGeral = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-[150px] shrink-0 -ml-1">
+              <div className="w-[170px] shrink-0 -ml-1">
                 <div className="text-[10px] text-black px-1">Classe de Material:</div>
                 <Select onValueChange={(v) => setFiltro("classe", v)} value={filtros.classe}>
-                  <SelectTrigger className="h-8 w-full truncate px-2 text-xs">
+                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm">
                     <SelectValue placeholder="" />
                   </SelectTrigger>
                   <SelectContent>
@@ -394,10 +455,10 @@ const VisaoGeral = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-[110px] shrink-0">
+              <div className="w-[130px] shrink-0">
                 <div className="text-[10px] text-black px-1">Grau de Prioridade:</div>
                 <Select onValueChange={(v) => setFiltro("grau_prioridade", v)} value={filtros.grau_prioridade}>
-                  <SelectTrigger className="h-8 w-[96px] truncate px-2 text-xs">
+                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm">
                     <SelectValue placeholder="" />
                   </SelectTrigger>
                   <SelectContent>
@@ -408,10 +469,10 @@ const VisaoGeral = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-[110px] shrink-0 -ml-1">
+              <div className="w-[130px] shrink-0 -ml-1">
                 <div className="text-[10px] text-black px-1">Normativo:</div>
                 <Select onValueChange={(v) => setFiltro("normativo", v)} value={filtros.normativo}>
-                  <SelectTrigger className="h-8 w-[96px] truncate px-2 text-xs">
+                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm">
                     <SelectValue placeholder="" />
                   </SelectTrigger>
                   <SelectContent>
@@ -422,10 +483,10 @@ const VisaoGeral = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-[140px] shrink-0 -ml-1">
+              <div className="w-[160px] shrink-0 -ml-1">
                 <div className="text-[10px] text-black px-1">Modalidade de Contratação:</div>
                 <Select onValueChange={(v) => setFiltro("modalidade", v)} value={filtros.modalidade}>
-                  <SelectTrigger className="h-8 w-full truncate px-2 text-xs">
+                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm">
                     <SelectValue placeholder="" />
                   </SelectTrigger>
                   <SelectContent>
@@ -436,10 +497,10 @@ const VisaoGeral = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-[110px] shrink-0">
+              <div className="w-[130px] shrink-0">
                 <div className="text-[10px] text-black px-1">Status Atual:</div>
                 <Select onValueChange={(v) => setFiltro("etapa_processo", v)} value={filtros.etapa_processo}>
-                  <SelectTrigger className="h-8 w-[96px] truncate px-2 text-xs">
+                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm">
                     <SelectValue placeholder="" />
                   </SelectTrigger>
                   <SelectContent>
@@ -494,11 +555,12 @@ const VisaoGeral = () => {
         <div className="grid gap-6">
           <Card>
             <CardHeader className="space-y-0">
-              <div className="flex w-full items-center justify-between">
-                <CardTitle>Demandas/Valores por Setor</CardTitle>
-                <div className="flex gap-2">
+              <div className="flex w-full items-start justify-between">
+                <CardTitle className="text-sm">Distribuição por Setor</CardTitle>
+                <div className="flex flex-col gap-1 items-end">
                   <Button
                     size="xs"
+                    className="text-[10px] leading-3 w-[160px]"
                     variant={metric === "quantidade" ? "default" : "outline"}
                     onClick={() => setMetric("quantidade")}
                   >
@@ -506,6 +568,7 @@ const VisaoGeral = () => {
                   </Button>
                   <Button
                     size="xs"
+                    className="text-[10px] leading-3 w-[160px]"
                     variant={metric === "valor_estimado" ? "default" : "outline"}
                     onClick={() => setMetric("valor_estimado")}
                   >
@@ -520,8 +583,8 @@ const VisaoGeral = () => {
                   demandas: { label: "Demandas", color: "hsl(var(--chart-1))" },
                   valores: { label: "Valores (R$)", color: "hsl(var(--chart-2))" },
                 }}
-                className="w-full !aspect-auto h-[220px] min-h-[220px] overflow-visible"
-                style={{ height: 220 }}
+                className="w-full !aspect-auto h-[260px] min-h-[260px] overflow-visible"
+                style={{ height: 260 }}
               >
                 {(() => {
                   const chartData = metric === "quantidade" ? dadosQuantidadePorSetor : dadosValoresPorSetor;
@@ -529,7 +592,7 @@ const VisaoGeral = () => {
                   const fillColor = metric === "quantidade" ? "var(--color-demandas)" : "var(--color-valores)";
                   const formatter = (value: number) => (metric === "valor_estimado" ? formatCurrencyBRL(value) : value);
                   return (
-                    <BarChart data={chartData} width={400} height={220} margin={{ top: 24, right: 16, bottom: 8, left: 8 }}>
+                    <BarChart data={chartData} width={400} height={260} margin={{ top: 24, right: 16, bottom: 8, left: 8 }}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="setor" />
                       <YAxis hide domain={[0, 'dataMax + 1']} />
@@ -547,108 +610,45 @@ const VisaoGeral = () => {
           </Card>
         </div>
 
-        {/* Gráficos de Pizza: Classe, UO e Tipo de Contratação */}
+        {/* Gráficos de Pizza: UO, Tipo de Contratação e Classe */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Distribuição por Classe (Pizza) */}
           <Card>
             <CardHeader className="space-y-0">
-              <div className="flex w-full items-center justify-between">
-                <CardTitle>Distribuição por Classe</CardTitle>
-                <div className="flex gap-2">
+              <div className="flex w-full items-start justify-between">
+                <CardTitle className="text-sm">Distribuição por UO</CardTitle>
+                <div className="flex flex-col gap-1 items-end">
                   <Button
                     size="xs"
-                    variant={metricPie === "quantidade" ? "default" : "outline"}
-                    onClick={() => setMetricPie("quantidade")}
+                    className="text-[10px] leading-3 w-[160px]"
+                    variant={metricPieUO === "quantidade" ? "default" : "outline"}
+                    onClick={() => setMetricPieUO("quantidade")}
                   >
                     Número de processos
                   </Button>
                   <Button
                     size="xs"
-                    variant={metricPie === "valor_estimado" ? "default" : "outline"}
-                    onClick={() => setMetricPie("valor_estimado")}
+                    className="text-[10px] leading-3 w-[160px]"
+                    variant={metricPieUO === "valor_estimado" ? "default" : "outline"}
+                    onClick={() => setMetricPieUO("valor_estimado")}
                   >
                     Valores estimados
                   </Button>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <ChartContainer
-                config={{ classe: { label: "Classe", color: "hsl(var(--chart-1))" } }}
-                className="w-full !aspect-auto h-[180px] min-h-[180px] overflow-visible"
-                style={{ height: 180 }}
-              >
-                {(() => {
-                  const chartData = (metricPie === "valor_estimado" ? distribuicaoPorClasse : distribuicaoPorClasseQuantidade) as any[];
-                  const data = chartData.length ? chartData : [{ name: "Sem dados", value: 1 }];
-                  const formatter = (v: number) => (metricPie === "valor_estimado" ? formatCurrencyBRL(v) : v);
-                  return (
-                    <PieChart width={400} height={180}>
-                      <ChartTooltip
-                        content={
-                          <ChartTooltipContent
-                            formatter={(value: number) => (
-                              <span>{formatter(value as number)}</span>
-                            )}
-                          />
-                        }
-                      />
-                      <ChartLegend content={<ChartLegendContent />} />
-                      <Pie
-                        data={data}
-                        dataKey="value"
-                        nameKey="name"
-                        innerRadius={40}
-                        outerRadius={80}
-                        labelLine={false}
-                        label={({ value, percent }) => `${formatter(value as number)} (${Math.round((percent || 0) * 100)}%)`}
-                      >
-                        {data.map((_: any, index: number) => (
-                          <Cell key={`cell-classe-${index}`} fill={pieColors[index % pieColors.length]} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  );
-                })()}
-              </ChartContainer>
-            </CardContent>
-          </Card>
-
-          {/* Valores estimados por UO (Pizza) */}
-          <Card>
-            <CardHeader className="space-y-0">
-              <div className="flex w-full items-center justify-between">
-                <CardTitle>Distribuição por UO</CardTitle>
-                <div className="flex gap-2">
-                  <Button
-                    size="xs"
-                    variant={metricPie === "quantidade" ? "default" : "outline"}
-                    onClick={() => setMetricPie("quantidade")}
-                  >
-                    Número de processos
-                  </Button>
-                  <Button
-                    size="xs"
-                    variant={metricPie === "valor_estimado" ? "default" : "outline"}
-                    onClick={() => setMetricPie("valor_estimado")}
-                  >
-                    Valores estimados
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="pt-2 pb-2">
               <ChartContainer
                 config={{ uo: { label: "UO", color: "hsl(var(--chart-2))" } }}
-                className="w-full !aspect-auto h-[180px] min-h-[180px] overflow-visible"
-                style={{ height: 180 }}
+                className="w-full !aspect-auto h-[220px] min-h-[220px] overflow-visible"
+                style={{ height: 220 }}
               >
                 {(() => {
-                  const chartData = (metricPie === "valor_estimado" ? dadosValoresPorUO : dadosQuantidadePorUO) as any[];
+                  const chartData = (metricPieUO === "valor_estimado" ? dadosValoresPorUO : dadosQuantidadePorUO) as any[];
                   const data = chartData.length ? chartData : [{ name: "Sem dados", value: 1 }];
-                  const formatter = (v: number) => (metricPie === "valor_estimado" ? formatCurrencyBRL(v) : v);
+                  const formatter = (v: number) => (metricPieUO === "valor_estimado" ? formatCurrencyBRL(v) : v);
                   return (
-                    <PieChart width={400} height={180}>
+                    <PieChart width={400} height={220}>
                       <ChartTooltip
                         content={
                           <ChartTooltipContent
@@ -658,15 +658,37 @@ const VisaoGeral = () => {
                           />
                         }
                       />
-                      <ChartLegend content={<ChartLegendContent />} />
+                      <Legend
+                        layout="horizontal"
+                        verticalAlign="bottom"
+                        align="center"
+                        iconType="circle"
+                        iconSize={8}
+                        wrapperStyle={{ fontSize: 10, lineHeight: "12px", marginTop: 6 }}
+                        formatter={(value: string) => {
+                          const short = value.length > 18 ? value.slice(0, 18) + "…" : value
+                          return <span title={value}>{short}</span>
+                        }}
+                      />
                       <Pie
                         data={data}
                         dataKey="value"
                         nameKey="name"
-                        innerRadius={40}
-                        outerRadius={80}
+                        innerRadius={54}
+                        outerRadius={94}
                         labelLine={false}
-                        label={({ value, percent }) => `${formatter(value as number)} (${Math.round((percent || 0) * 100)}%)`}
+                        label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+                          const RADIAN = Math.PI / 180;
+                          const radius = (innerRadius as number) + ((outerRadius as number) - (innerRadius as number)) * 0.5;
+                          const x = (cx as number) + radius * Math.cos(-(midAngle as number) * RADIAN);
+                          const y = (cy as number) + radius * Math.sin(-(midAngle as number) * RADIAN);
+                          const pct = Math.round(((percent as number) || 0) * 100);
+                          return (
+                            <text x={x} y={y} fill="#111827" textAnchor="middle" dominantBaseline="central" fontSize={10}>
+                              {pct}%
+                            </text>
+                          );
+                        }}
                       >
                         {data.map((_: any, index: number) => (
                           <Cell key={`cell-uo-${index}`} fill={pieColors[index % pieColors.length]} />
@@ -679,41 +701,43 @@ const VisaoGeral = () => {
             </CardContent>
           </Card>
 
-          {/* Valores estimados por tipo de contratação (Pizza) */}
+          {/* Distribuição por Tipo de Contratação (Pizza) */}
           <Card>
             <CardHeader className="space-y-0">
-              <div className="flex w-full items-center justify-between">
-                <CardTitle>Distribuição por Tipo de Contratação</CardTitle>
-                <div className="flex gap-2">
+              <div className="flex w-full items-start justify-between">
+                <CardTitle className="text-sm">Distribuição por Tipo de Contratação</CardTitle>
+                <div className="flex flex-col gap-1 items-end">
                   <Button
                     size="xs"
-                    variant={metricPie === "quantidade" ? "default" : "outline"}
-                    onClick={() => setMetricPie("quantidade")}
+                    className="text-[10px] leading-3 w-[160px]"
+                    variant={metricPieTipo === "quantidade" ? "default" : "outline"}
+                    onClick={() => setMetricPieTipo("quantidade")}
                   >
                     Número de processos
                   </Button>
                   <Button
                     size="xs"
-                    variant={metricPie === "valor_estimado" ? "default" : "outline"}
-                    onClick={() => setMetricPie("valor_estimado")}
+                    className="text-[10px] leading-3 w-[160px]"
+                    variant={metricPieTipo === "valor_estimado" ? "default" : "outline"}
+                    onClick={() => setMetricPieTipo("valor_estimado")}
                   >
                     Valores estimados
                   </Button>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-2 pb-2">
               <ChartContainer
                 config={{ tipo: { label: "Tipo", color: "hsl(var(--chart-3))" } }}
-                className="w-full !aspect-auto h-[180px] min-h-[180px] overflow-visible"
-                style={{ height: 180 }}
+                className="w-full !aspect-auto h-[220px] min-h-[220px] overflow-visible"
+                style={{ height: 220 }}
               >
                 {(() => {
-                  const chartData = (metricPie === "valor_estimado" ? dadosValoresPorTipoContratacao : dadosQuantidadePorTipoContratacao) as any[];
+                  const chartData = (metricPieTipo === "valor_estimado" ? dadosValoresPorTipoContratacao : dadosQuantidadePorTipoContratacao) as any[];
                   const data = chartData.length ? chartData : [{ name: "Sem dados", value: 1 }];
-                  const formatter = (v: number) => (metricPie === "valor_estimado" ? formatCurrencyBRL(v) : v);
+                  const formatter = (v: number) => (metricPieTipo === "valor_estimado" ? formatCurrencyBRL(v) : v);
                   return (
-                    <PieChart width={400} height={180}>
+                    <PieChart width={400} height={220}>
                       <ChartTooltip
                         content={
                           <ChartTooltipContent
@@ -723,15 +747,37 @@ const VisaoGeral = () => {
                           />
                         }
                       />
-                      <ChartLegend content={<ChartLegendContent />} />
+                      <Legend
+                        layout="horizontal"
+                        verticalAlign="bottom"
+                        align="center"
+                        iconType="circle"
+                        iconSize={8}
+                        wrapperStyle={{ fontSize: 10, lineHeight: "12px", marginTop: 6 }}
+                        formatter={(value: string) => {
+                          const short = value.length > 18 ? value.slice(0, 18) + "…" : value;
+                          return <span title={value}>{short}</span>
+                        }}
+                      />
                       <Pie
                         data={data}
                         dataKey="value"
                         nameKey="name"
-                        innerRadius={40}
-                        outerRadius={80}
+                        innerRadius={54}
+                        outerRadius={94}
                         labelLine={false}
-                        label={({ value, percent }) => `${formatter(value as number)} (${Math.round((percent || 0) * 100)}%)`}
+                        label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+                          const RADIAN = Math.PI / 180;
+                          const radius = (innerRadius as number) + ((outerRadius as number) - (innerRadius as number)) * 0.5;
+                          const x = (cx as number) + radius * Math.cos(-(midAngle as number) * RADIAN);
+                          const y = (cy as number) + radius * Math.sin(-(midAngle as number) * RADIAN);
+                          const pct = Math.round(((percent as number) || 0) * 100);
+                          return (
+                            <text x={x} y={y} fill="#111827" textAnchor="middle" dominantBaseline="central" fontSize={10}>
+                              {pct}%
+                            </text>
+                          );
+                        }}
                       >
                         {data.map((_: any, index: number) => (
                           <Cell key={`cell-tipo-${index}`} fill={pieColors[index % pieColors.length]} />
@@ -743,16 +789,110 @@ const VisaoGeral = () => {
               </ChartContainer>
             </CardContent>
           </Card>
+
+          {/* Distribuição por Classe (Pizza) */}
+          <Card>
+            <CardHeader className="space-y-0">
+              <div className="flex w-full items-start justify-between">
+                <CardTitle className="text-sm">Distribuição por Classe</CardTitle>
+                <div className="flex flex-col gap-1 items-end">
+                  <Button
+                    size="xs"
+                    className="text-[10px] leading-3 w-[160px]"
+                    variant={metricPieClasse === "quantidade" ? "default" : "outline"}
+                    onClick={() => setMetricPieClasse("quantidade")}
+                  >
+                    Número de processos
+                  </Button>
+                  <Button
+                    size="xs"
+                    className="text-[10px] leading-3 w-[160px]"
+                    variant={metricPieClasse === "valor_estimado" ? "default" : "outline"}
+                    onClick={() => setMetricPieClasse("valor_estimado")}
+                  >
+                    Valores estimados
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-2 pb-2">
+              <ChartContainer
+                config={{ classe: { label: "Classe", color: "hsl(var(--chart-1))" } }}
+                className="w-full !aspect-auto h-[220px] min-h-[220px] overflow-visible"
+                style={{ height: 220 }}
+              >
+                {(() => {
+                  const chartData = (metricPieClasse === "valor_estimado" ? dadosValoresPorClasse : dadosQuantidadePorClasse) as any[];
+                  const data = chartData.length ? chartData : [{ name: "Sem dados", value: 1 }];
+                  const formatter = (v: number) => (metricPieClasse === "valor_estimado" ? formatCurrencyBRL(v) : v);
+                  return (
+                    <PieChart width={400} height={220}>
+                      <ChartTooltip
+                        content={
+                          <ChartTooltipContent
+                            formatter={(value: number) => (
+                              <span>{formatter(value as number)}</span>
+                            )}
+                          />
+                        }
+                      />
+                      <Legend
+                        layout="horizontal"
+                        verticalAlign="bottom"
+                        align="center"
+                        iconType="circle"
+                        iconSize={8}
+                        wrapperStyle={{ fontSize: 10, lineHeight: "12px", marginTop: 6 }}
+                        content={({ payload }) => (
+                          <div className="flex items-center justify-center gap-4 pt-3">
+                            {(payload || []).map((item: any) => {
+                              const original = item?.payload?.name ?? item?.value;
+                              let label = abbreviateClasseLabel(original || "");
+                              if (label.length > 18) label = label.slice(0, 18) + "…";
+                              const color = item?.color || item?.payload?.fill;
+                              return (
+                                <div key={original} className="flex items-center gap-1.5">
+                                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: color }} />
+                                  <span title={original}>{label}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      />
+                      <Pie
+                        data={data}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={54}
+                        outerRadius={94}
+                        labelLine={false}
+                        label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+                          const RADIAN = Math.PI / 180;
+                          const radius = (innerRadius as number) + ((outerRadius as number) - (innerRadius as number)) * 0.5;
+                          const x = (cx as number) + radius * Math.cos(-(midAngle as number) * RADIAN);
+                          const y = (cy as number) + radius * Math.sin(-(midAngle as number) * RADIAN);
+                          const pct = Math.round(((percent as number) || 0) * 100);
+                          return (
+                            <text x={x} y={y} fill="#111827" textAnchor="middle" dominantBaseline="central" fontSize={10}>
+                              {pct}%
+                            </text>
+                          );
+                        }}
+                      >
+                        {data.map((_: any, index: number) => (
+                          <Cell key={`cell-classe-${index}`} fill={pieColors[index % pieColors.length]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  );
+                })()}
+              </ChartContainer>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Paginação */}
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">Página {page} de {totalPages} • {totalCount} itens</div>
-          <div className="flex gap-2">
-            <Button size="xs" variant="outline" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Anterior</Button>
-            <Button size="xs" variant="outline" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Próxima</Button>
-          </div>
-        </div>
+        {/* Paginação removida a pedido: botões e contador no rodapé */}
       </div>
     </Layout>
   );
