@@ -54,6 +54,7 @@ const formatId = (id: string) => {
 const SetoresDemandantes = () => {
   const [setor, setSetor] = useState<string | undefined>(undefined);
   const [tipoContratacao, setTipoContratacao] = useState<string | undefined>(undefined);
+  const [status, setStatus] = useState<string | undefined>(undefined);
   const [rows, setRows] = useState<Row[]>([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
@@ -62,7 +63,7 @@ const SetoresDemandantes = () => {
   const [kpiModalidade, setKpiModalidade] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const filtros = useMemo(() => ({ setor_requisitante: setor, tipo_contratacao: tipoContratacao }), [setor, tipoContratacao]);
+  const filtros = useMemo(() => ({ setor_requisitante: setor, tipo_contratacao: tipoContratacao, etapa_processo: status }), [setor, tipoContratacao, status]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -84,6 +85,7 @@ const SetoresDemandantes = () => {
 
       if (filtros.setor_requisitante) query = query.eq("setor_requisitante", filtros.setor_requisitante);
       if (filtros.tipo_contratacao) query = query.eq("tipo_contratacao", filtros.tipo_contratacao);
+      if (filtros.etapa_processo) query = query.eq("etapa_processo", filtros.etapa_processo);
 
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
@@ -120,40 +122,57 @@ const SetoresDemandantes = () => {
             <p className="text-sm text-muted-foreground">Visualize demandas por setor e tipo.</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => { setSetor(undefined); setTipoContratacao(undefined); setPage(1); }}>Limpar filtros</Button>
+            <Button variant="outline" onClick={() => { setSetor(undefined); setTipoContratacao(undefined); setStatus(undefined); setPage(1); }}>Limpar filtros</Button>
           </div>
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Setor Requisitante</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-nowrap gap-1 overflow-x-auto whitespace-nowrap pr-1 py-1">
-              {setores.map((s) => (
-                <Button
-                  key={s}
-                  variant={setor === s ? "default" : "secondary"}
-                  size="xs"
-                  onClick={() => { setSetor(setor === s ? undefined : s); setPage(1); }}
-                >
-                  {mapSetorName(s)}
-                </Button>
-              ))}
-            </div>
-            <div className="mt-2">
-              <label className="text-sm text-muted-foreground">Tipo de Contratação</label>
-              <div className="flex flex-nowrap gap-1 overflow-x-auto whitespace-nowrap mt-1">
-                {[ALL, "Nova Contratação", "Renovação", "Aditivo Quantitativo", "Repactuação"].map((t) => (
-                  <Button
-                    key={t}
-                    variant={tipoContratacao === (t === ALL ? undefined : t) ? "default" : "secondary"}
-                    size="xs"
-                    onClick={() => { setTipoContratacao(t === ALL ? undefined : t); setPage(1); }}
-                  >
-                    {t === ALL ? "Todos" : t}
-                  </Button>
-                ))}
+          <CardContent className="p-2">
+            <div className="flex items-start gap-3 overflow-x-auto whitespace-nowrap">
+              <div className="basis-[38%] min-w-[440px] shrink-0">
+                <div className="text-[11px] text-muted-foreground px-1">Setor:</div>
+                <div className="flex flex-nowrap gap-1 overflow-x-auto whitespace-nowrap py-1">
+                  {setores.map((s) => (
+                    <Button
+                      key={s}
+                      variant={setor === s ? "default" : "secondary"}
+                      size="xs"
+                      onClick={() => { setSetor(setor === s ? undefined : s); setPage(1); }}
+                    >
+                      {mapSetorName(s)}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              <div className="basis-[31%] min-w-[360px] shrink-0">
+                <div className="text-[11px] text-muted-foreground px-1">Tipo de Contratação:</div>
+                <div className="flex flex-nowrap gap-1 overflow-x-auto whitespace-nowrap py-1">
+                  {[ALL, "Nova Contratação", "Renovação", "Aditivo Quantitativo", "Repactuação"].map((t) => (
+                    <Button
+                      key={t}
+                      variant={tipoContratacao === (t === ALL ? undefined : t) ? "default" : "secondary"}
+                      size="xs"
+                      onClick={() => { setTipoContratacao(t === ALL ? undefined : t); setPage(1); }}
+                    >
+                      {t === ALL ? "Todos" : t}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              <div className="basis-[31%] min-w-[360px] shrink-0">
+                <div className="text-[11px] text-muted-foreground px-1">Status:</div>
+                <div className="flex flex-nowrap gap-1 overflow-x-auto whitespace-nowrap py-1">
+                  {[ALL, "Planejamento", "Em Andamento", "Concluído", "Sobrestado"].map((st) => (
+                    <Button
+                      key={st}
+                      variant={status === (st === ALL ? undefined : st) ? "default" : "secondary"}
+                      size="xs"
+                      onClick={() => { setStatus(st === ALL ? undefined : st); setPage(1); }}
+                    >
+                      {st === ALL ? "Todos" : st}
+                    </Button>
+                  ))}
+                </div>
               </div>
             </div>
           </CardContent>

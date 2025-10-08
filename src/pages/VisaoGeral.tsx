@@ -195,13 +195,27 @@ const VisaoGeral = () => {
 
   const distinctOptions = useMemo(() => {
     if (distinctOptionsRpc) {
+      const PRIORITY_UO = ["PGJ", "FMMP", "FEPDC"];
+      const rawUO: string[] = distinctOptionsRpc.unidade_orcamentaria || [];
+      const orderedUO: string[] = [
+        ...PRIORITY_UO.filter((x) => rawUO.includes(x)),
+        ...rawUO.filter((x) => !PRIORITY_UO.includes(x)).sort((a, b) => a.localeCompare(b, "pt-BR")),
+      ];
+      const PRIORITY_PRIORIDADE = ["Alta", "Média", "Baixa"];
+      const rawPrioridade: string[] = distinctOptionsRpc.grau_prioridade || [];
+      const orderedPrioridade: string[] = [
+        ...PRIORITY_PRIORIDADE.filter((x) => rawPrioridade.includes(x)),
+        ...rawPrioridade
+          .filter((x) => !PRIORITY_PRIORIDADE.includes(x))
+          .sort((a, b) => a.localeCompare(b, "pt-BR")),
+      ];
       return {
-        unidade_orcamentaria: distinctOptionsRpc.unidade_orcamentaria || [],
+        unidade_orcamentaria: orderedUO,
         setor_requisitante: distinctOptionsRpc.setor_requisitante || [],
         tipo_contratacao: distinctOptionsRpc.tipo_contratacao || [],
         tipo_recurso: distinctOptionsRpc.tipo_recurso || [],
         classe: distinctOptionsRpc.classe || [],
-        grau_prioridade: distinctOptionsRpc.grau_prioridade || [],
+        grau_prioridade: orderedPrioridade,
         normativo: distinctOptionsRpc.normativo || [],
         modalidade: distinctOptionsRpc.modalidade || [],
         etapa_processo: distinctOptionsRpc.etapa_processo || [],
@@ -215,13 +229,27 @@ const VisaoGeral = () => {
       });
       return Array.from(s).sort((a, b) => a.localeCompare(b, "pt-BR"));
     };
+    const PRIORITY_UO = ["PGJ", "FMMP", "FEPDC"];
+    const rawUO = build("unidade_orcamentaria");
+    const orderedUO = [
+      ...PRIORITY_UO.filter((x) => rawUO.includes(x)),
+      ...rawUO.filter((x) => !PRIORITY_UO.includes(x)).sort((a, b) => a.localeCompare(b, "pt-BR")),
+    ];
+    const PRIORITY_PRIORIDADE = ["Alta", "Média", "Baixa"];
+    const rawPrioridade = build("grau_prioridade");
+    const orderedPrioridade = [
+      ...PRIORITY_PRIORIDADE.filter((x) => rawPrioridade.includes(x)),
+      ...rawPrioridade
+        .filter((x) => !PRIORITY_PRIORIDADE.includes(x))
+        .sort((a, b) => a.localeCompare(b, "pt-BR")),
+    ];
     return {
-      unidade_orcamentaria: build("unidade_orcamentaria"),
+      unidade_orcamentaria: orderedUO,
       setor_requisitante: build("setor_requisitante"),
       tipo_contratacao: build("tipo_contratacao"),
       tipo_recurso: build("tipo_recurso"),
       classe: build("classe"),
-      grau_prioridade: build("grau_prioridade"),
+      grau_prioridade: orderedPrioridade,
       normativo: build("normativo"),
       modalidade: build("modalidade"),
       etapa_processo: build("etapa_processo"),
@@ -378,13 +406,12 @@ const VisaoGeral = () => {
             <h1 className="text-xl font-bold text-foreground">Visão Geral</h1>
             <p className="text-sm text-muted-foreground">Resumo e panorama geral do PCA 2026.</p>
           </div>
-          <Button size="xs" variant="outline" onClick={clearFiltros}>Limpar filtros</Button>
         </div>
         
         {/* Barra de filtros discretos */}
         <Card>
           <CardContent className="p-2">
-            <div className="flex flex-wrap md:flex-nowrap gap-2">
+            <div className="flex flex-wrap md:flex-nowrap gap-2 items-center">
               <div className="w-28 shrink-0">
                 <div className="text-[10px] text-black px-1">UO:</div>
                 <Select onValueChange={(v) => setFiltro("unidade_orcamentaria", v)} value={filtros.unidade_orcamentaria}>
@@ -510,6 +537,9 @@ const VisaoGeral = () => {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="ml-auto shrink-0">
+                <Button size="xs" variant="outline" onClick={clearFiltros} className="h-9">Limpar filtros</Button>
               </div>
             </div>
           </CardContent>

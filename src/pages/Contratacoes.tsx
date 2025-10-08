@@ -1,5 +1,6 @@
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Filter, Edit, History, Eye } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -48,6 +49,34 @@ export default function Contratacoes() {
   const [showHistorico, setShowHistorico] = useState(false);
   const [selectedContratacaoId, setSelectedContratacaoId] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  // Filtros iguais à aba Visão Geral
+  const ALL_VALUE = "__all__";
+  type Filtros = {
+    unidade_orcamentaria?: string;
+    setor_requisitante?: string;
+    tipo_contratacao?: string;
+    tipo_recurso?: string;
+    classe?: string;
+    grau_prioridade?: string;
+    normativo?: string;
+    modalidade?: string;
+    etapa_processo?: string; // "Status Atual"
+  };
+  const defaultFiltros: Filtros = {
+    unidade_orcamentaria: ALL_VALUE,
+    setor_requisitante: ALL_VALUE,
+    tipo_contratacao: ALL_VALUE,
+    tipo_recurso: ALL_VALUE,
+    classe: ALL_VALUE,
+    grau_prioridade: ALL_VALUE,
+    normativo: ALL_VALUE,
+    modalidade: ALL_VALUE,
+    etapa_processo: ALL_VALUE,
+  };
+  const [filtros, setFiltros] = useState<Filtros>(defaultFiltros);
+  const setFiltro = (key: keyof Filtros, value: string) => setFiltros((prev) => ({ ...prev, [key]: value }));
+  const clearFiltros = () => setFiltros(defaultFiltros);
 
   useEffect(() => {
     fetchContratacoes();
@@ -182,11 +211,66 @@ export default function Contratacoes() {
     return variants[prioridade] || variants["Média"];
   };
 
-  const filteredContratacoes = contratacoes.filter((contratacao) =>
-    contratacao.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contratacao.setor_requisitante.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (contratacao.classe && contratacao.classe.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  // Opções distintas para os seletores (copiando a lógica da Visão Geral)
+  const distinctOptions = (() => {
+    const build = (key: keyof Contratacao) => {
+      const s = new Set<string>();
+      contratacoes.forEach((r) => {
+        const v = r[key] as unknown as string | null;
+        if (v && String(v).trim() !== "") s.add(String(v));
+      });
+      return Array.from(s).sort((a, b) => a.localeCompare(b, "pt-BR"));
+    };
+    const PRIORITY_UO = ["PGJ", "FMMP", "FEPDC"];
+    const rawUO = build("unidade_orcamentaria" as any);
+    const orderedUO = [
+      ...PRIORITY_UO.filter((x) => rawUO.includes(x)),
+      ...rawUO.filter((x) => !PRIORITY_UO.includes(x)).sort((a, b) => a.localeCompare(b, "pt-BR")),
+    ];
+    const PRIORITY_PRIORIDADE = ["Alta", "Média", "Baixa"];
+    const rawPrioridade = build("grau_prioridade" as any);
+    const orderedPrioridade = [
+      ...PRIORITY_PRIORIDADE.filter((x) => rawPrioridade.includes(x)),
+      ...rawPrioridade
+        .filter((x) => !PRIORITY_PRIORIDADE.includes(x))
+        .sort((a, b) => a.localeCompare(b, "pt-BR")),
+    ];
+    return {
+      unidade_orcamentaria: orderedUO,
+      setor_requisitante: build("setor_requisitante" as any),
+      tipo_contratacao: build("tipo_contratacao" as any),
+      tipo_recurso: build("tipo_recurso" as any),
+      classe: build("classe" as any),
+      grau_prioridade: orderedPrioridade,
+      normativo: build("normativo" as any),
+      modalidade: build("modalidade" as any),
+      etapa_processo: build("etapa_processo" as any),
+    };
+  })();
+
+  const filteredContratacoes = contratacoes.filter((contratacao) => {
+    const matchesSearch =
+      contratacao.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contratacao.setor_requisitante.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (contratacao.classe && contratacao.classe.toLowerCase().includes(searchTerm.toLowerCase()));
+    const match = (field: keyof Filtros, value: string | null) => {
+      const f = filtros[field];
+      if (!f || f === ALL_VALUE) return true;
+      return (value || "") === f;
+    };
+    return (
+      matchesSearch &&
+      match("unidade_orcamentaria", contratacao.unidade_orcamentaria) &&
+      match("setor_requisitante", contratacao.setor_requisitante) &&
+      match("tipo_contratacao", contratacao.tipo_contratacao) &&
+      match("tipo_recurso", contratacao.tipo_recurso) &&
+      match("classe", contratacao.classe) &&
+      match("grau_prioridade", contratacao.grau_prioridade) &&
+      match("normativo", contratacao.normativo) &&
+      match("modalidade", contratacao.modalidade) &&
+      match("etapa_processo", contratacao.etapa_processo)
+    );
+  });
 
   const formatCurrency = (value: number | null) => {
     if (!value) return "R$ 0,00";
@@ -237,6 +321,143 @@ export default function Contratacoes() {
             </Button>
           </Link>
         </div>
+
+        {/* Barra de filtros discretos (copiada da aba Visão Geral) */}
+        <Card>
+          <CardContent className="p-2">
+            <div className="flex flex-wrap md:flex-nowrap gap-2 items-center">
+              <div className="w-28 shrink-0">
+                <div className="text-[10px] text-black px-1">UO:</div>
+                <Select onValueChange={(v) => setFiltro("unidade_orcamentaria", v)} value={filtros.unidade_orcamentaria}>
+                  <SelectTrigger className="h-9 w-[110px] truncate px-3 text-sm">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
+                    {distinctOptions.unidade_orcamentaria.map((opt) => (
+                      <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[130px] shrink-0">
+                <div className="text-[10px] text-black px-1">Setor Requisitante:</div>
+                <Select onValueChange={(v) => setFiltro("setor_requisitante", v)} value={filtros.setor_requisitante}>
+                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
+                    {distinctOptions.setor_requisitante.map((opt) => (
+                      <SelectItem className="text-xs" key={opt} value={opt}>{formatSetor(opt)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[160px] shrink-0 -ml-1">
+                <div className="text-[10px] text-black px-1">Tipo de Contratação:</div>
+                <Select onValueChange={(v) => setFiltro("tipo_contratacao", v)} value={filtros.tipo_contratacao}>
+                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
+                    {distinctOptions.tipo_contratacao.map((opt) => (
+                      <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[130px] shrink-0">
+                <div className="text-[10px] text-black px-1">Tipo de Recurso:</div>
+                <Select onValueChange={(v) => setFiltro("tipo_recurso", v)} value={filtros.tipo_recurso}>
+                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
+                    {distinctOptions.tipo_recurso.map((opt) => (
+                      <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[170px] shrink-0 -ml-1">
+                <div className="text-[10px] text-black px-1">Classe de Material:</div>
+                <Select onValueChange={(v) => setFiltro("classe", v)} value={filtros.classe}>
+                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
+                    {distinctOptions.classe.map((opt) => (
+                      <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[130px] shrink-0">
+                <div className="text-[10px] text-black px-1">Grau de Prioridade:</div>
+                <Select onValueChange={(v) => setFiltro("grau_prioridade", v)} value={filtros.grau_prioridade}>
+                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
+                    {distinctOptions.grau_prioridade.map((opt) => (
+                      <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[130px] shrink-0 -ml-1">
+                <div className="text-[10px] text-black px-1">Normativo:</div>
+                <Select onValueChange={(v) => setFiltro("normativo", v)} value={filtros.normativo}>
+                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
+                    {distinctOptions.normativo.map((opt) => (
+                      <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[160px] shrink-0 -ml-1">
+                <div className="text-[10px] text-black px-1">Modalidade de Contratação:</div>
+                <Select onValueChange={(v) => setFiltro("modalidade", v)} value={filtros.modalidade}>
+                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
+                    {distinctOptions.modalidade.map((opt) => (
+                      <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[130px] shrink-0">
+                <div className="text-[10px] text-black px-1">Status Atual:</div>
+                <Select onValueChange={(v) => setFiltro("etapa_processo", v)} value={filtros.etapa_processo}>
+                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
+                    {distinctOptions.etapa_processo.map((opt) => (
+                      <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="ml-auto shrink-0">
+                <Button size="xs" variant="outline" onClick={clearFiltros} className="h-9">Limpar filtros</Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="flex gap-2">
           <div className="relative flex-1">
