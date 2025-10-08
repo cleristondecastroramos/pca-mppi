@@ -2,8 +2,6 @@ import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis } from "recharts";
 import { KPICard } from "@/components/KPICard";
 import { ClipboardList, DollarSign } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -16,7 +14,6 @@ type Row = {
   classe: string;
   valor_estimado: number;
   valor_contratado?: number | null;
-  ajuste_orcamentario?: number | null;
   saldo_orcamentario?: number | null;
   modalidade: string;
   etapa_processo?: string | null;
@@ -42,6 +39,15 @@ const ALL = "__all__";
 
 const formatCurrencyBRL = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v || 0);
 
+// Regra de saldo no cliente (fallback):
+// - Se cancelada, saldo = 0
+// - Caso contrário, saldo = valor_estimado - valor_contratado
+const calcSaldo = (r: Row) => {
+  const executado = r.valor_contratado || 0;
+  if (r.etapa_processo === "Cancelada") return 0;
+  return (r.valor_estimado || 0) - executado;
+};
+
 const mapSetorName = (setor: string) => {
   if (setor === "PLANEJAMENTO") return "PLAN";
   return setor;
@@ -60,10 +66,16 @@ const SetoresDemandantes = () => {
   const [pageSize, setPageSize] = useState(15);
   const [totalCount, setTotalCount] = useState(0);
   const [kpiResumo, setKpiResumo] = useState<any | null>(null);
-  const [kpiModalidade, setKpiModalidade] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   const filtros = useMemo(() => ({ setor_requisitante: setor, tipo_contratacao: tipoContratacao, etapa_processo: status }), [setor, tipoContratacao, status]);
+
+  const statusCategoryMap: Record<string, { etapas: string[]; sobrestado?: boolean }> = {
+    "não iniciado": { etapas: ["Planejamento"], sobrestado: false },
+    "em andamento": { etapas: ["Em Licitação", "Contratado"], sobrestado: false },
+    "concluído": { etapas: ["Concluído"], sobrestado: false },
+    "sobrestado": { etapas: [], sobrestado: true },
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -77,7 +89,6 @@ const SetoresDemandantes = () => {
           "classe",
           "valor_estimado",
           "valor_contratado",
-          "ajuste_orcamentario",
           "saldo_orcamentario",
           "modalidade",
           "etapa_processo",
@@ -85,7 +96,18 @@ const SetoresDemandantes = () => {
 
       if (filtros.setor_requisitante) query = query.eq("setor_requisitante", filtros.setor_requisitante);
       if (filtros.tipo_contratacao) query = query.eq("tipo_contratacao", filtros.tipo_contratacao);
-      if (filtros.etapa_processo) query = query.eq("etapa_processo", filtros.etapa_processo);
+      if (filtros.etapa_processo) {
+        const cat = statusCategoryMap[filtros.etapa_processo];
+        if (cat) {
+          if (cat.sobrestado) {
+            query = query.eq("sobrestado", true);
+          } else if (cat.etapas.length > 0) {
+            query = query.in("etapa_processo", cat.etapas);
+          }
+        } else {
+          query = query.eq("etapa_processo", filtros.etapa_processo);
+        }
+      }
 
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
@@ -98,14 +120,17 @@ const SetoresDemandantes = () => {
       const { data: resumo } = await supabase.rpc("resumo_financeiro_contratacoes", {
         p_setor_requisitante: filtros.setor_requisitante || null,
         p_tipo_contratacao: filtros.tipo_contratacao || null,
+        p_etapa_processo: (() => {
+          if (!filtros.etapa_processo) return null;
+          const cat = statusCategoryMap[filtros.etapa_processo];
+          if (!cat) return filtros.etapa_processo;
+          // RPC aceita apenas texto único; para categorias, passamos NULL e usamos filtro client-side já aplicado acima
+          // Mantemos sobrestado sendo considerado pela função (usa coluna sobrestado diretamente)
+          return null;
+        })(),
       });
       setKpiResumo(resumo && resumo[0] ? resumo[0] : null);
 
-      const { data: porModalidade } = await supabase.rpc("kpi_contratacoes_por_modalidade", {
-        p_setor_requisitante: filtros.setor_requisitante || null,
-        p_tipo_contratacao: filtros.tipo_contratacao || null,
-      });
-      setKpiModalidade((porModalidade as any) || []);
       setLoading(false);
     };
     fetchData();
@@ -128,10 +153,10 @@ const SetoresDemandantes = () => {
 
         <Card>
           <CardContent className="p-2">
-            <div className="flex items-start gap-3 overflow-x-auto whitespace-nowrap">
-              <div className="basis-[38%] min-w-[440px] shrink-0">
-                <div className="text-[11px] text-muted-foreground px-1">Setor:</div>
-                <div className="flex flex-nowrap gap-1 overflow-x-auto whitespace-nowrap py-1">
+            <div className="flex items-start gap-2 overflow-x-auto whitespace-nowrap">
+              <div className="basis-[37%] min-w-[420px] shrink-0">
+                <div className="text-[11px] text-muted-foreground px-0.5">Setor:</div>
+                <div className="flex flex-nowrap gap-0.5 overflow-x-auto whitespace-nowrap py-0.5">
                   {setores.map((s) => (
                     <Button
                       key={s}
@@ -144,9 +169,9 @@ const SetoresDemandantes = () => {
                   ))}
                 </div>
               </div>
-              <div className="basis-[31%] min-w-[360px] shrink-0">
-                <div className="text-[11px] text-muted-foreground px-1">Tipo de Contratação:</div>
-                <div className="flex flex-nowrap gap-1 overflow-x-auto whitespace-nowrap py-1">
+              <div className="basis-[30%] min-w-[330px] shrink-0">
+                <div className="text-[11px] text-muted-foreground px-0.5">Tipo de Contratação:</div>
+                <div className="flex flex-nowrap gap-0.5 overflow-x-auto whitespace-nowrap py-0.5">
                   {[ALL, "Nova Contratação", "Renovação", "Aditivo Quantitativo", "Repactuação"].map((t) => (
                     <Button
                       key={t}
@@ -159,10 +184,10 @@ const SetoresDemandantes = () => {
                   ))}
                 </div>
               </div>
-              <div className="basis-[31%] min-w-[360px] shrink-0">
-                <div className="text-[11px] text-muted-foreground px-1">Status:</div>
-                <div className="flex flex-nowrap gap-1 overflow-x-auto whitespace-nowrap py-1">
-                  {[ALL, "Planejamento", "Em Andamento", "Concluído", "Sobrestado"].map((st) => (
+              <div className="basis-[29%] min-w-[330px] shrink-0">
+                <div className="text-[11px] text-muted-foreground px-0.5">Status:</div>
+                <div className="flex flex-nowrap gap-0.5 overflow-x-auto whitespace-nowrap py-0.5">
+                  {[ALL, "não iniciado", "em andamento", "concluído", "sobrestado"].map((st) => (
                     <Button
                       key={st}
                       variant={status === (st === ALL ? undefined : st) ? "default" : "secondary"}
@@ -178,7 +203,7 @@ const SetoresDemandantes = () => {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <KPICard title="Quantidade de Demandas" value={kpiResumo?.total_demandas || rows.length} icon={ClipboardList}>
             <div className="grid grid-cols-4 gap-2 text-xs">
               <div className="flex flex-col items-center">
@@ -218,38 +243,33 @@ const SetoresDemandantes = () => {
                 </div>
               </div>
               <div>
-                <div className="font-semibold">Ajuste orçamentário</div>
-                <div>{formatCurrencyBRL(kpiResumo?.ajuste_orcamentario || rows.reduce((s, r) => s + (r.ajuste_orcamentario || 0), 0))}</div>
-              </div>
-              <div>
                 <div className="font-semibold">Saldo Financeiro</div>
-                <div>{formatCurrencyBRL(kpiResumo?.saldo_orcamentario || rows.reduce((s, r) => s + (r.saldo_orcamentario || 0), 0))}</div>
+                <div>{(() => {
+                  const kpiSaldo = kpiResumo?.saldo_orcamentario;
+                  const fallbackSaldo = rows.reduce((s, r) => s + calcSaldo(r), 0);
+                  const displaySaldo = (kpiSaldo !== undefined && kpiSaldo !== null && kpiSaldo !== 0)
+                    ? kpiSaldo
+                    : fallbackSaldo;
+                  return formatCurrencyBRL(displaySaldo);
+                })()}</div>
               </div>
             </div>
           </KPICard>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Demandas por Modalidade</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer
-                config={{
-                  total_demandas: { label: "Demandas", color: "hsl(var(--chart-1))" },
-                }}
-                className="aspect-auto h-[180px] w-full"
-              >
-                <BarChart data={kpiModalidade} margin={{ left: 12 }}>
-                  <CartesianGrid vertical={false} />
-                  <XAxis dataKey="modalidade" tickLine={false} axisLine={false} interval={0} />
-                  <YAxis tickLine={false} axisLine={false} />
-                  <ChartTooltip content={<ChartTooltipContent nameKey="total_demandas" />} />
-                  <ChartLegend content={<ChartLegendContent />} />
-                  <Bar dataKey="total_demandas" fill="var(--color-total_demandas)" radius={4} />
-                </BarChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
+          <KPICard title="Valor Executado" value={formatCurrencyBRL(kpiResumo?.valor_contratado || rows.reduce((s, r) => s + (r.valor_contratado || 0), 0))} icon={DollarSign} />
+
+          <KPICard
+            title="Saldo Orçamentário"
+            value={(() => {
+              const kpiSaldo = kpiResumo?.saldo_orcamentario;
+              const fallbackSaldo = rows.reduce((s, r) => s + calcSaldo(r), 0);
+              const displaySaldo = (kpiSaldo !== undefined && kpiSaldo !== null && kpiSaldo !== 0)
+                ? kpiSaldo
+                : fallbackSaldo;
+              return formatCurrencyBRL(displaySaldo);
+            })()}
+            icon={DollarSign}
+          />
         </div>
 
         <Card>
@@ -265,7 +285,6 @@ const SetoresDemandantes = () => {
                     <TableHead>Tipo de Material/Serviço</TableHead>
                     <TableHead>Valor Estimado</TableHead>
                     <TableHead>Valor Executado</TableHead>
-                    <TableHead>Ajuste Orçamentário</TableHead>
                     <TableHead>Saldo Orçamentário</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
@@ -277,8 +296,7 @@ const SetoresDemandantes = () => {
                       <TableCell>{r.descricao}</TableCell>
                       <TableCell>{formatCurrencyBRL(r.valor_estimado)}</TableCell>
                       <TableCell>{formatCurrencyBRL(r.valor_contratado || 0)}</TableCell>
-                      <TableCell>{formatCurrencyBRL(r.ajuste_orcamentario || 0)}</TableCell>
-                      <TableCell>{formatCurrencyBRL(r.saldo_orcamentario || 0)}</TableCell>
+                      <TableCell>{formatCurrencyBRL(calcSaldo(r))}</TableCell>
                       <TableCell>{r.etapa_processo || "-"}</TableCell>
                     </TableRow>
                   ))}

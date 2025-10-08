@@ -55,9 +55,10 @@ const Relatorios = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="todos">Todos</SelectItem>
-                    <SelectItem value="planejado">Planejado</SelectItem>
-                    <SelectItem value="em_andamento">Em andamento</SelectItem>
-                    <SelectItem value="concluido">Concluído</SelectItem>
+                    <SelectItem value="não iniciado">não iniciado</SelectItem>
+                    <SelectItem value="em andamento">em andamento</SelectItem>
+                    <SelectItem value="concluído">concluído</SelectItem>
+                    <SelectItem value="sobrestado">sobrestado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

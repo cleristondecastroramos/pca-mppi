@@ -13,8 +13,9 @@ RETURNS TABLE (
   total_demandas BIGINT,
   valor_estimado NUMERIC,
   valor_contratado NUMERIC,
-  ajuste_orcamentario NUMERIC,
   saldo_orcamentario NUMERIC,
+  excedentes_autorizados NUMERIC,
+  percent_execucao NUMERIC,
   count_planejamento BIGINT,
   count_em_andamento BIGINT,
   count_concluidos BIGINT,
@@ -42,8 +43,16 @@ AS $$
     COUNT(*)::BIGINT AS total_demandas,
     COALESCE(SUM(valor_estimado), 0) AS valor_estimado,
     COALESCE(SUM(valor_contratado), 0) AS valor_contratado,
-    COALESCE(SUM(ajuste_orcamentario), 0) AS ajuste_orcamentario,
     COALESCE(SUM(saldo_orcamentario), 0) AS saldo_orcamentario,
+    COALESCE((
+      SELECT SUM(e.valor_adicional)
+      FROM public.excedentes_autorizados e
+      WHERE e.setor_requisitante IN (SELECT DISTINCT setor_requisitante FROM filtrado)
+    ), 0) AS excedentes_autorizados,
+    CASE
+      WHEN COALESCE(SUM(valor_estimado), 0) = 0 THEN 0
+      ELSE ROUND((COALESCE(SUM(valor_contratado), 0) / NULLIF(COALESCE(SUM(valor_estimado), 0), 0)) * 100, 2)
+    END AS percent_execucao,
     COALESCE(SUM(CASE WHEN etapa_processo = 'Planejamento' THEN 1 ELSE 0 END), 0)::BIGINT AS count_planejamento,
     COALESCE(SUM(CASE WHEN etapa_processo IN ('Em Licitação', 'Contratado') THEN 1 ELSE 0 END), 0)::BIGINT AS count_em_andamento,
     COALESCE(SUM(CASE WHEN etapa_processo = 'Concluído' THEN 1 ELSE 0 END), 0)::BIGINT AS count_concluidos,

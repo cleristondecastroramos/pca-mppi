@@ -62,7 +62,15 @@ export default function NovaContratacao() {
       // Submit to backend
       const { error } = await supabase.from("contratacoes").insert([data]);
       
-      if (error) throw error;
+      if (error) {
+        const msg = String(error.message || error);
+        if (msg.includes("Saldo orçamentário insuficiente") || msg.includes("saldo orçamentário insuficiente")) {
+          toast.error("Saldo orçamentário insuficiente na UO selecionada. Solicite autorização do administrador para excedente.");
+        } else {
+          toast.error("Erro ao cadastrar contratação");
+        }
+        throw error;
+      }
 
       toast.success("Contratação cadastrada com sucesso!");
       navigate("/contratacoes");
@@ -77,8 +85,13 @@ export default function NovaContratacao() {
         setErrors(fieldErrors);
         toast.error("Verifique os campos do formulário");
       } else {
-        toast.error("Erro ao cadastrar contratação");
-        console.error(error);
+        const msg = String(error as any);
+        if (msg.includes("Saldo orçamentário insuficiente") || msg.includes("saldo orçamentário insuficiente")) {
+          toast.error("Saldo orçamentário insuficiente na UO selecionada. Solicite autorização do administrador para excedente.");
+        } else {
+          toast.error("Erro ao cadastrar contratação");
+          console.error(error);
+        }
       }
     } finally {
       setLoading(false);

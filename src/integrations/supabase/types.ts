@@ -16,7 +16,7 @@ export type Database = {
     Tables: {
       contratacoes: {
         Row: {
-          ajuste_orcamentario: number | null
+          
           alinhamento_estrategico: boolean | null
           classe: string
           created_at: string | null
@@ -65,7 +65,7 @@ export type Database = {
           valor_unitario: number | null
         }
         Insert: {
-          ajuste_orcamentario?: number | null
+          
           alinhamento_estrategico?: boolean | null
           classe: string
           created_at?: string | null
@@ -114,7 +114,7 @@ export type Database = {
           valor_unitario?: number | null
         }
         Update: {
-          ajuste_orcamentario?: number | null
+          
           alinhamento_estrategico?: boolean | null
           classe?: string
           created_at?: string | null

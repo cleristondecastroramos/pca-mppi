@@ -147,7 +147,27 @@ const VisaoGeral = () => {
       if (filtros.grau_prioridade && filtros.grau_prioridade !== ALL_VALUE) query = query.eq("grau_prioridade", filtros.grau_prioridade);
       if (filtros.normativo && filtros.normativo !== ALL_VALUE) query = query.eq("normativo", filtros.normativo);
       if (filtros.modalidade && filtros.modalidade !== ALL_VALUE) query = query.eq("modalidade", filtros.modalidade);
-      if (filtros.etapa_processo && filtros.etapa_processo !== ALL_VALUE) query = query.eq("etapa_processo", filtros.etapa_processo);
+      if (filtros.etapa_processo && filtros.etapa_processo !== ALL_VALUE) {
+        const STATUS_CATEGORY_MAP: Record<string, { etapas: string[]; sobrestado?: boolean }> = {
+          "não iniciado": { etapas: ["Planejamento"], sobrestado: false },
+          "em andamento": { etapas: ["Em Licitação", "Contratado"], sobrestado: false },
+          "concluído": { etapas: ["Concluído"], sobrestado: false },
+          "sobrestado": { etapas: [], sobrestado: true },
+        };
+        const cat = STATUS_CATEGORY_MAP[filtros.etapa_processo];
+        if (cat) {
+          if (cat.sobrestado) {
+            query = query.eq("sobrestado", true);
+          } else if (filtros.etapa_processo === "não iniciado") {
+            // Include null etapa_processo as "não iniciado" and exclude sobrestados
+            query = query.or("etapa_processo.is.null,etapa_processo.eq.Planejamento").neq("sobrestado", true);
+          } else if (cat.etapas.length > 0) {
+            query = query.in("etapa_processo", cat.etapas);
+          }
+        } else {
+          query = query.eq("etapa_processo", filtros.etapa_processo);
+        }
+      }
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
       const { data, error, count } = await query.range(from, to);
@@ -166,7 +186,17 @@ const VisaoGeral = () => {
         p_classe: filtros.classe || null,
         p_grau_prioridade: filtros.grau_prioridade || null,
         p_normativo: filtros.normativo || null,
-        p_etapa_processo: filtros.etapa_processo || null,
+        p_etapa_processo: ((): string | null => {
+          if (!filtros.etapa_processo || filtros.etapa_processo === ALL_VALUE) return null;
+          const map: Record<string, string[]> = {
+            "não iniciado": ["Planejamento"],
+            "em andamento": ["Em Licitação", "Contratado"],
+            "concluído": ["Concluído"],
+          };
+          const etapas = map[filtros.etapa_processo];
+          // RPC expects single etapa; when category spans multiple, pass null to avoid miscount
+          return etapas && etapas.length === 1 ? etapas[0] : null;
+        })(),
       });
       setKpiModalidade((porModalidade as any) || []);
       const { data: porStatus } = await supabase.rpc("kpi_contratacoes_por_status", {
@@ -177,7 +207,16 @@ const VisaoGeral = () => {
         p_classe: filtros.classe || null,
         p_grau_prioridade: filtros.grau_prioridade || null,
         p_normativo: filtros.normativo || null,
-        p_etapa_processo: filtros.etapa_processo || null,
+        p_etapa_processo: ((): string | null => {
+          if (!filtros.etapa_processo || filtros.etapa_processo === ALL_VALUE) return null;
+          const map: Record<string, string[]> = {
+            "não iniciado": ["Planejamento"],
+            "em andamento": ["Em Licitação", "Contratado"],
+            "concluído": ["Concluído"],
+          };
+          const etapas = map[filtros.etapa_processo];
+          return etapas && etapas.length === 1 ? etapas[0] : null;
+        })(),
       });
       setKpiStatus((porStatus as any) || []);
       setLoading(false);
@@ -532,9 +571,10 @@ const VisaoGeral = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
-                    {distinctOptions.etapa_processo.map((opt) => (
-                      <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>
-                    ))}
+                    <SelectItem className="text-xs" value="não iniciado">não iniciado</SelectItem>
+                    <SelectItem className="text-xs" value="em andamento">em andamento</SelectItem>
+                    <SelectItem className="text-xs" value="concluído">concluído</SelectItem>
+                    <SelectItem className="text-xs" value="sobrestado">sobrestado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
