@@ -33,6 +33,15 @@ All colors MUST be HSL.
   font-display: swap;
 }
 
+/* Custom font: MarvelRegular-Dj83 from public folder */
+@font-face {
+  font-family: 'MarvelRegular-Dj83';
+  src: url('/MarvelRegular-Dj83.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   :root {
     /* Core palette: professional red + neutral grays */

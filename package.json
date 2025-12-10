@@ -9,7 +9,9 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test:budget-uo": "node scripts/testBudgetUO.mjs"
+    "test:budget-uo": "node scripts/testBudgetUO.mjs",
+    "user:check": "node scripts/manageUser.mjs --check",
+    "user:create-admin": "node scripts/manageUser.mjs --create-admin"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

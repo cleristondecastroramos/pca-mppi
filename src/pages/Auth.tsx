@@ -64,11 +64,17 @@ export default function Auth() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4"
+      className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4"
       style={loginThemeVars}
     >
+      <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
+        <div className="absolute -left-24 -top-24 h-80 w-80 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute -right-32 -bottom-32 h-96 w-96 rounded-full bg-accent/10 blur-3xl" />
+        <div className="absolute inset-0 opacity-40 [mask-image:radial-gradient(ellipse_at_center,rgba(255,255,255,0.7),transparent_70%)] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.08),transparent_60%)]" />
+        <div className="absolute inset-0 opacity-10 [mask-image:radial-gradient(circle,white,transparent_70%)] bg-[linear-gradient(to_right,rgba(0,0,0,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.06)_1px,transparent_1px)] bg-[size:28px_28px]" />
+      </div>
       <Card className="w-full max-w-3xl shadow-2xl overflow-hidden">
-        <CardHeader className="text-center">
+        <CardHeader className="text-center space-y-0.5">
           <div className="mb-2">
             <img
               src="/logo-mppi.png"
@@ -78,7 +84,7 @@ export default function Auth() {
           </div>
           <CardTitle
             className="text-lg font-bold"
-            style={{ fontFamily: 'QueensidesLight-ZVj3l, sans-serif' }}
+            style={{ fontFamily: 'MarvelRegular-Dj83, sans-serif' }}
           >
             PLANO DE CONTRATAÇÕES ANUAL - PCA 2026
           </CardTitle>
@@ -101,7 +107,7 @@ export default function Auth() {
             <div className="p-6 md:col-span-5">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">E-mail</Label>
+                  <Label htmlFor="login-email">E-mail Institucional:</Label>
                   <Input
                     id="login-email"
                     type="email"
@@ -112,7 +118,7 @@ export default function Auth() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="login-password">Senha</Label>
+                  <Label htmlFor="login-password">Senha:</Label>
                   <Input
                     id="login-password"
                     type="password"
@@ -121,15 +127,27 @@ export default function Auth() {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading} size="xs">
+                <Button type="submit" className="w-full" disabled={loading} size="lg">
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Entrar
                 </Button>
+                <div className="text-center">
+                  <button
+                    type="button"
+                    className="text-sm text-primary hover:underline"
+                    onClick={() => navigate("/esqueci-senha")}
+                  >
+                    Esqueci minha senha
+                  </button>
+                </div>
               </form>
             </div>
           </div>
         </CardContent>
       </Card>
+      <div className="fixed bottom-2 left-0 right-0 text-center text-muted-foreground text-xs opacity-70">
+        © 2025 Sistema de Gerenciamento de Contratações - MPPI | Desenvolvido pela Assessoria de Planejamento e Gestão
+      </div>
     </div>
   );
 }

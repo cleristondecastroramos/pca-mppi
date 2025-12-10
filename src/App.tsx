@@ -18,6 +18,8 @@ import ResultadosAlcancados from "./pages/ResultadosAlcancados";
 import Relatorios from "./pages/Relatorios";
 import GerenciamentoUsuarios from "./pages/GerenciamentoUsuarios";
 import MinhaConta from "./pages/MinhaConta";
+import EsqueciSenha from "./pages/EsqueciSenha";
+import RedefinirSenha from "./pages/RedefinirSenha";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +33,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/esqueci-senha" element={<EsqueciSenha />} />
+          <Route path="/redefinir-senha" element={<RedefinirSenha />} />
           <Route path="/home" element={
             <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
               <Home />
