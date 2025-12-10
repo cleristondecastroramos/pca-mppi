@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Camera } from "lucide-react";
+import { AvatarPicker } from "@/components/ui/avatar-picker";
 
 const MinhaConta = () => {
   const [newPassword, setNewPassword] = useState("");
@@ -168,19 +169,26 @@ const MinhaConta = () => {
             <CardTitle>Minha Conta</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-6 md:grid-cols-2">
-            <div className="md:col-span-2 flex items-center justify-center">
-              <div className="relative">
-                <Avatar className="h-24 w-24">
-                  {avatarUrl ? (
-                    <AvatarImage src={avatarUrl} alt="Minha foto" />
-                  ) : (
-                    <AvatarFallback>EU</AvatarFallback>
-                  )}
-                </Avatar>
-                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUploadAvatar} />
-                <button type="button" onClick={triggerSelectFile} className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-card border border-border shadow flex items-center justify-center text-muted-foreground hover:text-foreground">
-                  <Camera className="h-4 w-4" />
-                </button>
+            <div className="md:col-span-2">
+              <AvatarPicker 
+                userName={nomeCompleto || "Usuário"} 
+                onSelect={(avatarId) => console.log("Avatar selecionado:", avatarId)} 
+              />
+              <div className="flex items-center justify-center mt-4 gap-4">
+                <div className="relative">
+                  <Avatar className="h-16 w-16">
+                    {avatarUrl ? (
+                      <AvatarImage src={avatarUrl} alt="Minha foto" />
+                    ) : (
+                      <AvatarFallback>EU</AvatarFallback>
+                    )}
+                  </Avatar>
+                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUploadAvatar} />
+                  <button type="button" onClick={triggerSelectFile} className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-card border border-border shadow flex items-center justify-center text-muted-foreground hover:text-foreground">
+                    <Camera className="h-3 w-3" />
+                  </button>
+                </div>
+                <p className="text-sm text-muted-foreground">Ou envie sua própria foto</p>
               </div>
             </div>
             <div className="grid gap-3">
