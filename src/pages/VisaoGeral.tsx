@@ -174,51 +174,52 @@ const VisaoGeral = () => {
       if (error) {
         setError(error.message);
       } else {
-        setRows((data as Contratacao[]) || []);
+        setRows((data as unknown as Contratacao[]) || []);
         setTotalCount(count || 0);
       }
 
-      const { data: porModalidade } = await supabase.rpc("kpi_contratacoes_por_modalidade", {
-        p_unidade_orcamentaria: filtros.unidade_orcamentaria || null,
-        p_setor_requisitante: filtros.setor_requisitante || null,
-        p_tipo_contratacao: filtros.tipo_contratacao || null,
-        p_tipo_recurso: filtros.tipo_recurso || null,
-        p_classe: filtros.classe || null,
-        p_grau_prioridade: filtros.grau_prioridade || null,
-        p_normativo: filtros.normativo || null,
-        p_etapa_processo: ((): string | null => {
-          if (!filtros.etapa_processo || filtros.etapa_processo === ALL_VALUE) return null;
-          const map: Record<string, string[]> = {
-            "não iniciado": ["Planejamento"],
-            "em andamento": ["Em Licitação", "Contratado"],
-            "concluído": ["Concluído"],
-          };
-          const etapas = map[filtros.etapa_processo];
-          // RPC expects single etapa; when category spans multiple, pass null to avoid miscount
-          return etapas && etapas.length === 1 ? etapas[0] : null;
-        })(),
-      });
-      setKpiModalidade((porModalidade as any) || []);
-      const { data: porStatus } = await supabase.rpc("kpi_contratacoes_por_status", {
-        p_unidade_orcamentaria: filtros.unidade_orcamentaria || null,
-        p_setor_requisitante: filtros.setor_requisitante || null,
-        p_tipo_contratacao: filtros.tipo_contratacao || null,
-        p_tipo_recurso: filtros.tipo_recurso || null,
-        p_classe: filtros.classe || null,
-        p_grau_prioridade: filtros.grau_prioridade || null,
-        p_normativo: filtros.normativo || null,
-        p_etapa_processo: ((): string | null => {
-          if (!filtros.etapa_processo || filtros.etapa_processo === ALL_VALUE) return null;
-          const map: Record<string, string[]> = {
-            "não iniciado": ["Planejamento"],
-            "em andamento": ["Em Licitação", "Contratado"],
-            "concluído": ["Concluído"],
-          };
-          const etapas = map[filtros.etapa_processo];
-          return etapas && etapas.length === 1 ? etapas[0] : null;
-        })(),
-      });
-      setKpiStatus((porStatus as any) || []);
+      // Calculate KPIs client-side from all data (fetch without pagination for aggregates)
+      let allQuery = supabase
+        .from("contratacoes")
+        .select("modalidade, etapa_processo, valor_estimado, valor_contratado");
+      
+      if (filtros.unidade_orcamentaria && filtros.unidade_orcamentaria !== ALL_VALUE) allQuery = allQuery.eq("unidade_orcamentaria", filtros.unidade_orcamentaria);
+      if (filtros.setor_requisitante && filtros.setor_requisitante !== ALL_VALUE) allQuery = allQuery.eq("setor_requisitante", filtros.setor_requisitante);
+      if (filtros.tipo_contratacao && filtros.tipo_contratacao !== ALL_VALUE) allQuery = allQuery.eq("tipo_contratacao", filtros.tipo_contratacao);
+      if (filtros.tipo_recurso && filtros.tipo_recurso !== ALL_VALUE) allQuery = allQuery.eq("tipo_recurso", filtros.tipo_recurso);
+      if (filtros.classe && filtros.classe !== ALL_VALUE) allQuery = allQuery.eq("classe", filtros.classe);
+      if (filtros.grau_prioridade && filtros.grau_prioridade !== ALL_VALUE) allQuery = allQuery.eq("grau_prioridade", filtros.grau_prioridade);
+      if (filtros.normativo && filtros.normativo !== ALL_VALUE) allQuery = allQuery.eq("normativo", filtros.normativo);
+      if (filtros.modalidade && filtros.modalidade !== ALL_VALUE) allQuery = allQuery.eq("modalidade", filtros.modalidade);
+      
+      const { data: allData } = await allQuery;
+      
+      if (allData) {
+        // Group by modalidade
+        const modalidadeMap = new Map<string, { total_demandas: number; total_estimado: number; total_contratado: number }>();
+        allData.forEach((r) => {
+          const key = r.modalidade || "Não informado";
+          const existing = modalidadeMap.get(key) || { total_demandas: 0, total_estimado: 0, total_contratado: 0 };
+          existing.total_demandas += 1;
+          existing.total_estimado += r.valor_estimado || 0;
+          existing.total_contratado += r.valor_contratado || 0;
+          modalidadeMap.set(key, existing);
+        });
+        setKpiModalidade(Array.from(modalidadeMap.entries()).map(([modalidade, vals]) => ({ modalidade, ...vals })));
+        
+        // Group by etapa_processo (status)
+        const statusMap = new Map<string, { total_demandas: number; total_estimado: number; total_contratado: number }>();
+        allData.forEach((r) => {
+          const key = r.etapa_processo || "Não informado";
+          const existing = statusMap.get(key) || { total_demandas: 0, total_estimado: 0, total_contratado: 0 };
+          existing.total_demandas += 1;
+          existing.total_estimado += r.valor_estimado || 0;
+          existing.total_contratado += r.valor_contratado || 0;
+          statusMap.set(key, existing);
+        });
+        setKpiStatus(Array.from(statusMap.entries()).map(([etapa_processo, vals]) => ({ etapa_processo, ...vals })));
+      }
+      
       setLoading(false);
     };
     fetchData();
@@ -226,8 +227,25 @@ const VisaoGeral = () => {
 
   useEffect(() => {
     const fetchDistinct = async () => {
-      const { data } = await supabase.rpc("contratacoes_distinct");
-      if (data) setDistinctOptionsRpc(data as any);
+      // Fetch distinct values client-side
+      const { data } = await supabase
+        .from("contratacoes")
+        .select("unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, etapa_processo");
+      
+      if (data) {
+        const distinctValues = {
+          unidade_orcamentaria: [...new Set(data.map(r => r.unidade_orcamentaria).filter(Boolean))],
+          setor_requisitante: [...new Set(data.map(r => r.setor_requisitante).filter(Boolean))],
+          tipo_contratacao: [...new Set(data.map(r => r.tipo_contratacao).filter(Boolean))],
+          tipo_recurso: [...new Set(data.map(r => r.tipo_recurso).filter(Boolean))],
+          classe: [...new Set(data.map(r => r.classe).filter(Boolean))],
+          grau_prioridade: [...new Set(data.map(r => r.grau_prioridade).filter(Boolean))],
+          normativo: [...new Set(data.map(r => r.normativo).filter(Boolean))],
+          modalidade: [...new Set(data.map(r => r.modalidade).filter(Boolean))],
+          etapa_processo: [...new Set(data.map(r => r.etapa_processo).filter(Boolean))],
+        };
+        setDistinctOptionsRpc(distinctValues);
+      }
     };
     fetchDistinct();
   }, []);

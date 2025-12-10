@@ -113,23 +113,45 @@ const SetoresDemandantes = () => {
       const to = from + pageSize - 1;
       const { data, error, count } = await query.range(from, to);
       if (!error && data) {
-        setRows(data as Row[]);
+        setRows(data as unknown as Row[]);
         setTotalCount(count || 0);
-      }
-
-      const { data: resumo } = await supabase.rpc("resumo_financeiro_contratacoes", {
-        p_setor_requisitante: filtros.setor_requisitante || null,
-        p_tipo_contratacao: filtros.tipo_contratacao || null,
-        p_etapa_processo: (() => {
-          if (!filtros.etapa_processo) return null;
+        
+        // Calculate KPI resumo from fetched data (client-side calculation)
+        // Fetch all data for KPI calculation (without pagination)
+        let kpiQuery = supabase
+          .from("contratacoes")
+          .select("valor_estimado, valor_contratado, etapa_processo, sobrestado");
+        
+        if (filtros.setor_requisitante) kpiQuery = kpiQuery.eq("setor_requisitante", filtros.setor_requisitante);
+        if (filtros.tipo_contratacao) kpiQuery = kpiQuery.eq("tipo_contratacao", filtros.tipo_contratacao);
+        if (filtros.etapa_processo) {
           const cat = statusCategoryMap[filtros.etapa_processo];
-          if (!cat) return filtros.etapa_processo;
-          // RPC aceita apenas texto único; para categorias, passamos NULL e usamos filtro client-side já aplicado acima
-          // Mantemos sobrestado sendo considerado pela função (usa coluna sobrestado diretamente)
-          return null;
-        })(),
-      });
-      setKpiResumo(resumo && resumo[0] ? resumo[0] : null);
+          if (cat) {
+            if (cat.sobrestado) {
+              kpiQuery = kpiQuery.eq("sobrestado", true);
+            } else if (cat.etapas.length > 0) {
+              kpiQuery = kpiQuery.in("etapa_processo", cat.etapas);
+            }
+          } else {
+            kpiQuery = kpiQuery.eq("etapa_processo", filtros.etapa_processo);
+          }
+        }
+        
+        const { data: allData } = await kpiQuery;
+        if (allData) {
+          const resumo = {
+            total_demandas: allData.length,
+            valor_estimado: allData.reduce((sum, r) => sum + (r.valor_estimado || 0), 0),
+            valor_contratado: allData.reduce((sum, r) => sum + (r.valor_contratado || 0), 0),
+            saldo_orcamentario: allData.reduce((sum, r) => sum + ((r.valor_estimado || 0) - (r.valor_contratado || 0)), 0),
+            count_planejamento: allData.filter(r => r.etapa_processo === "Planejamento" || !r.etapa_processo).length,
+            count_em_andamento: allData.filter(r => ["Em Licitação", "Contratado"].includes(r.etapa_processo || "")).length,
+            count_concluidos: allData.filter(r => r.etapa_processo === "Concluído").length,
+            count_sobrestados: allData.filter(r => r.sobrestado === true).length,
+          };
+          setKpiResumo(resumo);
+        }
+      }
 
       setLoading(false);
     };
@@ -204,57 +226,9 @@ const SetoresDemandantes = () => {
         </Card>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <KPICard title="Quantidade de Demandas" value={kpiResumo?.total_demandas || rows.length} icon={ClipboardList}>
-            <div className="grid grid-cols-4 gap-2 text-xs">
-              <div className="flex flex-col items-center">
-                <span className="text-red-600 font-semibold">não iniciados</span>
-                <span>{kpiResumo?.count_planejamento || 0}</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-yellow-600 font-semibold">em andamento</span>
-                <span>{kpiResumo?.count_em_andamento || 0}</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-green-600 font-semibold">concluídos</span>
-                <span>{kpiResumo?.count_concluidos || 0}</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-blue-600 font-semibold">sobrestados</span>
-                <span>{kpiResumo?.count_sobrestados || 0}</span>
-              </div>
-            </div>
-          </KPICard>
+          <KPICard title="Quantidade de Demandas" value={kpiResumo?.total_demandas || rows.length} icon={ClipboardList} />
 
-          <KPICard title="Valor Estimado" value={formatCurrencyBRL(kpiResumo?.valor_estimado || rows.reduce((s, r) => s + (r.valor_estimado || 0), 0))} icon={DollarSign}>
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <div>
-                <div className="font-semibold">Valor Executado</div>
-                <div>
-                  {formatCurrencyBRL(kpiResumo?.valor_contratado || rows.reduce((s, r) => s + (r.valor_contratado || 0), 0))}
-                  {" "}
-                  <span className="text-muted-foreground">
-                    {(() => {
-                      const est = kpiResumo?.valor_estimado || rows.reduce((s, r) => s + (r.valor_estimado || 0), 0);
-                      const exec = kpiResumo?.valor_contratado || rows.reduce((s, r) => s + (r.valor_contratado || 0), 0);
-                      const pct = est ? (exec / est) * 100 : 0;
-                      return `${pct.toFixed(1)}%`;
-                    })()}
-                  </span>
-                </div>
-              </div>
-              <div>
-                <div className="font-semibold">Saldo Financeiro</div>
-                <div>{(() => {
-                  const kpiSaldo = kpiResumo?.saldo_orcamentario;
-                  const fallbackSaldo = rows.reduce((s, r) => s + calcSaldo(r), 0);
-                  const displaySaldo = (kpiSaldo !== undefined && kpiSaldo !== null && kpiSaldo !== 0)
-                    ? kpiSaldo
-                    : fallbackSaldo;
-                  return formatCurrencyBRL(displaySaldo);
-                })()}</div>
-              </div>
-            </div>
-          </KPICard>
+          <KPICard title="Valor Estimado" value={formatCurrencyBRL(kpiResumo?.valor_estimado || rows.reduce((s, r) => s + (r.valor_estimado || 0), 0))} icon={DollarSign} />
 
           <KPICard title="Valor Executado" value={formatCurrencyBRL(kpiResumo?.valor_contratado || rows.reduce((s, r) => s + (r.valor_contratado || 0), 0))} icon={DollarSign} />
 
