@@ -92,46 +92,26 @@ const MinhaConta = () => {
       const { data } = await supabase.auth.getSession();
       const user = data.session?.user;
       if (!user) throw new Error("Sessão inválida");
-      const bucket = (import.meta as any).env?.VITE_AVATARS_BUCKET || "avatars";
-      await supabase.functions.invoke("ensure-storage-bucket", { body: { bucket, public: true } });
+
       const ext = file.name.split(".").pop() || "jpg";
       const path = `users/${user.id}/avatar.${ext}`;
 
-      let { error: upErr } = await supabase.storage.from(bucket).upload(path, file, {
+      const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, {
         upsert: true,
         contentType: file.type,
       });
-      if (upErr) {
-        const altPath = `avatars/${path}`;
-        const res = await supabase.storage.from("public").upload(altPath, file, {
-          upsert: true,
-          contentType: file.type,
-        });
-        upErr = res.error;
-        if (upErr) throw upErr;
-        const pub = supabase.storage.from("public").getPublicUrl(altPath);
-        const publicUrl = pub.data.publicUrl;
-        const { error: updErr } = await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
-        const { error: profErr } = await supabase
-          .from("profiles")
-          .update({ avatar_url: publicUrl })
-          .eq("id", user.id);
-        if (profErr) throw profErr;
-        if (updErr) throw updErr;
-        setAvatarUrl(publicUrl);
-        toast.success("Foto atualizada.");
-        return;
-      }
+      if (upErr) throw upErr;
 
-      const pub = supabase.storage.from(bucket).getPublicUrl(path);
-      const publicUrl = pub.data.publicUrl;
-      const { error: updErr } = await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
+      const { data: pubData } = supabase.storage.from("avatars").getPublicUrl(path);
+      const publicUrl = pubData.publicUrl;
+
+      await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
       const { error: profErr } = await supabase
         .from("profiles")
         .update({ avatar_url: publicUrl })
         .eq("id", user.id);
       if (profErr) throw profErr;
-      if (updErr) throw updErr;
+
       setAvatarUrl(publicUrl);
       toast.success("Foto atualizada.");
     } catch (e: any) {
