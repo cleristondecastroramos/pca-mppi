@@ -28,20 +28,19 @@ const MinhaConta = () => {
       const { data } = await supabase.auth.getSession();
       const user = data.session?.user;
       setUserId(user?.id || null);
-      const url = (user?.user_metadata as any)?.avatar_url as string | undefined;
-      setAvatarUrl(url || null);
       if (user?.id) {
-        const { data: profile, error } = (supabase as any)
+        const { data: profile, error } = await supabase
           .from("profiles")
-          .select("id, nome_completo, email, setor, cargo, telefone")
+          .select("id, nome_completo, email, setor, cargo, telefone, avatar_url")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
         if (!error && profile) {
           setNomeCompleto(profile.nome_completo || "");
           setEmail(profile.email || user.email || "");
           setSetor(profile.setor || "");
           setCargo(profile.cargo || "");
           setTelefone(profile.telefone || "");
+          setAvatarUrl(profile.avatar_url || null);
         } else {
           setEmail(user.email || "");
         }
@@ -113,7 +112,7 @@ const MinhaConta = () => {
         const pub = supabase.storage.from("public").getPublicUrl(altPath);
         const publicUrl = pub.data.publicUrl;
         const { error: updErr } = await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
-        const { error: profErr } = (supabase as any)
+        const { error: profErr } = await supabase
           .from("profiles")
           .update({ avatar_url: publicUrl })
           .eq("id", user.id);
@@ -127,7 +126,7 @@ const MinhaConta = () => {
       const pub = supabase.storage.from(bucket).getPublicUrl(path);
       const publicUrl = pub.data.publicUrl;
       const { error: updErr } = await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
-      const { error: profErr } = (supabase as any)
+      const { error: profErr } = await supabase
         .from("profiles")
         .update({ avatar_url: publicUrl })
         .eq("id", user.id);
@@ -167,7 +166,7 @@ const MinhaConta = () => {
     if (!userId) return;
     setSavingProfile(true);
     try {
-      const { error } = (supabase as any)
+      const { error } = await supabase
         .from("profiles")
         .update({ nome_completo: nomeCompleto, setor, cargo, telefone, email })
         .eq("id", userId);
