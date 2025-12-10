@@ -327,13 +327,12 @@ Deno.serve(async (req) => {
         },
       ];
 
-      const { error: insertErr, count: insertedCount } = await supabaseAdmin
+      const { error: insertErr } = await supabaseAdmin
         .from("contratacoes")
-        .insert(contrRows)
-        .select("id", { count: "exact" });
+        .insert(contrRows);
 
       if (!insertErr) {
-        results.insertedContratacoes = insertedCount || contrRows.length;
+        results.insertedContratacoes = contrRows.length;
       }
     }
 
