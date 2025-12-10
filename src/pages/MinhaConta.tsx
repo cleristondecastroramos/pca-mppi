@@ -113,6 +113,8 @@ const MinhaConta = () => {
       if (profErr) throw profErr;
 
       setAvatarUrl(publicUrl);
+      try { localStorage.setItem("app_avatar_url", publicUrl); } catch {}
+      try { window.dispatchEvent(new CustomEvent("app-avatar-update", { detail: publicUrl })); } catch {}
       toast.success("Foto atualizada.");
     } catch (e: any) {
       toast.error("Falha ao enviar imagem", { description: e.message || String(e) });
@@ -125,6 +127,8 @@ const MinhaConta = () => {
   const triggerSelectFile = () => {
     fileRef.current?.click();
   };
+
+  
 
   const formatPhone = (v: string) => {
     const d = v.replace(/\D/g, "").slice(0, 11);

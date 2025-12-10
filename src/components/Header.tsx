@@ -21,6 +21,8 @@ export function Header() {
 
   useEffect(() => {
     let mounted = true;
+    const local = typeof window !== "undefined" ? localStorage.getItem("app_avatar_url") : null;
+    if (local) setAvatarUrl(local);
     const load = async () => {
       const { data } = await supabase.auth.getSession();
       const user = data.session?.user;
@@ -34,20 +36,63 @@ export function Header() {
         .map((s) => s[0]?.toUpperCase())
         .join("") || "?";
       setInitials(init);
-      // Prefer profiles.avatar_url when available
-      const { data: profile } = (supabase as any)
+      const { data: profile } = await supabase
         .from("profiles")
         .select("avatar_url, nome_completo, email")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
       const url = (profile?.avatar_url as string) || (meta.avatar_url as string) || null;
       setAvatarUrl(url);
+      if (url) localStorage.setItem("app_avatar_url", url);
     };
     load();
     const { data: sub } = supabase.auth.onAuthStateChange(() => load());
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      const user = data.session?.user;
+      if (!user) return;
+      channel = supabase
+        .channel("profile-avatar")
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
+          (payload: any) => {
+            if (!mounted) return;
+            const newRow = payload?.new as { avatar_url?: string; nome_completo?: string } | undefined;
+            const url = (newRow?.avatar_url as string) || null;
+            if (url !== null) setAvatarUrl(url);
+            if (url) localStorage.setItem("app_avatar_url", url);
+            const nome = newRow?.nome_completo || user.email || "";
+            const init = nome
+              .split(/[\s@._-]+/)
+              .filter(Boolean)
+              .slice(0, 2)
+              .map((s) => s[0]?.toUpperCase())
+              .join("") || "?";
+            setInitials(init);
+          },
+        )
+        .subscribe();
+    })();
+    const onStorage = (e: StorageEvent) => {
+      if (!mounted) return;
+      if (e.key === "app_avatar_url") setAvatarUrl(e.newValue);
+    };
+    window.addEventListener("storage", onStorage);
+    const onAvatarUpdate = (e: CustomEvent) => {
+      if (!mounted) return;
+      const url = (e as any).detail as string | null;
+      setAvatarUrl(url);
+      if (url) try { localStorage.setItem("app_avatar_url", url); } catch {}
+    };
+    window.addEventListener("app-avatar-update" as any, onAvatarUpdate as any);
     return () => {
       mounted = false;
       sub.subscription.unsubscribe();
+      if (channel) channel.unsubscribe();
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("app-avatar-update" as any, onAvatarUpdate as any);
     };
   }, []);
 
