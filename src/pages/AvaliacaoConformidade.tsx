@@ -101,17 +101,26 @@ const AvaliacaoConformidade = () => {
     setOpenAudit({ id: row.id, sei: (row as any).numero_sei_contratacao || undefined });
     setAuditState({});
     setAuditNotes("");
-    const { data } = await supabase
-      .from("contratacoes_historico")
-      .select("dados_novos, created_at")
+    
+    // Buscar conformidade da nova tabela dedicada
+    const { data: conf } = await supabase
+      .from("contratacoes_conformidade")
+      .select("*")
       .eq("contratacao_id", row.id)
-      .eq("acao", "Conformidade")
-      .order("created_at", { ascending: false })
-      .limit(1);
-    const last = (data && data[0]?.dados_novos) as any;
-    const conf = last?.conformidade as { checklist?: Record<string, boolean>; observacao?: string } | undefined;
+      .maybeSingle();
+    
     if (conf) {
-      setAuditState(conf.checklist || {});
+      setAuditState({
+        termo_referencia_aprovado: conf.termo_referencia_aprovado || false,
+        pesquisa_mercado: conf.pesquisa_mercado || false,
+        pareceres_juridicos: conf.pareceres_juridicos || false,
+        publicacao_edital: conf.publicacao_edital || false,
+        atas_certame: conf.atas_certame || false,
+        atos_autorizacao: conf.atos_autorizacao || false,
+        documentacao_fornecedor: conf.documentacao_fornecedor || false,
+        termo_homologacao: conf.termo_homologacao || false,
+        termo_adjudicacao: conf.termo_adjudicacao || false,
+      });
       setAuditNotes(conf.observacao || "");
     }
   };
@@ -120,17 +129,30 @@ const AvaliacaoConformidade = () => {
     if (!openAudit) return;
     try {
       const { data: userData } = await supabase.auth.getUser();
-      const { data: before } = await supabase.from("contratacoes").select("*").eq("id", openAudit.id).single();
-      const payload = { checklist: auditState, observacao: auditNotes };
-      if (userData.user) {
-        await supabase.from("contratacoes_historico").insert({
+      if (!userData.user) {
+        toast.error("Usuário não autenticado");
+        return;
+      }
+
+      // Salvar na tabela dedicada usando upsert
+      const { error } = await supabase
+        .from("contratacoes_conformidade")
+        .upsert({
           contratacao_id: openAudit.id,
           user_id: userData.user.id,
-          acao: "Conformidade",
-          dados_anteriores: before,
-          dados_novos: { ...(before || {}), conformidade: payload },
-        });
-      }
+          termo_referencia_aprovado: auditState.termo_referencia_aprovado || false,
+          pesquisa_mercado: auditState.pesquisa_mercado || false,
+          pareceres_juridicos: auditState.pareceres_juridicos || false,
+          publicacao_edital: auditState.publicacao_edital || false,
+          atas_certame: auditState.atas_certame || false,
+          atos_autorizacao: auditState.atos_autorizacao || false,
+          documentacao_fornecedor: auditState.documentacao_fornecedor || false,
+          termo_homologacao: auditState.termo_homologacao || false,
+          termo_adjudicacao: auditState.termo_adjudicacao || false,
+          observacao: auditNotes || null,
+        }, { onConflict: 'contratacao_id' });
+
+      if (error) throw error;
       toast.success("Checklist salvo");
       setOpenAudit(null);
     } catch (e: any) {
