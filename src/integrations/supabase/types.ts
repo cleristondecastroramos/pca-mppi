@@ -211,7 +211,6 @@ export type Database = {
           id: string
           nome_completo: string | null
           setor: string | null
-          ramal: string | null
           telefone: string | null
           updated_at: string | null
         }
@@ -223,7 +222,6 @@ export type Database = {
           id: string
           nome_completo?: string | null
           setor?: string | null
-          ramal?: string | null
           telefone?: string | null
           updated_at?: string | null
         }
@@ -235,7 +233,6 @@ export type Database = {
           id?: string
           nome_completo?: string | null
           setor?: string | null
-          ramal?: string | null
           telefone?: string | null
           updated_at?: string | null
         }
