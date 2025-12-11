@@ -19,7 +19,7 @@ const MinhaConta = () => {
   const [email, setEmail] = useState("");
   const [setor, setSetor] = useState("");
   const [cargo, setCargo] = useState("");
-  const [telefone, setTelefone] = useState("");
+  const [ramal, setRamal] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -31,7 +31,7 @@ const MinhaConta = () => {
       if (user?.id) {
         const { data: profile, error } = await supabase
           .from("profiles")
-          .select("id, nome_completo, email, setor, cargo, telefone, ramal, avatar_url")
+          .select("id, nome_completo, email, setor, cargo, ramal, avatar_url")
           .eq("id", user.id)
           .maybeSingle();
         if (!error && profile) {
@@ -39,7 +39,7 @@ const MinhaConta = () => {
           setEmail(profile.email || user.email || "");
           setSetor(profile.setor || "");
           setCargo(profile.cargo || "");
-          setTelefone(profile.ramal || profile.telefone || "");
+          setRamal(profile.ramal || "");
           const metaUrl = (user.user_metadata as any)?.avatar_url as string | undefined;
           const localUrl = typeof window !== "undefined" ? localStorage.getItem("app_avatar_url") : null;
           setAvatarUrl(profile.avatar_url || metaUrl || localUrl || null);
@@ -149,8 +149,8 @@ const MinhaConta = () => {
     return v.replace(/\D/g, "").slice(0, 4);
   };
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTelefone(formatRamal(e.target.value));
+  const handleRamalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRamal(formatRamal(e.target.value));
   };
 
   const handleSaveProfile = async () => {
@@ -159,7 +159,7 @@ const MinhaConta = () => {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ nome_completo: nomeCompleto, setor, cargo, ramal: telefone, email })
+        .update({ nome_completo: nomeCompleto, setor, cargo, ramal, email })
         .eq("id", userId);
       if (error) throw error;
       toast.success("Dados atualizados.");
@@ -214,7 +214,7 @@ const MinhaConta = () => {
                   </div>
                   <div className="grid gap-2">
                     <label className="text-sm">Ramal</label>
-                    <Input value={telefone} onChange={handlePhoneChange} inputMode="numeric" placeholder="XXXX" />
+                    <Input value={ramal} onChange={handleRamalChange} inputMode="numeric" placeholder="XXXX" />
                   </div>
                 </div>
                 <div className="grid gap-2">

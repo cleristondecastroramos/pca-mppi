@@ -164,6 +164,68 @@ export type Database = {
         }
         Relationships: []
       }
+      contratacoes_conformidade: {
+        Row: {
+          atas_certame: boolean | null
+          atos_autorizacao: boolean | null
+          contratacao_id: string
+          created_at: string | null
+          documentacao_fornecedor: boolean | null
+          id: string
+          observacao: string | null
+          pareceres_juridicos: boolean | null
+          pesquisa_mercado: boolean | null
+          publicacao_edital: boolean | null
+          termo_adjudicacao: boolean | null
+          termo_homologacao: boolean | null
+          termo_referencia_aprovado: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          atas_certame?: boolean | null
+          atos_autorizacao?: boolean | null
+          contratacao_id: string
+          created_at?: string | null
+          documentacao_fornecedor?: boolean | null
+          id?: string
+          observacao?: string | null
+          pareceres_juridicos?: boolean | null
+          pesquisa_mercado?: boolean | null
+          publicacao_edital?: boolean | null
+          termo_adjudicacao?: boolean | null
+          termo_homologacao?: boolean | null
+          termo_referencia_aprovado?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          atas_certame?: boolean | null
+          atos_autorizacao?: boolean | null
+          contratacao_id?: string
+          created_at?: string | null
+          documentacao_fornecedor?: boolean | null
+          id?: string
+          observacao?: string | null
+          pareceres_juridicos?: boolean | null
+          pesquisa_mercado?: boolean | null
+          publicacao_edital?: boolean | null
+          termo_adjudicacao?: boolean | null
+          termo_homologacao?: boolean | null
+          termo_referencia_aprovado?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratacoes_conformidade_contratacao_id_fkey"
+            columns: ["contratacao_id"]
+            isOneToOne: true
+            referencedRelation: "contratacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contratacoes_historico: {
         Row: {
           acao: string
@@ -210,8 +272,8 @@ export type Database = {
           email: string | null
           id: string
           nome_completo: string | null
+          ramal: string | null
           setor: string | null
-          telefone: string | null
           updated_at: string | null
         }
         Insert: {
@@ -221,8 +283,8 @@ export type Database = {
           email?: string | null
           id: string
           nome_completo?: string | null
+          ramal?: string | null
           setor?: string | null
-          telefone?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -232,8 +294,8 @@ export type Database = {
           email?: string | null
           id?: string
           nome_completo?: string | null
+          ramal?: string | null
           setor?: string | null
-          telefone?: string | null
           updated_at?: string | null
         }
         Relationships: []
