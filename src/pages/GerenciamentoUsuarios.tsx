@@ -49,8 +49,7 @@ const GerenciamentoUsuarios = () => {
   const [deleteTarget, setDeleteTarget] = useState<UserWithRoles | null>(null);
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [seeding, setSeeding] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin] = useState(false);
 
   async function loadUsers() {
     try {
@@ -94,14 +93,6 @@ const GerenciamentoUsuarios = () => {
     // Captura usuário atual para controles de demissão própria
     supabase.auth.getSession().then(({ data }) => {
       setCurrentUserId(data.session?.user?.id || null);
-    });
-    // Detecta se usuário atual é administrador
-    supabase.auth.getUser().then(async ({ data }) => {
-      const uid = data.user?.id;
-      if (uid) {
-        const { data: adminFlag } = await (supabase as any).rpc("has_role", { _user_id: uid, _role: "administrador" });
-        setIsAdmin(Boolean(adminFlag));
-      }
     });
   }, [page, pageSize]);
 
@@ -356,34 +347,7 @@ const GerenciamentoUsuarios = () => {
                 </SelectContent>
               </Select>
               <Button variant="outline" size="xs" onClick={loadUsers}>Atualizar</Button>
-              {isAdmin && (
-                <Button
-                  variant="secondary"
-                  size="xs"
-                  onClick={async () => {
-                    setSeeding(true);
-                    try {
-                      const { data, error } = await supabase.functions.invoke("admin-seed", {
-                        body: { create_contratacoes: true },
-                      });
-                      if (error) throw error;
-                      toast.success("Dados de teste gerados", {
-                        description: `Usuários criados: ${data?.results?.createdUsers || 0}, Contratações inseridas: ${data?.results?.insertedContratacoes || 0}`,
-                      });
-                      loadUsers();
-                    } catch (e: any) {
-                      console.error(e);
-                      toast.error("Falha ao gerar dados", { description: e.message || e.toString() });
-                    } finally {
-                      setSeeding(false);
-                    }
-                  }}
-                  disabled={seeding}
-                  title="Gerar usuários e contratações de exemplo"
-                >
-                  {seeding ? "Gerando..." : "Gerar dados de teste"}
-                </Button>
-              )}
+              
             </div>
             <Table>
               <TableHeader>

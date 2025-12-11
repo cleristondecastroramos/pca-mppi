@@ -18,6 +18,7 @@ import ResultadosAlcancados from "./pages/ResultadosAlcancados";
 import Relatorios from "./pages/Relatorios";
 import GerenciamentoUsuarios from "./pages/GerenciamentoUsuarios";
 import MinhaConta from "./pages/MinhaConta";
+import Faq from "./pages/Faq";
 import EsqueciSenha from "./pages/EsqueciSenha";
 import RedefinirSenha from "./pages/RedefinirSenha";
 import NotFound from "./pages/NotFound";
@@ -88,6 +89,11 @@ const App = () => (
           <Route path="/relatorios" element={
             <ProtectedRoute allowed={["administrador", "gestor", "consulta"]}>
               <Relatorios />
+            </ProtectedRoute>
+          } />
+          <Route path="/faq" element={
+            <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
+              <Faq />
             </ProtectedRoute>
           } />
           <Route path="/gerenciamento-usuarios" element={

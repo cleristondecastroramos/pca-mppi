@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, Plus, Settings, LogOut, BarChart3, Users, CheckSquare, ClipboardList, Gauge, BadgeCheck, Clock, TrendingUp, AlertTriangle } from "lucide-react";
+import { LayoutDashboard, FileText, Plus, Settings, LogOut, BarChart3, Users, CheckSquare, ClipboardList, Gauge, BadgeCheck, Clock, TrendingUp, AlertTriangle, HelpCircle } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
   Sidebar,
@@ -31,6 +31,7 @@ const menuItems = [
   { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
   { title: "Gerenciamento de Usuários", url: "/gerenciamento-usuarios", icon: Users },
   { title: "Minha Conta", url: "/minha-conta", icon: Settings },
+  { title: "FAQ / Dúvidas", url: "/faq", icon: HelpCircle },
 ];
 
 export function AppSidebar() {

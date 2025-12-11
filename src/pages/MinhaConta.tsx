@@ -40,13 +40,28 @@ const MinhaConta = () => {
           setSetor(profile.setor || "");
           setCargo(profile.cargo || "");
           setTelefone(profile.telefone || "");
-          setAvatarUrl(profile.avatar_url || null);
+          const metaUrl = (user.user_metadata as any)?.avatar_url as string | undefined;
+          const localUrl = typeof window !== "undefined" ? localStorage.getItem("app_avatar_url") : null;
+          setAvatarUrl(profile.avatar_url || metaUrl || localUrl || null);
         } else {
           setEmail(user.email || "");
         }
       }
     };
     load();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "app_avatar_url") setAvatarUrl(e.newValue);
+    };
+    window.addEventListener("storage", onStorage);
+    const onAvatarUpdate = (e: Event) => {
+      const url = (e as CustomEvent).detail as string | null;
+      setAvatarUrl(url);
+    };
+    window.addEventListener("app-avatar-update" as any, onAvatarUpdate as any);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("app-avatar-update" as any, onAvatarUpdate as any);
+    };
   }, []);
 
   const handleChangePassword = async () => {
@@ -171,12 +186,12 @@ const MinhaConta = () => {
           <CardHeader>
             <CardTitle>Minha Conta</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-6 md:grid-cols-2">
+          <CardContent className="grid gap-6 md:grid-cols-2 items-stretch">
             <div className="md:col-span-2 flex items-center justify-center">
               <div className="relative">
                 <Avatar className="h-24 w-24">
                   {avatarUrl ? (
-                    <AvatarImage src={avatarUrl} alt="Minha foto" />
+                    <AvatarImage src={avatarUrl} alt="Minha foto" onError={() => setAvatarUrl(null)} />
                   ) : (
                     <AvatarFallback>EU</AvatarFallback>
                   )}
@@ -187,44 +202,56 @@ const MinhaConta = () => {
                 </button>
               </div>
             </div>
-            <div className="grid gap-3">
-              <div className="grid gap-2">
-                <label className="text-sm">Nome completo</label>
-                <Input value={nomeCompleto} onChange={(e) => setNomeCompleto(e.target.value)} placeholder="Seu nome" />
-              </div>
-              <div className="grid gap-2">
-                <label className="text-sm">E-mail</label>
-                <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu.email@mppi.mp.br" />
-              </div>
-              <div className="grid gap-2">
-                <label className="text-sm">Setor</label>
-                <Input value={setor} onChange={(e) => setSetor(e.target.value)} placeholder="Setor de lotação" />
-              </div>
-              <div className="grid gap-2">
-                <label className="text-sm">Cargo</label>
-                <Input value={cargo} onChange={(e) => setCargo(e.target.value)} placeholder="Cargo" />
-              </div>
-              <div className="grid gap-2">
-                <label className="text-sm">Telefone</label>
-                <Input value={telefone} onChange={handlePhoneChange} inputMode="numeric" placeholder="(XX) XXXXX-XXXX" />
-              </div>
-              <div>
-                <Button onClick={handleSaveProfile} disabled={savingProfile} size="xs">
-                  {savingProfile ? "Salvando..." : "Salvar dados"}
-                </Button>
-              </div>
-            </div>
+            <Card className="h-full">
+              <CardHeader className="p-3 pb-1">
+                <CardTitle className="text-sm">Informações Pessoais</CardTitle>
+              </CardHeader>
+              <CardContent className="p-3 pt-1 grid gap-2">
+                <div className="grid gap-2">
+                  <label className="text-sm">Nome completo</label>
+                  <Input value={nomeCompleto} onChange={(e) => setNomeCompleto(e.target.value)} placeholder="Seu nome" />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm">E-mail</label>
+                  <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu.email@mppi.mp.br" />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm">Setor</label>
+                  <Input value={setor} onChange={(e) => setSetor(e.target.value)} placeholder="Setor de lotação" />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm">Cargo</label>
+                  <Input value={cargo} onChange={(e) => setCargo(e.target.value)} placeholder="Cargo" />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm">Telefone</label>
+                  <Input value={telefone} onChange={handlePhoneChange} inputMode="numeric" placeholder="(XX) XXXXX-XXXX" />
+                </div>
+                <div className="flex justify-end">
+                  <Button onClick={handleSaveProfile} disabled={savingProfile} size="xs">
+                    {savingProfile ? "Salvando..." : "Salvar dados"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
             <div className="grid gap-2">
-              <h3 className="text-sm font-medium">Segurança</h3>
-              <div className="grid gap-2">
-                <Input type="password" placeholder="Nova senha" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-                <Input type="password" placeholder="Confirmar nova senha" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-              </div>
-              <div>
-                <Button onClick={handleChangePassword} disabled={loading} size="xs">
-                  {loading ? "Salvando..." : "Salvar senha"}
-                </Button>
-              </div>
+              <Card className="border border-border">
+                <CardHeader className="p-3 pb-1">
+                  <CardTitle className="text-sm">Segurança</CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 pt-1 grid gap-2">
+                  <p className="text-xs text-muted-foreground">Sua senha deve ter no mínimo 8 caracteres.</p>
+                  <div className="grid gap-2">
+                    <Input type="password" placeholder="Nova senha" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="h-8 text-sm" />
+                    <Input type="password" placeholder="Confirmar nova senha" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="h-8 text-sm" />
+                  </div>
+                  <div className="flex justify-end">
+                    <Button onClick={handleChangePassword} disabled={loading} size="xs">
+                      {loading ? "Salvando..." : "Salvar senha"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </CardContent>
         </Card>

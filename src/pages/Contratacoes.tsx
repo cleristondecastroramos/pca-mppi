@@ -80,21 +80,34 @@ export default function Contratacoes() {
   const clearFiltros = () => setFiltros(defaultFiltros);
 
   useEffect(() => {
-    fetchContratacoes();
+    let mounted = true;
+    const run = async () => {
+      await fetchContratacoes();
+    };
+    run();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+      if (mounted) fetchContratacoes();
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const fetchContratacoes = async () => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
+      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Tempo de resposta excedido")), 12000));
+      const request = supabase
         .from("contratacoes")
         .select("*")
         .order("created_at", { ascending: false });
-
+      const { data, error } = await Promise.race([request, timeout]) as any;
       if (error) throw error;
       setContratacoes(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao buscar contratações:", error);
-      toast.error("Erro ao carregar contratações");
+      toast.error("Erro ao carregar contratações", { description: error?.message || String(error) });
     } finally {
       setLoading(false);
     }

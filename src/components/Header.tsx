@@ -115,7 +115,7 @@ export function Header() {
             <Button variant="ghost" size="icon" className="rounded-full p-0 h-10 w-10">
               <Avatar className="h-8 w-8">
                 {avatarUrl ? (
-                  <AvatarImage src={avatarUrl} alt="Foto de perfil" />
+                  <AvatarImage src={avatarUrl} alt="Foto de perfil" onError={() => setAvatarUrl(null)} />
                 ) : (
                   <AvatarFallback className="text-xs">
                     {initials || <User className="h-4 w-4" />}
