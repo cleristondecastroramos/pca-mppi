@@ -31,7 +31,7 @@ const MinhaConta = () => {
       if (user?.id) {
         const { data: profile, error } = await supabase
           .from("profiles")
-          .select("id, nome_completo, email, setor, cargo, telefone, avatar_url")
+          .select("id, nome_completo, email, setor, cargo, telefone, ramal, avatar_url")
           .eq("id", user.id)
           .maybeSingle();
         if (!error && profile) {
@@ -39,7 +39,7 @@ const MinhaConta = () => {
           setEmail(profile.email || user.email || "");
           setSetor(profile.setor || "");
           setCargo(profile.cargo || "");
-          setTelefone(profile.telefone || "");
+          setTelefone(profile.ramal || profile.telefone || "");
           const metaUrl = (user.user_metadata as any)?.avatar_url as string | undefined;
           const localUrl = typeof window !== "undefined" ? localStorage.getItem("app_avatar_url") : null;
           setAvatarUrl(profile.avatar_url || metaUrl || localUrl || null);
@@ -145,20 +145,12 @@ const MinhaConta = () => {
 
   
 
-  const formatPhone = (v: string) => {
-    const d = v.replace(/\D/g, "").slice(0, 11);
-    const a = d.slice(0, 2);
-    const b = d.slice(2, 7);
-    const c = d.slice(7, 11);
-    let out = "";
-    if (a) out = `(${a})`;
-    if (b) out += ` ${b}`;
-    if (c) out += `-${c}`;
-    return out;
+  const formatRamal = (v: string) => {
+    return v.replace(/\D/g, "").slice(0, 4);
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTelefone(formatPhone(e.target.value));
+    setTelefone(formatRamal(e.target.value));
   };
 
   const handleSaveProfile = async () => {
@@ -167,7 +159,7 @@ const MinhaConta = () => {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ nome_completo: nomeCompleto, setor, cargo, telefone, email })
+        .update({ nome_completo: nomeCompleto, setor, cargo, ramal: telefone, email })
         .eq("id", userId);
       if (error) throw error;
       toast.success("Dados atualizados.");
@@ -215,17 +207,19 @@ const MinhaConta = () => {
                   <label className="text-sm">E-mail</label>
                   <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu.email@mppi.mp.br" />
                 </div>
-                <div className="grid gap-2">
-                  <label className="text-sm">Setor</label>
-                  <Input value={setor} onChange={(e) => setSetor(e.target.value)} placeholder="Setor de lotação" />
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="grid gap-2">
+                    <label className="text-sm">Setor</label>
+                    <Input value={setor} onChange={(e) => setSetor(e.target.value)} placeholder="Setor de lotação" />
+                  </div>
+                  <div className="grid gap-2">
+                    <label className="text-sm">Ramal</label>
+                    <Input value={telefone} onChange={handlePhoneChange} inputMode="numeric" placeholder="XXXX" />
+                  </div>
                 </div>
                 <div className="grid gap-2">
-                  <label className="text-sm">Cargo</label>
-                  <Input value={cargo} onChange={(e) => setCargo(e.target.value)} placeholder="Cargo" />
-                </div>
-                <div className="grid gap-2">
-                  <label className="text-sm">Telefone</label>
-                  <Input value={telefone} onChange={handlePhoneChange} inputMode="numeric" placeholder="(XX) XXXXX-XXXX" />
+                  <label className="text-sm">Cargo/Função</label>
+                  <Input value={cargo} onChange={(e) => setCargo(e.target.value)} placeholder="Cargo/Função" />
                 </div>
                 <div className="flex justify-end">
                   <Button onClick={handleSaveProfile} disabled={savingProfile} size="xs">
