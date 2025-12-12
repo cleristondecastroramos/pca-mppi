@@ -49,6 +49,9 @@ export default function Contratacoes() {
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);
   const [showHistorico, setShowHistorico] = useState(false);
   const [selectedContratacaoId, setSelectedContratacaoId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
   const navigate = useNavigate();
 
   // Filtros iguais à aba Visão Geral
@@ -92,19 +95,59 @@ export default function Contratacoes() {
       mounted = false;
       sub.subscription.unsubscribe();
     };
-  }, []);
+  }, [page, pageSize, searchTerm, filtros]);
 
   const fetchContratacoes = async () => {
     setLoading(true);
     try {
-      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Tempo de resposta excedido")), 12000));
-      const request = supabase
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize - 1;
+      let query = supabase
         .from("contratacoes")
-        .select("*")
-        .order("created_at", { ascending: false });
-      const { data, error } = await Promise.race([request, timeout]) as any;
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .range(start, end);
+
+      const term = searchTerm.trim();
+      if (term) {
+        const like = `%${term}%`;
+        query = query.or(
+          `descricao.ilike.${like},setor_requisitante.ilike.${like},classe.ilike.${like}`
+        );
+      }
+
+      const applyEq = (field: keyof Filtros, column: string) => {
+        const v = filtros[field];
+        if (v && v !== ALL_VALUE) query = query.eq(column, v);
+      };
+      applyEq("unidade_orcamentaria", "unidade_orcamentaria");
+      applyEq("setor_requisitante", "setor_requisitante");
+      applyEq("tipo_contratacao", "tipo_contratacao");
+      applyEq("tipo_recurso", "tipo_recurso");
+      applyEq("classe", "classe");
+      applyEq("grau_prioridade", "grau_prioridade");
+      applyEq("normativo", "normativo");
+      applyEq("modalidade", "modalidade");
+
+      const status = filtros.etapa_processo;
+      if (status && status !== ALL_VALUE) {
+        if (status === "sobrestado") {
+          query = query.eq("sobrestado", true as any);
+        } else if (status === "não iniciado") {
+          query = query.is("etapa_processo", null).or("etapa_processo.eq.Planejamento");
+        } else if (status === "em andamento") {
+          query = query.in("etapa_processo", ["Em Licitação", "Contratado"]);
+        } else if (status === "concluído") {
+          query = query.eq("etapa_processo", "Concluído");
+        } else {
+          query = query.eq("etapa_processo", status);
+        }
+      }
+
+      const { data, error, count } = await query as any;
       if (error) throw error;
       setContratacoes(data || []);
+      setTotalCount(count || 0);
     } catch (error: any) {
       console.error("Erro ao buscar contratações:", error);
       toast.error("Erro ao carregar contratações", { description: error?.message || String(error) });
@@ -307,47 +350,16 @@ export default function Contratacoes() {
     };
   })();
 
-  const filteredContratacoes = contratacoes.filter((contratacao) => {
-    const matchesSearch =
-      contratacao.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contratacao.setor_requisitante.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (contratacao.classe && contratacao.classe.toLowerCase().includes(searchTerm.toLowerCase()));
-    const match = (field: keyof Filtros, value: string | null) => {
-      const f = filtros[field];
-      if (!f || f === ALL_VALUE) return true;
-      return (value || "") === f;
-    };
-    const STATUS_CATEGORY_MAP: Record<string, { etapas: string[]; sobrestado?: boolean }> = {
-      "não iniciado": { etapas: ["Planejamento"], sobrestado: false },
-      "em andamento": { etapas: ["Em Licitação", "Contratado"], sobrestado: false },
-      "concluído": { etapas: ["Concluído"], sobrestado: false },
-      "sobrestado": { etapas: [], sobrestado: true },
-    };
-    const statusMatchesFilter = (c: Contratacao) => {
-      const f = filtros.etapa_processo;
-      if (!f || f === ALL_VALUE) return true;
-      const map = STATUS_CATEGORY_MAP[f];
-      if (!map) return (c.etapa_processo || "") === f;
-      if (map.sobrestado) return (c as any).sobrestado === true;
-      if (f === "não iniciado") {
-        // Include null etapa_processo as "não iniciado" and exclude sobrestados
-        return (c as any).sobrestado !== true && (c.etapa_processo === null || map.etapas.includes(c.etapa_processo || ""));
-      }
-      return map.etapas.includes(c.etapa_processo || "");
-    };
-    return (
-      matchesSearch &&
-      match("unidade_orcamentaria", contratacao.unidade_orcamentaria) &&
-      match("setor_requisitante", contratacao.setor_requisitante) &&
-      match("tipo_contratacao", contratacao.tipo_contratacao) &&
-      match("tipo_recurso", contratacao.tipo_recurso) &&
-      match("classe", contratacao.classe) &&
-      match("grau_prioridade", contratacao.grau_prioridade) &&
-      match("normativo", contratacao.normativo) &&
-      match("modalidade", contratacao.modalidade) &&
-      statusMatchesFilter(contratacao)
-    );
-  });
+  const displayedContratacoes = contratacoes;
+
+  const [scrollTop, setScrollTop] = useState(0);
+  const rowHeight = 44;
+  const visibleCount = 20;
+  const buffer = 10;
+  const startIndex = Math.max(0, Math.floor(scrollTop / rowHeight) - buffer);
+  const endIndex = Math.min(displayedContratacoes.length, startIndex + visibleCount + buffer * 2);
+  const topPad = startIndex * rowHeight;
+  const bottomPad = (displayedContratacoes.length - endIndex) * rowHeight;
 
   const formatCurrency = (value: number | null) => {
     if (!value) return "R$ 0,00";
@@ -501,7 +513,7 @@ export default function Contratacoes() {
           <div>
             <h1 className="text-xl font-bold text-foreground">Contratações</h1>
             <p className="text-sm text-muted-foreground">
-              Gerencie todas as contratações do PCA 2026 ({filteredContratacoes.length} registros)
+              Gerencie todas as contratações do PCA 2026 ({totalCount} registros)
             </p>
           </div>
           <Link to="/nova-contratacao">
@@ -667,7 +679,7 @@ export default function Contratacoes() {
         </div>
 
         <div className="rounded-lg border border-border bg-card">
-          <Table>
+          <Table containerClassName="max-h-[60vh]" onContainerScroll={(e) => setScrollTop((e.target as HTMLDivElement).scrollTop)}>
             <TableHeader>
               <TableRow>
                 <TableHead className="text-center w-[90px]">ID</TableHead>
@@ -682,14 +694,16 @@ export default function Contratacoes() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredContratacoes.length === 0 ? (
+              {displayedContratacoes.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     {searchTerm ? "Nenhuma contratação encontrada com os critérios de busca." : "Nenhuma contratação cadastrada."}
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredContratacoes.map((contratacao) => (
+                <>
+                  <TableRow className="border-0" style={{ height: topPad }} />
+                  {displayedContratacoes.slice(startIndex, endIndex).map((contratacao) => (
                   <TableRow key={contratacao.id} className="hover:bg-muted/50">
                     <TableCell className="font-medium">
                       #{contratacao.id.slice(-8)}
@@ -764,10 +778,33 @@ export default function Contratacoes() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
+                  ))}
+                  <TableRow className="border-0" style={{ height: bottomPad }} />
+                </>
               )}
             </TableBody>
           </Table>
+        </div>
+
+        <div className="flex items-center justify-between pt-4">
+          <div className="text-sm text-muted-foreground">Página {page} • {displayedContratacoes.length} de {totalCount} registros</div>
+          <div className="flex items-center gap-2">
+            <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
+              <SelectTrigger className="w-[140px] h-9">
+                <SelectValue placeholder="Itens por página" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10 por página</SelectItem>
+                <SelectItem value="20">20 por página</SelectItem>
+                <SelectItem value="50">50 por página</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="xs" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>Anterior</Button>
+              <div className="text-sm">{page}</div>
+              <Button variant="outline" size="xs" onClick={() => setPage((p) => p + 1)} disabled={page * pageSize >= totalCount}>Próxima</Button>
+            </div>
+          </div>
         </div>
 
         {/* Dialog de Edição */}

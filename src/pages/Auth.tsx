@@ -83,8 +83,7 @@ export default function Auth() {
             />
           </div>
           <CardTitle
-            className="text-lg font-bold"
-            style={{ fontFamily: 'MarvelRegular-Dj83, sans-serif' }}
+            className="text-lg font-bold uppercase"
           >
             PLANO DE CONTRATAÇÕES ANUAL - PCA 2026
           </CardTitle>

@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
+import { prefetchPage } from "@/lib/prefetch";
 
 const menuItems = [
   { title: "Visão Geral", url: "/visao-geral", icon: Gauge },
@@ -92,6 +93,7 @@ export function AppSidebar() {
                           ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_0_0_1px_hsl(var(--sidebar-border))]"
                           : "hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
                       }
+                      onMouseEnter={() => prefetchPage(item.url)}
                     >
                       <item.icon className="h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
