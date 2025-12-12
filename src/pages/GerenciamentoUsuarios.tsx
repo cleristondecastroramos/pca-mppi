@@ -10,7 +10,25 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { PerfilAcesso } from "@/lib/auth";
-import { Shield } from "lucide-react";
+import { Shield, UserCog, ClipboardList, Eye } from "lucide-react";
+
+async function invokeWithTimeout<T = any>(fn: string, body: any, ms = 12000): Promise<{ data: T | null; error: any }> {
+  let timeoutId: any;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error("Tempo de resposta excedido")), ms);
+  });
+  try {
+    const res = await Promise.race([
+      (supabase as any).functions.invoke(fn, { body }),
+      timeout,
+    ]) as { data: T | null; error: any };
+    clearTimeout(timeoutId);
+    return res;
+  } catch (e: any) {
+    clearTimeout(timeoutId);
+    return { data: null, error: e } as any;
+  }
+}
 
 type Profile = {
   id: string;
@@ -259,9 +277,24 @@ const GerenciamentoUsuarios = () => {
                               Administrador
                             </div>
                           </SelectItem>
-                          <SelectItem value="gestor">Gestor</SelectItem>
-                          <SelectItem value="setor_requisitante">Setor requisitante</SelectItem>
-                          <SelectItem value="consulta">Consulta</SelectItem>
+                          <SelectItem value="gestor">
+                            <div className="flex items-center gap-2">
+                              <UserCog className="h-4 w-4 text-warning" />
+                              Gestor
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="setor_requisitante">
+                            <div className="flex items-center gap-2">
+                              <ClipboardList className="h-4 w-4 text-info" />
+                              Setor requisitante
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="consulta">
+                            <div className="flex items-center gap-2">
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                              Consulta
+                            </div>
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -289,16 +322,14 @@ const GerenciamentoUsuarios = () => {
                             setCreating(false);
                             return;
                           }
-                          const { data, error } = await supabase.functions.invoke("admin-create-user", {
-                            body: {
-                              email: newEmail,
-                              nome_completo: newNome,
-                              setor: newSetor,
-                              cargo: newCargo,
-                              role: newRole,
-                              provisional_password: newProvisionalPassword || undefined,
-                            },
-                          });
+                          const { data, error } = await invokeWithTimeout("admin-create-user", {
+                            email: newEmail,
+                            nome_completo: newNome,
+                            setor: newSetor,
+                            cargo: newCargo,
+                            role: newRole,
+                            provisional_password: newProvisionalPassword || undefined,
+                          }, 15000);
                           if (error) throw error;
                           toast.success("Usuário cadastrado e convidado com sucesso.");
                           setShowCreate(false);
@@ -311,7 +342,11 @@ const GerenciamentoUsuarios = () => {
                           loadUsers();
                         } catch (e: any) {
                           console.error(e);
-                          toast.error("Falha ao cadastrar usuário", { description: e.message || e.toString() });
+                          const msg = e?.message || String(e);
+                          const hint = msg.includes("Tempo de resposta excedido")
+                            ? "Verifique se a Function 'admin-create-user' está publicada e acessível."
+                            : undefined;
+                          toast.error("Falha ao cadastrar usuário", { description: hint ? `${msg} — ${hint}` : msg });
                         } finally {
                           setCreating(false);
                         }

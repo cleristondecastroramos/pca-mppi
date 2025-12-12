@@ -174,7 +174,31 @@ const VisaoGeral = () => {
       if (error) {
         setError(error.message);
       } else {
-        setRows((data as unknown as Contratacao[]) || []);
+        let rowsData = (data as unknown as Contratacao[]) || [];
+        if (rowsData.length === 0 && (count || 0) > 0) {
+          const { data: retry } = await supabase
+            .from("contratacoes")
+            .select(
+              [
+                "id",
+                "valor_estimado",
+                "valor_contratado",
+                "modalidade",
+                "unidade_orcamentaria",
+                "setor_requisitante",
+                "tipo_contratacao",
+                "tipo_recurso",
+                "classe",
+                "grau_prioridade",
+                "normativo",
+                "etapa_processo",
+              ].join(","),
+            )
+            .order("created_at", { ascending: false })
+            .limit(Math.min(500, count || 500));
+          rowsData = (retry as unknown as Contratacao[]) || rowsData;
+        }
+        setRows(rowsData);
         setTotalCount(count || 0);
       }
 

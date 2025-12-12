@@ -8,6 +8,16 @@ export async function getSession() {
   return data.session;
 }
 
+export function useAuthSession() {
+  return useQuery({
+    queryKey: ["auth", "session"],
+    queryFn: () => getSession(),
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnReconnect: true,
+  });
+}
+
 export async function fetchUserRoles(userId?: string): Promise<PerfilAcesso[]> {
   try {
     const uid = userId;
@@ -41,11 +51,12 @@ export async function fetchUserRoles(userId?: string): Promise<PerfilAcesso[]> {
   }
 }
 
-export function useUserRoles() {
+export function useUserRoles(userId?: string) {
   return useQuery({
-    queryKey: ["auth", "roles"],
-    queryFn: () => fetchUserRoles(),
-    staleTime: 60_000,
+    queryKey: ["auth", "roles", userId ?? "anonymous"],
+    queryFn: () => fetchUserRoles(userId),
+    staleTime: 120_000,
+    enabled: !!userId,
   });
 }
 

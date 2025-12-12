@@ -71,8 +71,8 @@ const Faq = () => {
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <p>E-mail de suporte: suporte.pca@mppi.mp.br</p>
-            <p>Telefone: (86) 3216-0000 (ramal PCA)</p>
-            <p>Portal interno: Intranet MPPI → PCA</p>
+            <p>Telefone: (86) 2222-8004 (Coord. Licitações e Contratos)</p>
+            <p>Portal interno: MPPI → Coord. Licitações e Contratos → PCA</p>
           </CardContent>
         </Card>
       </div>

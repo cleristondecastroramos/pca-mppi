@@ -29,6 +29,7 @@ const contratacaoSchema = z.object({
   tipo_recurso: z.string().min(1, "Tipo de recurso é obrigatório"),
   grau_prioridade: z.string().min(1, "Grau de prioridade é obrigatório"),
   valor_estimado: z.number().positive("Valor estimado deve ser maior que zero"),
+  data_prevista_contratacao: z.string().min(1, "Data prevista é obrigatória"),
 });
 
 export default function NovaContratacao() {
@@ -53,6 +54,7 @@ export default function NovaContratacao() {
       tipo_recurso: formData.get("tipo_recurso") as string,
       grau_prioridade: formData.get("grau_prioridade") as string,
       valor_estimado: parseFloat(formData.get("valor_estimado") as string),
+      data_prevista_contratacao: formData.get("data_prevista_contratacao") as string,
     };
 
     try {
@@ -234,6 +236,12 @@ export default function NovaContratacao() {
                     </SelectContent>
                   </Select>
                   {errors.unidade_orcamentaria && <p className="text-sm text-destructive">{errors.unidade_orcamentaria}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="data-prevista">Data Prevista para a Contratação *</Label>
+                  <Input name="data_prevista_contratacao" id="data-prevista" type="date" required />
+                  {errors.data_prevista_contratacao && <p className="text-sm text-destructive">{errors.data_prevista_contratacao}</p>}
                 </div>
               </div>
 

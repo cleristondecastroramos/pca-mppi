@@ -239,30 +239,71 @@ export default function Contratacoes() {
           );
 
       // Atualizar contratação
-      const { error: updateError } = await supabase
+      let payload: any = {
+        descricao: editingContratacao.descricao,
+        setor_requisitante: editingContratacao.setor_requisitante,
+        unidade_orcamentaria: editingContratacao.unidade_orcamentaria,
+        classe: editingContratacao.classe,
+        valor_estimado: editingContratacao.valor_estimado,
+        valor_contratado: editingContratacao.valor_contratado,
+        etapa_processo: mapped.etapa,
+        sobrestado: mapped.sobrestado,
+        grau_prioridade: editingContratacao.grau_prioridade,
+        justificativa: editingContratacao.justificativa,
+        updated_at: new Date().toISOString(),
+      };
+      if ((editingContratacao as any).numero_sei_contratacao !== undefined) {
+        payload.numero_sei_contratacao = (editingContratacao as any).numero_sei_contratacao || null;
+      }
+      if ((editingContratacao as any).data_prevista_contratacao !== undefined) {
+        payload.data_prevista_contratacao = (editingContratacao as any).data_prevista_contratacao || null;
+      }
+
+      let { error: updateError } = await supabase
         .from("contratacoes")
-        .update({
-          descricao: editingContratacao.descricao,
-          setor_requisitante: editingContratacao.setor_requisitante,
-          unidade_orcamentaria: editingContratacao.unidade_orcamentaria,
-          classe: editingContratacao.classe,
-          valor_estimado: editingContratacao.valor_estimado,
-          valor_contratado: editingContratacao.valor_contratado,
-          numero_sei_contratacao: (editingContratacao as any).numero_sei_contratacao || null,
-          etapa_processo: mapped.etapa,
-          sobrestado: mapped.sobrestado,
-          grau_prioridade: editingContratacao.grau_prioridade,
-          justificativa: editingContratacao.justificativa,
-          updated_at: new Date().toISOString(),
-        })
+        .update(payload)
         .eq("id", editingContratacao.id);
+
+      if (updateError) {
+        const msg = String(updateError.message || updateError);
+        if (msg.includes("column \"data_prevista_contratacao\" does not exist")) {
+          delete payload.data_prevista_contratacao;
+          ({ error: updateError } = await supabase.from("contratacoes").update(payload).eq("id", editingContratacao.id));
+        }
+        if (!updateError && msg.includes("column \"numero_sei_contratacao\" does not exist")) {
+          delete payload.numero_sei_contratacao;
+          ({ error: updateError } = await supabase.from("contratacoes").update(payload).eq("id", editingContratacao.id));
+        }
+      }
 
       if (updateError) {
         const msg = String(updateError.message || updateError);
         if (msg.includes("Saldo orçamentário insuficiente") || msg.includes("saldo orçamentário insuficiente")) {
           toast.error("Saldo orçamentário insuficiente na UO selecionada. Solicite autorização do administrador para excedente.");
         } else {
-          toast.error("Erro ao salvar alterações");
+          // Tenta corrigir erro de schema cache/coluna inexistente removendo campos opcionais e reenviando
+          const mentionsDataPrevista = msg.includes("data_prevista_contratacao");
+          const mentionsNumeroSei = msg.includes("numero_sei_contratacao");
+          if (mentionsDataPrevista && payload.data_prevista_contratacao !== undefined) {
+            delete payload.data_prevista_contratacao;
+            const retry = await supabase.from("contratacoes").update(payload).eq("id", editingContratacao.id);
+            if (!retry.error) {
+              updateError = undefined as any;
+            } else {
+              // Ainda erro: mostra descrição detalhada
+              toast.error("Erro ao salvar alterações", { description: String(retry.error.message || retry.error) });
+            }
+          } else if (mentionsNumeroSei && payload.numero_sei_contratacao !== undefined) {
+            delete payload.numero_sei_contratacao;
+            const retry = await supabase.from("contratacoes").update(payload).eq("id", editingContratacao.id);
+            if (!retry.error) {
+              updateError = undefined as any;
+            } else {
+              toast.error("Erro ao salvar alterações", { description: String(retry.error.message || retry.error) });
+            }
+          } else {
+            toast.error("Erro ao salvar alterações", { description: msg });
+          }
         }
         throw updateError;
       }
@@ -836,7 +877,7 @@ export default function Contratacoes() {
                   />
                 </div>
 
-                {/* Linha 2: Número SEI + Setor Requisitante + Unidade Orçamentária + Classe */}
+                {/* Linha 2: Número SEI + Setor Requisitante + Unidade Orçamentária */}
                 <div className="grid gap-4 sm:grid-cols-6">
                   <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="edit-sei" className="text-[12px] text-muted-foreground">Número SEI:</Label>
@@ -857,7 +898,7 @@ export default function Contratacoes() {
                       }}
                     />
                   </div>
-                  <div className="space-y-2 sm:col-span-1">
+                  <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="edit-setor" className="text-[12px] text-muted-foreground">Setor Requisitante:</Label>
                     <Select
                       value={editingContratacao.setor_requisitante}
@@ -865,7 +906,7 @@ export default function Contratacoes() {
                         setEditingContratacao({ ...editingContratacao, setor_requisitante: value })
                       }
                     >
-                      <SelectTrigger className="h-9 px-3">
+                      <SelectTrigger className="h-9 px-3 w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -902,7 +943,22 @@ export default function Contratacoes() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2 sm:col-span-2">
+                </div>
+
+                {/* Linha 2B: Data Prevista e Classe de Material */}
+                <div className="grid gap-4 sm:grid-cols-6">
+                  <div className="space-y-2 sm:col-span-3">
+                    <Label htmlFor="edit-data-prevista" className="text-[12px] text-muted-foreground">Data Prevista para a Contratação:</Label>
+                    <Input
+                      id="edit-data-prevista"
+                      type="date"
+                      value={(editingContratacao as any).data_prevista_contratacao || ""}
+                      onChange={(e) =>
+                        setEditingContratacao({ ...editingContratacao, data_prevista_contratacao: e.target.value } as any)
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-3">
                     <Label htmlFor="edit-classe" className="text-[12px] text-muted-foreground">Classe de Material:</Label>
                     <Select
                       value={editingContratacao.classe || undefined}
