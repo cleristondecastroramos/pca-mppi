@@ -22,6 +22,7 @@ const GerenciamentoUsuarios = lazy(() => import("./pages/GerenciamentoUsuarios")
 const MinhaConta = lazy(() => import("./pages/MinhaConta"));
 const EsqueciSenha = lazy(() => import("./pages/EsqueciSenha"));
 const RedefinirSenha = lazy(() => import("./pages/RedefinirSenha"));
+const Faq = lazy(() => import("./pages/Faq"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -110,6 +111,11 @@ const App = () => (
           <Route path="/minha-conta" element={
             <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
               <MinhaConta />
+            </ProtectedRoute>
+          } />
+          <Route path="/faq" element={
+            <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
+              <Faq />
             </ProtectedRoute>
           } />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

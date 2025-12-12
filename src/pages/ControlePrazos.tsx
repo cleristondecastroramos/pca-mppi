@@ -83,7 +83,9 @@ const ControlePrazos = () => {
       }
     };
     fetchData();
-    const { data: sub } = supabase.auth.onAuthStateChange(() => fetchData());
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') fetchData();
+    });
     return () => {
       mounted = false;
       sub.subscription.unsubscribe();
