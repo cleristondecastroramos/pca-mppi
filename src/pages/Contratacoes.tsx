@@ -102,7 +102,7 @@ export default function Contratacoes() {
     try {
       const start = (page - 1) * pageSize;
       const end = start + pageSize - 1;
-      let query = supabase
+      let query: any = supabase
         .from("contratacoes")
         .select("*", { count: "exact" })
         .order("created_at", { ascending: false })
