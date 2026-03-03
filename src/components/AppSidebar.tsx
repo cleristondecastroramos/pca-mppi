@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
 import { prefetchPage } from "@/lib/prefetch";
+import { useQueryClient } from "@tanstack/react-query";
 
 const menuItems = [
   { title: "Visão Geral", url: "/visao-geral", icon: Gauge },
@@ -39,13 +40,16 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
     try {
-      const { error } = await supabase.auth.signOut({ scope: "local" });
+      // Limpa cache de sessão/roles antes do signOut para evitar estado stale
+      queryClient.removeQueries({ queryKey: ["auth"] });
+      const { error } = await supabase.auth.signOut();
       if (error) {
         console.error("Erro ao fazer logout:", error);
         toast.error(error.message || "Erro ao sair");
@@ -57,8 +61,7 @@ export function AppSidebar() {
       toast.error("Falha no logout; sessão será encerrada.");
     } finally {
       setIsLoggingOut(false);
-      // Garanta retorno à tela de autenticação mesmo se a requisição for abortada
-      navigate("/auth");
+      navigate("/auth", { replace: true });
     }
   };
 
