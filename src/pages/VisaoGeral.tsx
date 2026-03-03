@@ -18,6 +18,9 @@ type Contratacao = Pick<
   | "id"
   | "valor_estimado"
   | "valor_contratado"
+  | "empenho_1"
+  | "empenho_2"
+  | "empenho_3"
   | "modalidade"
   | "unidade_orcamentaria"
   | "setor_requisitante"
@@ -105,11 +108,7 @@ const VisaoGeral = () => {
     etapa_processo: ALL_VALUE,
   };
   const [filtros, setFiltros] = useState<Filtros>(defaultFiltros);
-  const [page, setPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(20);
   const [totalCount, setTotalCount] = useState<number>(0);
-  const [kpiModalidade, setKpiModalidade] = useState<Array<{ modalidade: string; total_demandas: number; total_estimado: number; total_contratado: number }>>([]);
-  const [kpiStatus, setKpiStatus] = useState<Array<{ etapa_processo: string; total_demandas: number; total_estimado: number; total_contratado: number }>>([]);
   const [distinctOptionsRpc, setDistinctOptionsRpc] = useState<any>(null);
   const [metric, setMetric] = useState<"quantidade" | "valor_estimado">("quantidade");
   const [metricPieClasse, setMetricPieClasse] = useState<"quantidade" | "valor_estimado">("quantidade");
@@ -127,6 +126,9 @@ const VisaoGeral = () => {
             "id",
             "valor_estimado",
             "valor_contratado",
+            "empenho_1",
+            "empenho_2",
+            "empenho_3",
             "modalidade",
             "unidade_orcamentaria",
             "setor_requisitante",
@@ -168,86 +170,19 @@ const VisaoGeral = () => {
           query = query.eq("etapa_processo", filtros.etapa_processo);
         }
       }
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-      const { data, error, count } = await query.range(from, to);
+
+      const { data, error, count } = await query;
       if (error) {
         setError(error.message);
       } else {
-        let rowsData = (data as unknown as Contratacao[]) || [];
-        if (rowsData.length === 0 && (count || 0) > 0) {
-          const { data: retry } = await supabase
-            .from("contratacoes")
-            .select(
-              [
-                "id",
-                "valor_estimado",
-                "valor_contratado",
-                "modalidade",
-                "unidade_orcamentaria",
-                "setor_requisitante",
-                "tipo_contratacao",
-                "tipo_recurso",
-                "classe",
-                "grau_prioridade",
-                "normativo",
-                "etapa_processo",
-              ].join(","),
-            )
-            .order("created_at", { ascending: false })
-            .limit(Math.min(500, count || 500));
-          rowsData = (retry as unknown as Contratacao[]) || rowsData;
-        }
-        setRows(rowsData);
+        setRows((data as unknown as Contratacao[]) || []);
         setTotalCount(count || 0);
-      }
-
-      // Calculate KPIs client-side from all data (fetch without pagination for aggregates)
-      let allQuery = supabase
-        .from("contratacoes")
-        .select("modalidade, etapa_processo, valor_estimado, valor_contratado");
-      
-      if (filtros.unidade_orcamentaria && filtros.unidade_orcamentaria !== ALL_VALUE) allQuery = allQuery.eq("unidade_orcamentaria", filtros.unidade_orcamentaria);
-      if (filtros.setor_requisitante && filtros.setor_requisitante !== ALL_VALUE) allQuery = allQuery.eq("setor_requisitante", filtros.setor_requisitante);
-      if (filtros.tipo_contratacao && filtros.tipo_contratacao !== ALL_VALUE) allQuery = allQuery.eq("tipo_contratacao", filtros.tipo_contratacao);
-      if (filtros.tipo_recurso && filtros.tipo_recurso !== ALL_VALUE) allQuery = allQuery.eq("tipo_recurso", filtros.tipo_recurso);
-      if (filtros.classe && filtros.classe !== ALL_VALUE) allQuery = allQuery.eq("classe", filtros.classe);
-      if (filtros.grau_prioridade && filtros.grau_prioridade !== ALL_VALUE) allQuery = allQuery.eq("grau_prioridade", filtros.grau_prioridade);
-      if (filtros.normativo && filtros.normativo !== ALL_VALUE) allQuery = allQuery.eq("normativo", filtros.normativo);
-      if (filtros.modalidade && filtros.modalidade !== ALL_VALUE) allQuery = allQuery.eq("modalidade", filtros.modalidade);
-      
-      const { data: allData } = await allQuery;
-      
-      if (allData) {
-        // Group by modalidade
-        const modalidadeMap = new Map<string, { total_demandas: number; total_estimado: number; total_contratado: number }>();
-        allData.forEach((r) => {
-          const key = r.modalidade || "Não informado";
-          const existing = modalidadeMap.get(key) || { total_demandas: 0, total_estimado: 0, total_contratado: 0 };
-          existing.total_demandas += 1;
-          existing.total_estimado += r.valor_estimado || 0;
-          existing.total_contratado += r.valor_contratado || 0;
-          modalidadeMap.set(key, existing);
-        });
-        setKpiModalidade(Array.from(modalidadeMap.entries()).map(([modalidade, vals]) => ({ modalidade, ...vals })));
-        
-        // Group by etapa_processo (status)
-        const statusMap = new Map<string, { total_demandas: number; total_estimado: number; total_contratado: number }>();
-        allData.forEach((r) => {
-          const key = r.etapa_processo || "Não informado";
-          const existing = statusMap.get(key) || { total_demandas: 0, total_estimado: 0, total_contratado: 0 };
-          existing.total_demandas += 1;
-          existing.total_estimado += r.valor_estimado || 0;
-          existing.total_contratado += r.valor_contratado || 0;
-          statusMap.set(key, existing);
-        });
-        setKpiStatus(Array.from(statusMap.entries()).map(([etapa_processo, vals]) => ({ etapa_processo, ...vals })));
       }
       
       setLoading(false);
     };
     fetchData();
-  }, [filtros, page, pageSize]);
+  }, [filtros]);
 
   useEffect(() => {
     const fetchDistinct = async () => {
@@ -342,9 +277,14 @@ const VisaoGeral = () => {
   const kpis = useMemo(() => {
     const totalDemandas = filteredRows.length;
     const totalEstimado = filteredRows.reduce((sum, r) => sum + (r.valor_estimado || 0), 0);
-    const totalContratado = filteredRows.reduce((sum, r) => sum + (r.valor_contratado || 0), 0);
+    const totalExecutado = filteredRows.reduce((sum, r) => {
+      const e1 = parseFloat(String(r.empenho_1 || "0").replace(/[R$\s.]/g, '').replace(',', '.'));
+      const e2 = parseFloat(String(r.empenho_2 || "0").replace(/[R$\s.]/g, '').replace(',', '.'));
+      const e3 = parseFloat(String(r.empenho_3 || "0").replace(/[R$\s.]/g, '').replace(',', '.'));
+      return sum + (isNaN(e1) ? 0 : e1) + (isNaN(e2) ? 0 : e2) + (isNaN(e3) ? 0 : e3);
+    }, 0);
     const totalConcluidas = filteredRows.filter((r) => r.etapa_processo === "Concluído").length;
-    return { totalDemandas, totalEstimado, totalContratado, totalConcluidas };
+    return { totalDemandas, totalEstimado, totalExecutado, totalConcluidas };
   }, [filteredRows]);
 
 
@@ -477,7 +417,6 @@ const VisaoGeral = () => {
   };
 
   const clearFiltros = () => setFiltros(defaultFiltros);
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   return (
     <Layout>
@@ -647,9 +586,9 @@ const VisaoGeral = () => {
           </div>
           <div className="md:col-span-2 lg:col-span-2">
             <KPICard
-              title="Valor Total Contratado"
-              value={loading ? "—" : formatCurrencyBRL(kpis.totalContratado)}
-              icon={CheckCircle}
+              title="Valor Executado"
+              value={loading ? "—" : formatCurrencyBRL(kpis.totalExecutado)}
+              icon={DollarSign}
               variant="success"
             />
           </div>

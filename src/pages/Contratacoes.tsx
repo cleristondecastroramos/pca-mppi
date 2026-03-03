@@ -2,7 +2,7 @@ import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Filter, Edit, History, Eye } from "lucide-react";
+import { Plus, Search, Filter, Edit, History, Trash2, FileUp } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Table,
@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import type { Tables } from "@/integrations/supabase/types";
+import { importContratacoes, removeDuplicates } from "@/utils/importCsv";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +25,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -49,6 +60,7 @@ export default function Contratacoes() {
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);
   const [showHistorico, setShowHistorico] = useState(false);
   const [selectedContratacaoId, setSelectedContratacaoId] = useState<string | null>(null);
+  const [contratacaoToDelete, setContratacaoToDelete] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
@@ -190,6 +202,20 @@ export default function Contratacoes() {
     }
   };
 
+  const handleDelete = async (id: string | null) => {
+    if (!id) return;
+    try {
+      const { error } = await supabase.from("contratacoes").delete().eq("id", id);
+      if (error) throw error;
+      toast.success("Contratação excluída com sucesso");
+      setContratacaoToDelete(null);
+      fetchContratacoes();
+    } catch (error: any) {
+      console.error("Erro ao excluir:", error);
+      toast.error("Erro ao excluir contratação", { description: error.message });
+    }
+  };
+
   const handleEdit = async (contratacao: Contratacao) => {
     setEditingContratacao({ ...contratacao });
   };
@@ -252,6 +278,21 @@ export default function Contratacoes() {
         justificativa: editingContratacao.justificativa,
         updated_at: new Date().toISOString(),
       };
+      
+      // Add missing fields
+      if ((editingContratacao as any).quantidade_itens !== undefined) {
+        payload.quantidade_itens = (editingContratacao as any).quantidade_itens;
+      }
+      if ((editingContratacao as any).valor_unitario !== undefined) {
+        payload.valor_unitario = (editingContratacao as any).valor_unitario;
+      }
+      if ((editingContratacao as any).unidade_fornecimento !== undefined) {
+        payload.unidade_fornecimento = (editingContratacao as any).unidade_fornecimento;
+      }
+      if ((editingContratacao as any).tipo_recurso !== undefined) {
+        payload.tipo_recurso = (editingContratacao as any).tipo_recurso;
+      }
+
       if ((editingContratacao as any).numero_sei_contratacao !== undefined) {
         payload.numero_sei_contratacao = (editingContratacao as any).numero_sei_contratacao || null;
       }
@@ -326,6 +367,51 @@ export default function Contratacoes() {
     } catch (error) {
       console.error("Erro ao salvar edição:", error);
       toast.error("Erro ao salvar alterações");
+    }
+  };
+
+  const handleImport = async () => {
+    console.log("Iniciando processo de importação...");
+    const confirm = window.confirm("Deseja importar os dados do arquivo demandas2026.csv? Isso pode criar duplicatas se já existirem.");
+    if (!confirm) return;
+    
+    setLoading(true);
+    toast.info("Iniciando importação...");
+    try {
+      console.log("Chamando importContratacoes...");
+      const { count, error } = await importContratacoes();
+      if (error) throw new Error(error);
+      toast.success(`${count} registros importados com sucesso!`);
+      fetchContratacoes();
+    } catch (error: any) {
+      console.error("Erro no handleImport:", error);
+      toast.error("Erro na importação: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemoveDuplicates = async () => {
+    const confirm = window.confirm("Deseja verificar e remover registros duplicados? Essa ação não pode ser desfeita.");
+    if (!confirm) return;
+
+    setLoading(true);
+    toast.info("Verificando duplicatas...");
+    try {
+      const { count, error } = await removeDuplicates();
+      if (error) throw new Error(error);
+      
+      if (count > 0) {
+        toast.success(`${count} registros duplicados foram removidos!`);
+        fetchContratacoes();
+      } else {
+        toast.info("Nenhuma duplicata encontrada.");
+      }
+    } catch (error: any) {
+      console.error("Erro ao remover duplicatas:", error);
+      toast.error("Erro ao remover duplicatas: " + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -557,12 +643,22 @@ export default function Contratacoes() {
               Gerencie todas as contratações do PCA 2026 ({totalCount} registros)
             </p>
           </div>
-          <Link to="/nova-contratacao">
-            <Button size="xs">
-              <Plus className="h-4 w-4 mr-1" />
-              Nova Contratação
+          <div className="flex gap-2">
+            <Button size="xs" variant="outline" onClick={handleRemoveDuplicates} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+              <Trash2 className="h-4 w-4 mr-1" />
+              Remover Duplicatas
             </Button>
-          </Link>
+            <Button size="xs" variant="outline" onClick={handleImport}>
+              <FileUp className="h-4 w-4 mr-1" />
+              Importar CSV
+            </Button>
+            <Link to="/nova-contratacao">
+              <Button size="xs">
+                <Plus className="h-4 w-4 mr-1" />
+                Nova Contratação
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Barra de filtros discretos (copiada da aba Visão Geral) */}
@@ -766,8 +862,9 @@ export default function Contratacoes() {
                       {(() => {
                         const getCategory = (c: Contratacao) => {
                           if ((c as any).sobrestado === true) return "sobrestado";
-                          if (c.etapa_processo === "Em Licitação" || c.etapa_processo === "Contratado") return "em andamento";
-                          if (c.etapa_processo === "Concluído") return "concluído";
+                          const etapa = c.etapa_processo?.toLowerCase() || "";
+                          if (etapa === "em andamento" || etapa === "em licitação" || etapa === "contratado") return "em andamento";
+                          if (etapa === "concluído") return "concluído";
                           return "não iniciado";
                         };
                         const label = getCategory(contratacao);
@@ -812,9 +909,10 @@ export default function Contratacoes() {
                         <Button
                           variant="ghost"
                           size="xs"
-                          title="Ver detalhes"
+                          onClick={() => setContratacaoToDelete(contratacao.id)}
+                          title="Excluir contratação"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
                     </TableCell>
@@ -981,24 +1079,87 @@ export default function Contratacoes() {
                   </div>
                 </div>
 
-                {/* Linha 3: Valores, Prioridade e Status juntos */}
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                {/* Linha 3: Quantidade, Valor Unitário, Unidade e Tipo Recurso */}
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                   <div className="space-y-2">
-                    <Label htmlFor="edit-valor" className="text-[12px] text-muted-foreground">Valor Estimado (R$):</Label>
+                    <Label htmlFor="edit-quantidade" className="text-[12px] text-muted-foreground">Quantidade:</Label>
                     <Input
-                      id="edit-valor"
+                      id="edit-quantidade"
+                      type="number"
+                      min="1"
+                      value={(editingContratacao as any).quantidade_itens || 1}
+                      onChange={(e) => {
+                        const qtd = parseInt(e.target.value) || 0;
+                        const unitario = (editingContratacao as any).valor_unitario || 0;
+                        setEditingContratacao({
+                          ...editingContratacao,
+                          quantidade_itens: qtd,
+                          valor_estimado: qtd * unitario,
+                        } as any);
+                      }}
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-valor-unitario" className="text-[12px] text-muted-foreground">Valor Unitário (R$):</Label>
+                    <Input
+                      id="edit-valor-unitario"
                       inputMode="numeric"
-                      value={formatCurrencyNumber(editingContratacao.valor_estimado)}
+                      value={formatCurrencyNumber((editingContratacao as any).valor_unitario || 0)}
                       onChange={(e) => {
                         const formatted = formatCurrencyInput(e.target.value);
                         e.currentTarget.value = formatted;
                         const parsed = parseCurrencyInput(formatted);
+                        const qtd = (editingContratacao as any).quantidade_itens || 1;
                         setEditingContratacao({
                           ...editingContratacao,
-                          valor_estimado: parsed,
-                        });
+                          valor_unitario: parsed,
+                          valor_estimado: qtd * parsed,
+                        } as any);
                       }}
                       className="h-9"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-unidade-fornecimento" className="text-[12px] text-muted-foreground">Unidade:</Label>
+                    <Input
+                      id="edit-unidade-fornecimento"
+                      value={(editingContratacao as any).unidade_fornecimento || "Unidade"}
+                      onChange={(e) =>
+                        setEditingContratacao({ ...editingContratacao, unidade_fornecimento: e.target.value } as any)
+                      }
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-tipo-recurso" className="text-[12px] text-muted-foreground">Tipo de Recurso:</Label>
+                    <Select
+                      value={(editingContratacao as any).tipo_recurso || "Custeio"}
+                      onValueChange={(value) =>
+                        setEditingContratacao({ ...editingContratacao, tipo_recurso: value } as any)
+                      }
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Custeio">Custeio</SelectItem>
+                        <SelectItem value="Investimento">Investimento</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Linha 4: Valor Estimado, Valor Executado, Prioridade e Status */}
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-valor" className="text-[12px] text-muted-foreground">Valor Estimado Total (R$):</Label>
+                    <Input
+                      id="edit-valor"
+                      inputMode="numeric"
+                      value={formatCurrencyNumber(editingContratacao.valor_estimado)}
+                      readOnly
+                      className="h-9 bg-muted"
                     />
                   </div>
                   <div className="space-y-2">
@@ -1043,9 +1204,9 @@ export default function Contratacoes() {
                       value={(editingContratacao as any).sobrestado
                         ? "sobrestado"
                         : ((() => {
-                            const etapa = editingContratacao.etapa_processo;
-                            if (etapa === "Concluído") return "concluído";
-                            if (etapa === "Em Licitação" || etapa === "Contratado") return "em andamento";
+                            const etapa = editingContratacao.etapa_processo?.toLowerCase() || "";
+                            if (etapa === "concluído") return "concluído";
+                            if (etapa === "em andamento" || etapa === "em licitação" || etapa === "contratado") return "em andamento";
                             return "não iniciado";
                           })())}
                       onValueChange={(value) => {
@@ -1055,7 +1216,10 @@ export default function Contratacoes() {
                           // mantém etapa atual
                         } else {
                           next.sobrestado = false;
-                          next.etapa_processo = value;
+                          if (value === "não iniciado") next.etapa_processo = "Planejamento";
+                          else if (value === "em andamento") next.etapa_processo = "Em Licitação"; // Default para em andamento
+                          else if (value === "concluído") next.etapa_processo = "Concluído";
+                          else next.etapa_processo = value;
                         }
                         setEditingContratacao(next);
                       }}
@@ -1154,6 +1318,26 @@ export default function Contratacoes() {
             </div>
           </DialogContent>
         </Dialog>
+        {/* Dialog de Confirmação de Exclusão */}
+        <AlertDialog open={!!contratacaoToDelete} onOpenChange={() => setContratacaoToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Tem certeza que deseja excluir esta demanda de contratação?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta ação não pode ser desfeita. Isso excluirá permanentemente a contratação e seu histórico.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => handleDelete(contratacaoToDelete)}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </Layout>
   );

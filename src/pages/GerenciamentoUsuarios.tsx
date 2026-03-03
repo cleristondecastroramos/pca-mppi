@@ -10,7 +10,34 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { PerfilAcesso } from "@/lib/auth";
-import { Shield, UserCog, ClipboardList, Eye } from "lucide-react";
+import { Shield, UserCog, ClipboardList, Eye, Info } from "lucide-react";
+
+const ROLE_DEFINITIONS = {
+  administrador: {
+    label: "Administrador",
+    description: "Acesso total ao sistema. Gerencia usuários, configurações globais, visualiza e edita todas as contratações e orçamentos. Pode excluir registros e aprovar demandas críticas.",
+    icon: Shield,
+    color: "text-destructive",
+  },
+  gestor: {
+    label: "Gestor",
+    description: "Foco na gestão de contratações. Pode criar, editar e encaminhar contratações de todos os setores. Visualiza relatórios gerenciais e dashboards. Não gerencia usuários.",
+    icon: UserCog,
+    color: "text-amber-600",
+  },
+  setor_requisitante: {
+    label: "Setor Requisitante",
+    description: "Registra e acompanha demandas do próprio setor. Pode criar novas solicitações e editar rascunhos. Visualização restrita aos dados do seu setor.",
+    icon: ClipboardList,
+    color: "text-blue-600",
+  },
+  consulta: {
+    label: "Consulta",
+    description: "Apenas visualização. Pode consultar dados de contratações e orçamentos para fins de auditoria ou acompanhamento, sem permissão de alteração.",
+    icon: Eye,
+    color: "text-muted-foreground",
+  }
+};
 
 async function invokeWithTimeout<T = any>(fn: string, body: any, ms = 12000): Promise<{ data: T | null; error: any }> {
   let timeoutId: any;
