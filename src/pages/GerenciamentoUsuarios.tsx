@@ -15,29 +15,52 @@ import { Shield, UserCog, ClipboardList, Eye, Info } from "lucide-react";
 const ROLE_DEFINITIONS = {
   administrador: {
     label: "Administrador",
-    description: "Acesso total ao sistema. Gerencia usuários, configurações globais, visualiza e edita todas as contratações e orçamentos. Pode excluir registros e aprovar demandas críticas.",
+    description: "Acesso total ao sistema e gestão de usuários.",
+    tasks: [
+      "Gerenciamento completo de usuários e perfis",
+      "Configurações globais do sistema",
+      "Aprovação final de planejamentos",
+      "Visualização e edição de todas as contratações",
+      "Exclusão de registros"
+    ],
     icon: Shield,
     color: "text-destructive",
   },
   gestor: {
     label: "Gestor",
-    description: "Foco na gestão de contratações. Pode criar, editar e encaminhar contratações de todos os setores. Visualiza relatórios gerenciais e dashboards. Não gerencia usuários.",
+    description: "Gestão e consolidação das contratações.",
+    tasks: [
+      "Visualização de todas as contratações de todos os setores",
+      "Edição técnica de contratações",
+      "Geração de relatórios gerenciais e dashboards",
+      "Validação de demandas dos setores requisitantes"
+    ],
     icon: UserCog,
     color: "text-amber-600",
   },
   setor_requisitante: {
     label: "Setor Requisitante",
-    description: "Registra e acompanha demandas do próprio setor. Pode criar novas solicitações e editar rascunhos. Visualização restrita aos dados do seu setor.",
+    description: "Cadastro e acompanhamento de demandas próprias.",
+    tasks: [
+      "Cadastro de novas contratações (PCA)",
+      "Edição de contratações em rascunho do próprio setor",
+      "Visualização apenas das demandas do seu setor"
+    ],
     icon: ClipboardList,
     color: "text-blue-600",
   },
   consulta: {
     label: "Consulta",
-    description: "Apenas visualização. Pode consultar dados de contratações e orçamentos para fins de auditoria ou acompanhamento, sem permissão de alteração.",
+    description: "Acesso somente leitura para transparência.",
+    tasks: [
+      "Visualização de dados públicos do PCA",
+      "Consulta de relatórios básicos",
+      "Sem permissão de alteração ou exclusão"
+    ],
     icon: Eye,
     color: "text-muted-foreground",
   }
-};
+} as const;
 
 async function invokeWithTimeout<T = any>(fn: string, body: any, ms = 12000): Promise<{ data: T | null; error: any }> {
   let timeoutId: any;
@@ -263,23 +286,72 @@ const GerenciamentoUsuarios = () => {
           <CardHeader>
             <CardTitle>Usuários</CardTitle>
             <div className="flex items-center gap-2">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <Info className="h-4 w-4" />
+                    Política de Acessos
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl p-0 overflow-hidden [&>button]:text-white">
+                  <DialogHeader className="bg-sidebar p-6">
+                    <DialogTitle className="text-white">Política de Acessos e Atribuições</DialogTitle>
+                    <DialogDescription className="text-white/80">
+                      Entenda as responsabilidades e permissões de cada perfil no sistema.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 p-6">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[180px]">Perfil</TableHead>
+                          <TableHead>Descrição</TableHead>
+                          <TableHead>Principais Atribuições</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {(Object.entries(ROLE_DEFINITIONS) as [keyof typeof ROLE_DEFINITIONS, typeof ROLE_DEFINITIONS[keyof typeof ROLE_DEFINITIONS]][]).map(([key, def]) => (
+                          <TableRow key={key}>
+                            <TableCell className="font-medium align-top">
+                              <div className="flex items-center gap-2">
+                                <def.icon className={`h-4 w-4 ${def.color}`} />
+                                {def.label}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground align-top">{def.description}</TableCell>
+                            <TableCell className="align-top">
+                              <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                                {def.tasks.map((task, i) => (
+                                  <li key={i}>{task}</li>
+                                ))}
+                              </ul>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
               <Dialog open={showCreate} onOpenChange={setShowCreate}>
                 <DialogTrigger asChild>
                   <Button onClick={() => setShowCreate(true)}>Cadastrar usuário</Button>
                 </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Novo usuário</DialogTitle>
-                    <DialogDescription>
+                <DialogContent className="p-0 overflow-hidden [&>button]:text-white">
+                  <DialogHeader className="bg-sidebar p-6">
+                    <DialogTitle className="text-white">Novo usuário</DialogTitle>
+                    <DialogDescription className="text-white/80">
                       Informe nome, e-mail, setor, cargo e perfil de acesso. Opcionalmente, defina uma senha provisória (mínimo 8 caracteres); o usuário deverá alterá-la no primeiro login.
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
+                  <div className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="md:col-span-2">
                       <label className="text-sm text-muted-foreground">Nome completo</label>
                       <Input value={newNome} onChange={(e) => setNewNome(e.target.value)} placeholder="Ex.: Maria Silva" />
                     </div>
-                    <div>
+                    <div className="md:col-span-2">
                       <label className="text-sm text-muted-foreground">E-mail</label>
                       <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="usuario@mppi.mp.br" />
                     </div>
@@ -294,34 +366,21 @@ const GerenciamentoUsuarios = () => {
                     <div className="md:col-span-2">
                       <label className="text-sm text-muted-foreground">Perfil de acesso</label>
                       <Select value={newRole} onValueChange={(v) => setNewRole(v as PerfilAcesso)}>
-                        <SelectTrigger className="mt-1 h-9">
-                          <SelectValue placeholder="Selecione" />
+                        <SelectTrigger className="mt-1 h-auto min-h-[2.25rem] py-2">
+                          <SelectValue placeholder="Selecione um perfil" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="administrador">
-                            <div className="flex items-center gap-2">
-                              <Shield className="h-4 w-4 text-destructive" />
-                              Administrador
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="gestor">
-                            <div className="flex items-center gap-2">
-                              <UserCog className="h-4 w-4 text-warning" />
-                              Gestor
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="setor_requisitante">
-                            <div className="flex items-center gap-2">
-                              <ClipboardList className="h-4 w-4 text-info" />
-                              Setor requisitante
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="consulta">
-                            <div className="flex items-center gap-2">
-                              <Eye className="h-4 w-4 text-muted-foreground" />
-                              Consulta
-                            </div>
-                          </SelectItem>
+                          {(Object.entries(ROLE_DEFINITIONS) as [keyof typeof ROLE_DEFINITIONS, typeof ROLE_DEFINITIONS[keyof typeof ROLE_DEFINITIONS]][]).map(([key, def]) => (
+                            <SelectItem key={key} value={key} className="py-2">
+                              <div className="flex flex-col gap-1 items-start text-left">
+                                <div className="flex items-center gap-2 font-medium">
+                                  <def.icon className={`h-4 w-4 ${def.color}`} />
+                                  {def.label}
+                                </div>
+                                <p className="text-xs text-muted-foreground line-clamp-2">{def.description}</p>
+                              </div>
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -383,7 +442,8 @@ const GerenciamentoUsuarios = () => {
                       {creating ? "Cadastrando..." : "Cadastrar"}
                     </Button>
                   </DialogFooter>
-                </DialogContent>
+                </div>
+              </DialogContent>
               </Dialog>
             </div>
           </CardHeader>
@@ -402,10 +462,14 @@ const GerenciamentoUsuarios = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os perfis</SelectItem>
-                  <SelectItem value="administrador">Administrador</SelectItem>
-                  <SelectItem value="gestor">Gestor</SelectItem>
-                  <SelectItem value="setor_requisitante">Setor requisitante</SelectItem>
-                  <SelectItem value="consulta">Consulta</SelectItem>
+                  {(Object.entries(ROLE_DEFINITIONS) as [keyof typeof ROLE_DEFINITIONS, typeof ROLE_DEFINITIONS[keyof typeof ROLE_DEFINITIONS]][]).map(([key, def]) => (
+                    <SelectItem key={key} value={key}>
+                      <div className="flex items-center gap-2">
+                        <def.icon className={`h-4 w-4 ${def.color}`} />
+                        {def.label}
+                      </div>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Button variant="outline" size="xs" onClick={loadUsers}>Atualizar</Button>
@@ -475,19 +539,21 @@ const GerenciamentoUsuarios = () => {
                             <div>
                               <label className="text-sm text-muted-foreground">Adicionar perfil</label>
                               <Select value={roleSel} onValueChange={(v) => setRoleSel(v as PerfilAcesso)}>
-                                <SelectTrigger className="mt-1 h-9">
-                                  <SelectValue placeholder="Selecione" />
+                                <SelectTrigger className="mt-1 h-auto min-h-[2.25rem] py-2">
+                                  <SelectValue placeholder="Selecione um perfil" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="administrador">
-                                    <div className="flex items-center gap-2">
-                                      <Shield className="h-4 w-4 text-destructive" />
-                                      Administrador
-                                    </div>
-                                  </SelectItem>
-                                  <SelectItem value="gestor">Gestor</SelectItem>
-                                  <SelectItem value="setor_requisitante">Setor requisitante</SelectItem>
-                                  <SelectItem value="consulta">Consulta</SelectItem>
+                                  {(Object.entries(ROLE_DEFINITIONS) as [keyof typeof ROLE_DEFINITIONS, typeof ROLE_DEFINITIONS[keyof typeof ROLE_DEFINITIONS]][]).map(([key, def]) => (
+                                    <SelectItem key={key} value={key} className="py-2">
+                                      <div className="flex flex-col gap-1 items-start text-left">
+                                        <div className="flex items-center gap-2 font-medium">
+                                          <def.icon className={`h-4 w-4 ${def.color}`} />
+                                          {def.label}
+                                        </div>
+                                        <p className="text-xs text-muted-foreground line-clamp-2">{def.description}</p>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
                                 </SelectContent>
                               </Select>
                             </div>
