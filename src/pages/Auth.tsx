@@ -27,16 +27,12 @@ export default function Auth() {
   } as React.CSSProperties;
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // Redireciona apenas quando evento indica logged in
-      if (event === "SIGNED_IN" && session) {
-    navigate("/home", { replace: true });
+    // Verifica se já existe sessão ativa ao montar a página
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate("/home", { replace: true });
       }
     });
-
-    // Evita redirect imediato; deixa ProtectedRoute gerir acesso
-    // Mantém usuário em /auth até sign-in explícito
-    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
