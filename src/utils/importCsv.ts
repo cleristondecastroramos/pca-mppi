@@ -48,7 +48,7 @@ export const parseAndImportCSV = async (fileContent: string) => {
     data_dfd_compra: getColIndex("DATA DFD PARA COMPRA"),
     data_dfd_oficio: getColIndex("DATA DO DFD/OFÍCIO"),
     data_conclusao: getColIndex("DATA DE CONCLUSÃO"),
-    // data_prevista_contratacao: getColIndex("DATA PREVISTA PARA CONTRATAÇÃO"), // TODO: Descomentar após criar a coluna no banco
+    data_prevista_contratacao: getColIndex("DATA PREVISTA PARA CONTRATAÇÃO"),
   };
 
   const parseCurrency = (val: string) => {
@@ -146,7 +146,7 @@ export const parseAndImportCSV = async (fileContent: string) => {
       tipo_recurso: cols[colMap.tipo_recurso]?.replace(/^"|"$/g, '') || "Custeio",
       valor_estimado: parseCurrency(cols[colMap.valor_estimado]?.replace(/^"|"$/g, '') || "0"),
       data_termino_contrato: parseDate(cols[colMap.data_prevista]?.replace(/^"|"$/g, '') || "") || null,
-      // data_prevista_contratacao: parseDate(cols[colMap.data_prevista_contratacao]?.replace(/^"|"$/g, '') || "") || null,
+      data_prevista_contratacao: parseDate(cols[colMap.data_prevista_contratacao]?.replace(/^"|"$/g, '') || "") || null,
       quantidade_itens: parseInt(cols[colMap.quantidade_itens]?.replace(/^"|"$/g, '') || "0") || 1,
       valor_unitario: parseCurrency(cols[colMap.valor_unitario]?.replace(/^"|"$/g, '') || "0"),
       unidade_fornecimento: cols[colMap.unidade_fornecimento]?.replace(/^"|"$/g, '') || "Unidade",

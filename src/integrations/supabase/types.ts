@@ -26,6 +26,7 @@ export type Database = {
           data_entrada_clc: string | null
           data_envio_pgea: string | null
           data_finalizacao_licitacao: string | null
+          data_prevista_contratacao: string | null
           data_termino_contrato: string | null
           descricao: string
           empenho_1: string | null
@@ -75,6 +76,7 @@ export type Database = {
           data_entrada_clc?: string | null
           data_envio_pgea?: string | null
           data_finalizacao_licitacao?: string | null
+          data_prevista_contratacao?: string | null
           data_termino_contrato?: string | null
           descricao: string
           empenho_1?: string | null
@@ -124,6 +126,7 @@ export type Database = {
           data_entrada_clc?: string | null
           data_envio_pgea?: string | null
           data_finalizacao_licitacao?: string | null
+          data_prevista_contratacao?: string | null
           data_termino_contrato?: string | null
           descricao?: string
           empenho_1?: string | null
