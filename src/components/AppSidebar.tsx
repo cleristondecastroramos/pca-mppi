@@ -47,8 +47,8 @@ export function AppSidebar() {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
     try {
-      // Limpa cache de sessão/roles antes do signOut para evitar estado stale
-      queryClient.removeQueries({ queryKey: ["auth"] });
+      // Limpa todo o cache do React Query antes do signOut
+      queryClient.clear();
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error("Erro ao fazer logout:", error);
@@ -61,7 +61,8 @@ export function AppSidebar() {
       toast.error("Falha no logout; sessão será encerrada.");
     } finally {
       setIsLoggingOut(false);
-      navigate("/auth", { replace: true });
+      // Força redirecionamento para /auth independente de erro
+      window.location.href = "/auth";
     }
   };
 

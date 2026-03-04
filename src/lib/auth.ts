@@ -25,7 +25,7 @@ export async function fetchUserRoles(userId?: string): Promise<PerfilAcesso[]> {
     if (!id) return [];
 
     // Query only user_roles table as single source of truth
-    const { data, error } = (supabase as any)
+    const { data, error } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", id);
