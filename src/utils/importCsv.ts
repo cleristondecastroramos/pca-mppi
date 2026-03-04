@@ -48,7 +48,7 @@ export const parseAndImportCSV = async (fileContent: string) => {
     data_dfd_compra: getColIndex("DATA DFD PARA COMPRA"),
     data_dfd_oficio: getColIndex("DATA DO DFD/OFÍCIO"),
     data_conclusao: getColIndex("DATA DE CONCLUSÃO"),
-    data_prevista_contratacao: getColIndex("DATA PREVISTA PARA CONTRATAÇÃO"),
+    data_prevista_contratacao: getColIndex("TÉRMINO DO CONTRATO / PREVISÃO DE CONTRATAÇÃO"),
   };
 
   const parseCurrency = (val: string) => {
