@@ -43,26 +43,32 @@ export function AppSidebar() {
   const queryClient = useQueryClient();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const handleLogout = async () => {
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
     if (isLoggingOut) return;
     setIsLoggingOut(true);
+
+    const forceRedirect = () => {
+      // Limpa storage local se houver
+      localStorage.clear();
+      sessionStorage.clear();
+      // Força redirecionamento via window.location para garantir refresh limpo
+      window.location.replace("/auth");
+    };
+
     try {
-      // Limpa todo o cache do React Query antes do signOut
+      // Timeout de segurança para não travar no signOut
+      const signOutPromise = supabase.auth.signOut();
+      const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 2000));
+
+      await Promise.race([signOutPromise, timeoutPromise]);
+      
       queryClient.clear();
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error("Erro ao fazer logout:", error);
-        toast.error(error.message || "Erro ao sair");
-      } else {
-        toast.success("Logout realizado com sucesso");
-      }
+      toast.success("Logout realizado com sucesso");
     } catch (err: any) {
-      console.error("Falha inesperada no logout:", err);
-      toast.error("Falha no logout; sessão será encerrada.");
+      console.error("Erro no logout:", err);
     } finally {
-      setIsLoggingOut(false);
-      // Força redirecionamento para /auth independente de erro
-      window.location.href = "/auth";
+      forceRedirect();
     }
   };
 

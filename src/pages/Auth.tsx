@@ -141,7 +141,7 @@ export default function Auth() {
         </CardContent>
       </Card>
       <div className="fixed bottom-2 left-0 right-0 text-center text-muted-foreground text-xs opacity-70">
-        © 2025 Sistema de Gerenciamento de Contratações - MPPI | Desenvolvido pela Assessoria de Planejamento e Gestão
+        © 2026 Sistema de Gerenciamento de Contratações - MPPI | Desenvolvido pela Assessoria de Planejamento e Gestão
       </div>
     </div>
   );

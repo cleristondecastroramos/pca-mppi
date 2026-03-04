@@ -2,7 +2,7 @@ import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Filter, Edit, History, Trash2, FileUp } from "lucide-react";
+import { Plus, Search, Filter, Edit, History, Trash2, FileUp, Eraser } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Table,
@@ -415,6 +415,31 @@ export default function Contratacoes() {
     }
   };
 
+  const handleClearSystem = async () => {
+    const confirm = window.confirm("ATENÇÃO: Tem certeza que deseja excluir TODAS as contratações do sistema? Essa ação é irreversível e limpará todo o banco de dados de contratações.");
+    if (!confirm) return;
+
+    const confirm2 = window.confirm("Confirmação final: Deseja realmente prosseguir com a exclusão total? Todas as demandas serão perdidas.");
+    if (!confirm2) return;
+
+    setLoading(true);
+    toast.info("Limpando sistema...");
+    try {
+      // Deleta todos os registros onde o ID não é nulo (ou seja, todos)
+      const { error } = await supabase.from("contratacoes").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      
+      if (error) throw error;
+      
+      toast.success("Sistema limpo com sucesso! Todas as demandas foram excluídas.");
+      fetchContratacoes();
+    } catch (error: any) {
+      console.error("Erro ao limpar sistema:", error);
+      toast.error("Erro ao limpar sistema: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleShowHistorico = (contratacaoId: string) => {
     setSelectedContratacaoId(contratacaoId);
     setShowHistorico(true);
@@ -644,6 +669,10 @@ export default function Contratacoes() {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button size="xs" variant="outline" onClick={handleClearSystem} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+              <Eraser className="h-4 w-4 mr-1" />
+              Limpar Sistema
+            </Button>
             <Button size="xs" variant="outline" onClick={handleRemoveDuplicates} className="text-destructive hover:text-destructive hover:bg-destructive/10">
               <Trash2 className="h-4 w-4 mr-1" />
               Remover Duplicatas

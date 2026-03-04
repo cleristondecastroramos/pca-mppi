@@ -11,23 +11,17 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CalendarDays, Loader2, Eraser } from "lucide-react";
+import { CalendarDays, Loader2, Eraser, AlertCircle, CheckCircle2, Clock, Calendar as CalendarIcon, Filter } from "lucide-react";
+import { ptBR } from "date-fns/locale";
 
-type Contratacao = Tables<"contratacoes">;
-
-const PRAZO_FIELDS: Array<keyof Contratacao> = [
-  "data_entrada_clc" as any,
-  "data_devolucao_fiscal" as any,
-  "data_envio_pgea" as any,
-  "data_finalizacao_licitacao" as any,
-  "data_termino_contrato" as any,
-];
+type Contratacao = Tables<"contratacoes"> & { data_prevista_contratacao?: string | null };
 
 const ControlePrazos = () => {
   const [rows, setRows] = useState<Contratacao[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
+  const [monthFilter, setMonthFilter] = useState<string>("todos");
   const [editing, setEditing] = useState<{ id: string; field: keyof Contratacao } | null>(null);
   const [dateValue, setDateValue] = useState<Date | undefined>(undefined);
 
@@ -52,81 +46,137 @@ const ControlePrazos = () => {
     return `${String(d).padStart(2, "0")}/${String(m).padStart(2, "0")}/${y}`;
   };
 
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // @ts-ignore
+      const { data, error } = await supabase
+        .from("contratacoes")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      setRows((data as any) || []);
+    } catch (e: any) {
+      toast.error("Erro ao carregar prazos", { description: e.message || String(e) });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    let mounted = true;
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from("contratacoes")
-          .select(
-            [
-              "id",
-              "descricao",
-              "setor_requisitante",
-              "sobrestado",
-              "etapa_processo",
-              "data_entrada_clc",
-              "data_devolucao_fiscal",
-              "data_envio_pgea",
-              "data_finalizacao_licitacao",
-              "data_termino_contrato",
-            ].join(","),
-          )
-          .order("created_at", { ascending: false });
-        if (error) throw error;
-        if (mounted) setRows((data as any) || []);
-      } catch (e: any) {
-        toast.error("Erro ao carregar prazos", { description: e.message || String(e) });
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
     fetchData();
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') fetchData();
     });
     return () => {
-      mounted = false;
       sub.subscription.unsubscribe();
     };
   }, []);
 
-  const diffDays = (dateStr: string | null) => {
-    if (!dateStr) return null;
-    const target = parseDateOnlyToDate(dateStr);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const ms = target.getTime() - today.getTime();
-    return Math.round(ms / (1000 * 60 * 60 * 24));
+  const getPrazoStatus = (contratacao: Contratacao) => {
+    const dataPrevistaStr = contratacao.data_prevista_contratacao;
+    if (!dataPrevistaStr) return { label: "Sem data prevista", variant: "secondary", color: "bg-gray-100 text-gray-700" };
+
+    const dataPrevista = parseDateOnlyToDate(dataPrevistaStr);
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    
+    // Diferença em dias: Data Prevista - Hoje
+    const diffTime = dataPrevista.getTime() - hoje.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    const isConcluido = contratacao.etapa_processo === "Concluído" || contratacao.etapa_processo === "Contratado";
+    const isNaoIniciado = !isConcluido && contratacao.etapa_processo !== "Em Licitação";
+
+    // Regra de Atraso: Data prevista passou e não está concluído
+    if (diffDays < 0 && !isConcluido) {
+      return { 
+        label: `Atrasado (${Math.abs(diffDays)}d)`, 
+        variant: "destructive",
+        color: "bg-red-100 text-red-700 border-red-200"
+      };
+    }
+
+    // Regra de Alerta: Faltam 120 dias ou menos e ainda não iniciou
+    if (diffDays >= 0 && diffDays <= 120 && isNaoIniciado) {
+      return { 
+        label: "Atenção (Prazo Curto)", 
+        variant: "warning",
+        color: "bg-amber-100 text-amber-700 border-amber-200"
+      };
+    }
+
+    if (isConcluido) {
+      return { 
+        label: "Concluído", 
+        variant: "success",
+        color: "bg-green-100 text-green-700 border-green-200"
+      };
+    }
+
+    return { 
+      label: "No Prazo", 
+      variant: "outline",
+      color: "bg-blue-50 text-blue-700 border-blue-200"
+    };
   };
 
-  const statusForDate = (dateStr: string | null) => {
-    const d = diffDays(dateStr);
-    if (d === null) return { label: "sem data", variant: "secondary" } as any;
-    if (d < 0) return { label: `${Math.abs(d)}d atrasado`, variant: "destructive" } as any;
-    if (d === 0) return { label: "vence hoje", variant: "secondary" } as any;
-    if (d <= 7) return { label: `${d}d`, variant: "secondary" } as any;
-    if (d <= 30) return { label: `${d}d`, variant: "secondary" } as any;
-    return { label: `${d}d`, variant: "secondary" } as any;
-  };
+  const kpis = useMemo(() => {
+    let total = 0;
+    let atrasados = 0;
+    let alertas = 0;
+    let concluidos = 0;
+
+    rows.forEach(r => {
+      total++;
+      const status = getPrazoStatus(r);
+      if (status.variant === "destructive") atrasados++;
+      if (status.variant === "warning") alertas++;
+      if (status.variant === "success") concluidos++;
+    });
+
+    return { total, atrasados, alertas, concluidos };
+  }, [rows]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const arr = rows.filter((r) => {
-      const matches =
+    return rows.filter((r) => {
+      const matchesSearch =
         r.descricao.toLowerCase().includes(q) ||
         (r.setor_requisitante || "").toLowerCase().includes(q);
-      if (!matches) return false;
-      if (statusFilter === "todos") return true;
-      const allDiffs = PRAZO_FIELDS.map((f) => diffDays(r[f] as any)).filter((x) => x !== null) as number[];
-      if (statusFilter === "atrasados") return allDiffs.some((d) => d < 0);
-      if (statusFilter === "proximos7") return allDiffs.some((d) => d !== null && d! <= 7 && d! >= 0);
-      if (statusFilter === "proximos30") return allDiffs.some((d) => d !== null && d! <= 30 && d! >= 0);
+      
+      if (!matchesSearch) return false;
+
+      const status = getPrazoStatus(r);
+      
+      if (statusFilter !== "todos") {
+        if (statusFilter === "atrasados" && status.variant !== "destructive") return false;
+        if (statusFilter === "alertas" && status.variant !== "warning") return false;
+        if (statusFilter === "concluidos" && status.variant !== "success") return false;
+        if (statusFilter === "no_prazo" && status.variant !== "outline") return false;
+      }
+
+      if (monthFilter !== "todos") {
+        if (!r.data_prevista_contratacao) return false;
+        const [y, m] = r.data_prevista_contratacao.split("-");
+        const monthYear = `${m}/${y}`;
+        if (monthYear !== monthFilter) return false;
+      }
+
       return true;
     });
-    return arr;
-  }, [rows, search, statusFilter]);
+  }, [rows, search, statusFilter, monthFilter]);
+
+  const availableMonths = useMemo(() => {
+    const months = new Set<string>();
+    rows.forEach(r => {
+      if (r.data_prevista_contratacao) {
+        const [y, m] = r.data_prevista_contratacao.split("-");
+        months.add(`${m}/${y}`);
+      }
+    });
+    return Array.from(months).sort();
+  }, [rows]);
 
   const openEdit = (row: Contratacao, field: keyof Contratacao) => {
     setEditing({ id: row.id, field });
@@ -139,66 +189,118 @@ const ControlePrazos = () => {
     try {
       const { data: userData } = await supabase.auth.getUser();
       const iso = dateValue ? toDateOnlyStringFromDate(dateValue) : null;
-      const { data: before } = await supabase.from("contratacoes").select("*").eq("id", editing.id).single();
+      
       const update: any = { [editing.field as string]: iso };
-      if (editing.field === "data_finalizacao_licitacao" && iso) {
-        update.etapa_processo = "Concluído";
-        update.sobrestado = false;
-      }
-      if (editing.field === "data_entrada_clc" && iso) {
-        update.etapa_processo = "Em Licitação";
-        update.sobrestado = false;
-      }
+      
       const { error } = await supabase.from("contratacoes").update(update).eq("id", editing.id);
       if (error) throw error;
-      if (userData.user) {
-        await supabase.from("contratacoes_historico").insert({
-          contratacao_id: editing.id,
-          user_id: userData.user.id,
-          acao: "Atualização de prazo",
-          dados_anteriores: before,
-          dados_novos: { ...(before || {}), ...update },
-        });
-      }
-      toast.success("Prazo atualizado");
+      
+      toast.success("Data atualizada com sucesso");
       setEditing(null);
       setDateValue(undefined);
-      const { data } = await supabase
-        .from("contratacoes")
-        .select("id, descricao, setor_requisitante, sobrestado, etapa_processo, data_entrada_clc, data_devolucao_fiscal, data_envio_pgea, data_finalizacao_licitacao, data_termino_contrato")
-        .order("created_at", { ascending: false });
-      setRows((data as any) || []);
+      fetchData();
     } catch (e: any) {
-      toast.error("Falha ao salvar prazo", { description: e.message || String(e) });
+      toast.error("Falha ao salvar data", { description: e.message || String(e) });
     }
   };
 
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-foreground">Controle de Prazos</h1>
-            <p className="text-sm text-muted-foreground">Acompanhe prazos e compromissos por contratação.</p>
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              <Clock className="h-6 w-6 text-primary" />
+              Controle de Prazos
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Monitoramento estratégico de datas previstas para contratação.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={fetchData}>
+              <Loader2 className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              Atualizar
+            </Button>
           </div>
         </div>
 
-        <Card>
-          <CardContent className="p-3">
-            <div className="flex flex-wrap gap-2 items-center">
-              <div className="flex-1 min-w-[220px]">
-                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por descrição ou setor" />
+        {/* KPIs */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="border-l-4 border-l-blue-500 shadow-sm">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase">Monitoradas</p>
+                <p className="text-2xl font-bold text-blue-700">{kpis.total}</p>
               </div>
-              <div className="w-[200px]">
+              <CalendarIcon className="h-8 w-8 text-blue-100" />
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-amber-500 shadow-sm">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase">Atenção (120 dias)</p>
+                <p className="text-2xl font-bold text-amber-700">{kpis.alertas}</p>
+              </div>
+              <AlertCircle className="h-8 w-8 text-amber-100" />
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-red-500 shadow-sm">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase">Atrasadas</p>
+                <p className="text-2xl font-bold text-red-700">{kpis.atrasados}</p>
+              </div>
+              <Clock className="h-8 w-8 text-red-100" />
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-green-500 shadow-sm">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase">Concluídas</p>
+                <p className="text-2xl font-bold text-green-700">{kpis.concluidos}</p>
+              </div>
+              <CheckCircle2 className="h-8 w-8 text-green-100" />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filtros e Busca */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex flex-col md:flex-row gap-4 items-center">
+              <div className="flex-1 w-full relative">
+                <Input 
+                  value={search} 
+                  onChange={(e) => setSearch(e.target.value)} 
+                  placeholder="Buscar por descrição, objeto ou setor..." 
+                  className="pl-9"
+                />
+                <Filter className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="flex gap-2 w-full md:w-auto">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Status" />
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Status do Prazo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="todos">Todos</SelectItem>
-                    <SelectItem value="atrasados">Atrasados</SelectItem>
-                    <SelectItem value="proximos7">Próximos 7 dias</SelectItem>
-                    <SelectItem value="proximos30">Próximos 30 dias</SelectItem>
+                    <SelectItem value="todos">Todos os Status</SelectItem>
+                    <SelectItem value="atrasados">🔴 Atrasados</SelectItem>
+                    <SelectItem value="alertas">🟡 Atenção (120 dias)</SelectItem>
+                    <SelectItem value="no_prazo">🔵 No Prazo</SelectItem>
+                    <SelectItem value="concluidos">🟢 Concluídos</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={monthFilter} onValueChange={setMonthFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Mês Previsto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos os Meses</SelectItem>
+                    {availableMonths.map(m => (
+                      <SelectItem key={m} value={m}>{m}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -206,110 +308,90 @@ const ControlePrazos = () => {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Prazos das Contratações</CardTitle>
+        {/* Tabela */}
+        <Card className="shadow-md">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Detalhamento de Prazos</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="flex items-center justify-center h-40 text-muted-foreground">
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Carregando prazos...
+                <Loader2 className="mr-2 h-8 w-8 animate-spin" />
+                Carregando dados...
               </div>
             ) : (
-              <div className="rounded-lg border border-border bg-card overflow-x-auto">
+              <div className="rounded-md border border-border overflow-hidden">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="bg-muted/50">
                     <TableRow>
-                      <TableHead className="min-w-[280px]">Descrição</TableHead>
-                      <TableHead className="w-[120px]">Setor</TableHead>
-                      <TableHead className="w-[120px]">Status</TableHead>
-                      <TableHead className="w-[160px]">Entrada CLC</TableHead>
-                      <TableHead className="w-[160px]">Devolução Fiscal</TableHead>
-                      <TableHead className="w-[160px]">Envio PGEA</TableHead>
-                      <TableHead className="w-[180px]">Finalização Licitação</TableHead>
-                      <TableHead className="w-[160px]">Término Contrato</TableHead>
+                      <TableHead className="w-[35%]">Objeto / Descrição</TableHead>
+                      <TableHead className="w-[15%]">Setor</TableHead>
+                      <TableHead className="w-[15%]">Status Processo</TableHead>
+                      <TableHead className="w-[15%] text-center">Data Prevista</TableHead>
+                      <TableHead className="w-[20%] text-center">Situação do Prazo</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filtered.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nenhuma contratação encontrada.</TableCell>
+                        <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                          Nenhum registro encontrado com os filtros atuais.
+                        </TableCell>
                       </TableRow>
                     ) : (
-                      filtered.map((r) => (
-                        <TableRow key={r.id} className="hover:bg-muted/40">
-                          <TableCell>
-                            <div className="truncate" title={r.descricao}>{r.descricao}</div>
-                          </TableCell>
-                          <TableCell>{r.setor_requisitante || "-"}</TableCell>
-                          <TableCell>{(() => {
-                            const c = r;
-                            if ((c as any).sobrestado === true) return "sobrestado";
-                            if (c.etapa_processo === "Em Licitação" || c.etapa_processo === "Contratado") return "em andamento";
-                            if (c.etapa_processo === "Concluído") return "concluído";
-                            return "não iniciado";
-                          })()}</TableCell>
-                          {["data_entrada_clc","data_devolucao_fiscal","data_envio_pgea","data_finalizacao_licitacao","data_termino_contrato"].map((field) => {
-                            const f = field as keyof Contratacao;
-                            const val = r[f] as any as string | null;
-                            const s = statusForDate(val);
-                            return (
-                              <TableCell key={field}>
-                                <div className="flex items-center gap-2">
-                                  <Badge variant={s.variant as any} className="text-[11px] px-2 py-0.5">
-                                    {formatDateBR(val)}
-                                  </Badge>
-                                  <Popover>
-                                    <PopoverTrigger asChild>
-                                      <Button variant="outline" size="xs" className="px-2" onClick={() => openEdit(r, f)}>
-                                        <CalendarDays className="h-3 w-3" />
-                                      </Button>
-                                    </PopoverTrigger>                                    {editing && editing.id === r.id && editing.field === f && (
-                                      <PopoverContent className="w-[230px] p-1" align="end" sideOffset={10}>
-                                        <div className="space-y-2">
-                                          <div className="flex justify-end">
-                                            <Button
-                                              variant="ghost"
-                                              size="xs"
-                                              className="px-2"
-                                              onClick={() => { setDateValue(undefined); saveDate(); }}
-                                              title="Limpar data"
-                                            >
-                                              <Eraser className="h-3 w-3" />
-                                            </Button>
-                                          </div>
-                                          <Calendar
-                                            mode="single"
-                                            selected={dateValue}
-                                            onSelect={setDateValue as any}
-                                            showOutsideDays={false}
-                                            className="p-1"
-                                            classNames={{
-                                              caption: "flex justify-center items-center pt-0",
-                                              caption_label: "text-xs font-medium",
-                                              nav_button: "h-5 w-5 p-0 opacity-70 hover:opacity-100",
-                                              head_row: "flex",
-                                              head_cell: "text-muted-foreground rounded-md w-7 font-normal text-[10px]",
-                                              row: "flex w-full mt-1",
-                                              cell: "h-7 w-7 text-center text-[11px] p-0",
-                                              day: "h-7 w-7 p-0 font-normal",
-                                            }}
-                                          />
-                                          <div className="flex gap-2 justify-end">
-                                            <Button variant="ghost" size="xs" onClick={() => { setEditing(null); setDateValue(undefined); }}>Cancelar</Button>
-                                            <Button size="xs" onClick={saveDate}>Salvar</Button>
-                                          </div>
+                      filtered.map((r) => {
+                        const status = getPrazoStatus(r);
+                        return (
+                          <TableRow key={r.id} className="hover:bg-muted/30">
+                            <TableCell>
+                              <div className="font-medium truncate max-w-[300px]" title={r.descricao}>{r.descricao}</div>
+                              <div className="text-xs text-muted-foreground mt-0.5">ID: #{r.id.slice(-8)}</div>
+                            </TableCell>
+                            <TableCell>{r.setor_requisitante}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="text-xs font-normal">
+                                {r.etapa_processo || "Não iniciado"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                <span className={!r.data_prevista_contratacao ? "text-muted-foreground italic text-xs" : "font-medium"}>
+                                  {formatDateBR(r.data_prevista_contratacao)}
+                                </span>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 opacity-50 hover:opacity-100" onClick={() => openEdit(r, "data_prevista_contratacao")}>
+                                      <CalendarDays className="h-3 w-3" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  {editing && editing.id === r.id && editing.field === "data_prevista_contratacao" && (
+                                    <PopoverContent className="w-auto p-0" align="end">
+                                      <div className="p-3 bg-background border rounded-md shadow-lg space-y-3">
+                                        <h4 className="font-medium text-sm">Editar Data Prevista</h4>
+                                        <Calendar
+                                          mode="single"
+                                          selected={dateValue}
+                                          onSelect={setDateValue}
+                                          initialFocus
+                                        />
+                                        <div className="flex justify-end gap-2">
+                                          <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>Cancelar</Button>
+                                          <Button size="sm" onClick={saveDate}>Salvar</Button>
                                         </div>
-                                      </PopoverContent>
-                                    )}
-                                  </Popover>
-                                </div>
-                              </TableCell>
-                            );
-                          })}
-                        </TableRow>
-                      ))
+                                      </div>
+                                    </PopoverContent>
+                                  )}
+                                </Popover>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${status.color}`}>
+                                {status.label}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
                     )}
                   </TableBody>
                 </Table>
