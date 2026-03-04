@@ -25,7 +25,7 @@ const contratacaoSchema = z.object({
   setor_requisitante: z.string().min(1, "Setor requisitante é obrigatório"),
   tipo_contratacao: z.string().min(1, "Tipo de contratação é obrigatório"),
   modalidade: z.string().min(1, "Modalidade é obrigatória"),
-  normativo: z.enum(["14.133/2021", "8.666/1993"]),
+  normativo: z.enum(["14.133/2021", "8.666/1993"]).default("14.133/2021"),
   unidade_orcamentaria: z.string().min(1, "Unidade orçamentária é obrigatória"),
   tipo_recurso: z.string().min(1, "Tipo de recurso é obrigatório"),
   grau_prioridade: z.string().min(1, "Grau de prioridade é obrigatório"),

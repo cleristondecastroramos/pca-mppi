@@ -55,26 +55,32 @@ const AvaliacaoConformidade = () => {
         // Carregar conformidade agregada para todas as contratações
         const ids = ((data as any) || []).map((r: any) => r.id);
         if (ids.length) {
-          const { data: confAll } = await supabase
-            .from("contratacoes_conformidade")
-            .select("contratacao_id, termo_referencia_aprovado, pesquisa_mercado, pareceres_juridicos, publicacao_edital, atas_certame, atos_autorizacao, documentacao_fornecedor, termo_homologacao, termo_adjudicacao")
-            .in("contratacao_id", ids);
-          const map: Record<string, number> = {};
-          (confAll || []).forEach((c: any) => {
-            const total = CHECKLIST_ITEMS.length;
-            const checked =
-              (c.termo_referencia_aprovado ? 1 : 0) +
-              (c.pesquisa_mercado ? 1 : 0) +
-              (c.pareceres_juridicos ? 1 : 0) +
-              (c.publicacao_edital ? 1 : 0) +
-              (c.atas_certame ? 1 : 0) +
-              (c.atos_autorizacao ? 1 : 0) +
-              (c.documentacao_fornecedor ? 1 : 0) +
-              (c.termo_homologacao ? 1 : 0) +
-              (c.termo_adjudicacao ? 1 : 0);
-            map[c.contratacao_id] = Math.round((checked / total) * 100);
-          });
-          if (mounted) setConfMap(map);
+          try {
+            const { data: confAll, error: confErr } = await supabase
+              .from("contratacoes_conformidade")
+              .select("contratacao_id, termo_referencia_aprovado, pesquisa_mercado, pareceres_juridicos, publicacao_edital, atas_certame, atos_autorizacao, documentacao_fornecedor, termo_homologacao, termo_adjudicacao")
+              .in("contratacao_id", ids);
+            if (confErr) throw confErr;
+            const map: Record<string, number> = {};
+            (confAll || []).forEach((c: any) => {
+              const total = CHECKLIST_ITEMS.length;
+              const checked =
+                (c.termo_referencia_aprovado ? 1 : 0) +
+                (c.pesquisa_mercado ? 1 : 0) +
+                (c.pareceres_juridicos ? 1 : 0) +
+                (c.publicacao_edital ? 1 : 0) +
+                (c.atas_certame ? 1 : 0) +
+                (c.atos_autorizacao ? 1 : 0) +
+                (c.documentacao_fornecedor ? 1 : 0) +
+                (c.termo_homologacao ? 1 : 0) +
+                (c.termo_adjudicacao ? 1 : 0);
+              map[c.contratacao_id] = Math.round((checked / total) * 100);
+            });
+            if (mounted) setConfMap(map);
+          } catch (err: any) {
+            toast.error("Erro ao carregar conformidade agregada", { description: err?.message || String(err) });
+            if (mounted) setConfMap({});
+          }
         } else {
           if (mounted) setConfMap({});
         }
