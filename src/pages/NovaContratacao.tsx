@@ -25,6 +25,7 @@ const contratacaoSchema = z.object({
   setor_requisitante: z.string().min(1, "Setor requisitante é obrigatório"),
   tipo_contratacao: z.string().min(1, "Tipo de contratação é obrigatório"),
   modalidade: z.string().min(1, "Modalidade é obrigatória"),
+  normativo: z.enum(["14.133/2021", "8.666/1993"]),
   unidade_orcamentaria: z.string().min(1, "Unidade orçamentária é obrigatória"),
   tipo_recurso: z.string().min(1, "Tipo de recurso é obrigatório"),
   grau_prioridade: z.string().min(1, "Grau de prioridade é obrigatório"),
@@ -50,6 +51,7 @@ export default function NovaContratacao() {
       setor_requisitante: formData.get("setor_requisitante") as string,
       tipo_contratacao: formData.get("tipo_contratacao") as string,
       modalidade: formData.get("modalidade") as string,
+      normativo: formData.get("normativo") as string,
       unidade_orcamentaria: formData.get("unidade_orcamentaria") as string,
       tipo_recurso: formData.get("tipo_recurso") as string,
       grau_prioridade: formData.get("grau_prioridade") as string,
@@ -206,6 +208,19 @@ export default function NovaContratacao() {
                     </SelectContent>
                   </Select>
                   {errors.modalidade && <p className="text-sm text-destructive">{errors.modalidade}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="normativo">Normativo *</Label>
+                  <Select name="normativo" required>
+                    <SelectTrigger id="normativo" className="h-9">
+                      <SelectValue placeholder="Selecione o normativo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="14.133/2021">14.133/2021</SelectItem>
+                      <SelectItem value="8.666/1993">8.666/1993</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">

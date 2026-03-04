@@ -8,7 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { DateRange } from "react-day-picker";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, FileText, BarChart3, ClipboardList, BadgeCheck, DollarSign, FileSearch } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 
@@ -19,30 +19,111 @@ const Relatorios = () => {
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<any[]>([]);
   const [fetching, setFetching] = useState<boolean>(true);
+  const [reportType, setReportType] = useState<string>("detalhado");
+  const [filtros, setFiltros] = useState<any>({
+    unidade_orcamentaria: "__all__",
+    setor_requisitante: "__all__",
+    tipo_contratacao: "__all__",
+    tipo_recurso: "__all__",
+    classe: "__all__",
+    grau_prioridade: "__all__",
+    normativo: "__all__",
+    modalidade: "__all__",
+    etapa_processo: "__all__",
+  });
 
-  useEffect(() => {
-    let mounted = true;
-    const fetchData = async () => {
-      setFetching(true);
-      try {
-        const { data, error } = await supabase
-          .from("contratacoes")
-          .select("id, descricao, setor_requisitante, etapa_processo, sobrestado, created_at, data_finalizacao_licitacao, valor_contratado");
-        if (error) throw error;
-        if (mounted) setRows(data || []);
-      } catch (e) {
-        toast.error("Erro ao carregar dados", { description: String(e) });
-      } finally {
-        if (mounted) setFetching(false);
-      }
+  const formatId = (id: any) => `#${String(id).slice(-8)}`;
+  const getErrorMessage = (e: any) => {
+    try {
+      if (typeof e === "string") return e;
+      const m = e?.message || e?.error?.message;
+      if (m) return m;
+      return JSON.stringify(e);
+    } catch {
+      return String(e);
+    }
+  };
+  const selectBase =
+    "id, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, numero_sei_contratacao, etapa_processo, sobrestado, created_at, data_finalizacao_licitacao, valor_estimado, valor_contratado";
+  const selectWithExecutado = `${selectBase}, valor_executado`;
+  const fetchAllContratacoes = async () => {
+    const q1 = await supabase.from("contratacoes").select(selectWithExecutado);
+    if (q1.error) {
+      const q2 = await supabase.from("contratacoes").select(selectBase);
+      if (q2.error) throw q2.error;
+      return q2.data || [];
+    }
+    return q1.data || [];
+  };
+  const normalizeNormativoRecords = async () => {
+    try {
+      const upd14 = await supabase
+        .from("contratacoes")
+        .update({ normativo: "14.133/2021" })
+        .or(
+          [
+            "normativo.ilike.%14.133%",
+            "normativo.ilike.%14133%",
+            "normativo.ilike.%Lei 14.133%",
+            "normativo.ilike.%14 133%",
+            "normativo.ilike.%14133/2021%",
+          ].join(","),
+        )
+        .select("id");
+      const upd8666 = await supabase
+        .from("contratacoes")
+        .update({ normativo: "8.666/1993" })
+        .or(
+          [
+            "normativo.ilike.%8.666%",
+            "normativo.ilike.%8666%",
+            "normativo.ilike.%Lei 8.666%",
+            "normativo.ilike.%8 666%",
+            "normativo.ilike.%1993%",
+          ].join(","),
+        )
+        .select("id");
+      const c1 = Array.isArray(upd14.data) ? upd14.data.length : 0;
+      const c2 = Array.isArray(upd8666.data) ? upd8666.data.length : 0;
+      if (c1 + c2 > 0) toast.success("Normativo normalizado", { description: `Atualizados ${c1 + c2} registros.` });
+    } catch (e) {
+      toast.error("Falha ao normalizar normativo", { description: getErrorMessage(e) });
+    }
+  };
+
+  const distinctOptions = useMemo(() => {
+    const pick = (key: string) => {
+      const s = new Set<string>();
+      rows.forEach((r) => {
+        const v = r[key];
+        if (v !== null && v !== undefined && String(v).trim() !== "") s.add(String(v));
+      });
+      return Array.from(s).sort((a, b) => a.localeCompare(b, "pt-BR"));
     };
-    fetchData();
-    const { data: sub } = supabase.auth.onAuthStateChange(() => fetchData());
-    return () => {
-      mounted = false;
-      sub.subscription.unsubscribe();
+    const PRIORITY_UO = ["PGJ", "FMMP", "FEPDC"];
+    const rawUO = pick("unidade_orcamentaria");
+    const uo = [
+      ...PRIORITY_UO.filter((x) => rawUO.includes(x)),
+      ...rawUO.filter((x) => !PRIORITY_UO.includes(x)).sort((a, b) => a.localeCompare(b, "pt-BR")),
+    ];
+    const prioridadeOrder = ["Alta", "Média", "Baixa"];
+    const grau = Array.from(new Set(pick("grau_prioridade"))).sort((a, b) => prioridadeOrder.indexOf(a) - prioridadeOrder.indexOf(b));
+    return {
+      unidade_orcamentaria: uo,
+      setor_requisitante: pick("setor_requisitante"),
+      tipo_contratacao: pick("tipo_contratacao"),
+      tipo_recurso: pick("tipo_recurso"),
+      classe: pick("classe"),
+      grau_prioridade: grau,
+      normativo: pick("normativo"),
+      modalidade: pick("modalidade"),
     };
-  }, []);
+  }, [rows]);
+
+  const mapSetorName = (setor: string) => {
+    if (setor === "PLANEJAMENTO") return "PLAN";
+    return setor;
+  };
 
   const statusLabel = (r: any) => {
     if (r.sobrestado === true) return "sobrestado";
@@ -51,38 +132,204 @@ const Relatorios = () => {
     return "não iniciado";
   };
 
-  const filtered = useMemo(() => {
-    return rows.filter((r) => {
-      const s = statusLabel(r);
-      if (status !== "todos" && s !== status) return false;
-      if (setor && setor !== "todos") {
-        const v = (r.setor_requisitante || "").toLowerCase();
-        if (!v.includes(setor.toLowerCase())) return false;
-      }
-      if (range?.from && range?.to) {
-        const base = r.data_finalizacao_licitacao || r.created_at;
-        if (!base) return false;
-        const d = new Date(String(base));
-        const from = new Date(range.from); from.setHours(0, 0, 0, 0);
-        const to = new Date(range.to); to.setHours(23, 59, 59, 999);
-        if (d < from || d > to) return false;
+  const applyFilters = (list: any[]) => {
+    return list.filter((r) => {
+      if (filtros.unidade_orcamentaria !== "__all__" && r.unidade_orcamentaria !== filtros.unidade_orcamentaria) return false;
+      if (filtros.setor_requisitante !== "__all__" && r.setor_requisitante !== filtros.setor_requisitante) return false;
+      if (filtros.tipo_contratacao !== "__all__" && r.tipo_contratacao !== filtros.tipo_contratacao) return false;
+      if (filtros.tipo_recurso !== "__all__" && r.tipo_recurso !== filtros.tipo_recurso) return false;
+      if (filtros.classe !== "__all__" && r.classe !== filtros.classe) return false;
+      if (filtros.grau_prioridade !== "__all__" && r.grau_prioridade !== filtros.grau_prioridade) return false;
+      if (filtros.normativo !== "__all__" && r.normativo !== filtros.normativo) return false;
+      if (filtros.modalidade !== "__all__" && r.modalidade !== filtros.modalidade) return false;
+      if (filtros.etapa_processo !== "__all__") {
+        const s = statusLabel(r);
+        if (s !== filtros.etapa_processo) return false;
       }
       return true;
     });
-  }, [rows, status, setor, range]);
+  };
+  const clearFiltros = () =>
+    setFiltros({
+      unidade_orcamentaria: "__all__",
+      setor_requisitante: "__all__",
+      tipo_contratacao: "__all__",
+      tipo_recurso: "__all__",
+      classe: "__all__",
+      grau_prioridade: "__all__",
+      normativo: "__all__",
+      modalidade: "__all__",
+      etapa_processo: "__all__",
+    });
+
+  const REPORT_TYPES: Record<
+    string,
+    {
+      label: string;
+      description: string;
+      icon: any;
+      columns: string[];
+      csvColumns: string[];
+      mapRow: (r: any) => (string | number)[];
+      title: (count: number) => string;
+    }
+  > = {
+    detalhado: {
+      label: "Contratações — Detalhado",
+      description: "Listagem completa com ID, descrição, setor, prioridade e valores (estimado e executado).",
+      icon: FileText,
+      columns: ["ID", "Descrição", "Setor", "Prioridade", "Valor Estimado", "Valor Executado"],
+      csvColumns: ["ID", "Descrição", "Setor", "Prioridade", "Valor Estimado", "Valor Executado"],
+      mapRow: (r) => [
+        formatId(r.id),
+        String(r.descricao || ""),
+        r.setor_requisitante || "",
+        r.grau_prioridade || "",
+        r.valor_estimado || 0,
+        (r as any).valor_executado ?? r.valor_contratado ?? 0,
+      ],
+      title: (n) => `Relatório Detalhado de Contratações (${n} registros)`,
+    },
+    por_status: {
+      label: "Contratações — Por Status",
+      description: "Listagem focada no status e andamento das contratações.",
+      icon: BarChart3,
+      columns: ["ID", "Descrição", "Status", "Data de Referência", "Valor Executado"],
+      csvColumns: ["ID", "Descrição", "Status", "Data de Referência", "Valor Executado"],
+      mapRow: (r) => [
+        formatId(r.id),
+        String(r.descricao || ""),
+        r.sobrestado === true
+          ? "sobrestado"
+          : r.etapa_processo === "Concluído"
+          ? "concluído"
+          : r.etapa_processo === "Em Licitação" || r.etapa_processo === "Contratado"
+          ? "em andamento"
+          : "não iniciado",
+        r.data_finalizacao_licitacao || r.created_at || "",
+        (r as any).valor_executado ?? r.valor_contratado ?? 0,
+      ],
+      title: (n) => `Relatório por Status (${n} registros)`,
+    },
+    por_setor: {
+      label: "Contratações — Por Setor",
+      description: "Listagem agrupável por setor requisitante.",
+      icon: ClipboardList,
+      columns: ["ID", "Descrição", "Setor", "Status", "Valor Estimado", "Valor Executado"],
+      csvColumns: ["ID", "Descrição", "Setor", "Status", "Valor Estimado", "Valor Executado"],
+      mapRow: (r) => [
+        formatId(r.id),
+        String(r.descricao || ""),
+        r.setor_requisitante || "",
+        r.sobrestado === true
+          ? "sobrestado"
+          : r.etapa_processo === "Concluído"
+          ? "concluído"
+          : r.etapa_processo === "Em Licitação" || r.etapa_processo === "Contratado"
+          ? "em andamento"
+          : "não iniciado",
+        r.valor_estimado || 0,
+        (r as any).valor_executado ?? r.valor_contratado ?? 0,
+      ],
+      title: (n) => `Relatório por Setor (${n} registros)`,
+    },
+    prioridades: {
+      label: "Demandas — Por Prioridade",
+      description: "Visão por grau de prioridade (Alta, Média, Baixa).",
+      icon: BadgeCheck,
+      columns: ["ID", "Descrição", "Prioridade", "Setor", "Status", "Valor Estimado"],
+      csvColumns: ["ID", "Descrição", "Prioridade", "Setor", "Status", "Valor Estimado"],
+      mapRow: (r) => [
+        formatId(r.id),
+        String(r.descricao || ""),
+        r.grau_prioridade || "",
+        r.setor_requisitante || "",
+        r.sobrestado === true
+          ? "sobrestado"
+          : r.etapa_processo === "Concluído"
+          ? "concluído"
+          : r.etapa_processo === "Em Licitação" || r.etapa_processo === "Contratado"
+          ? "em andamento"
+          : "não iniciado",
+        r.valor_estimado || 0,
+      ],
+      title: (n) => `Relatório por Prioridade (${n} registros)`,
+    },
+    valores: {
+      label: "Financeiro — Estimado vs Contratado",
+      description: "Comparativo financeiro entre valores estimados e contratados.",
+      icon: DollarSign,
+      columns: ["ID", "Descrição", "Valor Estimado", "Valor Contratado", "Valor Executado"],
+      csvColumns: ["ID", "Descrição", "Valor Estimado", "Valor Contratado", "Valor Executado"],
+      mapRow: (r) => [
+        formatId(r.id),
+        String(r.descricao || ""),
+        r.valor_estimado || 0,
+        r.valor_contratado || 0,
+        (r as any).valor_executado ?? r.valor_contratado ?? 0,
+      ],
+      title: (n) => `Relatório Financeiro (${n} registros)`,
+    },
+    sei: {
+      label: "SEI — Processos por Contratação",
+      description: "Relação de contratações com seus números de SEI para consulta.",
+      icon: FileSearch,
+      columns: ["ID", "Descrição", "SEI", "Status"],
+      csvColumns: ["ID", "Descrição", "SEI", "Status"],
+      mapRow: (r) => [
+        formatId(r.id),
+        String(r.descricao || ""),
+        r.numero_sei_contratacao || "",
+        r.sobrestado === true
+          ? "sobrestado"
+          : r.etapa_processo === "Concluído"
+          ? "concluído"
+          : r.etapa_processo === "Em Licitação" || r.etapa_processo === "Contratado"
+          ? "em andamento"
+          : "não iniciado",
+      ],
+      title: (n) => `Relatório SEI (${n} registros)`,
+    },
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchData = async () => {
+      setFetching(true);
+      try {
+        const data = await fetchAllContratacoes();
+        if (mounted) setRows(data || []);
+      } catch (e) {
+        toast.error("Erro ao carregar dados", { description: getErrorMessage(e) });
+      } finally {
+        if (mounted) setFetching(false);
+      }
+    };
+    fetchData();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => fetchData());
+    normalizeNormativoRecords();
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  // removido filtro legacy; filtros atuais aplicados por applyFilters
 
   async function handleGenerate(tipo: "pdf" | "csv") {
     setLoading(true);
-    toast.message("Gerando relatório...", { description: `Preparando ${tipo.toUpperCase()} com ${filtered.length} registros.` });
+    toast.message("Gerando relatório...", { description: `Preparando ${tipo.toUpperCase()}...` });
     try {
       if (tipo === "csv") {
-        const header = ["ID", "Descrição", "Setor", "Status", "Data", "Valor Contratado"].join(",");
-        const lines = filtered.map((r) => {
-          const s = statusLabel(r);
-          const base = r.data_finalizacao_licitacao || r.created_at || "";
-          const data = base ? new Date(String(base)).toLocaleDateString("pt-BR") : "";
-          const desc = String(r.descricao || "").replace(/"/g, '""');
-          return [r.id, `"${desc}"`, r.setor_requisitante || "", s, data, String(r.valor_contratado || 0)].join(",");
+        const def = REPORT_TYPES[reportType];
+        const sourceRows = applyFilters(rows.length ? rows : await fetchAllContratacoes());
+        const header = def.csvColumns.join(",");
+        const lines = sourceRows.map((r) => {
+          const data = def.mapRow(r).map((v) => {
+            if (typeof v === "string") return `"${String(v).replace(/\"/g, '""')}"`;
+            return String(v);
+          });
+          return data.join(",");
         });
         const csv = [header, ...lines].join("\n");
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -93,60 +340,186 @@ const Relatorios = () => {
         a.click();
         URL.revokeObjectURL(url);
       } else {
-        const w = window.open("", "_blank", "noopener,noreferrer");
-        if (w) {
-          const logo = `${location.origin}/logo-mppi.png`;
-          const rowsHtml = filtered
-            .map((r) => `<tr>
-              <td>${r.id}</td>
-              <td>${(r.descricao || "").replace(/</g, "&lt;")}</td>
-              <td>${r.setor_requisitante || ""}</td>
-              <td>${statusLabel(r)}</td>
-              <td>${new Date(String(r.data_finalizacao_licitacao || r.created_at || "")).toLocaleDateString("pt-BR")}</td>
-              <td>${new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(r.valor_contratado || 0)}</td>
-            </tr>`) 
-            .join("");
-          const today = new Date().toLocaleString('pt-BR');
-          const title = `Relatório de Contratações (${filtered.length} registros)`;
-          w.document.write(`<!doctype html>
-            <html>
-            <head>
-              <meta charset="utf-8">
-              <title>${title}</title>
-              <style>
-                body{font-family:system-ui,Segoe UI,Arial;margin:24px;color:#111}
-                header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e5e7eb;padding-bottom:12px;margin-bottom:16px}
-                header .brand{display:flex;align-items:center;gap:12px}
-                header img{height:40px;width:auto;border-radius:4px}
-                header .title{font-size:16px;font-weight:600}
-                header .meta{font-size:11px;color:#6b7280}
-                table{width:100%;border-collapse:collapse;margin-top:8px}
-                th{background:#f9fafb;text-align:left}
-                td,th{border:1px solid #e5e7eb;padding:6px 8px;font-size:12px}
-                tfoot td{font-weight:600}
-              </style>
-            </head>
-            <body>
-              <header>
+        const logo = `${location.origin}/logo-mppi.png`;
+        const def = REPORT_TYPES[reportType];
+        const sourceRows = applyFilters(rows.length ? rows : await fetchAllContratacoes());
+        const widthClass = (col: string) => {
+          if (col === "ID") return "col-ID";
+          if (col === "Descrição") return "col-Descrição";
+          if (col === "Setor") return "col-Setor";
+          if (col === "Prioridade") return "col-Prioridade";
+          if (col === "Status") return "col-Status";
+          if (col === "Data" || col === "Data de Referência") return "col-Data";
+          if (col === "SEI") return "col-SEI";
+          if (col === "Valor Estimado") return "col-Valor-Estimado";
+          if (col === "Valor Executado") return "col-Valor-Executado";
+          if (["Valor Contratado", "Valor"].includes(col)) return "col-Valor";
+          return "";
+        };
+        const headersHtml = def.columns.map((c) => `<th class="${widthClass(c)}">${c}</th>`).join("");
+        const rowsHtml = sourceRows
+          .map((r) => {
+            const data = def.mapRow(r);
+            const formatted = data.map((v, i) => {
+              const col = def.columns[i];
+              let val: string;
+              if (col.toLowerCase().includes("valor")) {
+                val = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v) || 0);
+              } else if (col === "Data" || col === "Data de Referência") {
+                const dt = String(v || "");
+                val = dt ? new Date(dt).toLocaleDateString("pt-BR") : "";
+              } else {
+                val = String(v).replace(/</g, "&lt;");
+              }
+              const align =
+                col.toLowerCase().includes("valor")
+                  ? "text-right"
+                  : col === "Descrição"
+                  ? "text-left"
+                  : ["ID", "Setor", "Prioridade", "Status", "Data", "Data de Referência"].includes(col)
+                  ? "text-center"
+                  : "text-left";
+              return `<td class="${align} ${widthClass(col)}">${val}</td>`;
+            });
+            return `<tr>${formatted.join("")}</tr>`;
+          })
+          .join("");
+        const today = new Date().toLocaleString('pt-BR');
+        const title = REPORT_TYPES[reportType].title(sourceRows.length);
+        const brand = "MPPI | PCA 2026";
+        const primary = "#D9415D";
+        const activeFilters = Object.entries(filtros).filter(([_, v]) => v && v !== "__all__");
+        const labelMap: Record<string, string> = {
+          unidade_orcamentaria: "UO",
+          setor_requisitante: "Setor Requisitante",
+          tipo_contratacao: "Tipo de Contratação",
+          tipo_recurso: "Tipo de Recurso",
+          classe: "Classe de Material",
+          grau_prioridade: "Grau de Prioridade",
+          normativo: "Normativo",
+          modalidade: "Modalidade de Contratação",
+          etapa_processo: "Status Atual",
+        };
+        const filterHtml =
+          activeFilters.length > 0
+            ? `<div class="filters">
+                <div class="filters-title">Filtros aplicados</div>
+                <div class="filters-grid">
+                  ${activeFilters
+                    .map(([key, val]) => {
+                      const label = labelMap[key] || key;
+                      const displayVal = key === "setor_requisitante" ? mapSetorName(String(val)) : String(val);
+                      return `<div class="chip"><span class="k">${label}:</span><span class="v">${displayVal}</span></div>`;
+                    })
+                    .join("")}
+                </div>
+              </div>`
+            : "";
+        const html = `<!doctype html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <title>${title}</title>
+            <style>
+              *{box-sizing:border-box}
+              html,body{height:100%}
+              body{font-family:system-ui,Segoe UI,Arial;margin:0;color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+              .page{padding:24px}
+              .header{position:fixed;top:0;left:0;right:0;background:#fff}
+              .header-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 24px}
+              .header .divider{height:3px;background:${primary};}
+              .brand{display:flex;align-items:center;gap:12px}
+              .brand img{height:40px;width:auto;border-radius:4px}
+              .brand .title{font-size:16px;font-weight:700}
+              .brand .meta{font-size:11px;color:#6b7280}
+              .center-title{flex:1;text-align:center;font-size:16px;font-weight:700;color:#111}
+              .center-subtitle{flex:1;text-align:center;font-size:12px;color:#374151;margin-top:2px}
+              .content{margin-top:40mm;margin-bottom:25mm}
+              .content{padding-top:6mm;padding-bottom:6mm}
+              table{width:100%;border-collapse:collapse;margin-top:6mm;margin-bottom:6mm}
+              table{table-layout:fixed}
+              thead{display:table-header-group}
+              tfoot{display:table-footer-group}
+              th{background:#f9fafb;text-align:center;font-weight:600}
+              td,th{border:1px solid #e5e7eb;padding:6px 8px;font-size:12px;word-break:break-word}
+              td.text-right{text-align:right}
+              td.text-left{text-align:left}
+              td.text-center{text-align:center}
+              .legend{font-size:11px;color:#6b7280;margin-bottom:8px;text-align:center}
+              .filters{padding:4mm 0 2mm 0}
+              .filters-title{font-size:12px;font-weight:600;color:#111;margin-bottom:2mm;text-align:left}
+              .filters-grid{display:flex;flex-wrap:wrap;gap:6px}
+              .chip{display:inline-flex;align-items:center;gap:4px;border:1px solid #e5e7eb;border-radius:6px;padding:4px 8px;font-size:11px;background:#f9fafb}
+              .chip .k{color:#6b7280}
+              /* Larguras otimizadas por coluna */
+              .col-ID{width:12%}
+              .col-Descrição{width:38%}
+              .col-Setor{width:16%}
+              /* Ajuste específico: reduzir setor e ampliar valores */
+              .col-Setor{width:14%}
+              .col-Valor-Estimado{width:16%}
+              .col-Valor-Executado{width:16%}
+              .col-Prioridade{width:12%}
+              .col-Status{width:12%}
+              .col-Data{width:12%}
+              .col-SEI{width:20%}
+              .col-Valor{width:14%}
+              /* Quebra de linha aprimorada para descrição */
+              td.col-Descrição{white-space:normal;hyphens:auto;line-height:1.35}
+              .footer{position:fixed;bottom:0;left:0;right:0;background:#fff}
+              .footer .divider{height:2px;background:${primary};}
+              .footer-inner{display:flex;align-items:center;justify-content:space-between;padding:8px 24px;font-size:11px;color:#6b7280}
+              .page-num::after{content: counter(page) " de " counter(pages);}
+              @page{size:A4;margin:18mm 10mm 10mm 10mm}
+              ${reportType === "sei" ? `.col-Descrição{width:40%}.col-SEI{width:24%}` : ""}
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <div class="header-inner">
                 <div class="brand">
                   <img src="${logo}" alt="MPPI" />
-                  <div>
-                    <div class="title">Ministério Público do Estado do Piauí</div>
-                    <div class="meta">${title} • ${today}</div>
-                  </div>
                 </div>
-              </header>
-              <table>
-                <thead>
-                  <tr><th>ID</th><th>Descrição</th><th>Setor</th><th>Status</th><th>Data</th><th>Valor</th></tr>
-                </thead>
-                <tbody>${rowsHtml}</tbody>
-              </table>
-            </body>
-            </html>`);
-          w.document.close();
-          w.print();
+                <div style="flex:1">
+                  <div class="center-title">Plano de Contratações Anual 2026</div>
+                  <div class="center-subtitle">${title}</div>
+                </div>
+              </div>
+              <div class="divider"></div>
+            </div>
+            <div class="page">
+              <div class="content">
+                ${filterHtml}
+                ${reportType === "por_status" ? `<div class="legend">A coluna "Data de Referência" exibe: se o status for <strong>concluído</strong>, a data de finalização da licitação; caso contrário, a <strong>data de criação</strong> da contratação.</div>` : ""}
+                <table>
+                  <thead>
+                    <tr>${headersHtml}</tr>
+                  </thead>
+                  <tbody>${rowsHtml}</tbody>
+                  <tfoot><tr><td colspan="${def.columns.length}"></td></tr></tfoot>
+                </table>
+              </div>
+            </div>
+            <div class="footer">
+              <div class="divider"></div>
+              <div class="footer-inner">
+                <div>${brand}</div>
+                <div>Emitido em ${today}</div>
+                <div class="page-num"></div>
+              </div>
+            </div>
+            <script>
+              window.onload = () => { setTimeout(() => { try { window.print(); } catch (e) {} }, 300); };
+            </script>
+          </body>
+          </html>`;
+        const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const newTab = window.open(url, "_blank"); 
+        if (!newTab) {
+          toast.error("Permita pop-ups para exportar o PDF.");
         }
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
       }
       toast.success("Relatório pronto", { description: `Exportado ${tipo.toUpperCase()}.` });
     } catch (e) {
@@ -167,100 +540,132 @@ const Relatorios = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Filtros e Período</CardTitle>
+            <CardTitle>Filtros</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-3 md:grid-cols-4">
-              <div>
-                <label className="text-sm text-muted-foreground">Status</label>
-                <Select value={status} onValueChange={setStatus}>
-                  <SelectTrigger className="mt-1 h-9">
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
+          <CardContent className="p-2">
+            <div className="flex flex-wrap md:flex-nowrap gap-2 items-center">
+              <div className="w-28 shrink-0">
+                <div className="text-[10px] text-black px-1">UO:</div>
+                <Select value={filtros.unidade_orcamentaria} onValueChange={(v) => setFiltros((f: any) => ({ ...f, unidade_orcamentaria: v }))}>
+                  <SelectTrigger className="h-9 w-[110px] truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="todos">Todos</SelectItem>
-                    <SelectItem value="não iniciado">não iniciado</SelectItem>
-                    <SelectItem value="em andamento">em andamento</SelectItem>
-                    <SelectItem value="concluído">concluído</SelectItem>
-                    <SelectItem value="sobrestado">sobrestado</SelectItem>
+                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
+                    {distinctOptions.unidade_orcamentaria.map((opt) => <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <label className="text-sm text-muted-foreground">Setor</label>
-                <Input className="mt-1" placeholder="Ex.: TI, Engenharia" value={setor} onChange={(e) => setSetor(e.target.value)} />
+              <div className="w-[130px] shrink-0">
+                <div className="text-[10px] text-black px-1">Setor Requisitante:</div>
+                <Select value={filtros.setor_requisitante} onValueChange={(v) => setFiltros((f: any) => ({ ...f, setor_requisitante: v }))}>
+                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
+                    {distinctOptions.setor_requisitante.map((opt) => <SelectItem className="text-xs" key={opt} value={opt}>{mapSetorName(opt)}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="md:col-span-2">
-                <label className="text-sm text-muted-foreground">Período</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button size="xs" variant="outline" className="mt-1 w-full justify-start text-left font-normal">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {range?.from && range?.to
-                        ? `${range.from.toLocaleDateString()} - ${range.to.toLocaleDateString()}`
-                        : "Selecione intervalo"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="range"
-                      selected={range}
-                      onSelect={setRange}
-                      numberOfMonths={2}
-                    />
-                  </PopoverContent>
-                </Popover>
+              <div className="w-[160px] shrink-0 -ml-1">
+                <div className="text-[10px] text-black px-1">Tipo de Contratação:</div>
+                <Select value={filtros.tipo_contratacao} onValueChange={(v) => setFiltros((f: any) => ({ ...f, tipo_contratacao: v }))}>
+                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
+                    {distinctOptions.tipo_contratacao.map((opt) => <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[130px] shrink-0">
+                <div className="text-[10px] text-black px-1">Tipo de Recurso:</div>
+                <Select value={filtros.tipo_recurso} onValueChange={(v) => setFiltros((f: any) => ({ ...f, tipo_recurso: v }))}>
+                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
+                    {distinctOptions.tipo_recurso.map((opt) => <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[170px] shrink-0 -ml-1">
+                <div className="text-[10px] text-black px-1">Classe de Material:</div>
+                <Select value={filtros.classe} onValueChange={(v) => setFiltros((f: any) => ({ ...f, classe: v }))}>
+                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
+                    {distinctOptions.classe.map((opt) => <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[130px] shrink-0">
+                <div className="text-[10px] text-black px-1">Grau de Prioridade:</div>
+                <Select value={filtros.grau_prioridade} onValueChange={(v) => setFiltros((f: any) => ({ ...f, grau_prioridade: v }))}>
+                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
+                    {distinctOptions.grau_prioridade.map((opt) => <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[130px] shrink-0 -ml-1">
+                <div className="text-[10px] text-black px-1">Normativo:</div>
+                <Select value={filtros.normativo} onValueChange={(v) => setFiltros((f: any) => ({ ...f, normativo: v }))}>
+                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
+                    <SelectItem className="text-xs" value="14.133/2021">14.133/2021</SelectItem>
+                    <SelectItem className="text-xs" value="8.666/1993">8.666/1993</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[160px] shrink-0 -ml-1">
+                <div className="text-[10px] text-black px-1">Modalidade de Contratação:</div>
+                <Select value={filtros.modalidade} onValueChange={(v) => setFiltros((f: any) => ({ ...f, modalidade: v }))}>
+                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
+                    {distinctOptions.modalidade.map((opt) => <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[130px] shrink-0">
+                <div className="text-[10px] text-black px-1">Status Atual:</div>
+                <Select value={filtros.etapa_processo} onValueChange={(v) => setFiltros((f: any) => ({ ...f, etapa_processo: v }))}>
+                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
+                    <SelectItem className="text-xs" value="não iniciado">não iniciado</SelectItem>
+                    <SelectItem className="text-xs" value="em andamento">em andamento</SelectItem>
+                    <SelectItem className="text-xs" value="concluído">concluído</SelectItem>
+                    <SelectItem className="text-xs" value="sobrestado">sobrestado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="ml-auto shrink-0">
+                <Button size="xs" variant="outline" onClick={clearFiltros} className="h-9">Limpar filtros</Button>
               </div>
             </div>
-
-            <div className="flex gap-2">
-              <Button size="xs" onClick={() => handleGenerate("pdf")} disabled={loading} className="bg-primary hover:bg-primary-dark">
-                Exportar PDF
-              </Button>
-              <Button size="xs" onClick={() => handleGenerate("csv")} disabled={loading} variant="outline">
-                Exportar CSV
-              </Button>
-            </div>
-            <p className="text-sm text-muted-foreground">A geração é assíncrona e mostra feedback com toasts.</p>
           </CardContent>
-        </Card>
-        <Card>
           <CardHeader>
-            <CardTitle>Pré-visualização</CardTitle>
+            <CardTitle>Catálogo de Relatórios</CardTitle>
           </CardHeader>
           <CardContent>
-            {fetching ? (
-              <div className="flex items-center justify-center h-40 text-muted-foreground">Carregando dados...</div>
-            ) : (
-              <div className="rounded-lg border border-border bg-card overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="min-w-[200px]">Descrição</TableHead>
-                      <TableHead className="w-[120px]">Setor</TableHead>
-                      <TableHead className="w-[120px]">Status</TableHead>
-                      <TableHead className="w-[120px]">Data</TableHead>
-                      <TableHead className="w-[160px]">Valor Contratado</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filtered.length === 0 ? (
-                      <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Nenhum registro com os filtros atuais.</TableCell></TableRow>
-                    ) : (
-                      filtered.map((r) => (
-                        <TableRow key={r.id} className="hover:bg-muted/40">
-                          <TableCell><div className="truncate" title={r.descricao}>{r.descricao}</div></TableCell>
-                          <TableCell>{r.setor_requisitante || "-"}</TableCell>
-                          <TableCell>{statusLabel(r)}</TableCell>
-                          <TableCell>{(() => { const base = r.data_finalizacao_licitacao || r.created_at || ""; return base ? new Date(String(base)).toLocaleDateString("pt-BR") : "-"; })()}</TableCell>
-                          <TableCell className="text-right">{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(r.valor_contratado || 0)}</TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
+            <div className="space-y-3">
+              {Object.entries(REPORT_TYPES).map(([key, def]) => (
+                <div key={key} className="border rounded p-3 flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 font-medium">
+                      <def.icon className="h-4 w-4 text-muted-foreground" />
+                      {def.label}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">{def.description}</div>
+                  </div>
+                  <div className="mt-1">
+                    <Button size="xs" className="gap-1 bg-primary text-white hover:bg-primary/90" onClick={() => { setReportType(key); handleGenerate("pdf"); }}>
+                      <FileText className="h-3 w-3" />
+                      Gerar PDF
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>

@@ -524,9 +524,8 @@ const VisaoGeral = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
-                    {distinctOptions.normativo.map((opt) => (
-                      <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>
-                    ))}
+                    <SelectItem className="text-xs" value="14.133/2021">14.133/2021</SelectItem>
+                    <SelectItem className="text-xs" value="8.666/1993">8.666/1993</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

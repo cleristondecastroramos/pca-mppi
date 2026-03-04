@@ -7,12 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Copy } from "lucide-react";
 
 type Contratacao = Tables<"contratacoes">;
 
@@ -37,6 +37,9 @@ const AvaliacaoConformidade = () => {
   const [openAudit, setOpenAudit] = useState<{ id: string; sei?: string } | null>(null);
   const [auditState, setAuditState] = useState<Record<string, boolean>>({});
   const [auditNotes, setAuditNotes] = useState<string>("");
+  const [confMap, setConfMap] = useState<Record<string, number>>({});
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     let mounted = true;
@@ -49,6 +52,32 @@ const AvaliacaoConformidade = () => {
           .order("created_at", { ascending: false });
         if (error) throw error;
         if (mounted) setRows((data as any) || []);
+        // Carregar conformidade agregada para todas as contratações
+        const ids = ((data as any) || []).map((r: any) => r.id);
+        if (ids.length) {
+          const { data: confAll } = await supabase
+            .from("contratacoes_conformidade")
+            .select("contratacao_id, termo_referencia_aprovado, pesquisa_mercado, pareceres_juridicos, publicacao_edital, atas_certame, atos_autorizacao, documentacao_fornecedor, termo_homologacao, termo_adjudicacao")
+            .in("contratacao_id", ids);
+          const map: Record<string, number> = {};
+          (confAll || []).forEach((c: any) => {
+            const total = CHECKLIST_ITEMS.length;
+            const checked =
+              (c.termo_referencia_aprovado ? 1 : 0) +
+              (c.pesquisa_mercado ? 1 : 0) +
+              (c.pareceres_juridicos ? 1 : 0) +
+              (c.publicacao_edital ? 1 : 0) +
+              (c.atas_certame ? 1 : 0) +
+              (c.atos_autorizacao ? 1 : 0) +
+              (c.documentacao_fornecedor ? 1 : 0) +
+              (c.termo_homologacao ? 1 : 0) +
+              (c.termo_adjudicacao ? 1 : 0);
+            map[c.contratacao_id] = Math.round((checked / total) * 100);
+          });
+          if (mounted) setConfMap(map);
+        } else {
+          if (mounted) setConfMap({});
+        }
       } catch (e: any) {
         toast.error("Erro ao carregar contratações", { description: e.message || String(e) });
       } finally {
@@ -88,7 +117,9 @@ const AvaliacaoConformidade = () => {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows.filter((r) => {
-      const matches = r.descricao.toLowerCase().includes(q) || (r.setor_requisitante || "").toLowerCase().includes(q);
+      const idStr = String(r.id).toLowerCase();
+      const shortId = String(r.id).slice(-8).toLowerCase();
+      const matches = r.descricao.toLowerCase().includes(q) || idStr.includes(q) || shortId.includes(q);
       if (!matches) return false;
       if (setorFiltro !== "todos" && (r.setor_requisitante || "") !== setorFiltro) return false;
       const s = statusLabel(r);
@@ -96,6 +127,18 @@ const AvaliacaoConformidade = () => {
       return true;
     });
   }, [rows, search, setorFiltro, statusFiltro]);
+
+  const paginated = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, page, pageSize]);
+
+  const conformityBadge = (pct: number | undefined) => {
+    const val = pct ?? 0;
+    if (val >= 80) return { variant: "secondary", className: "bg-success/10 text-success", text: `${val}%` };
+    if (val >= 30) return { variant: "secondary", className: "bg-warning/10 text-warning", text: `${val}%` };
+    return { variant: "secondary", className: "bg-muted/10 text-muted-foreground", text: `${val}%` };
+  };
 
   const openChecklist = async (row: Contratacao) => {
     setOpenAudit({ id: row.id, sei: (row as any).numero_sei_contratacao || undefined });
@@ -190,7 +233,7 @@ const AvaliacaoConformidade = () => {
           <CardContent className="p-3">
             <div className="flex flex-wrap gap-2 items-center">
               <div className="flex-1 min-w-[220px]">
-                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por descrição ou setor" />
+                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por ID ou descrição" />
               </div>
               <div className="w-[200px]">
                 <Select value={setorFiltro} onValueChange={setSetorFiltro}>
@@ -222,6 +265,19 @@ const AvaliacaoConformidade = () => {
             <CardTitle>Auditorias e Checklists</CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs text-muted-foreground">{filtered.length} resultados</div>
+              <div className="flex items-center gap-2">
+                <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
+                  <SelectTrigger className="h-8 w-[140px]"><SelectValue placeholder="Itens por página" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10 por página</SelectItem>
+                    <SelectItem value="20">20 por página</SelectItem>
+                    <SelectItem value="50">50 por página</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             {loading ? (
               <div className="flex items-center justify-center h-40 text-muted-foreground"><Loader2 className="mr-2 h-5 w-5 animate-spin" />Carregando...</div>
             ) : (
@@ -229,9 +285,11 @@ const AvaliacaoConformidade = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-[110px]">ID</TableHead>
                       <TableHead className="min-w-[280px]">Descrição</TableHead>
                       <TableHead className="w-[160px]">Setor</TableHead>
                       <TableHead className="w-[120px]">Status</TableHead>
+                      <TableHead className="w-[120px]">Conformidade</TableHead>
                       <TableHead className="w-[140px]">Valor Estimado</TableHead>
                       <TableHead className="w-[140px]">Ações</TableHead>
                     </TableRow>
@@ -240,12 +298,16 @@ const AvaliacaoConformidade = () => {
                     {filtered.length === 0 ? (
                       <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Nenhuma contratação encontrada.</TableCell></TableRow>
                     ) : (
-                      filtered.map((r) => (
+                      paginated.map((r) => (
                         <TableRow key={r.id} className="hover:bg-muted/40">
+                          <TableCell className="font-medium">#{String(r.id).slice(-8)}</TableCell>
                           <TableCell><div className="truncate" title={r.descricao}>{r.descricao}</div></TableCell>
                           <TableCell>{r.setor_requisitante || "-"}</TableCell>
                           <TableCell>
                             {(() => { const s = statusLabel(r); const b = getStatusBadge(s); return <Badge variant={b.variant as any} className={b.className}>{s}</Badge>; })()}
+                          </TableCell>
+                          <TableCell>
+                            {(() => { const b = conformityBadge(confMap[r.id]); return <Badge variant={b.variant as any} className={b.className}>{b.text}</Badge>; })()}
                           </TableCell>
                           <TableCell className="text-right">{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(r.valor_estimado || 0)}</TableCell>
                           <TableCell className="text-right">
@@ -256,20 +318,46 @@ const AvaliacaoConformidade = () => {
                     )}
                   </TableBody>
                 </Table>
+                <div className="flex items-center justify-between p-2">
+                  <div className="text-xs text-muted-foreground">Página {page}</div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="xs" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>Anterior</Button>
+                    <Button variant="outline" size="xs" onClick={() => setPage((p) => (p * pageSize >= filtered.length ? p : p + 1))} disabled={page * pageSize >= filtered.length}>Próxima</Button>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>
         </Card>
 
         <Dialog open={!!openAudit} onOpenChange={() => setOpenAudit(null)}>
-          <DialogContent className="max-w-xl">
-            <DialogHeader>
-              <DialogTitle>Checklist de Conformidade</DialogTitle>
+          <DialogContent className="max-w-xl p-0 overflow-hidden [&>button]:text-white">
+            <DialogHeader className="bg-sidebar p-6">
+              <DialogTitle className="text-white">Auditoria</DialogTitle>
+              <DialogDescription className="text-white/80">Preencha a checklist e registre observações para a contratação selecionada.</DialogDescription>
             </DialogHeader>
-            <div className="space-y-3">
+            <div className="space-y-3 p-6">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span>SEI:</span>
                 <Badge variant="secondary" className="text-[10px]">{openAudit?.sei || "—"}</Badge>
+                {openAudit?.sei ? (
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    className="h-6 w-6 p-0"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(String(openAudit?.sei));
+                        toast.success("Número SEI copiado");
+                      } catch {
+                        toast.error("Falha ao copiar número SEI");
+                      }
+                    }}
+                    title="Copiar número SEI"
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                ) : null}
               </div>
               {CHECKLIST_ITEMS.map((it) => (
                 <label key={it.key} className="flex items-center gap-2 text-sm">
