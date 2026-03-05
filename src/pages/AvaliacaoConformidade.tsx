@@ -58,7 +58,7 @@ const AvaliacaoConformidade = () => {
       try {
         const { data, error } = await supabase
           .from("contratacoes")
-          .select("id, descricao, setor_requisitante, etapa_processo, sobrestado, valor_estimado, numero_sei_contratacao")
+          .select("id, codigo, descricao, setor_requisitante, etapa_processo, sobrestado, valor_estimado, numero_sei_contratacao")
           .order("created_at", { ascending: false });
         if (error) throw error;
         if (mounted) setRows((data as any) || []);
@@ -124,7 +124,8 @@ const AvaliacaoConformidade = () => {
     return rows.filter((r) => {
       const idStr = String(r.id).toLowerCase();
       const shortId = String(r.id).slice(-8).toLowerCase();
-      const matches = r.descricao.toLowerCase().includes(q) || idStr.includes(q) || shortId.includes(q);
+      const codigo = (r as any).codigo?.toLowerCase() || "";
+      const matches = r.descricao.toLowerCase().includes(q) || idStr.includes(q) || shortId.includes(q) || codigo.includes(q);
       if (!matches) return false;
       if (setorFiltro !== "todos" && (r.setor_requisitante || "") !== setorFiltro) return false;
       const s = statusLabel(r);
@@ -214,8 +215,15 @@ const AvaliacaoConformidade = () => {
   };
 
   const exportCSV = () => {
-    const header = ["ID", "Descrição", "Setor", "Status", "Valor Estimado"].join(",");
-    const lines = filtered.map((r) => [r.id, `"${r.descricao.replace(/"/g, '""')}"`, r.setor_requisitante || "", statusLabel(r), String(r.valor_estimado || 0)].join(","));
+    const header = ["ID", "Código", "Descrição", "Setor", "Status", "Valor Estimado"].join(",");
+    const lines = filtered.map((r) => [
+      r.id,
+      (r as any).codigo || "",
+      `"${r.descricao.replace(/"/g, '""')}"`,
+      r.setor_requisitante || "",
+      statusLabel(r),
+      String(r.valor_estimado || 0)
+    ].join(","));
     const csv = [header, ...lines].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -310,7 +318,7 @@ const AvaliacaoConformidade = () => {
                     ) : (
                       paginated.map((r) => (
                         <TableRow key={r.id} className="hover:bg-muted/40">
-                          <TableCell className="font-medium">{String(r.id).slice(-8)}</TableCell>
+                          <TableCell className="font-medium">{(r as any).codigo || String(r.id).slice(-8)}</TableCell>
                           <TableCell><div className="truncate" title={r.descricao}>{r.descricao}</div></TableCell>
                           <TableCell>{r.setor_requisitante || "-"}</TableCell>
                           <TableCell>

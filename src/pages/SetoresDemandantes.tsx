@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 type Row = {
   id: string;
+  codigo?: string | null;
   descricao?: string | null;
   setor_requisitante: string;
   classe: string;
@@ -53,8 +54,8 @@ const mapSetorName = (setor: string) => {
   return setor;
 };
 
-const formatId = (id: string) => {
-  return `${id.slice(-8)}`;
+const formatId = (id: string, codigo?: string | null) => {
+  return codigo || `${id.slice(-8)}`;
 };
 
 const SetoresDemandantes = () => {
@@ -84,6 +85,7 @@ const SetoresDemandantes = () => {
         .from("contratacoes")
         .select([
           "id",
+          "codigo",
           "descricao",
           "setor_requisitante",
           "classe",
@@ -266,7 +268,7 @@ const SetoresDemandantes = () => {
                 <TableBody>
                   {rows.map((r) => (
                     <TableRow key={r.id}>
-                      <TableCell className="font-medium">{formatId(r.id)}</TableCell>
+                      <TableCell className="font-medium">{formatId(r.id, r.codigo)}</TableCell>
                       <TableCell>{r.descricao}</TableCell>
                       <TableCell>{formatCurrencyBRL(r.valor_estimado)}</TableCell>
                       <TableCell>{formatCurrencyBRL(r.valor_contratado || 0)}</TableCell>

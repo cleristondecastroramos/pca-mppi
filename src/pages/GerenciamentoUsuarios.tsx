@@ -178,6 +178,7 @@ const GerenciamentoUsuarios = () => {
     if (!editTarget) return;
     setSaving(true);
     try {
+      console.log("Iniciando edição de usuário:", { user_id: editTarget.id, editNome, editRole });
       const { data, error } = await supabase.functions.invoke("admin-update-user", {
         body: {
           user_id: editTarget.id,
@@ -187,16 +188,25 @@ const GerenciamentoUsuarios = () => {
           role: editRole,
         },
       });
-      if (error) throw error;
+
+      console.log("Resposta update-user:", data, error);
+
+      if (error) {
+          throw error;
+      }
+
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
-      if (parsed?.error) throw new Error(parsed.error);
+      if (parsed?.error) {
+          throw new Error(parsed.error);
+      }
+
       toast.success("Usuário atualizado com sucesso.");
       setShowEdit(false);
       setEditTarget(null);
       loadUsers();
     } catch (e: any) {
-      console.error(e);
-      toast.error("Falha ao atualizar usuário", { description: e.message });
+      console.error("Erro ao atualizar:", e);
+      toast.error("Falha ao atualizar usuário", { description: e.message || "Erro desconhecido" });
     } finally {
       setSaving(false);
     }
@@ -213,6 +223,7 @@ const GerenciamentoUsuarios = () => {
     }
     setCreating(true);
     try {
+      console.log("Iniciando cadastro de usuário:", { newEmail, newNome, newRole });
       const { data, error } = await supabase.functions.invoke("admin-create-user", {
         body: {
           email: newEmail,
@@ -223,17 +234,28 @@ const GerenciamentoUsuarios = () => {
           provisional_password: newProvisionalPassword || undefined,
         },
       });
-      if (error) throw error;
+
+      console.log("Resposta create-user:", data, error);
+
+      if (error) {
+          // Captura erro retornado pelo Supabase (ex: timeout, network error)
+          throw error;
+      }
+
+      // Verifica se a resposta contém erro na estrutura JSON
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
-      if (parsed?.error) throw new Error(parsed.error);
+      if (parsed?.error) {
+          throw new Error(parsed.error);
+      }
+
       toast.success("Usuário cadastrado com sucesso.");
       setShowCreate(false);
       setNewEmail(""); setNewNome(""); setNewSetor(""); setNewCargo("");
       setNewRole(undefined); setNewProvisionalPassword("");
       loadUsers();
     } catch (e: any) {
-      console.error(e);
-      toast.error("Falha ao cadastrar usuário", { description: e.message });
+      console.error("Erro ao cadastrar:", e);
+      toast.error("Falha ao cadastrar usuário", { description: e.message || "Erro desconhecido" });
     } finally {
       setCreating(false);
     }
