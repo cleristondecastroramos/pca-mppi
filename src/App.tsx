@@ -67,7 +67,7 @@ const App = () => {
               <Home />
             </ProtectedRoute>
           } />
-          <Route path="/prioridades-atencao" element={
+          <Route path="/pontos-atencao" element={
             <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
               <PrioridadesAtencao />
             </ProtectedRoute>

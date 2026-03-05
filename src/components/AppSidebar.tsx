@@ -26,7 +26,7 @@ const menuItems = [
   { title: "Contratações", url: "/contratacoes", icon: FileText },
   { title: "Setores Demandantes", url: "/setores-demandantes", icon: ClipboardList },
   { title: "Controle de Prazos", url: "/controle-prazos", icon: Clock },
-  { title: "Pontos de Atenção", url: "/prioridades-atencao", icon: AlertTriangle },
+  { title: "Pontos de Atenção", url: "/pontos-atencao", icon: AlertTriangle },
   { title: "Prioridades de Contratação", url: "/prioridades-contratacao", icon: BadgeCheck },
   { title: "Avaliação e Conformidade", url: "/avaliacao-conformidade", icon: CheckSquare },
   { title: "Resultados Alcançados", url: "/resultados-alcancados", icon: TrendingUp },

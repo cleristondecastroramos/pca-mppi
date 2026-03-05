@@ -62,22 +62,31 @@ const ROLE_DEFINITIONS = {
   }
 } as const;
 
-async function invokeWithTimeout<T = any>(fn: string, body: any, ms = 12000): Promise<{ data: T | null; error: any }> {
-  let timeoutId: any;
-  const timeout = new Promise((_, reject) => {
-    timeoutId = setTimeout(() => reject(new Error("Tempo de resposta excedido")), ms);
-  });
-  try {
-    const res = await Promise.race([
-      (supabase as any).functions.invoke(fn, { body }),
-      timeout,
-    ]) as { data: T | null; error: any };
-    clearTimeout(timeoutId);
-    return res;
-  } catch (e: any) {
-    clearTimeout(timeoutId);
-    return { data: null, error: e } as any;
+async function invokeWithTimeout<T = any>(fn: string, body: any, ms = 12000, retries = 0): Promise<{ data: T | null; error: any }> {
+  let attempt = 0;
+  while (attempt <= retries) {
+    let timeoutId: any;
+    const timeout = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error("Tempo de resposta excedido")), ms);
+    });
+    try {
+      const res = await Promise.race([
+        (supabase as any).functions.invoke(fn, { body }),
+        timeout,
+      ]) as { data: T | null; error: any };
+      clearTimeout(timeoutId);
+      return res;
+    } catch (e: any) {
+      clearTimeout(timeoutId);
+      if (String(e?.message || e).includes("Tempo de resposta excedido") && attempt < retries) {
+        attempt += 1;
+        ms = Math.floor(ms * 1.5);
+        continue;
+      }
+      return { data: null, error: e } as any;
+    }
   }
+  return { data: null, error: new Error("Tempo de resposta excedido") } as any;
 }
 
 type Profile = {
@@ -415,7 +424,7 @@ const GerenciamentoUsuarios = () => {
                             cargo: newCargo,
                             role: newRole,
                             provisional_password: newProvisionalPassword || undefined,
-                          }, 15000);
+                          }, 30000, 1);
                           if (error) throw error;
                           toast.success("Usuário cadastrado e convidado com sucesso.");
                           setShowCreate(false);
