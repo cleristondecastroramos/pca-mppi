@@ -415,17 +415,33 @@ const Relatorios = () => {
 
   async function handleGenerate(tipo: "pdf" | "csv", keyOverride?: string) {
     const rType = keyOverride || reportType;
-    if (keyOverride) setReportType(keyOverride);
+    // Removido setReportType para evitar re-renderizações desnecessárias durante a geração
     
     let pdfWindow: Window | null = null;
     if (tipo === "pdf") {
-      // Abre a janela imediatamente para evitar bloqueio de pop-up
-      pdfWindow = window.open("about:blank", "_blank");
+      // Usamos _blank para garantir sempre uma nova aba
+      pdfWindow = window.open("", "_blank");
       if (pdfWindow) {
-        pdfWindow.document.open();
-        pdfWindow.document.write("<html><head><title>Gerando Relatório...</title></head><body><div style='display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;'><div><h2>Gerando Relatório...</h2><p>Por favor aguarde enquanto os dados são processados.</p></div></div></body></html>");
-        pdfWindow.document.close();
-        pdfWindow.focus();
+        pdfWindow.document.write(`
+          <html>
+            <head>
+              <title>Gerando Relatório...</title>
+              <style>
+                body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f9fafb; color: #111; }
+                .loading { text-align: center; }
+                .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+              </style>
+            </head>
+            <body>
+              <div class="loading">
+                <div class="spinner"></div>
+                <h2>Gerando Relatório...</h2>
+                <p>Por favor aguarde enquanto os dados são processados.</p>
+              </div>
+            </body>
+          </html>
+        `);
       } else {
          toast.error("Pop-up bloqueado", { description: "Permita pop-ups para visualizar o relatório." });
          return;
@@ -435,6 +451,7 @@ const Relatorios = () => {
     setLoading(true);
     toast.message("Gerando relatório...", { description: `Preparando ${tipo.toUpperCase()}...` });
     try {
+      console.log("Gerando relatório tipo:", rType); // Debug
       const def = REPORT_TYPES[rType];
       let sourceRows = applyFilters(rows.length ? rows : await fetchAllContratacoes());
 
@@ -547,7 +564,7 @@ const Relatorios = () => {
           })
           .join("");
         const today = new Date().toLocaleString('pt-BR');
-        const title = REPORT_TYPES[reportType].title(sourceRows.length);
+        const title = REPORT_TYPES[rType].title(sourceRows.length);
         const brand = "MPPI | PCA 2026";
         const primary = "#D9415D";
         const activeFilters = Object.entries(filtros).filter(([_, v]) => v && v !== "__all__");
@@ -643,8 +660,8 @@ const Relatorios = () => {
                   <img src="${logo}" alt="MPPI" />
                 </div>
                 <div style="flex:1">
-                  <div class="center-title">Plano de Contratações Anual 2026</div>
-                  <div class="center-subtitle">${title}</div>
+                  <div class="center-title">${def.label}</div>
+                  <div class="center-subtitle">Plano de Contratações Anual 2026 - ${title.replace(/Relatório.*?\((.*)\)/, "$1")}</div>
                 </div>
               </div>
               <div class="divider"></div>
@@ -671,20 +688,24 @@ const Relatorios = () => {
               </div>
             </div>
             <script>
-              window.onload = () => { setTimeout(() => { try { window.print(); } catch (e) {} }, 300); };
+              window.onload = () => { setTimeout(() => { try { window.print(); } catch (e) {} }, 500); };
             </script>
           </body>
           </html>`;
         
         if (pdfWindow) {
-             pdfWindow.document.open();
-             pdfWindow.document.write(html);
-             pdfWindow.document.close();
+             // Usamos Blob URL para evitar problemas de cache e restrições de segurança
+             const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+             const url = URL.createObjectURL(blob);
+             pdfWindow.location.href = url;
+             // Revogamos a URL após um tempo seguro para garantir o carregamento
+             setTimeout(() => URL.revokeObjectURL(url), 60000);
         }
       }
       toast.success("Relatório pronto", { description: `Exportado ${tipo.toUpperCase()}.` });
     } catch (e) {
       if (pdfWindow) {
+        // Em caso de erro, escrevemos diretamente na janela
         pdfWindow.document.body.innerHTML = `<div style='padding:20px;color:red;font-family:sans-serif;'><h2>Erro ao gerar relatório</h2><p>${getErrorMessage(e)}</p></div>`;
       }
       toast.error("Falha na geração", { description: "Tente novamente mais tarde." });

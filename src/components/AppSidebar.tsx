@@ -83,7 +83,7 @@ export function AppSidebar() {
         )}
         {collapsed && (
           <div className="text-center">
-            <span className="text-lg font-bold text-sidebar-foreground">P</span>
+            <span className="text-lg font-bold text-sidebar-foreground">PCA</span>
           </div>
         )}
       </SidebarHeader>

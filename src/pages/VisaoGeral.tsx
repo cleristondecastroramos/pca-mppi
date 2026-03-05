@@ -6,7 +6,7 @@ import { KPICard } from "@/components/KPICard";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useState } from "react";
 import type { Tables } from "@/integrations/supabase/types";
-import { FileText, DollarSign, CheckCircle } from "lucide-react";
+import { FileText, DollarSign, CheckCircle, Loader2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis, LabelList, PieChart, Pie, Cell, Legend } from "recharts";
@@ -321,7 +321,7 @@ const VisaoGeral = () => {
     const result = Array.from(map.entries())
       .map(([setor, quantidade]) => ({ setor: mapSetorName(setor), quantidade }))
       .sort((a, b) => b.quantidade - a.quantidade);
-    return result.length > 0 ? result : [{ setor: "Sem dados", quantidade: 1 }];
+    return result;
   }, [filteredRows]);
 
   const dadosValoresPorSetor = useMemo(() => {
@@ -333,7 +333,7 @@ const VisaoGeral = () => {
     const result = Array.from(map.entries())
       .map(([setor, valor_estimado]) => ({ setor: mapSetorName(setor), valor_estimado }))
       .sort((a, b) => b.valor_estimado - a.valor_estimado);
-    return result.length > 0 ? result : [{ setor: "Sem dados", valor_estimado: 1000 }];
+    return result;
   }, [filteredRows]);
 
   // Dados para os novos gráficos de pizza
@@ -417,6 +417,27 @@ const VisaoGeral = () => {
   };
 
   const clearFiltros = () => setFiltros(defaultFiltros);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-full py-16 text-muted-foreground">
+          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          Carregando dados…
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-full py-16 text-destructive">
+          Falha ao carregar dados: {error}
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -641,6 +662,9 @@ const VisaoGeral = () => {
                   const dataKey = metric === "quantidade" ? "quantidade" : "valor_estimado";
                   const fillColor = metric === "quantidade" ? "var(--color-demandas)" : "var(--color-valores)";
                   const formatter = (value: number) => (metric === "valor_estimado" ? formatCurrencyBRL(value) : value);
+                  if (!chartData.length) {
+                    return <div className="flex items-center justify-center h-[220px] text-xs text-muted-foreground">Sem dados</div>;
+                  }
                   return (
                     <BarChart data={chartData} width={400} height={260} margin={{ top: 24, right: 16, bottom: 8, left: 8 }}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -695,8 +719,11 @@ const VisaoGeral = () => {
               >
                 {(() => {
                   const chartData = (metricPieUO === "valor_estimado" ? dadosValoresPorUO : dadosQuantidadePorUO) as any[];
-                  const data = chartData.length ? chartData : [{ name: "Sem dados", value: 1 }];
+                  const data = chartData;
                   const formatter = (v: number) => (metricPieUO === "valor_estimado" ? formatCurrencyBRL(v) : v);
+                  if (!data.length) {
+                    return <div className="flex items-center justify-center h-[200px] text-xs text-muted-foreground">Sem dados</div>;
+                  }
                   return (
                     <PieChart width={400} height={220}>
                       <ChartTooltip
@@ -784,8 +811,11 @@ const VisaoGeral = () => {
               >
                 {(() => {
                   const chartData = (metricPieTipo === "valor_estimado" ? dadosValoresPorTipoContratacao : dadosQuantidadePorTipoContratacao) as any[];
-                  const data = chartData.length ? chartData : [{ name: "Sem dados", value: 1 }];
+                  const data = chartData;
                   const formatter = (v: number) => (metricPieTipo === "valor_estimado" ? formatCurrencyBRL(v) : v);
+                  if (!data.length) {
+                    return <div className="flex items-center justify-center h-[200px] text-xs text-muted-foreground">Sem dados</div>;
+                  }
                   return (
                     <PieChart width={400} height={220}>
                       <ChartTooltip
@@ -873,8 +903,11 @@ const VisaoGeral = () => {
               >
                 {(() => {
                   const chartData = (metricPieClasse === "valor_estimado" ? dadosValoresPorClasse : dadosQuantidadePorClasse) as any[];
-                  const data = chartData.length ? chartData : [{ name: "Sem dados", value: 1 }];
+                  const data = chartData;
                   const formatter = (v: number) => (metricPieClasse === "valor_estimado" ? formatCurrencyBRL(v) : v);
+                  if (!data.length) {
+                    return <div className="flex items-center justify-center h-[200px] text-xs text-muted-foreground">Sem dados</div>;
+                  }
                   return (
                     <PieChart width={400} height={220}>
                       <ChartTooltip

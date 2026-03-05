@@ -58,7 +58,7 @@ const App = () => {
       <BrowserRouter>
         <Suspense fallback={<div className="p-6 text-center text-sm text-muted-foreground">Carregando...</div>}>
         <Routes>
-          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/" element={<Navigate to="/auth" replace />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/esqueci-senha" element={<EsqueciSenha />} />
           <Route path="/redefinir-senha" element={<RedefinirSenha />} />
