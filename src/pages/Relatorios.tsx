@@ -8,7 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { DateRange } from "react-day-picker";
-import { Calendar as CalendarIcon, FileText, BarChart3, ClipboardList, BadgeCheck, DollarSign, FileSearch } from "lucide-react";
+import { Calendar as CalendarIcon, FileText, BarChart3, ClipboardList, BadgeCheck, DollarSign, FileSearch, CalendarDays, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 
@@ -32,7 +32,7 @@ const Relatorios = () => {
     etapa_processo: "__all__",
   });
 
-  const formatId = (id: any) => `#${String(id).slice(-8)}`;
+  const formatId = (id: any) => `${String(id).slice(-8)}`;
   const getErrorMessage = (e: any) => {
     try {
       if (typeof e === "string") return e;
@@ -44,7 +44,7 @@ const Relatorios = () => {
     }
   };
   const selectBase =
-    "id, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, numero_sei_contratacao, etapa_processo, sobrestado, created_at, data_finalizacao_licitacao, valor_estimado, valor_contratado";
+    "id, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, numero_sei_contratacao, etapa_processo, sobrestado, created_at, data_finalizacao_licitacao, valor_estimado, valor_contratado, data_prevista_contratacao";
   const selectWithExecutado = `${selectBase}, valor_executado`;
   const fetchAllContratacoes = async () => {
     const q1 = await supabase.from("contratacoes").select(selectWithExecutado);
@@ -161,6 +161,70 @@ const Relatorios = () => {
       modalidade: "__all__",
       etapa_processo: "__all__",
     });
+
+  const CHECKLIST_ITEMS = [
+    { key: "termo_referencia_aprovado", label: "Termo de Referência aprovado" },
+    { key: "pesquisa_mercado", label: "Pesquisa de Mercado" },
+    { key: "pareceres_juridicos", label: "Pareceres Jurídicos emitidos sobre a licitação" },
+    { key: "publicacao_edital", label: "Publicação de edital conforme normas" },
+    { key: "atas_certame", label: "Atas do Certame" },
+    { key: "atos_autorizacao", label: "Atos de autorização registrados" },
+    { key: "documentacao_fornecedor", label: "Documentação do fornecedor completa" },
+    { key: "termo_homologacao", label: "Termo de Homologação" },
+    { key: "termo_adjudicacao", label: "Termo de Adjudicação" },
+  ] as const;
+
+  const calculateConformity = (data: Record<string, any>) => {
+    const total = CHECKLIST_ITEMS.length;
+    if (total === 0) return 0;
+    let checked = 0;
+    CHECKLIST_ITEMS.forEach((item) => {
+      if (data[item.key]) checked++;
+    });
+    return Math.round((checked / total) * 100);
+  };
+
+  const getPrazoStatus = (contratacao: any) => {
+    const dataPrevistaStr = contratacao.data_prevista_contratacao;
+    if (!dataPrevistaStr) return { label: "Sem data prevista", variant: "secondary" };
+
+    const [y, m, d] = dataPrevistaStr.split("-").map(Number);
+    const dataPrevista = new Date(y, (m || 1) - 1, d || 1);
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    
+    const diffTime = dataPrevista.getTime() - hoje.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    const isConcluido = contratacao.etapa_processo === "Concluído" || contratacao.etapa_processo === "Contratado";
+    const isNaoIniciado = !isConcluido && contratacao.etapa_processo !== "Em Licitação";
+
+    if (diffDays < 0 && !isConcluido) {
+      return { 
+        label: `Atrasado (${Math.abs(diffDays)}d)`, 
+        variant: "destructive"
+      };
+    }
+
+    if (diffDays >= 0 && diffDays <= 120 && isNaoIniciado) {
+      return { 
+        label: "Atenção (Prazo Curto)", 
+        variant: "warning"
+      };
+    }
+
+    if (isConcluido) {
+      return { 
+        label: "Concluído", 
+        variant: "success"
+      };
+    }
+
+    return { 
+      label: "No Prazo", 
+      variant: "outline"
+    };
+  };
 
   const REPORT_TYPES: Record<
     string,
@@ -290,6 +354,39 @@ const Relatorios = () => {
       ],
       title: (n) => `Relatório SEI (${n} registros)`,
     },
+    auditoria: {
+      label: "Auditoria — Conformidade",
+      description: "Relatório de conformidade com itens de checklist de auditoria.",
+      icon: BadgeCheck,
+      columns: ["ID", "Descrição", "Setor", "Conformidade", "Status"],
+      csvColumns: ["ID", "Descrição", "Setor", "Conformidade", "Status"],
+      mapRow: (r) => [
+        formatId(r.id),
+        String(r.descricao || ""),
+        r.setor_requisitante || "",
+        `${(r as any).conformidade || 0}%`,
+        r.sobrestado === true ? "sobrestado" : r.etapa_processo,
+      ],
+      title: (n) => `Relatório de Auditoria (${n} registros)`,
+    },
+    prazos_criticos: {
+      label: "Prazos — Críticos e Alertas",
+      description: "Relatório focado em processos atrasados ou com prazo curto.",
+      icon: AlertCircle,
+      columns: ["ID", "Descrição", "Setor", "Data Prevista", "Situação"],
+      csvColumns: ["ID", "Descrição", "Setor", "Data Prevista", "Situação"],
+      mapRow: (r) => {
+         const status = getPrazoStatus(r);
+         return [
+            formatId(r.id),
+            String(r.descricao || ""),
+            r.setor_requisitante || "",
+            r.data_prevista_contratacao ? new Date(r.data_prevista_contratacao).toLocaleDateString("pt-BR") : "—",
+            status.label
+         ];
+      },
+      title: (n) => `Relatório de Prazos Críticos (${n} registros)`,
+    },
   };
 
   useEffect(() => {
@@ -316,13 +413,74 @@ const Relatorios = () => {
 
   // removido filtro legacy; filtros atuais aplicados por applyFilters
 
-  async function handleGenerate(tipo: "pdf" | "csv") {
+  async function handleGenerate(tipo: "pdf" | "csv", keyOverride?: string) {
+    const rType = keyOverride || reportType;
+    if (keyOverride) setReportType(keyOverride);
+    
+    let pdfWindow: Window | null = null;
+    if (tipo === "pdf") {
+      // Abre a janela imediatamente para evitar bloqueio de pop-up
+      pdfWindow = window.open("about:blank", "_blank");
+      if (pdfWindow) {
+        pdfWindow.document.open();
+        pdfWindow.document.write("<html><head><title>Gerando Relatório...</title></head><body><div style='display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;'><div><h2>Gerando Relatório...</h2><p>Por favor aguarde enquanto os dados são processados.</p></div></div></body></html>");
+        pdfWindow.document.close();
+        pdfWindow.focus();
+      } else {
+         toast.error("Pop-up bloqueado", { description: "Permita pop-ups para visualizar o relatório." });
+         return;
+      }
+    }
+    
     setLoading(true);
     toast.message("Gerando relatório...", { description: `Preparando ${tipo.toUpperCase()}...` });
     try {
+      const def = REPORT_TYPES[rType];
+      let sourceRows = applyFilters(rows.length ? rows : await fetchAllContratacoes());
+
+      if (rType === 'auditoria') {
+        const ids = sourceRows.map(r => r.id);
+        if (ids.length) {
+            // Batch requests to avoid URL length limits
+            const batchSize = 50;
+            const promises = [];
+            for (let i = 0; i < ids.length; i += batchSize) {
+                const batch = ids.slice(i, i + batchSize);
+                promises.push(supabase.from("contratacoes_conformidade").select("*").in("contratacao_id", batch));
+            }
+            
+            const results = await Promise.all(promises);
+            const confAll: any[] = [];
+            for (const res of results) {
+                if (res.error) throw res.error;
+                if (res.data) confAll.push(...res.data);
+            }
+            
+            const map: Record<string, number> = {};
+            confAll.forEach((c: any) => {
+              map[c.contratacao_id] = calculateConformity(c);
+            });
+            
+            sourceRows = sourceRows.map(r => ({
+                ...r,
+                conformidade: map[r.id] || 0
+            }));
+        }
+      } else if (rType === 'prazos_criticos') {
+         sourceRows = sourceRows.filter(r => {
+             const status = getPrazoStatus(r);
+             return status.variant === 'destructive' || status.variant === 'warning';
+         });
+         sourceRows.sort((a, b) => {
+             const sa = getPrazoStatus(a);
+             const sb = getPrazoStatus(b);
+             if (sa.variant === sb.variant) return 0;
+             if (sa.variant === 'destructive') return -1;
+             return 1;
+         });
+      }
+
       if (tipo === "csv") {
-        const def = REPORT_TYPES[reportType];
-        const sourceRows = applyFilters(rows.length ? rows : await fetchAllContratacoes());
         const header = def.csvColumns.join(",");
         const lines = sourceRows.map((r) => {
           const data = def.mapRow(r).map((v) => {
@@ -341,16 +499,15 @@ const Relatorios = () => {
         URL.revokeObjectURL(url);
       } else {
         const logo = `${location.origin}/logo-mppi.png`;
-        const def = REPORT_TYPES[reportType];
-        const sourceRows = applyFilters(rows.length ? rows : await fetchAllContratacoes());
         const widthClass = (col: string) => {
           if (col === "ID") return "col-ID";
           if (col === "Descrição") return "col-Descrição";
           if (col === "Setor") return "col-Setor";
           if (col === "Prioridade") return "col-Prioridade";
-          if (col === "Status") return "col-Status";
-          if (col === "Data" || col === "Data de Referência") return "col-Data";
+          if (col === "Status" || col === "Situação") return "col-Status";
+          if (col.includes("Data")) return "col-Data";
           if (col === "SEI") return "col-SEI";
+          if (col === "Conformidade") return "col-Status";
           if (col === "Valor Estimado") return "col-Valor-Estimado";
           if (col === "Valor Executado") return "col-Valor-Executado";
           if (["Valor Contratado", "Valor"].includes(col)) return "col-Valor";
@@ -365,9 +522,14 @@ const Relatorios = () => {
               let val: string;
               if (col.toLowerCase().includes("valor")) {
                 val = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v) || 0);
-              } else if (col === "Data" || col === "Data de Referência") {
+              } else if (col.includes("Data")) {
                 const dt = String(v || "");
-                val = dt ? new Date(dt).toLocaleDateString("pt-BR") : "";
+                // Only format if it looks like a date and isn't already formatted (simple check)
+                if (dt.includes("-") && dt.length === 10) {
+                    val = new Date(dt).toLocaleDateString("pt-BR");
+                } else {
+                    val = dt;
+                }
               } else {
                 val = String(v).replace(/</g, "&lt;");
               }
@@ -376,7 +538,7 @@ const Relatorios = () => {
                   ? "text-right"
                   : col === "Descrição"
                   ? "text-left"
-                  : ["ID", "Setor", "Prioridade", "Status", "Data", "Data de Referência"].includes(col)
+                  : ["ID", "Setor", "Prioridade", "Status", "Situação", "Conformidade"].includes(col) || col.includes("Data")
                   ? "text-center"
                   : "text-left";
               return `<td class="${align} ${widthClass(col)}">${val}</td>`;
@@ -471,7 +633,7 @@ const Relatorios = () => {
               .footer-inner{display:flex;align-items:center;justify-content:space-between;padding:8px 24px;font-size:11px;color:#6b7280}
               .page-num::after{content: counter(page) " de " counter(pages);}
               @page{size:A4;margin:18mm 10mm 10mm 10mm}
-              ${reportType === "sei" ? `.col-Descrição{width:40%}.col-SEI{width:24%}` : ""}
+              ${rType === "sei" ? `.col-Descrição{width:40%}.col-SEI{width:24%}` : ""}
             </style>
           </head>
           <body>
@@ -490,7 +652,7 @@ const Relatorios = () => {
             <div class="page">
               <div class="content">
                 ${filterHtml}
-                ${reportType === "por_status" ? `<div class="legend">A coluna "Data de Referência" exibe: se o status for <strong>concluído</strong>, a data de finalização da licitação; caso contrário, a <strong>data de criação</strong> da contratação.</div>` : ""}
+                ${rType === "por_status" ? `<div class="legend">A coluna "Data de Referência" exibe: se o status for <strong>concluído</strong>, a data de finalização da licitação; caso contrário, a <strong>data de criação</strong> da contratação.</div>` : ""}
                 <table>
                   <thead>
                     <tr>${headersHtml}</tr>
@@ -513,16 +675,18 @@ const Relatorios = () => {
             </script>
           </body>
           </html>`;
-        const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const newTab = window.open(url, "_blank"); 
-        if (!newTab) {
-          toast.error("Permita pop-ups para exportar o PDF.");
+        
+        if (pdfWindow) {
+             pdfWindow.document.open();
+             pdfWindow.document.write(html);
+             pdfWindow.document.close();
         }
-        setTimeout(() => URL.revokeObjectURL(url), 60000);
       }
       toast.success("Relatório pronto", { description: `Exportado ${tipo.toUpperCase()}.` });
     } catch (e) {
+      if (pdfWindow) {
+        pdfWindow.document.body.innerHTML = `<div style='padding:20px;color:red;font-family:sans-serif;'><h2>Erro ao gerar relatório</h2><p>${getErrorMessage(e)}</p></div>`;
+      }
       toast.error("Falha na geração", { description: "Tente novamente mais tarde." });
     } finally {
       setLoading(false);
@@ -658,7 +822,7 @@ const Relatorios = () => {
                     <div className="text-xs text-muted-foreground mt-1">{def.description}</div>
                   </div>
                   <div className="mt-1">
-                    <Button size="xs" className="gap-1 bg-primary text-white hover:bg-primary/90" onClick={() => { setReportType(key); handleGenerate("pdf"); }}>
+                    <Button size="xs" className="gap-1 bg-primary text-white hover:bg-primary/90" onClick={() => handleGenerate("pdf", key)}>
                       <FileText className="h-3 w-3" />
                       Gerar PDF
                     </Button>

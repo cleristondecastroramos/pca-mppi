@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { Tables } from "@/integrations/supabase/types";
 import { importContratacoes, removeDuplicates } from "@/utils/importCsv";
 import {
@@ -56,6 +56,7 @@ export default function Contratacoes() {
   const [contratacoes, setContratacoes] = useState<Contratacao[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [editingContratacao, setEditingContratacao] = useState<Contratacao | null>(null);
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);
   const [showHistorico, setShowHistorico] = useState(false);
@@ -95,6 +96,16 @@ export default function Contratacoes() {
   const clearFiltros = () => setFiltros(defaultFiltros);
 
   useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm]);
+
+  useEffect(() => {
     let mounted = true;
     const run = async () => {
       await fetchContratacoes();
@@ -107,59 +118,18 @@ export default function Contratacoes() {
       mounted = false;
       sub.subscription.unsubscribe();
     };
-  }, [page, pageSize, searchTerm, filtros]);
+  }, []);
 
   const fetchContratacoes = async () => {
     setLoading(true);
     try {
-      const start = (page - 1) * pageSize;
-      const end = start + pageSize - 1;
-      let query: any = supabase
+      const { data, error } = await supabase
         .from("contratacoes")
-        .select("*", { count: "exact" })
-        .order("created_at", { ascending: false })
-        .range(start, end);
+        .select("*")
+        .order("created_at", { ascending: false });
 
-      const term = searchTerm.trim();
-      if (term) {
-        const like = `%${term}%`;
-        query = query.or(
-          `descricao.ilike.${like},setor_requisitante.ilike.${like},classe.ilike.${like}`
-        );
-      }
-
-      const applyEq = (field: keyof Filtros, column: string) => {
-        const v = filtros[field];
-        if (v && v !== ALL_VALUE) query = query.eq(column, v);
-      };
-      applyEq("unidade_orcamentaria", "unidade_orcamentaria");
-      applyEq("setor_requisitante", "setor_requisitante");
-      applyEq("tipo_contratacao", "tipo_contratacao");
-      applyEq("tipo_recurso", "tipo_recurso");
-      applyEq("classe", "classe");
-      applyEq("grau_prioridade", "grau_prioridade");
-      applyEq("normativo", "normativo");
-      applyEq("modalidade", "modalidade");
-
-      const status = filtros.etapa_processo;
-      if (status && status !== ALL_VALUE) {
-        if (status === "sobrestado") {
-          query = query.eq("sobrestado", true as any);
-        } else if (status === "não iniciado") {
-          query = query.is("etapa_processo", null).or("etapa_processo.eq.Planejamento");
-        } else if (status === "em andamento") {
-          query = query.in("etapa_processo", ["Em Licitação", "Contratado"]);
-        } else if (status === "concluído") {
-          query = query.eq("etapa_processo", "Concluído");
-        } else {
-          query = query.eq("etapa_processo", status);
-        }
-      }
-
-      const { data, error, count } = await query as any;
       if (error) throw error;
       setContratacoes(data || []);
-      setTotalCount(count || 0);
     } catch (error: any) {
       console.error("Erro ao buscar contratações:", error);
       toast.error("Erro ao carregar contratações", { description: error?.message || String(error) });
@@ -502,16 +472,77 @@ export default function Contratacoes() {
     };
   })();
 
-  const displayedContratacoes = contratacoes;
+  const filteredContratacoes = useMemo(() => {
+    let result = contratacoes;
 
-  const [scrollTop, setScrollTop] = useState(0);
-  const rowHeight = 44;
-  const visibleCount = 20;
-  const buffer = 10;
-  const startIndex = Math.max(0, Math.floor(scrollTop / rowHeight) - buffer);
-  const endIndex = Math.min(displayedContratacoes.length, startIndex + visibleCount + buffer * 2);
-  const topPad = startIndex * rowHeight;
-  const bottomPad = (displayedContratacoes.length - endIndex) * rowHeight;
+    // 1. Filtro Textual
+    const term = debouncedSearchTerm.trim().toLowerCase();
+    if (term) {
+      result = result.filter((item) => {
+        // Busca por ID (parcial ou total)
+        if (item.id.toLowerCase().includes(term)) return true;
+        
+        // Busca textual nos campos permitidos
+        const searchableText = [
+          item.descricao,
+          item.setor_requisitante,
+          item.classe
+        ].filter(Boolean).join(" ").toLowerCase();
+        
+        return searchableText.includes(term);
+      });
+    }
+
+    // 2. Filtros Dropdown
+    const applyEq = (field: keyof Filtros, itemField: keyof Contratacao) => {
+      const v = filtros[field];
+      if (v && v !== ALL_VALUE) {
+        result = result.filter((item) => String(item[itemField]) === v);
+      }
+    };
+
+    applyEq("unidade_orcamentaria", "unidade_orcamentaria");
+    applyEq("setor_requisitante", "setor_requisitante");
+    applyEq("tipo_contratacao", "tipo_contratacao");
+    applyEq("tipo_recurso", "tipo_recurso");
+    applyEq("classe", "classe");
+    applyEq("grau_prioridade", "grau_prioridade");
+    applyEq("normativo", "normativo");
+    applyEq("modalidade", "modalidade");
+
+    // 3. Filtro de Status
+    const status = filtros.etapa_processo;
+    if (status && status !== ALL_VALUE) {
+      if (status === "sobrestado") {
+        result = result.filter((item) => (item as any).sobrestado === true);
+      } else if (status === "não iniciado") {
+        result = result.filter((item) => !item.etapa_processo || item.etapa_processo === "Planejamento");
+      } else if (status === "em andamento") {
+        result = result.filter((item) => ["Em Licitação", "Contratado"].includes(item.etapa_processo || ""));
+      } else if (status === "concluído") {
+        result = result.filter((item) => item.etapa_processo === "Concluído");
+      } else {
+        result = result.filter((item) => item.etapa_processo === status);
+      }
+    }
+
+    return result;
+  }, [contratacoes, debouncedSearchTerm, filtros]);
+
+  // Atualizar totalCount para paginação
+  useEffect(() => {
+    setTotalCount(filteredContratacoes.length);
+  }, [filteredContratacoes.length]);
+
+  // Resetar página quando filtro muda
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearchTerm, filtros]);
+
+  const displayedContratacoes = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredContratacoes.slice(start, start + pageSize);
+  }, [filteredContratacoes, page, pageSize]);
 
   const formatCurrency = (value: number | null) => {
     if (!value) return "R$ 0,00";
@@ -645,7 +676,7 @@ export default function Contratacoes() {
     return changes;
   };
 
-  if (loading) {
+  if (loading && contratacoes.length === 0) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
@@ -832,7 +863,7 @@ export default function Contratacoes() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por descrição, setor, classe..."
+              placeholder="Buscar por ID, descrição, setor ou classe..."
               className="pl-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -845,7 +876,7 @@ export default function Contratacoes() {
         </div>
 
         <div className="rounded-lg border border-border bg-card">
-          <Table containerClassName="max-h-[60vh]" onContainerScroll={(e) => setScrollTop((e.target as HTMLDivElement).scrollTop)}>
+          <Table containerClassName="max-h-[60vh]">
             <TableHeader>
               <TableRow>
                 <TableHead className="text-center w-[90px]">ID</TableHead>
@@ -854,6 +885,7 @@ export default function Contratacoes() {
                 <TableHead className="text-center w-[140px]">Classe</TableHead>
                 <TableHead className="text-center w-[140px]">Valor Estimado</TableHead>
                 <TableHead className="text-center w-[140px]">Valor Executado</TableHead>
+                <TableHead className="text-center w-[120px]">Data Prevista</TableHead>
                 <TableHead className="text-center w-[130px]">Status</TableHead>
                 <TableHead className="text-center w-[120px]">Prioridade</TableHead>
                 <TableHead className="text-center w-[120px]">Ações</TableHead>
@@ -862,17 +894,16 @@ export default function Contratacoes() {
             <TableBody>
               {displayedContratacoes.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                     {searchTerm ? "Nenhuma contratação encontrada com os critérios de busca." : "Nenhuma contratação cadastrada."}
                   </TableCell>
                 </TableRow>
               ) : (
                 <>
-                  <TableRow className="border-0" style={{ height: topPad }} />
-                  {displayedContratacoes.slice(startIndex, endIndex).map((contratacao) => (
+                  {displayedContratacoes.map((contratacao) => (
                   <TableRow key={contratacao.id} className="hover:bg-muted/50">
                     <TableCell className="font-medium">
-                      #{contratacao.id.slice(-8)}
+                      {contratacao.id.slice(-8)}
                     </TableCell>
                     <TableCell className="max-w-xs">
                       <div className="truncate" title={contratacao.descricao}>
@@ -886,6 +917,9 @@ export default function Contratacoes() {
                     </TableCell>
                     <TableCell className="text-right w-[140px]">
                       {formatCurrency(contratacao.valor_contratado)}
+                    </TableCell>
+                    <TableCell className="text-center w-[120px]">
+                      {formatDate((contratacao as any).data_prevista_contratacao)}
                     </TableCell>
                     <TableCell>
                       {(() => {
@@ -947,7 +981,6 @@ export default function Contratacoes() {
                     </TableCell>
                   </TableRow>
                   ))}
-                  <TableRow className="border-0" style={{ height: bottomPad }} />
                 </>
               )}
             </TableBody>
@@ -1321,7 +1354,7 @@ export default function Contratacoes() {
                             {formatDate(item.created_at)} por {item.profiles?.nome_completo || "Sistema"}
                           </p>
                         </div>
-                        <Badge variant="secondary" className="bg-muted/30 text-muted-foreground">#{item.id.slice(-6)}</Badge>
+                        <Badge variant="secondary" className="bg-muted/30 text-muted-foreground">{item.id.slice(-6)}</Badge>
                       </div>
                       {changes.length > 0 ? (
                         <div className="space-y-2">

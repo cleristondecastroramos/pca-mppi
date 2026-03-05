@@ -41,6 +41,16 @@ const AvaliacaoConformidade = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+  const calculateConformity = (data: Record<string, any>) => {
+    const total = CHECKLIST_ITEMS.length;
+    if (total === 0) return 0;
+    let checked = 0;
+    CHECKLIST_ITEMS.forEach((item) => {
+      if (data[item.key]) checked++;
+    });
+    return Math.round((checked / total) * 100);
+  };
+
   useEffect(() => {
     let mounted = true;
     const fetchData = async () => {
@@ -58,23 +68,12 @@ const AvaliacaoConformidade = () => {
           try {
             const { data: confAll, error: confErr } = await supabase
               .from("contratacoes_conformidade")
-              .select("contratacao_id, termo_referencia_aprovado, pesquisa_mercado, pareceres_juridicos, publicacao_edital, atas_certame, atos_autorizacao, documentacao_fornecedor, termo_homologacao, termo_adjudicacao")
+              .select("*")
               .in("contratacao_id", ids);
             if (confErr) throw confErr;
             const map: Record<string, number> = {};
             (confAll || []).forEach((c: any) => {
-              const total = CHECKLIST_ITEMS.length;
-              const checked =
-                (c.termo_referencia_aprovado ? 1 : 0) +
-                (c.pesquisa_mercado ? 1 : 0) +
-                (c.pareceres_juridicos ? 1 : 0) +
-                (c.publicacao_edital ? 1 : 0) +
-                (c.atas_certame ? 1 : 0) +
-                (c.atos_autorizacao ? 1 : 0) +
-                (c.documentacao_fornecedor ? 1 : 0) +
-                (c.termo_homologacao ? 1 : 0) +
-                (c.termo_adjudicacao ? 1 : 0);
-              map[c.contratacao_id] = Math.round((checked / total) * 100);
+              map[c.contratacao_id] = calculateConformity(c);
             });
             if (mounted) setConfMap(map);
           } catch (err: any) {
@@ -202,6 +201,11 @@ const AvaliacaoConformidade = () => {
         }, { onConflict: 'contratacao_id' });
 
       if (error) throw error;
+      
+      // Atualizar o confMap localmente para refletir a mudança imediatamente
+      const newPct = calculateConformity(auditState);
+      setConfMap((prev) => ({ ...prev, [openAudit.id]: newPct }));
+
       toast.success("Checklist salvo");
       setOpenAudit(null);
     } catch (e: any) {
@@ -306,7 +310,7 @@ const AvaliacaoConformidade = () => {
                     ) : (
                       paginated.map((r) => (
                         <TableRow key={r.id} className="hover:bg-muted/40">
-                          <TableCell className="font-medium">#{String(r.id).slice(-8)}</TableCell>
+                          <TableCell className="font-medium">{String(r.id).slice(-8)}</TableCell>
                           <TableCell><div className="truncate" title={r.descricao}>{r.descricao}</div></TableCell>
                           <TableCell>{r.setor_requisitante || "-"}</TableCell>
                           <TableCell>

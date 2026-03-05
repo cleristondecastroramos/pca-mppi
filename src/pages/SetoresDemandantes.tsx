@@ -54,7 +54,7 @@ const mapSetorName = (setor: string) => {
 };
 
 const formatId = (id: string) => {
-  return `#${id.slice(-8)}`;
+  return `${id.slice(-8)}`;
 };
 
 const SetoresDemandantes = () => {

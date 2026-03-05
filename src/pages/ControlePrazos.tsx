@@ -143,7 +143,8 @@ const ControlePrazos = () => {
     return rows.filter((r) => {
       const matchesSearch =
         r.descricao.toLowerCase().includes(q) ||
-        (r.setor_requisitante || "").toLowerCase().includes(q);
+        (r.setor_requisitante || "").toLowerCase().includes(q) ||
+        r.id.toLowerCase().includes(q);
       
       if (!matchesSearch) return false;
 
@@ -172,10 +173,13 @@ const ControlePrazos = () => {
     rows.forEach(r => {
       if (r.data_prevista_contratacao) {
         const [y, m] = r.data_prevista_contratacao.split("-");
-        months.add(`${m}/${y}`);
+        months.add(`${y}-${m}`);
       }
     });
-    return Array.from(months).sort();
+    return Array.from(months).sort().map(ym => {
+      const [y, m] = ym.split("-");
+      return `${m}/${y}`;
+    });
   }, [rows]);
 
   const openEdit = (row: Contratacao, field: keyof Contratacao) => {
@@ -273,7 +277,7 @@ const ControlePrazos = () => {
                 <Input 
                   value={search} 
                   onChange={(e) => setSearch(e.target.value)} 
-                  placeholder="Buscar por descrição, objeto ou setor..." 
+                  placeholder="Buscar por descrição, objeto, setor ou ID..." 
                   className="pl-9"
                 />
                 <Filter className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -324,11 +328,11 @@ const ControlePrazos = () => {
                 <Table>
                   <TableHeader className="bg-muted/50">
                     <TableRow>
-                      <TableHead className="w-[35%]">Objeto / Descrição</TableHead>
-                      <TableHead className="w-[15%]">Setor</TableHead>
-                      <TableHead className="w-[15%]">Status Processo</TableHead>
-                      <TableHead className="w-[15%] text-center">Data Prevista</TableHead>
-                      <TableHead className="w-[20%] text-center">Situação do Prazo</TableHead>
+                      <TableHead className="w-[50%]">Objeto / Descrição</TableHead>
+                      <TableHead className="w-[10%]">Setor</TableHead>
+                      <TableHead className="w-[12%]">Status Processo</TableHead>
+                      <TableHead className="w-[12%] text-center">Data Prevista</TableHead>
+                      <TableHead className="w-[16%] text-center">Situação do Prazo</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -344,8 +348,8 @@ const ControlePrazos = () => {
                         return (
                           <TableRow key={r.id} className="hover:bg-muted/30">
                             <TableCell>
-                              <div className="font-medium truncate max-w-[300px]" title={r.descricao}>{r.descricao}</div>
-                              <div className="text-xs text-muted-foreground mt-0.5">ID: #{r.id.slice(-8)}</div>
+                              <div className="font-medium truncate max-w-[500px]" title={r.descricao}>{r.descricao}</div>
+                              <div className="text-xs text-muted-foreground mt-0.5">ID: {r.id.slice(-8)}</div>
                             </TableCell>
                             <TableCell>{r.setor_requisitante}</TableCell>
                             <TableCell>
