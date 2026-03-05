@@ -49,6 +49,7 @@ export const parseAndImportCSV = async (fileContent: string) => {
     data_dfd_oficio: getColIndex("DATA DO DFD/OFÍCIO"),
     data_conclusao: getColIndex("DATA DE CONCLUSÃO"),
     data_prevista_contratacao: getColIndex("TÉRMINO DO CONTRATO / PREVISÃO DE CONTRATAÇÃO"),
+    pdm_catser: getColIndex("PDM/CATSER"),
   };
 
   const parseCurrency = (val: string) => {
@@ -151,6 +152,7 @@ export const parseAndImportCSV = async (fileContent: string) => {
       valor_unitario: parseCurrency(cols[colMap.valor_unitario]?.replace(/^"|"$/g, '') || "0"),
       unidade_fornecimento: cols[colMap.unidade_fornecimento]?.replace(/^"|"$/g, '') || "Unidade",
       numero_sei_contratacao: cols[colMap.numero_sei]?.replace(/^"|"$/g, '') || null,
+      pdm_catser: cols[colMap.pdm_catser]?.replace(/^"|"$/g, '') || null,
       valor_contratado: parseCurrency(cols[colMap.valor_contratado]?.replace(/^"|"$/g, '') || "0"),
       empenho_1: cols[colMap.empenho_1]?.replace(/^"|"$/g, '') || null,
       empenho_2: cols[colMap.empenho_2]?.replace(/^"|"$/g, '') || null,

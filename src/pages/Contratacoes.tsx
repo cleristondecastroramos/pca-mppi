@@ -264,6 +264,9 @@ export default function Contratacoes() {
         payload.tipo_recurso = (editingContratacao as any).tipo_recurso;
       }
 
+      if ((editingContratacao as any).pdm_catser !== undefined) {
+        payload.pdm_catser = (editingContratacao as any).pdm_catser || null;
+      }
       if ((editingContratacao as any).numero_sei_contratacao !== undefined) {
         payload.numero_sei_contratacao = (editingContratacao as any).numero_sei_contratacao || null;
       }
@@ -1110,9 +1113,9 @@ export default function Contratacoes() {
                   </div>
                 </div>
 
-                {/* Linha 2B: Data Prevista e Classe de Material */}
+                {/* Linha 2B: Data Prevista, PDM/CATSER e Classe de Material */}
                 <div className="grid gap-4 sm:grid-cols-6">
-                  <div className="space-y-2 sm:col-span-3">
+                  <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="edit-data-prevista" className="text-[12px] text-muted-foreground">Data Prevista para a Contratação:</Label>
                     <Input
                       id="edit-data-prevista"
@@ -1123,7 +1126,19 @@ export default function Contratacoes() {
                       }
                     />
                   </div>
-                  <div className="space-y-2 sm:col-span-3">
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="edit-pdm-catser" className="text-[12px] text-muted-foreground">PDM/CATSER:</Label>
+                    <Input
+                      id="edit-pdm-catser"
+                      type="text"
+                      placeholder="Código PDM ou CATSER"
+                      value={(editingContratacao as any).pdm_catser || ""}
+                      onChange={(e) =>
+                        setEditingContratacao({ ...editingContratacao, pdm_catser: e.target.value } as any)
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="edit-classe" className="text-[12px] text-muted-foreground">Classe de Material:</Label>
                     <Select
                       value={editingContratacao.classe || undefined}
