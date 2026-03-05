@@ -175,7 +175,7 @@ const Relatorios = () => {
   ] as const;
 
   const calculateConformity = (data: Record<string, any>) => {
-    const total = CHECKLIST_ITEMS.length;
+    const total: number = CHECKLIST_ITEMS.length;
     if (total === 0) return 0;
     let checked = 0;
     CHECKLIST_ITEMS.forEach((item) => {
