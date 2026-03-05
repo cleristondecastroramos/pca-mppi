@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 type AttItem = {
   id: string;
+  codigo?: string | null;
   descricao: string;
   setor_requisitante: string | null;
   data_prevista_contratacao: string | null;
@@ -43,7 +44,7 @@ const PrioridadesAtencao = () => {
       try {
         const { data, error } = await supabase
           .from("contratacoes")
-          .select("id, descricao, setor_requisitante, etapa_processo, sobrestado, data_prevista_contratacao")
+          .select("id, codigo, descricao, setor_requisitante, etapa_processo, sobrestado, data_prevista_contratacao")
           .order("data_prevista_contratacao", { ascending: true });
         
         if (error) throw error;
@@ -194,7 +195,7 @@ const PrioridadesAtencao = () => {
                           return (
                             <TableRow key={item.id} className="hover:bg-destructive/5">
                               <TableCell className="font-mono text-xs text-muted-foreground">
-                                {item.id.slice(-8)}
+                                {item.codigo || item.id.slice(-8)}
                               </TableCell>
                               <TableCell className="font-medium max-w-[400px]">
                                 <div className="truncate" title={item.descricao}>
@@ -268,7 +269,7 @@ const PrioridadesAtencao = () => {
                           return (
                             <TableRow key={item.id} className="hover:bg-muted/30">
                               <TableCell className="font-mono text-xs text-muted-foreground">
-                                {item.id.slice(-8)}
+                                {item.codigo || item.id.slice(-8)}
                               </TableCell>
                               <TableCell className="font-medium max-w-[400px]">
                                 <div className="truncate" title={item.descricao}>

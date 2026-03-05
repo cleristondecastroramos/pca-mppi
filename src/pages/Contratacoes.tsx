@@ -45,9 +45,10 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Pencil } from "lucide-react";
+import { Pencil, Play, RefreshCw } from "lucide-react";
+import { migrateExistingIds } from "@/utils/migrateCodigos";
 
-type Contratacao = Tables<"contratacoes">;
+type Contratacao = Tables<"contratacoes"> & { codigo?: string | null };
 type HistoricoItem = Tables<"contratacoes_historico"> & {
   profiles?: { nome_completo: string | null } | null;
 };
@@ -480,7 +481,7 @@ export default function Contratacoes() {
     if (term) {
       result = result.filter((item) => {
         // Busca por ID (parcial ou total)
-        if (item.id.toLowerCase().includes(term)) return true;
+        if (item.codigo?.toLowerCase().includes(term) || item.id.toLowerCase().includes(term)) return true;
         
         // Busca textual nos campos permitidos
         const searchableText = [
@@ -873,6 +874,10 @@ export default function Contratacoes() {
             <Filter className="h-4 w-4 mr-1" />
             Filtros
           </Button>
+          <Button variant="outline" size="xs" onClick={migrateExistingIds} title="Gerar IDs curtos para registros antigos">
+            <RefreshCw className="h-4 w-4 mr-1" />
+            Migrar IDs
+          </Button>
         </div>
 
         <div className="rounded-lg border border-border bg-card">
@@ -903,7 +908,7 @@ export default function Contratacoes() {
                   {displayedContratacoes.map((contratacao) => (
                   <TableRow key={contratacao.id} className="hover:bg-muted/50">
                     <TableCell className="font-medium">
-                      {contratacao.id.slice(-8)}
+                      {contratacao.codigo || contratacao.id.slice(-8)}
                     </TableCell>
                     <TableCell className="max-w-xs">
                       <div className="truncate" title={contratacao.descricao}>

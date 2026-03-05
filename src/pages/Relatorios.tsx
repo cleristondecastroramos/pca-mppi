@@ -32,7 +32,7 @@ const Relatorios = () => {
     etapa_processo: "__all__",
   });
 
-  const formatId = (id: any) => `${String(id).slice(-8)}`;
+  const formatId = (id: any, codigo?: any) => codigo ? codigo : `${String(id).slice(-8)}`;
   const getErrorMessage = (e: any) => {
     try {
       if (typeof e === "string") return e;
@@ -44,7 +44,7 @@ const Relatorios = () => {
     }
   };
   const selectBase =
-    "id, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, numero_sei_contratacao, etapa_processo, sobrestado, created_at, data_finalizacao_licitacao, valor_estimado, valor_contratado, data_prevista_contratacao";
+    "id, codigo, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, numero_sei_contratacao, etapa_processo, sobrestado, created_at, data_finalizacao_licitacao, valor_estimado, valor_contratado, data_prevista_contratacao";
   const selectWithExecutado = `${selectBase}, valor_executado`;
   const fetchAllContratacoes = async () => {
     const q1 = await supabase.from("contratacoes").select(selectWithExecutado);
@@ -245,7 +245,7 @@ const Relatorios = () => {
       columns: ["ID", "Descrição", "Setor", "Prioridade", "Valor Estimado", "Valor Executado"],
       csvColumns: ["ID", "Descrição", "Setor", "Prioridade", "Valor Estimado", "Valor Executado"],
       mapRow: (r) => [
-        formatId(r.id),
+        formatId(r.id, r.codigo),
         String(r.descricao || ""),
         r.setor_requisitante || "",
         r.grau_prioridade || "",
@@ -261,7 +261,7 @@ const Relatorios = () => {
       columns: ["ID", "Descrição", "Status", "Data de Referência", "Valor Executado"],
       csvColumns: ["ID", "Descrição", "Status", "Data de Referência", "Valor Executado"],
       mapRow: (r) => [
-        formatId(r.id),
+        formatId(r.id, r.codigo),
         String(r.descricao || ""),
         r.sobrestado === true
           ? "sobrestado"
@@ -282,7 +282,7 @@ const Relatorios = () => {
       columns: ["ID", "Descrição", "Setor", "Status", "Valor Estimado", "Valor Executado"],
       csvColumns: ["ID", "Descrição", "Setor", "Status", "Valor Estimado", "Valor Executado"],
       mapRow: (r) => [
-        formatId(r.id),
+        formatId(r.id, r.codigo),
         String(r.descricao || ""),
         r.setor_requisitante || "",
         r.sobrestado === true
@@ -304,7 +304,7 @@ const Relatorios = () => {
       columns: ["ID", "Descrição", "Prioridade", "Setor", "Status", "Valor Estimado"],
       csvColumns: ["ID", "Descrição", "Prioridade", "Setor", "Status", "Valor Estimado"],
       mapRow: (r) => [
-        formatId(r.id),
+        formatId(r.id, r.codigo),
         String(r.descricao || ""),
         r.grau_prioridade || "",
         r.setor_requisitante || "",
@@ -326,7 +326,7 @@ const Relatorios = () => {
       columns: ["ID", "Descrição", "Valor Estimado", "Valor Contratado", "Valor Executado"],
       csvColumns: ["ID", "Descrição", "Valor Estimado", "Valor Contratado", "Valor Executado"],
       mapRow: (r) => [
-        formatId(r.id),
+        formatId(r.id, r.codigo),
         String(r.descricao || ""),
         r.valor_estimado || 0,
         r.valor_contratado || 0,
@@ -341,7 +341,7 @@ const Relatorios = () => {
       columns: ["ID", "Descrição", "SEI", "Status"],
       csvColumns: ["ID", "Descrição", "SEI", "Status"],
       mapRow: (r) => [
-        formatId(r.id),
+        formatId(r.id, r.codigo),
         String(r.descricao || ""),
         r.numero_sei_contratacao || "",
         r.sobrestado === true
@@ -361,7 +361,7 @@ const Relatorios = () => {
       columns: ["ID", "Descrição", "Setor", "Conformidade", "Status"],
       csvColumns: ["ID", "Descrição", "Setor", "Conformidade", "Status"],
       mapRow: (r) => [
-        formatId(r.id),
+        formatId(r.id, r.codigo),
         String(r.descricao || ""),
         r.setor_requisitante || "",
         `${(r as any).conformidade || 0}%`,
@@ -378,7 +378,7 @@ const Relatorios = () => {
       mapRow: (r) => {
          const status = getPrazoStatus(r);
          return [
-            formatId(r.id),
+            formatId(r.id, r.codigo),
             String(r.descricao || ""),
             r.setor_requisitante || "",
             r.data_prevista_contratacao ? new Date(r.data_prevista_contratacao).toLocaleDateString("pt-BR") : "—",

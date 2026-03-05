@@ -14,7 +14,10 @@ import { toast } from "sonner";
 import { CalendarDays, Loader2, Eraser, AlertCircle, CheckCircle2, Clock, Calendar as CalendarIcon, Filter } from "lucide-react";
 import { ptBR } from "date-fns/locale";
 
-type Contratacao = Tables<"contratacoes"> & { data_prevista_contratacao?: string | null };
+type Contratacao = Tables<"contratacoes"> & { 
+  data_prevista_contratacao?: string | null;
+  codigo?: string | null; 
+};
 
 const ControlePrazos = () => {
   const [rows, setRows] = useState<Contratacao[]>([]);
@@ -144,6 +147,7 @@ const ControlePrazos = () => {
       const matchesSearch =
         r.descricao.toLowerCase().includes(q) ||
         (r.setor_requisitante || "").toLowerCase().includes(q) ||
+        r.codigo?.toLowerCase().includes(q) ||
         r.id.toLowerCase().includes(q);
       
       if (!matchesSearch) return false;
@@ -349,7 +353,7 @@ const ControlePrazos = () => {
                           <TableRow key={r.id} className="hover:bg-muted/30">
                             <TableCell>
                               <div className="font-medium truncate max-w-[500px]" title={r.descricao}>{r.descricao}</div>
-                              <div className="text-xs text-muted-foreground mt-0.5">ID: {r.id.slice(-8)}</div>
+                              <div className="text-xs text-muted-foreground mt-0.5">ID: {r.codigo || r.id.slice(-8)}</div>
                             </TableCell>
                             <TableCell>{r.setor_requisitante}</TableCell>
                             <TableCell>

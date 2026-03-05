@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
+import { generateUniqueCodigo } from "@/utils/codigoPca";
 
 const contratacaoSchema = z.object({
   descricao: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres").max(500, "Descrição muito longa"),
@@ -63,8 +64,11 @@ export default function NovaContratacao() {
       // Validate input
       contratacaoSchema.parse(data);
 
+      // Gerar código único
+      const codigo = await generateUniqueCodigo();
+
       // Submit to backend
-      const { error } = await supabase.from("contratacoes").insert([data]);
+      const { error } = await supabase.from("contratacoes").insert([{ ...data, codigo }]);
       
       if (error) {
         const msg = String(error.message || error);
