@@ -332,6 +332,7 @@ const ControlePrazos = () => {
                 <Table>
                   <TableHeader className="bg-muted/50">
                     <TableRow>
+                      <TableHead className="w-[8%]">ID</TableHead>
                       <TableHead className="w-[50%]">Objeto / Descrição</TableHead>
                       <TableHead className="w-[10%]">Setor</TableHead>
                       <TableHead className="w-[12%]">Status Processo</TableHead>
@@ -351,10 +352,10 @@ const ControlePrazos = () => {
                         const status = getPrazoStatus(r);
                         return (
                           <TableRow key={r.id} className="hover:bg-muted/30">
-                            <TableCell>
-                              <div className="font-medium truncate max-w-[500px]" title={r.descricao}>{r.descricao}</div>
-                              <div className="text-xs text-muted-foreground mt-0.5">ID: {r.codigo || r.id.slice(-8)}</div>
-                            </TableCell>
+                            <TableCell className="font-mono text-xs text-muted-foreground">{r.codigo || r.id.slice(-8)}</TableCell>
+                        <TableCell>
+                          <div className="font-medium truncate max-w-[500px]" title={r.descricao}>{r.descricao}</div>
+                        </TableCell>
                             <TableCell>{r.setor_requisitante}</TableCell>
                             <TableCell>
                               <Badge variant="outline" className="text-xs font-normal">

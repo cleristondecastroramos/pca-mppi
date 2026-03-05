@@ -126,7 +126,7 @@ export default function Contratacoes() {
     try {
       const { data, error } = await supabase
         .from("contratacoes")
-        .select("*")
+        .select("id, codigo, descricao, setor_requisitante, unidade_orcamentaria, classe, valor_estimado, valor_contratado, etapa_processo, sobrestado, grau_prioridade, justificativa, data_prevista_contratacao, numero_sei_contratacao, pdm_catser, created_at, quantidade_itens, valor_unitario, unidade_fornecimento, tipo_recurso, tipo_contratacao, modalidade, normativo")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -910,7 +910,7 @@ export default function Contratacoes() {
                 <>
                   {displayedContratacoes.map((contratacao) => (
                   <TableRow key={contratacao.id} className="hover:bg-muted/50">
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium text-center text-xs">
                       {contratacao.codigo || contratacao.id.slice(-8)}
                     </TableCell>
                     <TableCell className="max-w-xs">

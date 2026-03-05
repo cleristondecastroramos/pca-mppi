@@ -257,8 +257,8 @@ const SetoresDemandantes = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Tipo de Material/Serviço</TableHead>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Tipo de Material/Serviço</TableHead>
                     <TableHead>Valor Estimado</TableHead>
                     <TableHead>Valor Executado</TableHead>
                     <TableHead>Saldo Orçamentário</TableHead>
@@ -267,9 +267,9 @@ const SetoresDemandantes = () => {
                 </TableHeader>
                 <TableBody>
                   {rows.map((r) => (
-                    <TableRow key={r.id}>
-                      <TableCell className="font-medium">{formatId(r.id, r.codigo)}</TableCell>
-                      <TableCell>{r.descricao}</TableCell>
+                      <TableRow key={r.id}>
+                        <TableCell className="font-medium">{formatId(r.id, r.codigo)}</TableCell>
+                        <TableCell>{r.descricao}</TableCell>
                       <TableCell>{formatCurrencyBRL(r.valor_estimado)}</TableCell>
                       <TableCell>{formatCurrencyBRL(r.valor_contratado || 0)}</TableCell>
                       <TableCell>{formatCurrencyBRL(calcSaldo(r))}</TableCell>

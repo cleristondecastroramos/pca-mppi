@@ -180,7 +180,7 @@ const PrioridadesAtencao = () => {
                     <Table>
                       <TableHeader className="bg-muted/50">
                         <TableRow>
-                          <TableHead className="w-[100px]">ID</TableHead>
+                          <TableHead className="w-[80px]">ID</TableHead>
                           <TableHead>Objeto / Descrição</TableHead>
                           <TableHead>Setor</TableHead>
                           <TableHead>Etapa Atual</TableHead>
@@ -249,7 +249,7 @@ const PrioridadesAtencao = () => {
                     <Table>
                       <TableHeader className="bg-muted/50">
                         <TableRow>
-                          <TableHead className="w-[100px]">ID</TableHead>
+                          <TableHead className="w-[80px]">ID</TableHead>
                           <TableHead>Objeto / Descrição</TableHead>
                           <TableHead>Setor</TableHead>
                           <TableHead>Etapa Atual</TableHead>

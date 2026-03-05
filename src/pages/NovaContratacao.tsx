@@ -38,6 +38,31 @@ export default function NovaContratacao() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [quantidade, setQuantidade] = useState<number>(0);
+  const [valorUnitario, setValorUnitario] = useState<number>(0);
+
+  // Helpers para formatação de moeda
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
+
+  const parseCurrencyInput = (value: string) => {
+    return Number(value.replace(/\D/g, "")) / 100;
+  };
+
+  const [valorUnitarioDisplay, setValorUnitarioDisplay] = useState("0,00");
+
+  const handleValorUnitarioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+    const numericValue = parseCurrencyInput(rawValue);
+    setValorUnitario(numericValue);
+    setValorUnitarioDisplay(formatCurrency(numericValue));
+  };
+
+  const valorEstimadoTotal = quantidade * valorUnitario;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -56,8 +81,13 @@ export default function NovaContratacao() {
       unidade_orcamentaria: formData.get("unidade_orcamentaria") as string,
       tipo_recurso: formData.get("tipo_recurso") as string,
       grau_prioridade: formData.get("grau_prioridade") as string,
-      valor_estimado: parseFloat(formData.get("valor_estimado") as string),
+      valor_estimado: valorEstimadoTotal,
       data_prevista_contratacao: formData.get("data_prevista_contratacao") as string,
+      quantidade_itens: quantidade,
+      valor_unitario: valorUnitario,
+      unidade_fornecimento: formData.get("unidade_fornecimento") as string,
+      pdm_catser: formData.get("pdm_catser") as string,
+      status: "Planejamento",
     };
 
     try {
@@ -287,24 +317,44 @@ export default function NovaContratacao() {
               <div className="grid gap-3 md:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="quantidade">Quantidade de Itens</Label>
-                  <Input name="quantidade_itens" id="quantidade" type="number" placeholder="0" />
+                  <Input 
+                    name="quantidade_itens" 
+                    id="quantidade" 
+                    type="number" 
+                    min="1"
+                    placeholder="0" 
+                    value={quantidade || ""}
+                    onChange={(e) => setQuantidade(Number(e.target.value))}
+                  />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="valor-unitario">Valor Unitário (R$)</Label>
-                  <Input name="valor_unitario" id="valor-unitario" type="number" step="0.01" placeholder="0,00" />
+                  <Input 
+                    name="valor_unitario_display" 
+                    id="valor-unitario" 
+                    type="text" 
+                    placeholder="0,00"
+                    value={valorUnitarioDisplay}
+                    onChange={handleValorUnitarioChange}
+                  />
+                  {/* Hidden input to send raw number */}
+                  <input type="hidden" name="valor_unitario" value={valorUnitario} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="valor-estimado">Valor Estimado Total (R$) *</Label>
                   <Input
-                    name="valor_estimado"
+                    name="valor_estimado_display"
                     id="valor-estimado"
-                    type="number"
-                    step="0.01"
+                    type="text"
                     placeholder="0,00"
-                    required
+                    value={formatCurrency(valorEstimadoTotal)}
+                    readOnly
+                    className="bg-muted text-muted-foreground font-semibold"
                   />
+                  {/* Hidden input to send raw number */}
+                  <input type="hidden" name="valor_estimado" value={valorEstimadoTotal} />
                   {errors.valor_estimado && <p className="text-sm text-destructive">{errors.valor_estimado}</p>}
                 </div>
 

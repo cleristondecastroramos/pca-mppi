@@ -242,8 +242,8 @@ const Relatorios = () => {
       label: "Contratações — Detalhado",
       description: "Listagem completa com ID, descrição, setor, prioridade e valores (estimado e executado).",
       icon: FileText,
-      columns: ["ID", "Descrição", "Setor", "Prioridade", "Valor Estimado", "Valor Executado"],
-      csvColumns: ["ID", "Descrição", "Setor", "Prioridade", "Valor Estimado", "Valor Executado"],
+      columns: ["ID", "Descrição", "Setor", "Prioridade", "Valor Estimado", "Valor Executado", "Data Prevista"],
+      csvColumns: ["ID", "Descrição", "Setor", "Prioridade", "Valor Estimado", "Valor Executado", "Data Prevista"],
       mapRow: (r) => [
         formatId(r.id, r.codigo),
         String(r.descricao || ""),
@@ -251,6 +251,7 @@ const Relatorios = () => {
         r.grau_prioridade || "",
         r.valor_estimado || 0,
         (r as any).valor_executado ?? r.valor_contratado ?? 0,
+        r.data_prevista_contratacao || "",
       ],
       title: (n) => `Relatório Detalhado de Contratações (${n} registros)`,
     },
@@ -258,21 +259,18 @@ const Relatorios = () => {
       label: "Contratações — Por Status",
       description: "Listagem focada no status e andamento das contratações.",
       icon: BarChart3,
-      columns: ["ID", "Descrição", "Status", "Data de Referência", "Valor Executado"],
-      csvColumns: ["ID", "Descrição", "Status", "Data de Referência", "Valor Executado"],
-      mapRow: (r) => [
-        formatId(r.id, r.codigo),
-        String(r.descricao || ""),
-        r.sobrestado === true
-          ? "sobrestado"
-          : r.etapa_processo === "Concluído"
-          ? "concluído"
-          : r.etapa_processo === "Em Licitação" || r.etapa_processo === "Contratado"
-          ? "em andamento"
-          : "não iniciado",
-        r.data_finalizacao_licitacao || r.created_at || "",
-        (r as any).valor_executado ?? r.valor_contratado ?? 0,
-      ],
+      columns: ["ID", "Descrição", "Setor", "Status", "Situação"],
+      csvColumns: ["ID", "Descrição", "Setor", "Status", "Situação"],
+      mapRow: (r) => {
+         const status = getPrazoStatus(r);
+         return [
+            formatId(r.id, r.codigo),
+            String(r.descricao || ""),
+            String(r.setor_requisitante || ""),
+            statusLabel(r),
+            status.label,
+         ];
+      },
       title: (n) => `Relatório por Status (${n} registros)`,
     },
     por_setor: {
