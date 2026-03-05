@@ -1,6 +1,3 @@
-// Edge Function: admin-delete-user
-// Exclui usuário do auth (cascade remove profiles/user_roles). Restrito a administradores.
-
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -18,10 +15,9 @@ Deno.serve(async (req) => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!url || !anonKey || !serviceKey) {
-      return new Response(
-        JSON.stringify({ error: "Missing Supabase environment configuration" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Missing config" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const authHeader = req.headers.get("Authorization") ?? "";
@@ -30,57 +26,62 @@ Deno.serve(async (req) => {
     });
     const supabaseAdmin = createClient(url, serviceKey);
 
-    // Verifica usuário autenticado e role administrador
     const { data: userData, error: getUserError } = await supabaseUser.auth.getUser();
     if (getUserError) throw getUserError;
     const requester = userData?.user;
     if (!requester) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const { data: isAdmin } = await supabaseUser.rpc("has_role", {
-      _user_id: requester.id,
-      _role: "administrador",
+      _user_id: requester.id, _role: "administrador",
     });
     if (!isAdmin) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const payload = await req.json();
-    const user_id: string | undefined = payload?.user_id;
+    const { user_id, nome_completo, setor, cargo, role } = payload;
+
     if (!user_id) {
       return new Response(JSON.stringify({ error: "Missing user_id" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const { error: delError } = await supabaseAdmin.auth.admin.deleteUser(user_id);
-    if (delError) {
-      return new Response(JSON.stringify({ error: delError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Update profile
+    const profileUpdate: Record<string, string> = {};
+    if (nome_completo !== undefined) profileUpdate.nome_completo = nome_completo;
+    if (setor !== undefined) profileUpdate.setor = setor;
+    if (cargo !== undefined) profileUpdate.cargo = cargo;
+
+    if (Object.keys(profileUpdate).length > 0) {
+      const { error: profError } = await supabaseAdmin
+        .from("profiles")
+        .update(profileUpdate)
+        .eq("id", user_id);
+      if (profError) throw profError;
     }
 
-    // Remove registros associados em profiles e user_roles
-    await supabaseAdmin.from("user_roles").delete().eq("user_id", user_id);
-    await supabaseAdmin.from("profiles").delete().eq("id", user_id);
+    // Update role if provided (replace all roles with the new one)
+    if (role) {
+      await supabaseAdmin.from("user_roles").delete().eq("user_id", user_id);
+      const { error: roleError } = await supabaseAdmin
+        .from("user_roles")
+        .insert({ user_id, role });
+      if (roleError) throw roleError;
+    }
 
     return new Response(JSON.stringify({ ok: true }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e: any) {
     return new Response(JSON.stringify({ error: e?.message || String(e) }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

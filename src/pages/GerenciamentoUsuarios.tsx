@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { PerfilAcesso } from "@/lib/auth";
-import { Shield, UserCog, ClipboardList, Eye, Info } from "lucide-react";
+import { Shield, UserCog, ClipboardList, Eye, Info, Pencil, Trash2 } from "lucide-react";
 
 const ROLE_DEFINITIONS = {
   administrador: {
@@ -62,33 +62,6 @@ const ROLE_DEFINITIONS = {
   }
 } as const;
 
-async function invokeWithTimeout<T = any>(fn: string, body: any, ms = 12000, retries = 0): Promise<{ data: T | null; error: any }> {
-  let attempt = 0;
-  while (attempt <= retries) {
-    let timeoutId: any;
-    const timeout = new Promise((_, reject) => {
-      timeoutId = setTimeout(() => reject(new Error("Tempo de resposta excedido")), ms);
-    });
-    try {
-      const res = await Promise.race([
-        (supabase as any).functions.invoke(fn, { body }),
-        timeout,
-      ]) as { data: T | null; error: any };
-      clearTimeout(timeoutId);
-      return res;
-    } catch (e: any) {
-      clearTimeout(timeoutId);
-      if (String(e?.message || e).includes("Tempo de resposta excedido") && attempt < retries) {
-        attempt += 1;
-        ms = Math.floor(ms * 1.5);
-        continue;
-      }
-      return { data: null, error: e } as any;
-    }
-  }
-  return { data: null, error: new Error("Tempo de resposta excedido") } as any;
-}
-
 type Profile = {
   id: string;
   nome_completo: string | null;
@@ -103,17 +76,12 @@ const GerenciamentoUsuarios = () => {
   const [usuarios, setUsuarios] = useState<UserWithRoles[]>([]);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<PerfilAcesso | "todos">("todos");
-  const [editing, setEditing] = useState<UserWithRoles | null>(null);
-  const [roleSel, setRoleSel] = useState<PerfilAcesso | undefined>(undefined);
-  const [showAdminWarning, setShowAdminWarning] = useState(false);
-  const [pendingRole, setPendingRole] = useState<PerfilAcesso | null>(null);
-  const [showAdminRemoveWarning, setShowAdminRemoveWarning] = useState(false);
-  const [pendingRemoveRole, setPendingRemoveRole] = useState<PerfilAcesso | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalUsers, setTotalUsers] = useState(0);
-  // Cadastro de novo usuário
+
+  // Create user
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newNome, setNewNome] = useState("");
@@ -122,34 +90,48 @@ const GerenciamentoUsuarios = () => {
   const [newCargo, setNewCargo] = useState("");
   const [newRole, setNewRole] = useState<PerfilAcesso | undefined>(undefined);
   const [newProvisionalPassword, setNewProvisionalPassword] = useState("");
-  // Exclusão de usuário
+
+  // Edit user
+  const [editTarget, setEditTarget] = useState<UserWithRoles | null>(null);
+  const [showEdit, setShowEdit] = useState(false);
+  const [editNome, setEditNome] = useState("");
+  const [editSetor, setEditSetor] = useState("");
+  const [editCargo, setEditCargo] = useState("");
+  const [editRole, setEditRole] = useState<PerfilAcesso | undefined>(undefined);
+  const [saving, setSaving] = useState(false);
+
+  // Delete user
   const [deleteTarget, setDeleteTarget] = useState<UserWithRoles | null>(null);
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [isAdmin] = useState(false);
 
   async function loadUsers() {
     try {
       const start = (page - 1) * pageSize;
       const end = start + pageSize - 1;
-      const { data: profiles, error, count } = (supabase as any)
+      const { data: profiles, error, count } = await supabase
         .from("profiles")
         .select("id, nome_completo, email, setor, cargo", { count: "exact" })
         .order("nome_completo", { ascending: true })
         .range(start, end);
       if (error) throw error;
 
-      const ids = (profiles || []).map((p: any) => p.id);
-      const { data: rolesData } = (supabase as any)
+      const ids = (profiles || []).map((p) => p.id);
+      if (ids.length === 0) {
+        setUsuarios([]);
+        setTotalUsers(0);
+        return;
+      }
+      const { data: rolesData } = await supabase
         .from("user_roles")
         .select("user_id, role")
         .in("user_id", ids);
       const rolesMap = new Map<string, PerfilAcesso[]>();
-      (rolesData || []).forEach((r: any) => {
+      (rolesData || []).forEach((r) => {
         rolesMap.set(r.user_id, [...(rolesMap.get(r.user_id) || []), r.role]);
       });
 
-      const merged: UserWithRoles[] = (profiles || []).map((p: any) => ({
+      const merged: UserWithRoles[] = (profiles || []).map((p) => ({
         id: p.id,
         nome_completo: p.nome_completo,
         email: p.email,
@@ -167,7 +149,6 @@ const GerenciamentoUsuarios = () => {
 
   useEffect(() => {
     loadUsers();
-    // Captura usuário atual para controles de demissão própria
     supabase.auth.getSession().then(({ data }) => {
       setCurrentUserId(data.session?.user?.id || null);
     });
@@ -184,102 +165,103 @@ const GerenciamentoUsuarios = () => {
     });
   }, [usuarios, search, roleFilter]);
 
-  async function saveRole() {
-    if (!editing || !roleSel) return;
-
-    // Check if assigning admin role
-    if (roleSel === "administrador") {
-      setPendingRole(roleSel);
-      setShowAdminWarning(true);
-      return;
-    }
-
-    await performRoleSave(roleSel);
+  function openEdit(u: UserWithRoles) {
+    setEditTarget(u);
+    setEditNome(u.nome_completo || "");
+    setEditSetor(u.setor || "");
+    setEditCargo(u.cargo || "");
+    setEditRole(u.roles[0] || undefined);
+    setShowEdit(true);
   }
 
-  async function performRoleSave(role: PerfilAcesso) {
-    if (!editing) return;
-    
+  async function handleEditSave() {
+    if (!editTarget) return;
+    setSaving(true);
     try {
-      const exists = editing.roles.includes(role);
-      if (exists) {
-        toast.message("Perfil já atribuído");
-        return;
-      }
-
-      const { error } = (supabase as any)
-        .from("user_roles")
-        .insert({ user_id: editing.id, role });
-      
-      if (error) throw error;
-
-      // Log the role assignment
-      await (supabase as any).from("contratacoes_historico").insert({
-        user_id: editing.id,
-        contratacao_id: editing.id,
-        acao: "role_assigned",
-        dados_novos: { role, assigned_at: new Date().toISOString() },
+      const { data, error } = await supabase.functions.invoke("admin-update-user", {
+        body: {
+          user_id: editTarget.id,
+          nome_completo: editNome,
+          setor: editSetor,
+          cargo: editCargo,
+          role: editRole,
+        },
       });
-
-      toast.success("Perfil atribuído com sucesso");
-      setEditing(null);
-      setRoleSel(undefined);
-      setShowAdminWarning(false);
-      setPendingRole(null);
+      if (error) throw error;
+      const parsed = typeof data === "string" ? JSON.parse(data) : data;
+      if (parsed?.error) throw new Error(parsed.error);
+      toast.success("Usuário atualizado com sucesso.");
+      setShowEdit(false);
+      setEditTarget(null);
       loadUsers();
     } catch (e: any) {
       console.error(e);
-      toast.error("Falha ao salvar perfil", { description: e.message });
+      toast.error("Falha ao atualizar usuário", { description: e.message });
+    } finally {
+      setSaving(false);
     }
   }
 
-  async function performRoleRemove(role: PerfilAcesso) {
-    if (!editing) return;
+  async function handleCreate() {
+    if (!newEmail || !newNome || !newRole) {
+      toast.error("Preencha nome, e-mail e perfil de acesso.");
+      return;
+    }
+    if (newProvisionalPassword && newProvisionalPassword.length < 8) {
+      toast.error("A senha provisória deve ter pelo menos 8 caracteres.");
+      return;
+    }
+    setCreating(true);
     try {
-      const { error } = (supabase as any)
-        .from("user_roles")
-        .delete()
-        .eq("user_id", editing.id)
-        .eq("role", role);
-      if (error) throw error;
-
-      // Log de remoção de perfil
-      await (supabase as any).from("contratacoes_historico").insert({
-        user_id: editing.id,
-        contratacao_id: editing.id,
-        acao: "role_removed",
-        dados_novos: { role, removed_at: new Date().toISOString() },
+      const { data, error } = await supabase.functions.invoke("admin-create-user", {
+        body: {
+          email: newEmail,
+          nome_completo: newNome,
+          setor: newSetor,
+          cargo: newCargo,
+          role: newRole,
+          provisional_password: newProvisionalPassword || undefined,
+        },
       });
-
-      toast.success("Perfil removido com sucesso");
-      // Atualiza usuário em edição após remoção
-      setEditing(null);
-      setRoleSel(undefined);
-      setShowAdminRemoveWarning(false);
-      setPendingRemoveRole(null);
+      if (error) throw error;
+      const parsed = typeof data === "string" ? JSON.parse(data) : data;
+      if (parsed?.error) throw new Error(parsed.error);
+      toast.success("Usuário cadastrado com sucesso.");
+      setShowCreate(false);
+      setNewEmail(""); setNewNome(""); setNewSetor(""); setNewCargo("");
+      setNewRole(undefined); setNewProvisionalPassword("");
       loadUsers();
     } catch (e: any) {
       console.error(e);
-      toast.error("Falha ao remover perfil", { description: e.message });
+      toast.error("Falha ao cadastrar usuário", { description: e.message });
+    } finally {
+      setCreating(false);
     }
   }
 
-  function handleRemoveRole(role: PerfilAcesso) {
-    if (!editing) return;
-    // Proteção extra para remoção de administrador
-    if (role === "administrador") {
-      setPendingRemoveRole(role);
-      setShowAdminRemoveWarning(true);
-      return;
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-delete-user", {
+        body: { user_id: deleteTarget.id },
+      });
+      if (error) throw error;
+      const parsed = typeof data === "string" ? JSON.parse(data) : data;
+      if (parsed?.error) throw new Error(parsed.error);
+      toast.success("Usuário excluído com sucesso.");
+      setShowDelete(false);
+      setDeleteTarget(null);
+      loadUsers();
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Falha ao excluir usuário", { description: e.message || e.toString() });
+    } finally {
+      setDeleting(false);
     }
-    void performRoleRemove(role);
   }
 
-  function handleAdminConfirm() {
-    if (pendingRole) {
-      performRoleSave(pendingRole);
-    }
-  }
+  const roleLabel = (r: PerfilAcesso) => ROLE_DEFINITIONS[r]?.label || r;
 
   return (
     <Layout>
@@ -343,117 +325,7 @@ const GerenciamentoUsuarios = () => {
                 </DialogContent>
               </Dialog>
 
-              <Dialog open={showCreate} onOpenChange={setShowCreate}>
-                <DialogTrigger asChild>
-                  <Button onClick={() => setShowCreate(true)}>Cadastrar usuário</Button>
-                </DialogTrigger>
-                <DialogContent className="p-0 overflow-hidden [&>button]:text-white">
-                  <DialogHeader className="bg-sidebar p-6">
-                    <DialogTitle className="text-white">Novo usuário</DialogTitle>
-                    <DialogDescription className="text-white/80">
-                      Informe nome, e-mail, setor, cargo e perfil de acesso. Opcionalmente, defina uma senha provisória (mínimo 8 caracteres); o usuário deverá alterá-la no primeiro login.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="md:col-span-2">
-                      <label className="text-sm text-muted-foreground">Nome completo</label>
-                      <Input value={newNome} onChange={(e) => setNewNome(e.target.value)} placeholder="Ex.: Maria Silva" />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="text-sm text-muted-foreground">E-mail</label>
-                      <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="usuario@mppi.mp.br" />
-                    </div>
-                    <div>
-                      <label className="text-sm text-muted-foreground">Setor</label>
-                      <Input value={newSetor} onChange={(e) => setNewSetor(e.target.value)} placeholder="Ex.: TI" />
-                    </div>
-                    <div>
-                      <label className="text-sm text-muted-foreground">Cargo</label>
-                      <Input value={newCargo} onChange={(e) => setNewCargo(e.target.value)} placeholder="Ex.: Analista" />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="text-sm text-muted-foreground">Perfil de acesso</label>
-                      <Select value={newRole} onValueChange={(v) => setNewRole(v as PerfilAcesso)}>
-                        <SelectTrigger className="mt-1 h-auto min-h-[2.25rem] py-2">
-                          <SelectValue placeholder="Selecione um perfil" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(Object.entries(ROLE_DEFINITIONS) as [keyof typeof ROLE_DEFINITIONS, typeof ROLE_DEFINITIONS[keyof typeof ROLE_DEFINITIONS]][]).map(([key, def]) => (
-                            <SelectItem key={key} value={key} className="py-2">
-                              <div className="flex flex-col gap-1 items-start text-left">
-                                <div className="flex items-center gap-2 font-medium">
-                                  <def.icon className={`h-4 w-4 ${def.color}`} />
-                                  {def.label}
-                                </div>
-                                <p className="text-xs text-muted-foreground line-clamp-2">{def.description}</p>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="text-sm text-muted-foreground">Senha provisória (opcional)</label>
-                      <Input
-                        type="password"
-                        value={newProvisionalPassword}
-                        onChange={(e) => setNewProvisionalPassword(e.target.value)}
-                        placeholder="Mínimo 8 caracteres"
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button
-                      onClick={async () => {
-                        if (!newEmail || !newNome || !newRole) {
-                          toast.error("Preencha nome, e-mail e perfil de acesso.");
-                          return;
-                        }
-                        setCreating(true);
-                        try {
-                          if (newProvisionalPassword && newProvisionalPassword.length < 8) {
-                            toast.error("A senha provisória deve ter pelo menos 8 caracteres.");
-                            setCreating(false);
-                            return;
-                          }
-                          const { data, error } = await invokeWithTimeout("admin-create-user", {
-                            email: newEmail,
-                            nome_completo: newNome,
-                            setor: newSetor,
-                            cargo: newCargo,
-                            role: newRole,
-                            provisional_password: newProvisionalPassword || undefined,
-                          }, 30000, 1);
-                          if (error) throw error;
-                          toast.success("Usuário cadastrado e convidado com sucesso.");
-                          setShowCreate(false);
-                          setNewEmail("");
-                          setNewNome("");
-                          setNewSetor("");
-                          setNewCargo("");
-                          setNewRole(undefined);
-                          setNewProvisionalPassword("");
-                          loadUsers();
-                        } catch (e: any) {
-                          console.error(e);
-                          const msg = e?.message || String(e);
-                          const hint = msg.includes("Tempo de resposta excedido")
-                            ? "Verifique se a Function 'admin-create-user' está publicada e acessível."
-                            : undefined;
-                          toast.error("Falha ao cadastrar usuário", { description: hint ? `${msg} — ${hint}` : msg });
-                        } finally {
-                          setCreating(false);
-                        }
-                      }}
-                      disabled={creating}
-                    >
-                      {creating ? "Cadastrando..." : "Cadastrar"}
-                    </Button>
-                  </DialogFooter>
-                </div>
-              </DialogContent>
-              </Dialog>
+              <Button onClick={() => setShowCreate(true)}>Cadastrar usuário</Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -464,8 +336,7 @@ const GerenciamentoUsuarios = () => {
                 onChange={(e) => setSearch(e.target.value)}
                 className="min-w-[240px]"
               />
-              <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as PerfilAcesso | "todos")}
-              >
+              <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as PerfilAcesso | "todos")}>
                 <SelectTrigger className="w-[220px] h-9">
                   <SelectValue placeholder="Filtrar por perfil" />
                 </SelectTrigger>
@@ -482,7 +353,6 @@ const GerenciamentoUsuarios = () => {
                 </SelectContent>
               </Select>
               <Button variant="outline" size="xs" onClick={loadUsers}>Atualizar</Button>
-              
             </div>
             <Table>
               <TableHeader>
@@ -491,7 +361,7 @@ const GerenciamentoUsuarios = () => {
                   <TableHead>E-mail</TableHead>
                   <TableHead>Setor</TableHead>
                   <TableHead>Cargo</TableHead>
-                  <TableHead>Perfis</TableHead>
+                  <TableHead>Perfil</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -502,85 +372,19 @@ const GerenciamentoUsuarios = () => {
                     <TableCell>{u.email || "—"}</TableCell>
                     <TableCell>{u.setor || "—"}</TableCell>
                     <TableCell>{u.cargo || "—"}</TableCell>
-                    <TableCell>{u.roles.length ? u.roles.join(", ") : "—"}</TableCell>
-                    <TableCell className="text-right">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button size="xs" variant="outline" onClick={() => { setEditing(u); setRoleSel(undefined); }}>Editar</Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Editar Perfis</DialogTitle>
-                            <DialogDescription>
-                              Gerencie os perfis de acesso do usuário. Tenha cuidado ao atribuir perfil de administrador.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="space-y-3">
-                            <div>
-                              <div className="text-sm text-muted-foreground">Perfis atuais</div>
-                              <div className="flex flex-wrap gap-2 mt-1">
-                                {(editing?.roles || []).length === 0 && (
-                                  <span className="text-sm">—</span>
-                                )}
-                                {(editing?.roles || []).map((role) => {
-                                  const isSelfAdminRemoval =
-                                    role === "administrador" && editing?.id && currentUserId === editing.id;
-                                  return (
-                                    <div key={role} className="flex items-center gap-2">
-                                      <span className="text-sm px-2 py-0.5 rounded bg-muted text-muted-foreground">
-                                        {role}
-                                      </span>
-                                      <Button
-                                        size="xs"
-                                        variant="outline"
-                                        className={role === "administrador" ? "border-destructive text-destructive" : ""}
-                                        onClick={() => handleRemoveRole(role)}
-                                        disabled={isSelfAdminRemoval}
-                                        title={isSelfAdminRemoval ? "Você não pode remover seu próprio perfil de administrador" : "Remover perfil"}
-                                      >
-                                        Remover
-                                      </Button>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                            <div>
-                              <label className="text-sm text-muted-foreground">Adicionar perfil</label>
-                              <Select value={roleSel} onValueChange={(v) => setRoleSel(v as PerfilAcesso)}>
-                                <SelectTrigger className="mt-1 h-auto min-h-[2.25rem] py-2">
-                                  <SelectValue placeholder="Selecione um perfil" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {(Object.entries(ROLE_DEFINITIONS) as [keyof typeof ROLE_DEFINITIONS, typeof ROLE_DEFINITIONS[keyof typeof ROLE_DEFINITIONS]][]).map(([key, def]) => (
-                                    <SelectItem key={key} value={key} className="py-2">
-                                      <div className="flex flex-col gap-1 items-start text-left">
-                                        <div className="flex items-center gap-2 font-medium">
-                                          <def.icon className={`h-4 w-4 ${def.color}`} />
-                                          {def.label}
-                                        </div>
-                                        <p className="text-xs text-muted-foreground line-clamp-2">{def.description}</p>
-                                      </div>
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                          <DialogFooter>
-                            <Button size="xs" onClick={saveRole} disabled={!roleSel}>Salvar</Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
+                    <TableCell>{u.roles.length ? u.roles.map(roleLabel).join(", ") : "—"}</TableCell>
+                    <TableCell className="text-right space-x-1">
+                      <Button size="xs" variant="outline" onClick={() => openEdit(u)} title="Editar usuário">
+                        <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
+                      </Button>
                       <Button
                         size="xs"
                         variant="destructive"
-                        className="ml-2"
                         onClick={() => { setDeleteTarget(u); setShowDelete(true); }}
                         disabled={u.id === currentUserId}
                         title={u.id === currentUserId ? "Você não pode excluir seu próprio usuário" : "Excluir usuário"}
                       >
-                        Excluir
+                        <Trash2 className="h-3.5 w-3.5 mr-1" /> Excluir
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -603,21 +407,11 @@ const GerenciamentoUsuarios = () => {
                   </SelectContent>
                 </Select>
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="xs"
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                  >
+                  <Button variant="outline" size="xs" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
                     Anterior
                   </Button>
                   <div className="text-sm">Página {page}</div>
-                  <Button
-                    variant="outline"
-                    size="xs"
-                    onClick={() => setPage((p) => p + 1)}
-                    disabled={page * pageSize >= totalUsers}
-                  >
+                  <Button variant="outline" size="xs" onClick={() => setPage((p) => p + 1)} disabled={page * pageSize >= totalUsers}>
                     Próxima
                   </Button>
                 </div>
@@ -626,94 +420,120 @@ const GerenciamentoUsuarios = () => {
           </CardContent>
         </Card>
 
-        {/* Confirmação de exclusão de usuário */}
+        {/* Create User Dialog */}
+        <Dialog open={showCreate} onOpenChange={setShowCreate}>
+          <DialogContent className="p-0 overflow-hidden [&>button]:text-white">
+            <DialogHeader className="bg-sidebar p-6">
+              <DialogTitle className="text-white">Novo usuário</DialogTitle>
+              <DialogDescription className="text-white/80">
+                Informe nome, e-mail, setor, cargo e perfil de acesso.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground">Nome completo</label>
+                  <Input value={newNome} onChange={(e) => setNewNome(e.target.value)} placeholder="Ex.: Maria Silva" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground">E-mail</label>
+                  <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="usuario@mppi.mp.br" />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground">Setor</label>
+                  <Input value={newSetor} onChange={(e) => setNewSetor(e.target.value)} placeholder="Ex.: TI" />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground">Cargo</label>
+                  <Input value={newCargo} onChange={(e) => setNewCargo(e.target.value)} placeholder="Ex.: Analista" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground">Perfil de acesso</label>
+                  <Select value={newRole} onValueChange={(v) => setNewRole(v as PerfilAcesso)}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione um perfil" /></SelectTrigger>
+                    <SelectContent>
+                      {(Object.entries(ROLE_DEFINITIONS) as [keyof typeof ROLE_DEFINITIONS, typeof ROLE_DEFINITIONS[keyof typeof ROLE_DEFINITIONS]][]).map(([key, def]) => (
+                        <SelectItem key={key} value={key}>
+                          <div className="flex items-center gap-2"><def.icon className={`h-4 w-4 ${def.color}`} />{def.label}</div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground">Senha provisória (opcional, mín. 8 caracteres)</label>
+                  <Input type="password" value={newProvisionalPassword} onChange={(e) => setNewProvisionalPassword(e.target.value)} placeholder="Mínimo 8 caracteres" />
+                </div>
+              </div>
+              <DialogFooter className="mt-4">
+                <Button onClick={handleCreate} disabled={creating}>{creating ? "Cadastrando..." : "Cadastrar"}</Button>
+              </DialogFooter>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit User Dialog */}
+        <Dialog open={showEdit} onOpenChange={setShowEdit}>
+          <DialogContent className="p-0 overflow-hidden [&>button]:text-white">
+            <DialogHeader className="bg-sidebar p-6">
+              <DialogTitle className="text-white">Editar usuário</DialogTitle>
+              <DialogDescription className="text-white/80">
+                {editTarget?.email || ""}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground">Nome completo</label>
+                  <Input value={editNome} onChange={(e) => setEditNome(e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground">Setor</label>
+                  <Input value={editSetor} onChange={(e) => setEditSetor(e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground">Cargo</label>
+                  <Input value={editCargo} onChange={(e) => setEditCargo(e.target.value)} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground">Perfil de acesso</label>
+                  <Select value={editRole} onValueChange={(v) => setEditRole(v as PerfilAcesso)}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione um perfil" /></SelectTrigger>
+                    <SelectContent>
+                      {(Object.entries(ROLE_DEFINITIONS) as [keyof typeof ROLE_DEFINITIONS, typeof ROLE_DEFINITIONS[keyof typeof ROLE_DEFINITIONS]][]).map(([key, def]) => (
+                        <SelectItem key={key} value={key}>
+                          <div className="flex items-center gap-2"><def.icon className={`h-4 w-4 ${def.color}`} />{def.label}</div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter className="mt-4">
+                <Button variant="outline" onClick={() => setShowEdit(false)}>Cancelar</Button>
+                <Button onClick={handleEditSave} disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
+              </DialogFooter>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete User Dialog */}
         <AlertDialog open={showDelete} onOpenChange={setShowDelete}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Excluir Usuário</AlertDialogTitle>
               <AlertDialogDescription>
-                Esta ação é permanente e removerá o usuário selecionado, incluindo seus perfis e dados relacionados. Tem certeza que deseja continuar?
+                Esta ação é permanente e removerá <strong>{deleteTarget?.nome_completo || deleteTarget?.email}</strong>, incluindo seus perfis e dados relacionados. Tem certeza?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
               <AlertDialogAction
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                onClick={async () => {
-                  if (!deleteTarget) return;
-                  setDeleting(true);
-                  try {
-                    const { error } = await supabase.functions.invoke("admin-delete-user", {
-                      body: { user_id: deleteTarget.id },
-                    });
-                    if (error) throw error;
-                    toast.success("Usuário excluído com sucesso.");
-                    setShowDelete(false);
-                    setDeleteTarget(null);
-                    loadUsers();
-                  } catch (e: any) {
-                    console.error(e);
-                    toast.error("Falha ao excluir usuário", { description: e.message || e.toString() });
-                  } finally {
-                    setDeleting(false);
-                  }
-                }}
+                onClick={handleDelete}
                 disabled={deleting}
               >
                 {deleting ? "Excluindo..." : "Confirmar exclusão"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <AlertDialog open={showAdminWarning} onOpenChange={setShowAdminWarning}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-destructive" />
-                Confirmar Atribuição de Administrador
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                Você está prestes a conceder privilégios de administrador para este usuário. 
-                Administradores têm acesso total ao sistema, incluindo gerenciamento de usuários e configurações críticas.
-                <br /><br />
-                <strong>Tem certeza que deseja continuar?</strong>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleAdminConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                Confirmar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <AlertDialog open={showAdminRemoveWarning} onOpenChange={setShowAdminRemoveWarning}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-destructive" />
-                Confirmar Remoção de Administrador
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                Você está prestes a remover privilégios de administrador deste usuário.
-                Isso pode restringir acesso a funcionalidades críticas, inclusive o próprio gerenciamento de usuários.
-                <br /><br />
-                <strong>Tem certeza que deseja continuar?</strong>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => {
-                  if (pendingRemoveRole) {
-                    void performRoleRemove(pendingRemoveRole);
-                  }
-                }}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Confirmar
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
