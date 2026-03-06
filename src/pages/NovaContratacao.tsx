@@ -181,8 +181,11 @@ export default function NovaContratacao() {
                       <SelectItem value="Material Permanente">Material Permanente</SelectItem>
                       <SelectItem value="Serviço">Serviço</SelectItem>
                       <SelectItem value="Serviço de TI">Serviço de TI</SelectItem>
-                      <SelectItem value="Engenharia">Engenharia</SelectItem>
+                      <SelectItem value="Serviço de Engenharia">Serviço de Engenharia</SelectItem>
+                      <SelectItem value="Serviço de Terceirizado">Serviço de Terceirizado</SelectItem>
                       <SelectItem value="Obra">Obra</SelectItem>
+                      <SelectItem value="Software">Software</SelectItem>
+                      <SelectItem value="Treinamento">Treinamento</SelectItem>
                     </SelectContent>
                   </Select>
                   {errors.classe && <p className="text-sm text-destructive">{errors.classe}</p>}

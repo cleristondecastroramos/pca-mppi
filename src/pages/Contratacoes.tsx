@@ -338,9 +338,9 @@ export default function Contratacoes() {
       toast.success("Contratação atualizada com sucesso");
       setEditingContratacao(null);
       fetchContratacoes();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao salvar edição:", error);
-      toast.error("Erro ao salvar alterações");
+      toast.error("Erro ao salvar alterações", { description: error.message || String(error) });
     }
   };
 
@@ -1153,9 +1153,13 @@ export default function Contratacoes() {
                         <SelectItem value="Todos">Todos</SelectItem>
                         <SelectItem value="Material de Consumo">Material de Consumo</SelectItem>
                         <SelectItem value="Material Permanente">Material Permanente</SelectItem>
-                        <SelectItem value="Obra">Obra</SelectItem>
                         <SelectItem value="Serviço">Serviço</SelectItem>
                         <SelectItem value="Serviço de TI">Serviço de TI</SelectItem>
+                        <SelectItem value="Serviço de Engenharia">Serviço de Engenharia</SelectItem>
+                        <SelectItem value="Serviço de Terceirizado">Serviço de Terceirizado</SelectItem>
+                        <SelectItem value="Obra">Obra</SelectItem>
+                        <SelectItem value="Software">Software</SelectItem>
+                        <SelectItem value="Treinamento">Treinamento</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

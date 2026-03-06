@@ -16,6 +16,9 @@ type Row = {
   valor_estimado: number;
   valor_contratado?: number | null;
   saldo_orcamentario?: number | null;
+  empenho_1?: number | string | null;
+  empenho_2?: number | string | null;
+  empenho_3?: number | string | null;
   modalidade: string;
   etapa_processo?: string | null;
 };
@@ -40,11 +43,40 @@ const ALL = "__all__";
 
 const formatCurrencyBRL = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v || 0);
 
+const parseCurrency = (val: string | number | null | undefined): number => {
+  if (!val) return 0;
+  if (typeof val === "number") return val;
+  
+  // Se for string, tenta detectar o formato
+  const strVal = String(val).trim();
+  
+  // Se contiver vírgula, assume formato BRL (decimal separator = ,)
+  if (strVal.includes(",")) {
+    // Remove tudo que não for dígito, vírgula ou traço (negativo)
+    // Remove pontos de milhar
+    const clean = strVal.replace(/\./g, "").replace(/[^\d,-]/g, "");
+    // Troca vírgula por ponto
+    const dot = clean.replace(",", ".");
+    const num = parseFloat(dot);
+    return isNaN(num) ? 0 : num;
+  }
+  
+  // Se NÃO contiver vírgula, assume formato US ou inteiro
+  // Remove tudo que não for dígito, ponto ou traço
+  const clean = strVal.replace(/[^\d.-]/g, "");
+  const num = parseFloat(clean);
+  return isNaN(num) ? 0 : num;
+};
+
 // Regra de saldo no cliente (fallback):
 // - Se cancelada, saldo = 0
-// - Caso contrário, saldo = valor_estimado - valor_contratado
+// - Caso contrário, saldo = valor_estimado - (soma dos empenhos)
+const calcExecutado = (r: Row) => {
+  return parseCurrency(r.empenho_1) + parseCurrency(r.empenho_2) + parseCurrency(r.empenho_3);
+};
+
 const calcSaldo = (r: Row) => {
-  const executado = r.valor_contratado || 0;
+  const executado = calcExecutado(r);
   if (r.etapa_processo === "Cancelada") return 0;
   return (r.valor_estimado || 0) - executado;
 };
@@ -91,6 +123,9 @@ const SetoresDemandantes = () => {
           "classe",
           "valor_estimado",
           "valor_contratado",
+          "empenho_1",
+          "empenho_2",
+          "empenho_3",
           "saldo_orcamentario",
           "modalidade",
           "etapa_processo",
@@ -122,7 +157,7 @@ const SetoresDemandantes = () => {
         // Fetch all data for KPI calculation (without pagination)
         let kpiQuery = supabase
           .from("contratacoes")
-          .select("valor_estimado, valor_contratado, etapa_processo, sobrestado");
+          .select("valor_estimado, valor_contratado, empenho_1, empenho_2, empenho_3, etapa_processo, sobrestado");
         
         if (filtros.setor_requisitante) kpiQuery = kpiQuery.eq("setor_requisitante", filtros.setor_requisitante);
         if (filtros.tipo_contratacao) kpiQuery = kpiQuery.eq("tipo_contratacao", filtros.tipo_contratacao);
@@ -144,8 +179,8 @@ const SetoresDemandantes = () => {
           const resumo = {
             total_demandas: allData.length,
             valor_estimado: allData.reduce((sum, r) => sum + (r.valor_estimado || 0), 0),
-            valor_contratado: allData.reduce((sum, r) => sum + (r.valor_contratado || 0), 0),
-            saldo_orcamentario: allData.reduce((sum, r) => sum + ((r.valor_estimado || 0) - (r.valor_contratado || 0)), 0),
+            valor_contratado: allData.reduce((sum, r) => sum + calcExecutado(r as Row), 0),
+            saldo_orcamentario: allData.reduce((sum, r) => sum + ((r.valor_estimado || 0) - calcExecutado(r as Row)), 0),
             count_planejamento: allData.filter(r => r.etapa_processo === "Planejamento" || !r.etapa_processo).length,
             count_em_andamento: allData.filter(r => ["Em Licitação", "Contratado"].includes(r.etapa_processo || "")).length,
             count_concluidos: allData.filter(r => r.etapa_processo === "Concluído").length,
@@ -232,7 +267,7 @@ const SetoresDemandantes = () => {
 
           <KPICard title="Valor Estimado" value={formatCurrencyBRL(kpiResumo?.valor_estimado || rows.reduce((s, r) => s + (r.valor_estimado || 0), 0))} icon={DollarSign} />
 
-          <KPICard title="Valor Executado" value={formatCurrencyBRL(kpiResumo?.valor_contratado || rows.reduce((s, r) => s + (r.valor_contratado || 0), 0))} icon={DollarSign} />
+          <KPICard title="Valor Executado" value={formatCurrencyBRL(kpiResumo?.valor_contratado || rows.reduce((s, r) => s + calcExecutado(r), 0))} icon={DollarSign} />
 
           <KPICard
             title="Saldo Orçamentário"
@@ -259,9 +294,9 @@ const SetoresDemandantes = () => {
                   <TableRow>
                       <TableHead>ID</TableHead>
                       <TableHead>Tipo de Material/Serviço</TableHead>
-                    <TableHead>Valor Estimado</TableHead>
-                    <TableHead>Valor Executado</TableHead>
-                    <TableHead>Saldo Orçamentário</TableHead>
+                    <TableHead className="text-right">Valor Estimado</TableHead>
+                    <TableHead className="text-right">Valor Executado</TableHead>
+                    <TableHead className="text-right">Saldo Orçamentário</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -270,9 +305,11 @@ const SetoresDemandantes = () => {
                       <TableRow key={r.id}>
                         <TableCell className="font-medium">{formatId(r.id, r.codigo)}</TableCell>
                         <TableCell>{r.descricao}</TableCell>
-                      <TableCell>{formatCurrencyBRL(r.valor_estimado)}</TableCell>
-                      <TableCell>{formatCurrencyBRL(r.valor_contratado || 0)}</TableCell>
-                      <TableCell>{formatCurrencyBRL(calcSaldo(r))}</TableCell>
+                      <TableCell className="text-right">{formatCurrencyBRL(r.valor_estimado)}</TableCell>
+                        <TableCell className="text-right">{formatCurrencyBRL(calcExecutado(r))}</TableCell>
+                        <TableCell className={`text-right ${calcSaldo(r) < 0 ? "text-destructive font-medium" : ""}`}>
+                          {formatCurrencyBRL(calcSaldo(r))}
+                        </TableCell>
                       <TableCell>{r.etapa_processo || "-"}</TableCell>
                     </TableRow>
                   ))}
