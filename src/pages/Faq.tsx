@@ -1,6 +1,7 @@
 import { Layout } from "@/components/Layout";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { Mail, Phone, Building2, UserCircle, MessageSquare } from "lucide-react";
 
 const Faq = () => {
   return (
@@ -17,62 +18,129 @@ const Faq = () => {
           </CardHeader>
           <CardContent>
             <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="o-que-e">
-                <AccordionTrigger>O que é o Sistema de Gerenciamento PCA MPPI?</AccordionTrigger>
+              <AccordionItem value="cadastro">
+                <AccordionTrigger>Como cadastrar uma nova contratação corretamente?</AccordionTrigger>
                 <AccordionContent>
-                  Plataforma para gestão do Plano de Contratações Anual: cadastro, acompanhamento, prazos,
-                  priorização, conformidade e resultados, com relatórios e controle de acesso por perfis.
+                  Acesse <strong>Contratações &gt; Nova Contratação</strong>. Preencha todos os campos marcados com asterisco (*). 
+                  O <em>Valor Estimado Total</em> será calculado automaticamente multiplicando a <em>Quantidade</em> pelo <em>Valor Unitário</em>. 
+                  Certifique-se de selecionar a Unidade Orçamentária (UO) correta.
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="como-acessar">
-                <AccordionTrigger>Como acesso e troco minha senha?</AccordionTrigger>
+              
+              <AccordionItem value="saldo">
+                <AccordionTrigger>Por que recebo erro de "Saldo orçamentário insuficiente" ao salvar?</AccordionTrigger>
                 <AccordionContent>
-                  A autenticação é feita via Supabase. Para trocar a senha, acesse Minha Conta → Segurança.
-                  A senha precisa ter no mínimo 8 caracteres. Em caso de esquecimento, utilize "Esqueci senha".
+                  O sistema possui travas baseadas no orçamento planejado para cada UO. Se a sua demanda ultrapassar o saldo disponível, 
+                  o salvamento será bloqueado. Nestes casos, entre em contato com a <strong>ASSESPPLAGES</strong> ou a <strong>CLC</strong> 
+                  para solicitar autorização de excedente ou ajuste no planejamento.
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="perfis">
-                <AccordionTrigger>Quais são os perfis e permissões?</AccordionTrigger>
+
+              <AccordionItem value="historico">
+                <AccordionTrigger>Como vejo quem alterou uma demanda e o que foi mudado?</AccordionTrigger>
                 <AccordionContent>
-                  - Administrador: acesso total, gerenciamento de usuários e configurações.
-                  - Gestor: gestão das contratações, prazos, prioridades, relatórios.
-                  - Setor requisitante: cadastro e acompanhamento das demandas do setor.
-                  - Consulta: acesso somente leitura às informações e relatórios.
+                  Na listagem de contratações, clique no ícone de <strong>Histórico (Relógio)</strong> na coluna de ações. 
+                  O sistema exibirá um registro detalhado com: data, horário, nome do usuário e a comparação exata entre o 
+                  valor antigo e o novo para cada campo modificado.
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="prazos">
-                <AccordionTrigger>Como funcionam os prazos e a atualização de status?</AccordionTrigger>
+
+              <AccordionItem value="status">
+                <AccordionTrigger>Como os status (Não Iniciado, Em Andamento, Concluído) são definidos?</AccordionTrigger>
                 <AccordionContent>
-                  Em Controle de Prazos, a edição das datas atualiza os estados. Ao preencher "Finalização Licitação",
-                  o status muda para "concluído"; ao preencher "Entrada CLC", muda para "em andamento".
+                  Os status são derivados da Etapa do Processo:
+                  <ul className="list-disc pl-5 mt-2 space-y-1">
+                    <li><strong>Não Iniciado:</strong> Quando a demanda está em 'Planejamento'.</li>
+                    <li><strong>Em Andamento:</strong> Quando está em 'Em Licitação' ou 'Contratado'.</li>
+                    <li><strong>Concluído:</strong> Quando a etapa é definida como 'Concluído'.</li>
+                    <li><strong>Sobrestado:</strong> Quando a opção de interrupção temporária é marcada no modal de edição.</li>
+                  </ul>
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="avatar">
-                <AccordionTrigger>Como atualizar minha foto de perfil?</AccordionTrigger>
+
+              <AccordionItem value="codigo-id">
+                <AccordionTrigger>O que é o Código (ID) que aparece na lista?</AccordionTrigger>
                 <AccordionContent>
-                  Em Minha Conta, envie uma imagem no widget de avatar. Ela será replicada no topo direito (Header)
-                  e persistida no perfil. Em caso de erro de carregamento, o sistema exibe iniciais.
+                  Cada demanda recebe um identificador único abreviado para facilitar a comunicação e rastreio (ex: PCA-XXXX). 
+                  Se você ver um ID longo (ex hexadecimal), significa que é um registro antigo que ainda não passou pela 
+                  migração de códigos curtos.
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="relatorios">
-                <AccordionTrigger>Como gerar relatórios?</AccordionTrigger>
+
+              <AccordionItem value="filtros">
+                <AccordionTrigger>Como utilizar os filtros de busca de forma eficiente?</AccordionTrigger>
                 <AccordionContent>
-                  Em Relatórios, aplique filtros por status, setor e período. Utilize Exportar CSV ou PDF.
-                  O PDF abre em uma nova janela formatada com cabeçalho e tabela.
+                  Você pode combinar a busca textual (pelo nome do objeto ou setor) com os seletores superiores (UO, Classe, Status). 
+                  Os seletores superiores filtram a base de dados instantaneamente, enquanto a barra de busca refina o resultado 
+                  exibido na tela.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="exclusao">
+                <AccordionTrigger>Posso excluir uma demanda cadastrada por engano?</AccordionTrigger>
+                <AccordionContent>
+                  A exclusão está disponível apenas para perfis com nível de acesso <strong>Administrador</strong> ou <strong>Gestor</strong>. 
+                  Lembre-se que a exclusão é permanente e remove também todo o histórico de alterações associado àquela demanda.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Canais de Comunicação</CardTitle>
+        <Card className="border-primary/20 shadow-sm">
+          <CardHeader className="pb-3 text-primary">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5" />
+              <CardTitle className="text-lg">Canais de Comunicação</CardTitle>
+            </div>
+            <CardDescription>Entre em contato para suporte técnico ou informações sobre o plano.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p>E-mail de suporte: suporte.pca@mppi.mp.br</p>
-            <p>Telefone: (86) 2222-8004 (Coord. Licitações e Contratos)</p>
-            <p>Portal interno: MPPI → Coord. Licitações e Contratos → PCA</p>
+          <CardContent className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-4">
+              <h3 className="font-semibold text-sm flex items-center gap-2 text-muted-foreground border-b pb-1">
+                <Building2 className="h-4 w-4" />
+                Gestão do Plano de Contratações Anual
+              </h3>
+              <div className="space-y-3 text-sm">
+                <p className="font-medium">Coordenação de Licitações e Contratos (CLC)</p>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-muted rounded-full text-muted-foreground">
+                    <Mail className="h-4 w-4" />
+                  </div>
+                  <span>suporte.pca@mppi.mp.br</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-muted rounded-full text-muted-foreground">
+                    <Phone className="h-4 w-4" />
+                  </div>
+                  <span>(86) 2222-8004</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="font-semibold text-sm flex items-center gap-2 text-muted-foreground border-b pb-1">
+                <UserCircle className="h-4 w-4" />
+                Desenvolvimento do Sistema
+              </h3>
+              <div className="space-y-3 text-sm">
+                <p className="font-medium">Assessoria de Planejamento e Gestão (ASSESPPLAGES)</p>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-full text-primary">
+                    <Mail className="h-4 w-4" />
+                  </div>
+                  <a href="mailto:planejamento@mppi.mp.br" className="hover:text-primary transition-colors">
+                    planejamento@mppi.mp.br
+                  </a>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-full text-primary">
+                    <Phone className="h-4 w-4" />
+                  </div>
+                  <span>(86) 2222-8015</span>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

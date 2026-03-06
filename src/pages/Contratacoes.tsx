@@ -16,7 +16,6 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState, useMemo } from "react";
 import type { Tables } from "@/integrations/supabase/types";
-import { importContratacoes, removeDuplicates } from "@/utils/importCsv";
 import {
   Dialog,
   DialogContent,
@@ -45,8 +44,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Pencil, Play, RefreshCw } from "lucide-react";
-import { migrateExistingIds } from "@/utils/migrateCodigos";
+import { Pencil, Play } from "lucide-react";
 
 type Contratacao = Tables<"contratacoes"> & { codigo?: string | null };
 type HistoricoItem = Tables<"contratacoes_historico"> & {
@@ -359,76 +357,6 @@ export default function Contratacoes() {
     }
   };
 
-  const handleImport = async () => {
-    console.log("Iniciando processo de importação...");
-    const confirm = window.confirm("Deseja importar os dados do arquivo demandas2026.csv? Isso pode criar duplicatas se já existirem.");
-    if (!confirm) return;
-    
-    setLoading(true);
-    toast.info("Iniciando importação...");
-    try {
-      console.log("Chamando importContratacoes...");
-      const { count, error } = await importContratacoes();
-      if (error) throw new Error(error);
-      toast.success(`${count} registros importados com sucesso!`);
-      fetchContratacoes();
-    } catch (error: any) {
-      console.error("Erro no handleImport:", error);
-      toast.error("Erro na importação: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRemoveDuplicates = async () => {
-    const confirm = window.confirm("Deseja verificar e remover registros duplicados? Essa ação não pode ser desfeita.");
-    if (!confirm) return;
-
-    setLoading(true);
-    toast.info("Verificando duplicatas...");
-    try {
-      const { count, error } = await removeDuplicates();
-      if (error) throw new Error(error);
-      
-      if (count > 0) {
-        toast.success(`${count} registros duplicados foram removidos!`);
-        fetchContratacoes();
-      } else {
-        toast.info("Nenhuma duplicata encontrada.");
-      }
-    } catch (error: any) {
-      console.error("Erro ao remover duplicatas:", error);
-      toast.error("Erro ao remover duplicatas: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleClearSystem = async () => {
-    const confirm = window.confirm("ATENÇÃO: Tem certeza que deseja excluir TODAS as contratações do sistema? Essa ação é irreversível e limpará todo o banco de dados de contratações.");
-    if (!confirm) return;
-
-    const confirm2 = window.confirm("Confirmação final: Deseja realmente prosseguir com a exclusão total? Todas as demandas serão perdidas.");
-    if (!confirm2) return;
-
-    setLoading(true);
-    toast.info("Limpando sistema...");
-    try {
-      // Deleta todos os registros onde o ID não é nulo (ou seja, todos)
-      const { error } = await supabase.from("contratacoes").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-      
-      if (error) throw error;
-      
-      toast.success("Sistema limpo com sucesso! Todas as demandas foram excluídas.");
-      fetchContratacoes();
-    } catch (error: any) {
-      console.error("Erro ao limpar sistema:", error);
-      toast.error("Erro ao limpar sistema: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleShowHistorico = (contratacaoId: string) => {
     setSelectedContratacaoId(contratacaoId);
     setShowHistorico(true);
@@ -619,6 +547,14 @@ export default function Contratacoes() {
     return new Date(dateString).toLocaleDateString("pt-BR");
   };
 
+  const formatDateWithTime = (dateString: string | null) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    const formattedDate = date.toLocaleDateString("pt-BR");
+    const formattedTime = date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    return `${formattedDate} às ${formattedTime}`;
+  };
+
   // Labels amigáveis para campos exibidos no histórico
   const HISTORICO_LABELS: Record<string, string> = {
     descricao: "Descrição",
@@ -719,18 +655,6 @@ export default function Contratacoes() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button size="xs" variant="outline" onClick={handleClearSystem} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-              <Eraser className="h-4 w-4 mr-1" />
-              Limpar Sistema
-            </Button>
-            <Button size="xs" variant="outline" onClick={handleRemoveDuplicates} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-              <Trash2 className="h-4 w-4 mr-1" />
-              Remover Duplicatas
-            </Button>
-            <Button size="xs" variant="outline" onClick={handleImport}>
-              <FileUp className="h-4 w-4 mr-1" />
-              Importar CSV
-            </Button>
             <Link to="/nova-contratacao">
               <Button size="xs">
                 <Plus className="h-4 w-4 mr-1" />
@@ -891,10 +815,6 @@ export default function Contratacoes() {
           <Button variant="outline" size="xs">
             <Filter className="h-4 w-4 mr-1" />
             Filtros
-          </Button>
-          <Button variant="outline" size="xs" onClick={migrateExistingIds} title="Gerar IDs curtos para registros antigos">
-            <RefreshCw className="h-4 w-4 mr-1" />
-            Migrar IDs
           </Button>
         </div>
 
@@ -1449,7 +1369,7 @@ export default function Contratacoes() {
                         <div>
                           <p className="font-medium">{item.acao}</p>
                           <p className="text-xs text-muted-foreground">
-                            {formatDate(item.created_at)} por {item.profiles?.nome_completo || "Sistema"}
+                            {formatDateWithTime(item.created_at)} por {item.profiles?.nome_completo || "Sistema"}
                           </p>
                         </div>
                         <Badge variant="secondary" className="bg-muted/30 text-muted-foreground">{item.id.slice(-6)}</Badge>

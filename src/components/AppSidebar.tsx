@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, Plus, Settings, LogOut, BarChart3, Users, CheckSquare, ClipboardList, Gauge, BadgeCheck, Clock, TrendingUp, AlertTriangle, HelpCircle } from "lucide-react";
+import { LayoutDashboard, FileText, Plus, Settings, LogOut, BarChart3, Users, CheckSquare, ClipboardList, Gauge, BadgeCheck, Clock, TrendingUp, AlertTriangle, HelpCircle, Terminal } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
   Sidebar,
@@ -34,6 +34,7 @@ const menuItems = [
   { title: "Gerenciamento de Usuários", url: "/gerenciamento-usuarios", icon: Users },
   { title: "Minha Conta", url: "/minha-conta", icon: Settings },
   { title: "FAQ / Dúvidas", url: "/faq", icon: HelpCircle },
+  { title: "Desenvolvimento", url: "/desenvolvimento", icon: Terminal },
 ];
 
 export function AppSidebar() {
@@ -116,6 +117,11 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
+      <div className="flex flex-col px-4 pb-1 transition-opacity">
+        <span className="text-[11px] font-mono text-sidebar-foreground/80">
+          v1.0.48
+        </span>
+      </div>
       <SidebarFooter className="border-t border-sidebar-border px-4 py-2">
         <Button
           variant="ghost"
