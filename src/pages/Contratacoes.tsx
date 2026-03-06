@@ -263,6 +263,15 @@ export default function Contratacoes() {
       if ((editingContratacao as any).tipo_recurso !== undefined) {
         payload.tipo_recurso = (editingContratacao as any).tipo_recurso;
       }
+      if ((editingContratacao as any).tipo_contratacao !== undefined) {
+        payload.tipo_contratacao = (editingContratacao as any).tipo_contratacao;
+      }
+      if ((editingContratacao as any).modalidade !== undefined) {
+        payload.modalidade = (editingContratacao as any).modalidade;
+      }
+      if ((editingContratacao as any).normativo !== undefined) {
+        payload.normativo = (editingContratacao as any).normativo;
+      }
 
       if ((editingContratacao as any).pdm_catser !== undefined) {
         payload.pdm_catser = (editingContratacao as any).pdm_catser || null;
@@ -306,7 +315,9 @@ export default function Contratacoes() {
               updateError = undefined as any;
             } else {
               // Ainda erro: mostra descrição detalhada
-              toast.error("Erro ao salvar alterações", { description: String(retry.error.message || retry.error) });
+              toast.error("Erro ao salvar alterações", { 
+                description: `${retry.error.message}${retry.error.hint ? ' - ' + retry.error.hint : ''} (${retry.error.code})` 
+              });
             }
           } else if (mentionsNumeroSei && payload.numero_sei_contratacao !== undefined) {
             delete payload.numero_sei_contratacao;
@@ -314,10 +325,14 @@ export default function Contratacoes() {
             if (!retry.error) {
               updateError = undefined as any;
             } else {
-              toast.error("Erro ao salvar alterações", { description: String(retry.error.message || retry.error) });
+              toast.error("Erro ao salvar alterações", { 
+                description: `${retry.error.message}${retry.error.hint ? ' - ' + retry.error.hint : ''} (${retry.error.code})` 
+              });
             }
           } else {
-            toast.error("Erro ao salvar alterações", { description: msg });
+            toast.error("Erro ao salvar alterações no banco de dados", { 
+              description: `${updateError.message}${updateError.hint ? ' - ' + updateError.hint : ''} (Código: ${updateError.code})` 
+            });
           }
         }
         throw updateError;
@@ -1113,10 +1128,10 @@ export default function Contratacoes() {
                   </div>
                 </div>
 
-                {/* Linha 2B: Data Prevista, PDM/CATSER e Classe de Material */}
+                {/* Linha 3: Planejamento */}
                 <div className="grid gap-4 sm:grid-cols-6">
                   <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="edit-data-prevista" className="text-[12px] text-muted-foreground">Data Prevista para a Contratação:</Label>
+                    <Label htmlFor="edit-data-prevista" className="text-[12px] text-muted-foreground">Data Prevista:</Label>
                     <Input
                       id="edit-data-prevista"
                       type="date"
@@ -1146,11 +1161,10 @@ export default function Contratacoes() {
                         setEditingContratacao({ ...editingContratacao, classe: value })
                       }
                     >
-                      <SelectTrigger className="h-9 px-3">
+                      <SelectTrigger className="h-9 px-3 text-sm">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Todos">Todos</SelectItem>
                         <SelectItem value="Material de Consumo">Material de Consumo</SelectItem>
                         <SelectItem value="Material Permanente">Material Permanente</SelectItem>
                         <SelectItem value="Serviço">Serviço</SelectItem>
@@ -1165,7 +1179,68 @@ export default function Contratacoes() {
                   </div>
                 </div>
 
-                {/* Linha 3: Quantidade, Valor Unitário, Unidade e Tipo Recurso */}
+                {/* Linha 4: Tipo, Modalidade e Normativo */}
+                <div className="grid gap-4 sm:grid-cols-6">
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="edit-tipo-contratacao" className="text-[12px] text-muted-foreground">Tipo de Contratação:</Label>
+                    <Select
+                      value={(editingContratacao as any).tipo_contratacao || undefined}
+                      onValueChange={(value) =>
+                        setEditingContratacao({ ...editingContratacao, tipo_contratacao: value } as any)
+                      }
+                    >
+                      <SelectTrigger className="h-9 px-3 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Nova Contratação">Nova Contratação</SelectItem>
+                        <SelectItem value="Renovação">Renovação</SelectItem>
+                        <SelectItem value="Aditivo Quantitativo">Aditivo Quantitativo</SelectItem>
+                        <SelectItem value="Repactuação">Repactuação</SelectItem>
+                        <SelectItem value="Apostilamento">Apostilamento</SelectItem>
+                        <SelectItem value="Indeterminado">Indeterminado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="edit-modalidade" className="text-[12px] text-muted-foreground">Modalidade:</Label>
+                    <Select
+                      value={(editingContratacao as any).modalidade || undefined}
+                      onValueChange={(value) =>
+                        setEditingContratacao({ ...editingContratacao, modalidade: value } as any)
+                      }
+                    >
+                      <SelectTrigger className="h-9 px-3 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Pregão Eletrônico">Pregão Eletrônico</SelectItem>
+                        <SelectItem value="Dispensa">Dispensa</SelectItem>
+                        <SelectItem value="Inexigibilidade">Inexigibilidade</SelectItem>
+                        <SelectItem value="Concorrência">Concorrência</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="edit-normativo" className="text-[12px] text-muted-foreground">Normativo:</Label>
+                    <Select
+                      value={(editingContratacao as any).normativo || undefined}
+                      onValueChange={(value) =>
+                        setEditingContratacao({ ...editingContratacao, normativo: value } as any)
+                      }
+                    >
+                      <SelectTrigger className="h-9 px-3 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="14.133/2021">14.133/2021</SelectItem>
+                        <SelectItem value="8.666/1993">8.666/1993</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Linha 5: Quantidade, Valor Unitário, Unidade e Tipo Recurso */}
                 <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                   <div className="space-y-2">
                     <Label htmlFor="edit-quantidade" className="text-[12px] text-muted-foreground">Quantidade:</Label>
@@ -1183,7 +1258,7 @@ export default function Contratacoes() {
                           valor_estimado: qtd * unitario,
                         } as any);
                       }}
-                      className="h-9"
+                      className="h-9 text-sm"
                     />
                   </div>
                   <div className="space-y-2">
@@ -1203,7 +1278,7 @@ export default function Contratacoes() {
                           valor_estimado: qtd * parsed,
                         } as any);
                       }}
-                      className="h-9"
+                      className="h-9 text-sm"
                     />
                   </div>
                   <div className="space-y-2">
@@ -1214,7 +1289,7 @@ export default function Contratacoes() {
                       onChange={(e) =>
                         setEditingContratacao({ ...editingContratacao, unidade_fornecimento: e.target.value } as any)
                       }
-                      className="h-9"
+                      className="h-9 text-sm"
                     />
                   </div>
                   <div className="space-y-2">
@@ -1225,7 +1300,7 @@ export default function Contratacoes() {
                         setEditingContratacao({ ...editingContratacao, tipo_recurso: value } as any)
                       }
                     >
-                      <SelectTrigger className="h-9">
+                      <SelectTrigger className="h-9 text-sm">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1236,16 +1311,16 @@ export default function Contratacoes() {
                   </div>
                 </div>
 
-                {/* Linha 4: Valor Estimado, Valor Executado, Prioridade e Status */}
+                {/* Linha 6: Valor Estimado, Executado, Prioridade e Status */}
                 <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                   <div className="space-y-2">
-                    <Label htmlFor="edit-valor" className="text-[12px] text-muted-foreground">Valor Estimado Total (R$):</Label>
+                    <Label htmlFor="edit-valor" className="text-[12px] text-muted-foreground">Valor Estimado (R$):</Label>
                     <Input
                       id="edit-valor"
                       inputMode="numeric"
                       value={formatCurrencyNumber(editingContratacao.valor_estimado)}
                       readOnly
-                      className="h-9 bg-muted"
+                      className="h-9 bg-muted text-sm font-semibold"
                     />
                   </div>
                   <div className="space-y-2">
@@ -1263,7 +1338,7 @@ export default function Contratacoes() {
                           valor_contratado: parsed,
                         });
                       }}
-                      className="h-9"
+                      className="h-9 text-sm"
                     />
                   </div>
                   <div className="space-y-2">
@@ -1274,7 +1349,7 @@ export default function Contratacoes() {
                         setEditingContratacao({ ...editingContratacao, grau_prioridade: value })
                       }
                     >
-                      <SelectTrigger className="h-9">
+                      <SelectTrigger className="h-9 text-sm">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1299,18 +1374,17 @@ export default function Contratacoes() {
                         const next: any = { ...editingContratacao };
                         if (value === "sobrestado") {
                           next.sobrestado = true;
-                          // mantém etapa atual
                         } else {
                           next.sobrestado = false;
                           if (value === "não iniciado") next.etapa_processo = "Planejamento";
-                          else if (value === "em andamento") next.etapa_processo = "Em Licitação"; // Default para em andamento
+                          else if (value === "em andamento") next.etapa_processo = "Em Licitação";
                           else if (value === "concluído") next.etapa_processo = "Concluído";
                           else next.etapa_processo = value;
                         }
                         setEditingContratacao(next);
                       }}
                     >
-                      <SelectTrigger className="h-9">
+                      <SelectTrigger className="h-9 text-sm">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1323,7 +1397,7 @@ export default function Contratacoes() {
                   </div>
                 </div>
 
-                {/* Linha 4: Justificativa ocupa a linha inteira */}
+                {/* Linha 7: Justificativa */}
                 <div className="space-y-2">
                   <Label htmlFor="edit-justificativa" className="text-[12px] text-muted-foreground">Justificativa:</Label>
                   <Textarea
@@ -1332,7 +1406,7 @@ export default function Contratacoes() {
                     onChange={(e) =>
                       setEditingContratacao({ ...editingContratacao, justificativa: e.target.value })
                     }
-                    className="min-h-[80px]"
+                    className="min-h-[80px] text-sm"
                   />
                 </div>
 

@@ -226,6 +226,8 @@ export default function NovaContratacao() {
                       <SelectItem value="Renovação">Renovação</SelectItem>
                       <SelectItem value="Aditivo Quantitativo">Aditivo Quantitativo</SelectItem>
                       <SelectItem value="Repactuação">Repactuação</SelectItem>
+                      <SelectItem value="Apostilamento">Apostilamento</SelectItem>
+                      <SelectItem value="Indeterminado">Indeterminado</SelectItem>
                     </SelectContent>
                   </Select>
                   {errors.tipo_contratacao && <p className="text-sm text-destructive">{errors.tipo_contratacao}</p>}

@@ -231,7 +231,7 @@ const SetoresDemandantes = () => {
               <div className="basis-[30%] min-w-[330px] shrink-0">
                 <div className="text-[11px] text-muted-foreground px-0.5">Tipo de Contratação:</div>
                 <div className="flex flex-nowrap gap-0.5 overflow-x-auto whitespace-nowrap py-0.5">
-                  {[ALL, "Nova Contratação", "Renovação", "Aditivo Quantitativo", "Repactuação"].map((t) => (
+                  {[ALL, "Nova Contratação", "Renovação", "Aditivo Quantitativo", "Repactuação", "Apostilamento", "Indeterminado"].map((t) => (
                     <Button
                       key={t}
                       variant={tipoContratacao === (t === ALL ? undefined : t) ? "default" : "secondary"}
