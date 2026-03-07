@@ -124,7 +124,7 @@ export default function Contratacoes() {
     try {
       const { data, error } = await supabase
         .from("contratacoes")
-        .select("id, codigo, descricao, setor_requisitante, unidade_orcamentaria, classe, valor_estimado, valor_contratado, etapa_processo, sobrestado, grau_prioridade, justificativa, data_prevista_contratacao, numero_sei_contratacao, pdm_catser, created_at, quantidade_itens, valor_unitario, unidade_fornecimento, tipo_recurso, tipo_contratacao, modalidade, normativo")
+        .select("id, codigo, descricao, setor_requisitante, unidade_orcamentaria, classe, valor_estimado, valor_contratado, etapa_processo, sobrestado, grau_prioridade, justificativa, data_prevista_contratacao, numero_sei_contratacao, pdm_catser, created_at, quantidade_itens, valor_unitario, unidade_fornecimento, tipo_recurso, tipo_contratacao, modalidade, normativo, srp")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -225,13 +225,13 @@ export default function Contratacoes() {
       const isSobrestadoLocal = (editingContratacao as any)?.sobrestado === true;
       const mapped = isSobrestadoLocal
         ? {
-            etapa: editingContratacao.etapa_processo || dadosAnteriores?.etapa_processo || "Planejamento",
-            sobrestado: true,
-          }
+          etapa: editingContratacao.etapa_processo || dadosAnteriores?.etapa_processo || "Planejamento",
+          sobrestado: true,
+        }
         : mapStatusToPersistence(
-            editingContratacao.etapa_processo || null,
-            dadosAnteriores?.etapa_processo || null
-          );
+          editingContratacao.etapa_processo || null,
+          dadosAnteriores?.etapa_processo || null
+        );
 
       // Atualizar contratação
       let payload: any = {
@@ -247,7 +247,7 @@ export default function Contratacoes() {
         justificativa: editingContratacao.justificativa,
         updated_at: new Date().toISOString(),
       };
-      
+
       // Add missing fields
       if ((editingContratacao as any).quantidade_itens !== undefined) {
         payload.quantidade_itens = (editingContratacao as any).quantidade_itens;
@@ -279,6 +279,9 @@ export default function Contratacoes() {
       }
       if ((editingContratacao as any).data_prevista_contratacao !== undefined) {
         payload.data_prevista_contratacao = (editingContratacao as any).data_prevista_contratacao || null;
+      }
+      if ((editingContratacao as any).srp !== undefined) {
+        payload.srp = (editingContratacao as any).srp;
       }
 
       let { error: updateError } = await supabase
@@ -313,8 +316,8 @@ export default function Contratacoes() {
               updateError = undefined as any;
             } else {
               // Ainda erro: mostra descrição detalhada
-              toast.error("Erro ao salvar alterações", { 
-                description: `${retry.error.message}${retry.error.hint ? ' - ' + retry.error.hint : ''} (${retry.error.code})` 
+              toast.error("Erro ao salvar alterações", {
+                description: `${retry.error.message}${retry.error.hint ? ' - ' + retry.error.hint : ''} (${retry.error.code})`
               });
             }
           } else if (mentionsNumeroSei && payload.numero_sei_contratacao !== undefined) {
@@ -323,13 +326,13 @@ export default function Contratacoes() {
             if (!retry.error) {
               updateError = undefined as any;
             } else {
-              toast.error("Erro ao salvar alterações", { 
-                description: `${retry.error.message}${retry.error.hint ? ' - ' + retry.error.hint : ''} (${retry.error.code})` 
+              toast.error("Erro ao salvar alterações", {
+                description: `${retry.error.message}${retry.error.hint ? ' - ' + retry.error.hint : ''} (${retry.error.code})`
               });
             }
           } else {
-            toast.error("Erro ao salvar alterações no banco de dados", { 
-              description: `${updateError.message}${updateError.hint ? ' - ' + updateError.hint : ''} (Código: ${updateError.code})` 
+            toast.error("Erro ao salvar alterações no banco de dados", {
+              description: `${updateError.message}${updateError.hint ? ' - ' + updateError.hint : ''} (Código: ${updateError.code})`
             });
           }
         }
@@ -428,14 +431,14 @@ export default function Contratacoes() {
       result = result.filter((item) => {
         // Busca por ID (parcial ou total)
         if (item.codigo?.toLowerCase().includes(term) || item.id.toLowerCase().includes(term)) return true;
-        
+
         // Busca textual nos campos permitidos
         const searchableText = [
           item.descricao,
           item.setor_requisitante,
           item.classe
         ].filter(Boolean).join(" ").toLowerCase();
-        
+
         return searchableText.includes(term);
       });
     }
@@ -555,7 +558,6 @@ export default function Contratacoes() {
     return `${formattedDate} às ${formattedTime}`;
   };
 
-  // Labels amigáveis para campos exibidos no histórico
   const HISTORICO_LABELS: Record<string, string> = {
     descricao: "Descrição",
     setor_requisitante: "Setor Requisitante",
@@ -571,6 +573,7 @@ export default function Contratacoes() {
     valor_estimado: "Valor Estimado (R$)",
     valor_contratado: "Valor Executado (R$)",
     justificativa: "Justificativa",
+    srp: "SRP (Registro de Preços)?",
   };
 
   const HISTORICO_CAMPOS: string[] = [
@@ -588,6 +591,7 @@ export default function Contratacoes() {
     "valor_estimado",
     "valor_contratado",
     "justificativa",
+    "srp",
   ];
 
   const formatFieldValue = (key: string, value: any): string => {
@@ -597,6 +601,9 @@ export default function Contratacoes() {
       case "valor_contratado": {
         const num = typeof value === "number" ? value : parseFloat(String(value));
         return `R$ ${formatCurrencyNumber(isNaN(num) ? 0 : num)}`;
+      }
+      case "srp": {
+        return value === true || value === "true" || value === "Sim" ? "Sim" : "Não";
       }
       case "setor_requisitante":
         return formatSetor(String(value));
@@ -844,85 +851,85 @@ export default function Contratacoes() {
               ) : (
                 <>
                   {displayedContratacoes.map((contratacao) => (
-                  <TableRow key={contratacao.id} className="hover:bg-muted/50">
-                    <TableCell className="font-medium text-center text-xs">
-                      {contratacao.codigo || contratacao.id.slice(-8)}
-                    </TableCell>
-                    <TableCell className="max-w-xs">
-                      <div className="truncate" title={contratacao.descricao}>
-                        {contratacao.descricao}
-                      </div>
-                    </TableCell>
-                    <TableCell>{formatSetor(contratacao.setor_requisitante)}</TableCell>
-                    <TableCell>{contratacao.classe || "-"}</TableCell>
-                    <TableCell className="text-right w-[140px]">
-                      {formatCurrency(contratacao.valor_estimado)}
-                    </TableCell>
-                    <TableCell className="text-right w-[140px]">
-                      {formatCurrency(contratacao.valor_contratado)}
-                    </TableCell>
-                    <TableCell className="text-center w-[120px]">
-                      {formatDate((contratacao as any).data_prevista_contratacao)}
-                    </TableCell>
-                    <TableCell>
-                      {(() => {
-                        const getCategory = (c: Contratacao) => {
-                          if ((c as any).sobrestado === true) return "sobrestado";
-                          const etapa = c.etapa_processo?.toLowerCase() || "";
-                          if (etapa === "em andamento" || etapa === "em licitação" || etapa === "contratado") return "em andamento";
-                          if (etapa === "concluído") return "concluído";
-                          return "não iniciado";
-                        };
-                        const label = getCategory(contratacao);
-                        const badge = getStatusBadge(label);
-                        return (
-                          <Badge
-                            variant={badge.variant}
-                            className={badge.className}
+                    <TableRow key={contratacao.id} className="hover:bg-muted/50">
+                      <TableCell className="font-medium text-center text-xs">
+                        {contratacao.codigo || contratacao.id.slice(-8)}
+                      </TableCell>
+                      <TableCell className="max-w-xs">
+                        <div className="truncate" title={contratacao.descricao}>
+                          {contratacao.descricao}
+                        </div>
+                      </TableCell>
+                      <TableCell>{formatSetor(contratacao.setor_requisitante)}</TableCell>
+                      <TableCell>{contratacao.classe || "-"}</TableCell>
+                      <TableCell className="text-right w-[140px]">
+                        {formatCurrency(contratacao.valor_estimado)}
+                      </TableCell>
+                      <TableCell className="text-right w-[140px]">
+                        {formatCurrency(contratacao.valor_contratado)}
+                      </TableCell>
+                      <TableCell className="text-center w-[120px]">
+                        {formatDate((contratacao as any).data_prevista_contratacao)}
+                      </TableCell>
+                      <TableCell>
+                        {(() => {
+                          const getCategory = (c: Contratacao) => {
+                            if ((c as any).sobrestado === true) return "sobrestado";
+                            const etapa = c.etapa_processo?.toLowerCase() || "";
+                            if (etapa === "em andamento" || etapa === "em licitação" || etapa === "contratado") return "em andamento";
+                            if (etapa === "concluído") return "concluído";
+                            return "não iniciado";
+                          };
+                          const label = getCategory(contratacao);
+                          const badge = getStatusBadge(label);
+                          return (
+                            <Badge
+                              variant={badge.variant}
+                              className={badge.className}
+                            >
+                              {label}
+                            </Badge>
+                          );
+                        })()}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={getPrioridadeBadge(contratacao.grau_prioridade).variant}
+                          className={getPrioridadeBadge(contratacao.grau_prioridade).className}
+                        >
+                          {contratacao.grau_prioridade}
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell className="text-right">
+                        <div className="flex gap-1 justify-end">
+                          <Button
+                            variant="ghost"
+                            size="xs"
+                            onClick={() => handleEdit(contratacao)}
+                            title="Editar contratação"
                           >
-                            {label}
-                          </Badge>
-                        );
-                      })()}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={getPrioridadeBadge(contratacao.grau_prioridade).variant}
-                        className={getPrioridadeBadge(contratacao.grau_prioridade).className}
-                      >
-                        {contratacao.grau_prioridade}
-                      </Badge>
-                    </TableCell>
-                    
-                    <TableCell className="text-right">
-                      <div className="flex gap-1 justify-end">
-                        <Button
-                          variant="ghost"
-                          size="xs"
-                          onClick={() => handleEdit(contratacao)}
-                          title="Editar contratação"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="xs"
-                          onClick={() => handleShowHistorico(contratacao.id)}
-                          title="Ver histórico"
-                        >
-                          <History className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="xs"
-                          onClick={() => setContratacaoToDelete(contratacao.id)}
-                          title="Excluir contratação"
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="xs"
+                            onClick={() => handleShowHistorico(contratacao.id)}
+                            title="Ver histórico"
+                          >
+                            <History className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="xs"
+                            onClick={() => setContratacaoToDelete(contratacao.id)}
+                            title="Excluir contratação"
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   ))}
                 </>
               )}
@@ -1043,6 +1050,23 @@ export default function Contratacoes() {
                         <SelectItem value="PGJ">PGJ</SelectItem>
                         <SelectItem value="FMMP">FMMP</SelectItem>
                         <SelectItem value="FEPDC">FEPDC</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2 sm:col-span-1">
+                    <Label htmlFor="edit-srp" className="text-[12px] text-muted-foreground">SRP?:</Label>
+                    <Select
+                      value={(editingContratacao as any).srp ? "Sim" : "Não"}
+                      onValueChange={(value) =>
+                        setEditingContratacao({ ...editingContratacao, srp: value === "Sim" } as any)
+                      }
+                    >
+                      <SelectTrigger className="h-9 px-3">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Sim">Sim</SelectItem>
+                        <SelectItem value="Não">Não</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1285,11 +1309,11 @@ export default function Contratacoes() {
                       value={(editingContratacao as any).sobrestado
                         ? "sobrestado"
                         : ((() => {
-                            const etapa = editingContratacao.etapa_processo?.toLowerCase() || "";
-                            if (etapa === "concluído") return "concluído";
-                            if (etapa === "em andamento" || etapa === "em licitação" || etapa === "contratado") return "em andamento";
-                            return "não iniciado";
-                          })())}
+                          const etapa = editingContratacao.etapa_processo?.toLowerCase() || "";
+                          if (etapa === "concluído") return "concluído";
+                          if (etapa === "em andamento" || etapa === "em licitação" || etapa === "contratado") return "em andamento";
+                          return "não iniciado";
+                        })())}
                       onValueChange={(value) => {
                         const next: any = { ...editingContratacao };
                         if (value === "sobrestado") {

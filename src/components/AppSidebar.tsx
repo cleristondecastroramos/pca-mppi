@@ -75,7 +75,7 @@ export function AppSidebar() {
       const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 2000));
 
       await Promise.race([signOutPromise, timeoutPromise]);
-      
+
       queryClient.clear();
       toast.success("Logout realizado com sucesso");
     } catch (err: any) {
@@ -109,23 +109,23 @@ export function AppSidebar() {
               {menuItems
                 .filter((item) => !item.adminOnly || isAdmin)
                 .map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      className={({ isActive }) =>
-                        isActive
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_0_0_1px_hsl(var(--sidebar-border))]"
-                          : "hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
-                      }
-                      onMouseEnter={() => prefetchPage(item.url)}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        className={({ isActive }) =>
+                          isActive
+                            ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_0_0_1px_hsl(var(--sidebar-border))]"
+                            : "hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+                        }
+                        onMouseEnter={() => prefetchPage(item.url)}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -133,7 +133,7 @@ export function AppSidebar() {
 
       <div className="flex flex-col px-4 pb-1 transition-opacity">
         <span className="text-[11px] font-mono text-sidebar-foreground/80">
-          v1.0.48
+          v1.0.49
         </span>
       </div>
       <SidebarFooter className="border-t border-sidebar-border px-4 py-2">

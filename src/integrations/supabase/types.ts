@@ -65,6 +65,7 @@ export type Database = {
           valor_estimado: number
           valor_licitado: number | null
           valor_unitario: number | null
+          srp: boolean | null
         }
         Insert: {
           ajuste_orcamentario?: number | null
@@ -116,6 +117,7 @@ export type Database = {
           valor_estimado: number
           valor_licitado?: number | null
           valor_unitario?: number | null
+          srp?: boolean | null
         }
         Update: {
           ajuste_orcamentario?: number | null
@@ -167,6 +169,7 @@ export type Database = {
           valor_estimado?: number
           valor_licitado?: number | null
           valor_unitario?: number | null
+          srp?: boolean | null
         }
         Relationships: []
       }
@@ -185,6 +188,8 @@ export type Database = {
           termo_adjudicacao: boolean | null
           termo_homologacao: boolean | null
           termo_referencia_aprovado: boolean | null
+          assinatura_contrato: boolean | null
+          publicacao_contrato: boolean | null
           updated_at: string | null
           user_id: string
         }
@@ -202,6 +207,8 @@ export type Database = {
           termo_adjudicacao?: boolean | null
           termo_homologacao?: boolean | null
           termo_referencia_aprovado?: boolean | null
+          assinatura_contrato?: boolean | null
+          publicacao_contrato?: boolean | null
           updated_at?: string | null
           user_id: string
         }
@@ -219,6 +226,8 @@ export type Database = {
           termo_adjudicacao?: boolean | null
           termo_homologacao?: boolean | null
           termo_referencia_aprovado?: boolean | null
+          assinatura_contrato?: boolean | null
+          publicacao_contrato?: boolean | null
           updated_at?: string | null
           user_id?: string
         }

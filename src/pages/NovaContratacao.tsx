@@ -68,7 +68,7 @@ export default function NovaContratacao() {
     e.preventDefault();
     setLoading(true);
     setErrors({});
-    
+
     const formData = new FormData(e.currentTarget);
     const data = {
       descricao: formData.get("descricao") as string,
@@ -87,6 +87,7 @@ export default function NovaContratacao() {
       valor_unitario: valorUnitario,
       unidade_fornecimento: formData.get("unidade_fornecimento") as string,
       pdm_catser: formData.get("pdm_catser") as string,
+      srp: formData.get("srp") === "Sim",
       status: "Planejamento",
     };
 
@@ -128,7 +129,7 @@ export default function NovaContratacao() {
 
       // Submit to backend
       const { error } = await supabase.from("contratacoes").insert([{ ...data, codigo }]);
-      
+
       if (error) {
         const msg = String(error.message || error);
         if (msg.includes("Saldo orçamentário insuficiente") || msg.includes("saldo orçamentário insuficiente")) {
@@ -263,6 +264,19 @@ export default function NovaContratacao() {
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="srp">SRP (Registro de Preços)? *</Label>
+                  <Select name="srp" required defaultValue="Não">
+                    <SelectTrigger id="srp" className="h-9">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Sim">Sim</SelectItem>
+                      <SelectItem value="Não">Não</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="modalidade">Modalidade *</Label>
                   <Select name="modalidade" required>
                     <SelectTrigger id="modalidade" className="h-9">
@@ -351,12 +365,12 @@ export default function NovaContratacao() {
               <div className="grid gap-3 md:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="quantidade">Quantidade de Itens</Label>
-                  <Input 
-                    name="quantidade_itens" 
-                    id="quantidade" 
-                    type="number" 
+                  <Input
+                    name="quantidade_itens"
+                    id="quantidade"
+                    type="number"
                     min="1"
-                    placeholder="0" 
+                    placeholder="0"
                     value={quantidade || ""}
                     onChange={(e) => setQuantidade(Number(e.target.value))}
                   />
@@ -364,10 +378,10 @@ export default function NovaContratacao() {
 
                 <div className="space-y-2">
                   <Label htmlFor="valor-unitario">Valor Unitário (R$)</Label>
-                  <Input 
-                    name="valor_unitario_display" 
-                    id="valor-unitario" 
-                    type="text" 
+                  <Input
+                    name="valor_unitario_display"
+                    id="valor-unitario"
+                    type="text"
                     placeholder="0,00"
                     value={valorUnitarioDisplay}
                     onChange={handleValorUnitarioChange}

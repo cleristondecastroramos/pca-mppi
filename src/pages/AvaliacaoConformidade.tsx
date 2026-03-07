@@ -16,16 +16,21 @@ import { Loader2, Copy } from "lucide-react";
 
 type Contratacao = Tables<"contratacoes">;
 
-const CHECKLIST_ITEMS = [
+const FASE_LICITACAO = [
   { key: "termo_referencia_aprovado", label: "Termo de Referência aprovado" },
   { key: "pesquisa_mercado", label: "Pesquisa de Mercado" },
   { key: "pareceres_juridicos", label: "Pareceres Jurídicos emitidos sobre a licitação" },
   { key: "publicacao_edital", label: "Publicação de edital conforme normas" },
   { key: "atas_certame", label: "Atas do Certame" },
-  { key: "atos_autorizacao", label: "Atos de autorização registrados" },
-  { key: "documentacao_fornecedor", label: "Documentação do fornecedor completa" },
   { key: "termo_homologacao", label: "Termo de Homologação" },
   { key: "termo_adjudicacao", label: "Termo de Adjudicação" },
+] as const;
+
+const FASE_CONTRATACAO = [
+  { key: "atos_autorizacao", label: "Atos de autorização registrados" },
+  { key: "documentacao_fornecedor", label: "Documentação do fornecedor completa" },
+  { key: "assinatura_contrato", label: "Assinatura do Contrato" },
+  { key: "publicacao_contrato", label: "Publicação do Extrato do Contrato" },
 ] as const;
 
 const AvaliacaoConformidade = () => {
@@ -34,18 +39,19 @@ const AvaliacaoConformidade = () => {
   const [search, setSearch] = useState<string>("");
   const [setorFiltro, setSetorFiltro] = useState<string>("todos");
   const [statusFiltro, setStatusFiltro] = useState<string>("todos");
-  const [openAudit, setOpenAudit] = useState<{ id: string; sei?: string } | null>(null);
+  const [openAudit, setOpenAudit] = useState<{ id: string; sei?: string; srp: boolean } | null>(null);
   const [auditState, setAuditState] = useState<Record<string, boolean>>({});
   const [auditNotes, setAuditNotes] = useState<string>("");
   const [confMap, setConfMap] = useState<Record<string, number>>({});
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const calculateConformity = (data: Record<string, any>) => {
-    const total: number = CHECKLIST_ITEMS.length;
+  const calculateConformity = (data: Record<string, any>, isSrp: boolean) => {
+    const items = isSrp ? FASE_LICITACAO : [...FASE_LICITACAO, ...FASE_CONTRATACAO];
+    const total: number = items.length;
     if (total === 0) return 0;
     let checked = 0;
-    CHECKLIST_ITEMS.forEach((item) => {
+    items.forEach((item) => {
       if (data[item.key]) checked++;
     });
     return Math.round((checked / total) * 100);
@@ -58,7 +64,7 @@ const AvaliacaoConformidade = () => {
       try {
         const { data, error } = await supabase
           .from("contratacoes")
-          .select("id, codigo, descricao, setor_requisitante, etapa_processo, sobrestado, valor_estimado, numero_sei_contratacao")
+          .select("id, codigo, descricao, setor_requisitante, etapa_processo, sobrestado, valor_estimado, numero_sei_contratacao, srp")
           .order("created_at", { ascending: false });
         if (error) throw error;
         if (mounted) setRows((data as any) || []);
@@ -72,8 +78,11 @@ const AvaliacaoConformidade = () => {
               .in("contratacao_id", ids);
             if (confErr) throw confErr;
             const map: Record<string, number> = {};
+            const contratacoesData = (data as any) || [];
+            const srpMap: Record<string, boolean> = {};
+            contratacoesData.forEach((r: any) => { srpMap[r.id] = !!r.srp; });
             (confAll || []).forEach((c: any) => {
-              map[c.contratacao_id] = calculateConformity(c);
+              map[c.contratacao_id] = calculateConformity(c, srpMap[c.contratacao_id] || false);
             });
             if (mounted) setConfMap(map);
           } catch (err: any) {
@@ -147,17 +156,26 @@ const AvaliacaoConformidade = () => {
   };
 
   const openChecklist = async (row: Contratacao) => {
-    setOpenAudit({ id: row.id, sei: (row as any).numero_sei_contratacao || undefined });
+    // Buscar o valor atualizado de SRP diretamente no banco para garantir que seja lido
+    const { data: currentContratacao } = await supabase
+      .from("contratacoes")
+      .select("srp")
+      .eq("id", row.id)
+      .maybeSingle();
+
+    const isSrp = currentContratacao ? !!currentContratacao.srp : !!row.srp;
+
+    setOpenAudit({ id: row.id, sei: (row as any).numero_sei_contratacao || undefined, srp: isSrp });
     setAuditState({});
     setAuditNotes("");
-    
+
     // Buscar conformidade da nova tabela dedicada
     const { data: conf } = await supabase
       .from("contratacoes_conformidade")
       .select("*")
       .eq("contratacao_id", row.id)
       .maybeSingle();
-    
+
     if (conf) {
       setAuditState({
         termo_referencia_aprovado: conf.termo_referencia_aprovado || false,
@@ -169,6 +187,8 @@ const AvaliacaoConformidade = () => {
         documentacao_fornecedor: conf.documentacao_fornecedor || false,
         termo_homologacao: conf.termo_homologacao || false,
         termo_adjudicacao: conf.termo_adjudicacao || false,
+        assinatura_contrato: conf.assinatura_contrato || false,
+        publicacao_contrato: conf.publicacao_contrato || false,
       });
       setAuditNotes(conf.observacao || "");
     }
@@ -198,13 +218,16 @@ const AvaliacaoConformidade = () => {
           documentacao_fornecedor: auditState.documentacao_fornecedor || false,
           termo_homologacao: auditState.termo_homologacao || false,
           termo_adjudicacao: auditState.termo_adjudicacao || false,
+          assinatura_contrato: auditState.assinatura_contrato || false,
+          publicacao_contrato: auditState.publicacao_contrato || false,
           observacao: auditNotes || null,
         }, { onConflict: 'contratacao_id' });
 
       if (error) throw error;
-      
+
       // Atualizar o confMap localmente para refletir a mudança imediatamente
-      const newPct = calculateConformity(auditState);
+      const isSrp = !!openAudit.srp;
+      const newPct = calculateConformity(auditState, isSrp);
       setConfMap((prev) => ({ ...prev, [openAudit.id]: newPct }));
 
       toast.success("Checklist salvo");
@@ -377,12 +400,29 @@ const AvaliacaoConformidade = () => {
                   </Button>
                 ) : null}
               </div>
-              {CHECKLIST_ITEMS.map((it) => (
-                <label key={it.key} className="flex items-center gap-2 text-sm">
-                  <Checkbox checked={!!auditState[it.key]} onCheckedChange={(v) => setAuditState((s) => ({ ...s, [it.key]: !!v }))} />
-                  {it.label}
-                </label>
-              ))}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold text-sm mb-2 text-foreground">Fase de Licitação</h3>
+                  {FASE_LICITACAO.map((it) => (
+                    <label key={it.key} className="flex items-center gap-2 text-sm text-foreground/90">
+                      <Checkbox checked={!!auditState[it.key]} onCheckedChange={(v) => setAuditState((s) => ({ ...s, [it.key]: !!v }))} />
+                      {it.label}
+                    </label>
+                  ))}
+                </div>
+
+                {(!openAudit?.srp) && (
+                  <div>
+                    <h3 className="font-semibold text-sm mb-2 text-foreground">Fase de Contratação</h3>
+                    {FASE_CONTRATACAO.map((it) => (
+                      <label key={it.key} className="flex items-center gap-2 text-sm text-foreground/90">
+                        <Checkbox checked={!!auditState[it.key]} onCheckedChange={(v) => setAuditState((s) => ({ ...s, [it.key]: !!v }))} />
+                        {it.label}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
               <div className="space-y-2">
                 <label className="text-xs text-muted-foreground">Observações</label>
                 <Textarea value={auditNotes} onChange={(e) => setAuditNotes(e.target.value)} rows={3} placeholder="Observações e apontamentos" />
