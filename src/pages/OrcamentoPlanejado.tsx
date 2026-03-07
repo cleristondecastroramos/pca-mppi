@@ -65,9 +65,9 @@ export default function OrcamentoPlanejado() {
       if (result.data && result.data.length > 0) {
         const userIds = [...new Set(result.data.map((log: any) => log.usuario_id).filter(Boolean))] as string[];
         if (userIds.length > 0) {
-          const { data: profilesData } = await supabase
+      const { data: profilesData } = await supabase
             .from("profiles")
-            .select("id, full_name")
+            .select("id, nome_completo")
             .in("id", userIds);
           
           if (profilesData) {
