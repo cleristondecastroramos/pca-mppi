@@ -19,6 +19,7 @@ export type Database = {
           ajuste_orcamentario: number | null
           alinhamento_estrategico: boolean | null
           classe: string
+          codigo: string | null
           created_at: string | null
           created_by: string | null
           data_conclusao: string | null
@@ -69,6 +70,7 @@ export type Database = {
           ajuste_orcamentario?: number | null
           alinhamento_estrategico?: boolean | null
           classe: string
+          codigo?: string | null
           created_at?: string | null
           created_by?: string | null
           data_conclusao?: string | null
@@ -119,6 +121,7 @@ export type Database = {
           ajuste_orcamentario?: number | null
           alinhamento_estrategico?: boolean | null
           classe?: string
+          codigo?: string | null
           created_at?: string | null
           created_by?: string | null
           data_conclusao?: string | null
@@ -263,6 +266,98 @@ export type Database = {
             columns: ["contratacao_id"]
             isOneToOne: false
             referencedRelation: "contratacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orcamento_planejado: {
+        Row: {
+          ano: number
+          created_at: string
+          id: string
+          setor_requisitante: string
+          trava_ativa: boolean
+          valor_fepdc: number
+          valor_fmmp: number
+          valor_pgj: number
+        }
+        Insert: {
+          ano?: number
+          created_at?: string
+          id?: string
+          setor_requisitante: string
+          trava_ativa?: boolean
+          valor_fepdc?: number
+          valor_fmmp?: number
+          valor_pgj?: number
+        }
+        Update: {
+          ano?: number
+          created_at?: string
+          id?: string
+          setor_requisitante?: string
+          trava_ativa?: boolean
+          valor_fepdc?: number
+          valor_fmmp?: number
+          valor_pgj?: number
+        }
+        Relationships: []
+      }
+      orcamento_planejado_auditoria: {
+        Row: {
+          ano: number
+          data_alteracao: string
+          id: string
+          orcamento_id: string | null
+          setor_requisitante: string
+          trava_ativa_anterior: boolean | null
+          trava_ativa_novo: boolean | null
+          usuario_id: string | null
+          valor_fepdc_anterior: number | null
+          valor_fepdc_novo: number | null
+          valor_fmmp_anterior: number | null
+          valor_fmmp_novo: number | null
+          valor_pgj_anterior: number | null
+          valor_pgj_novo: number | null
+        }
+        Insert: {
+          ano: number
+          data_alteracao?: string
+          id?: string
+          orcamento_id?: string | null
+          setor_requisitante: string
+          trava_ativa_anterior?: boolean | null
+          trava_ativa_novo?: boolean | null
+          usuario_id?: string | null
+          valor_fepdc_anterior?: number | null
+          valor_fepdc_novo?: number | null
+          valor_fmmp_anterior?: number | null
+          valor_fmmp_novo?: number | null
+          valor_pgj_anterior?: number | null
+          valor_pgj_novo?: number | null
+        }
+        Update: {
+          ano?: number
+          data_alteracao?: string
+          id?: string
+          orcamento_id?: string | null
+          setor_requisitante?: string
+          trava_ativa_anterior?: boolean | null
+          trava_ativa_novo?: boolean | null
+          usuario_id?: string | null
+          valor_fepdc_anterior?: number | null
+          valor_fepdc_novo?: number | null
+          valor_fmmp_anterior?: number | null
+          valor_fmmp_novo?: number | null
+          valor_pgj_anterior?: number | null
+          valor_pgj_novo?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_auditoria_usuario"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
