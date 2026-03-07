@@ -26,6 +26,19 @@ const Faq = () => {
                   Certifique-se de selecionar a Unidade Orçamentária (UO) correta.
                 </AccordionContent>
               </AccordionItem>
+
+              <AccordionItem value="orcamento-planejado">
+                <AccordionTrigger>Como funciona o limite do Orçamento Planejado por setor?</AccordionTrigger>
+                <AccordionContent>
+                  O sistema gerencia um <strong>Orçamento Planejado</strong> anual para cada Setor Demandante, estipulando um teto financeiro 
+                  distribuído entre as Unidades Orçamentárias (PGJ, FMMP e FEPDC). 
+                  <br /><br />
+                  Se a <strong>Trava Orçamentária</strong> estiver ativada para o seu setor, a soma de todas as suas contratações não poderá 
+                  ultrapassar esse limite. Ao tentar cadastrar uma nova demanda que exceda o teto estabelecido, o sistema bloqueará a gravação 
+                  para garantir a responsabilidade orçamentária. Caso ocorra o bloqueio, você deve reprogramar contratações existentes ou entrar em 
+                  contato com a administração para adequação do seu orçamento planejado.
+                </AccordionContent>
+              </AccordionItem>
               
               <AccordionItem value="saldo">
                 <AccordionTrigger>Por que recebo erro de "Saldo orçamentário insuficiente" ao salvar?</AccordionTrigger>
@@ -62,8 +75,8 @@ const Faq = () => {
                 <AccordionTrigger>O que é o Código (ID) que aparece na lista?</AccordionTrigger>
                 <AccordionContent>
                   Cada demanda recebe um identificador único abreviado para facilitar a comunicação e rastreio (ex: PCA-XXXX). 
-                  Se você ver um ID longo (ex hexadecimal), significa que é um registro antigo que ainda não passou pela 
-                  migração de códigos curtos.
+                  Esse código serve para identificar a demanda no preenchimento do Documento Formalizador da Demanda (DFD) 
+                  quando for iniciado o processo de contratação.
                 </AccordionContent>
               </AccordionItem>
 

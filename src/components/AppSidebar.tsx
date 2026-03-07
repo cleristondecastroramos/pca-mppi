@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, Plus, Settings, LogOut, BarChart3, Users, CheckSquare, ClipboardList, Gauge, BadgeCheck, Clock, TrendingUp, AlertTriangle, HelpCircle, Terminal } from "lucide-react";
+import { LayoutDashboard, FileText, Plus, Settings, LogOut, BarChart3, Users, CheckSquare, ClipboardList, Gauge, BadgeCheck, Clock, TrendingUp, AlertTriangle, HelpCircle, Terminal, BellRing } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useUserRoles, useAuthSession } from "@/lib/auth";
 import {
@@ -33,6 +33,12 @@ const menuItems = [
   { title: "Resultados Alcançados", url: "/resultados-alcancados", icon: TrendingUp },
   { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
   { title: "FAQ / Dúvidas", url: "/faq", icon: HelpCircle },
+  {
+    title: "Notificações",
+    url: "/notificacoes",
+    icon: BellRing,
+    adminOnly: true, // Assuming 'roles' should be 'adminOnly' for consistency with existing filter
+  },
   { title: "Desenvolvimento", url: "/desenvolvimento", icon: Terminal, adminOnly: true },
   { title: "Gerenciamento de Usuários", url: "/gerenciamento-usuarios", icon: Users, adminOnly: true },
   { title: "Orçamento Planejado", url: "/orcamento-planejado", icon: FileText, adminOnly: true },

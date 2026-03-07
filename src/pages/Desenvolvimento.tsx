@@ -139,7 +139,7 @@ export default function Desenvolvimento() {
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex gap-3 items-start">
           <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
           <div className="text-sm text-amber-800">
-            <p className="font-semibold">Página Restrita - Uso em Desenvolvimento</p>
+            <p className="font-semibold">PÁGINA RESTRITA - USO EM DESENVOLVIMENTO</p>
             <p>Esta página é temporária e foca na organização dos recursos de desenvolvimento do PCA 2026. 
                As funcionalidades aqui presentes podem realizar alterações massivas no banco de dados e 
                <strong> não devem ser utilizadas por usuários finais ou em ambiente de produção sem supervisão</strong>.</p>
