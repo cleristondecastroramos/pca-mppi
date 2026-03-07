@@ -26,10 +26,10 @@ export async function generateUniqueCodigo(): Promise<string> {
     codigo = generateRandomCode();
     
     // Verifica se já existe
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("contratacoes")
       .select("id")
-      .eq("codigo" as any, codigo) // Cast as any pois a coluna pode não estar nos tipos ainda
+      .eq("codigo", codigo)
       .maybeSingle();
 
     if (error) {

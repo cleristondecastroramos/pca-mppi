@@ -128,7 +128,7 @@ export default function Contratacoes() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setContratacoes(data || []);
+      setContratacoes((data as any) || []);
     } catch (error: any) {
       console.error("Erro ao buscar contratações:", error);
       toast.error("Erro ao carregar contratações", { description: error?.message || String(error) });
