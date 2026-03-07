@@ -3,18 +3,29 @@ import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, History } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type Orcamento = {
   id: string;
   setor_requisitante: string;
   ano: number;
-  valor: number;
+  valor_pgj: number;
+  valor_fmmp: number;
+  valor_fepdc: number;
   trava_ativa: boolean;
 };
 
@@ -24,15 +35,61 @@ const setoresObj = [
 
 const currentYear = new Date().getFullYear();
 
+const formatCurrency = (val: number) => {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val);
+};
+
 export default function OrcamentoPlanejado() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [orcamentos, setOrcamentos] = useState<Record<string, Orcamento>>({});
-  const [editValues, setEditValues] = useState<Record<string, { valor: string; trava_ativa: boolean }>>({});
+  const [editValues, setEditValues] = useState<Record<string, { valor_pgj: string; valor_fmmp: string; valor_fepdc: string; trava_ativa: boolean }>>({});
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [auditOpen, setAuditOpen] = useState(false);
 
   useEffect(() => {
     fetchOrcamentos();
   }, []);
+
+  const fetchAuditLogs = async () => {
+    try {
+      let result = await (supabase as any)
+        .from("orcamento_planejado_auditoria")
+        .select("*")
+        .order("data_alteracao", { ascending: false })
+        .limit(100);
+
+      if (result.error) throw result.error;
+
+      // Busca os nomes dos usuários cruzando as tabelas permanentemente em vez de usar foreign key join ("fallback")
+      if (result.data && result.data.length > 0) {
+        const userIds = [...new Set(result.data.map((log: any) => log.usuario_id).filter(Boolean))] as string[];
+        if (userIds.length > 0) {
+          const { data: profilesData } = await supabase
+            .from("profiles")
+            .select("id, full_name")
+            .in("id", userIds);
+          
+          if (profilesData) {
+            const profilesMap = profilesData.reduce((acc: any, p: any) => {
+              acc[p.id] = p.full_name;
+              return acc;
+            }, {});
+            
+            result.data = result.data.map((log: any) => ({
+              ...log,
+              profiles: { full_name: profilesMap[log.usuario_id] }
+            }));
+          }
+        }
+      }
+
+      setAuditLogs(result.data || []);
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Erro ao carregar auditoria: " + (err.message || "Tente atualizar a página."));
+    }
+  };
 
   const fetchOrcamentos = async () => {
     setLoading(true);
@@ -45,12 +102,14 @@ export default function OrcamentoPlanejado() {
       if (error) throw error;
 
       const loadedOrcamentos: Record<string, Orcamento> = {};
-      const localEdits: Record<string, { valor: string; trava_ativa: boolean }> = {};
+      const localEdits: Record<string, { valor_pgj: string; valor_fmmp: string; valor_fepdc: string; trava_ativa: boolean }> = {};
 
       (data as Orcamento[])?.forEach((item) => {
         loadedOrcamentos[item.setor_requisitante] = item;
         localEdits[item.setor_requisitante] = {
-          valor: (item.valor || 0).toString(),
+          valor_pgj: (item.valor_pgj || 0).toString(),
+          valor_fmmp: (item.valor_fmmp || 0).toString(),
+          valor_fepdc: (item.valor_fepdc || 0).toString(),
           trava_ativa: item.trava_ativa || false,
         };
       });
@@ -58,7 +117,11 @@ export default function OrcamentoPlanejado() {
       // Populate empty ones
       setoresObj.forEach((setor) => {
         if (!localEdits[setor]) {
-          localEdits[setor] = { valor: "0", trava_ativa: false };
+          localEdits[setor] = { valor_pgj: "0,00", valor_fmmp: "0,00", valor_fepdc: "0,00", trava_ativa: false };
+        } else {
+          localEdits[setor].valor_pgj = parseValToCurrencyDisplay(localEdits[setor].valor_pgj);
+          localEdits[setor].valor_fmmp = parseValToCurrencyDisplay(localEdits[setor].valor_fmmp);
+          localEdits[setor].valor_fepdc = parseValToCurrencyDisplay(localEdits[setor].valor_fepdc);
         }
       });
 
@@ -72,43 +135,71 @@ export default function OrcamentoPlanejado() {
     }
   };
 
-  const handleSave = async (setor: string) => {
+  const parseValToCurrencyDisplay = (val: string) => {
+    const raw = parseFloat(val) || 0;
+    return new Intl.NumberFormat("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(raw);
+  };
+
+  const handleSaveAll = async () => {
     setSaving(true);
     try {
-      const editData = editValues[setor];
-      const parsedValor = parseFloat(editData.valor.replace(/\./g, "").replace(",", ".")) || 0;
-      
-      const existing = orcamentos[setor];
+      const updates = [];
+      const inserts = [];
 
-      if (existing) {
-        // Update
-        const { error } = await (supabase as any)
-          .from("orcamento_planejado")
-          .update({ valor: parsedValor, trava_ativa: editData.trava_ativa })
-          .eq("id", existing.id);
+      for (const setor of setoresObj) {
+        const editData = editValues[setor];
+        const vPgj = parseFloat(editData.valor_pgj.replace(/\./g, "").replace(",", ".")) || 0;
+        const vFmmp = parseFloat(editData.valor_fmmp.replace(/\./g, "").replace(",", ".")) || 0;
+        const vFepdc = parseFloat(editData.valor_fepdc.replace(/\./g, "").replace(",", ".")) || 0;
+        
+        const existing = orcamentos[setor];
 
-        if (error) throw error;
-      } else {
-        // Insert
-        const { error } = await (supabase as any)
-          .from("orcamento_planejado")
-          .insert([
-            {
-              setor_requisitante: setor,
-              ano: currentYear,
-              valor: parsedValor,
-              trava_ativa: editData.trava_ativa,
-            },
-          ]);
-
-        if (error) throw error;
+        if (existing?.id) {
+          updates.push({
+            id: existing.id,
+            setor_requisitante: setor,
+            ano: currentYear,
+            valor_pgj: vPgj,
+            valor_fmmp: vFmmp,
+            valor_fepdc: vFepdc,
+            trava_ativa: editData.trava_ativa,
+          });
+        } else {
+          inserts.push({
+            setor_requisitante: setor,
+            ano: currentYear,
+            valor_pgj: vPgj,
+            valor_fmmp: vFmmp,
+            valor_fepdc: vFepdc,
+            trava_ativa: editData.trava_ativa,
+          });
+        }
       }
 
-      toast.success(`Orçamento do setor ${setor} salvo com sucesso!`);
-      fetchOrcamentos(); // Re-fetch all to ensure ids and states are updated
+      if (inserts.length > 0) {
+        const { error: errorInserts } = await (supabase as any)
+          .from("orcamento_planejado")
+          .insert(inserts);
+
+        if (errorInserts) throw errorInserts;
+      }
+
+      if (updates.length > 0) {
+        const { error: errorUpdates } = await (supabase as any)
+          .from("orcamento_planejado")
+          .upsert(updates, { onConflict: 'id' });
+
+        if (errorUpdates) throw errorUpdates;
+      }
+
+      toast.success(`Todos os orçamentos foram salvos com sucesso!`);
+      fetchOrcamentos();
     } catch (err: any) {
       console.error(err);
-      toast.error("Erro ao salvar orçamento: " + err.message);
+      toast.error("Erro ao salvar orçamentos: " + err.message);
     } finally {
       setSaving(false);
     }
@@ -124,12 +215,16 @@ export default function OrcamentoPlanejado() {
     }).format(numericValue);
   };
 
-  const handleChangeValor = (setor: string, val: string) => {
+  const parseToNumber = (valString: string) => {
+    return parseFloat(valString.replace(/\./g, "").replace(",", ".")) || 0;
+  };
+
+  const handleChangeValor = (setor: string, field: "valor_pgj" | "valor_fmmp" | "valor_fepdc", val: string) => {
     setEditValues((prev) => ({
       ...prev,
       [setor]: {
         ...prev[setor],
-        valor: parseCurrencyInput(val),
+        [field]: parseCurrencyInput(val),
       },
     }));
   };
@@ -144,6 +239,22 @@ export default function OrcamentoPlanejado() {
     }));
   };
 
+  // Calcula totais
+  let totalGeralPgj = 0;
+  let totalGeralFmmp = 0;
+  let totalGeralFepdc = 0;
+
+  setoresObj.forEach((s) => {
+    const data = editValues[s];
+    if (data) {
+      totalGeralPgj += parseToNumber(data.valor_pgj);
+      totalGeralFmmp += parseToNumber(data.valor_fmmp);
+      totalGeralFepdc += parseToNumber(data.valor_fepdc);
+    }
+  });
+
+  const totalGeralAll = totalGeralPgj + totalGeralFmmp + totalGeralFepdc;
+
   if (loading) {
     return (
       <Layout>
@@ -157,18 +268,78 @@ export default function OrcamentoPlanejado() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-xl font-bold text-foreground">Orçamento Planejado</h1>
-          <p className="text-sm text-muted-foreground">
-            Defina o limite de utilização orçamentária e travas sistêmicas por setor para o ano {currentYear}.
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-foreground">Orçamento Planejado</h1>
+            <p className="text-sm text-muted-foreground">
+              Defina o limite de utilização orçamentária e travas sistêmicas por setor para o ano {currentYear}.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Dialog open={auditOpen} onOpenChange={(open) => {
+              setAuditOpen(open);
+              if (open) fetchAuditLogs();
+            }}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="whitespace-nowrap">
+                  <History className="mr-2 h-4 w-4" />
+                  Auditoria
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[80vh]">
+                <DialogHeader>
+                  <DialogTitle>Auditoria de Configurações</DialogTitle>
+                  <DialogDescription>
+                    Histórico de alterações nos limites orçamentários
+                  </DialogDescription>
+                </DialogHeader>
+                <ScrollArea className="h-[60vh] mt-4 rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Usuário</TableHead>
+                        <TableHead>Setor</TableHead>
+                        <TableHead>Alterações (PGJ / FMMP / FEPDC / Trava)</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {auditLogs.map((log) => (
+                        <TableRow key={log.id}>
+                          <TableCell className="text-xs align-top whitespace-nowrap">
+                            {new Date(log.data_alteracao).toLocaleString("pt-BR")}
+                          </TableCell>
+                          <TableCell className="font-medium text-xs align-top">
+                            {log.profiles?.full_name || log.usuario_id || "Desconhecido"}
+                          </TableCell>
+                          <TableCell className="font-medium text-xs align-top">
+                            {log.setor_requisitante}
+                          </TableCell>
+                          <TableCell className="text-xs space-y-1 align-top">
+                            <div><strong>PGJ:</strong> {formatCurrency(Number(log.valor_pgj_anterior) || 0)} → {formatCurrency(Number(log.valor_pgj_novo) || 0)}</div>
+                            <div><strong>FMMP:</strong> {formatCurrency(Number(log.valor_fmmp_anterior) || 0)} → {formatCurrency(Number(log.valor_fmmp_novo) || 0)}</div>
+                            <div><strong>FEPDC:</strong> {formatCurrency(Number(log.valor_fepdc_anterior) || 0)} → {formatCurrency(Number(log.valor_fepdc_novo) || 0)}</div>
+                            <div><strong>Trava:</strong> {log.trava_ativa_anterior ? "Ativada" : "Inativa"} → {log.trava_ativa_novo ? "Ativada" : "Inativa"}</div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              </DialogContent>
+            </Dialog>
+            <Button onClick={handleSaveAll} disabled={saving} className="whitespace-nowrap">
+              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+              Salvar
+            </Button>
+          </div>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle>Limites por Setor Demandante</CardTitle>
             <CardDescription>
-              Ajuste o valor máximo permitido para cada setor. Ao ativar a "Trava", o setor será bloqueado de criar novas demandas que excedam este valor.
+              Ajuste o valor máximo permitido para cada setor em cada Unidade Orçamentária. Ao ativar a "Trava", o setor será bloqueado de criar novas demandas que excedam a soma configurada.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -177,26 +348,50 @@ export default function OrcamentoPlanejado() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Setor</TableHead>
-                    <TableHead>Valor Planejado (R$)</TableHead>
+                    <TableHead className="text-center">PGJ (R$)</TableHead>
+                    <TableHead className="text-center">FMMP (R$)</TableHead>
+                    <TableHead className="text-center">FEPDC (R$)</TableHead>
+                    <TableHead className="text-right">Total Setor (R$)</TableHead>
                     <TableHead className="text-center">Trava Ativa?</TableHead>
-                    <TableHead className="text-right">Ação</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {setoresObj.map((setor) => {
-                    const editData = editValues[setor] || { valor: "0,00", trava_ativa: false };
+                    const editData = editValues[setor] || { valor_pgj: "0,00", valor_fmmp: "0,00", valor_fepdc: "0,00", trava_ativa: false };
+
+                    const numPgj = parseToNumber(editData.valor_pgj);
+                    const numFmmp = parseToNumber(editData.valor_fmmp);
+                    const numFepdc = parseToNumber(editData.valor_fepdc);
+                    const totalSetor = numPgj + numFmmp + numFepdc;
 
                     return (
                       <TableRow key={setor}>
-                        <TableCell className="font-medium align-middle">{setor}</TableCell>
-                        <TableCell className="align-middle w-[250px]">
+                        <TableCell className="font-medium align-middle py-1 px-2">{setor}</TableCell>
+                        <TableCell className="align-middle w-[150px] py-1 px-2">
                           <Input
-                            value={editData.valor}
-                            onChange={(e) => handleChangeValor(setor, e.target.value)}
-                            className="bg-background text-right"
+                            value={editData.valor_pgj}
+                            onChange={(e) => handleChangeValor(setor, "valor_pgj", e.target.value)}
+                            className="bg-background text-right h-8 text-sm"
                           />
                         </TableCell>
-                        <TableCell className="text-center align-middle">
+                        <TableCell className="align-middle w-[150px] py-1 px-2">
+                          <Input
+                            value={editData.valor_fmmp}
+                            onChange={(e) => handleChangeValor(setor, "valor_fmmp", e.target.value)}
+                            className="bg-background text-right h-8 text-sm"
+                          />
+                        </TableCell>
+                        <TableCell className="align-middle w-[150px] py-1 px-2">
+                          <Input
+                            value={editData.valor_fepdc}
+                            onChange={(e) => handleChangeValor(setor, "valor_fepdc", e.target.value)}
+                            className="bg-background text-right h-8 text-sm"
+                          />
+                        </TableCell>
+                        <TableCell className="align-middle text-right font-medium py-1 px-2">
+                          {formatCurrency(totalSetor)}
+                        </TableCell>
+                        <TableCell className="text-center align-middle py-1 px-2">
                           <div className="flex items-center justify-center">
                             <Switch
                               checked={editData.trava_ativa}
@@ -207,21 +402,20 @@ export default function OrcamentoPlanejado() {
                             </Label>
                           </div>
                         </TableCell>
-                        <TableCell className="text-right align-middle">
-                          <Button
-                            size="sm"
-                            variant="default"
-                            onClick={() => handleSave(setor)}
-                            disabled={saving}
-                          >
-                            <Save className="mr-2 h-4 w-4" />
-                            Salvar
-                          </Button>
-                        </TableCell>
                       </TableRow>
                     );
                   })}
                 </TableBody>
+                <TableFooter>
+                  <TableRow>
+                    <TableCell className="font-bold">Total Geral</TableCell>
+                    <TableCell className="text-right font-bold pr-5">{formatCurrency(totalGeralPgj)}</TableCell>
+                    <TableCell className="text-right font-bold pr-5">{formatCurrency(totalGeralFmmp)}</TableCell>
+                    <TableCell className="text-right font-bold pr-5">{formatCurrency(totalGeralFepdc)}</TableCell>
+                    <TableCell className="text-right font-bold text-primary">{formatCurrency(totalGeralAll)}</TableCell>
+                    <TableCell></TableCell>
+                  </TableRow>
+                </TableFooter>
               </Table>
             </div>
           </CardContent>

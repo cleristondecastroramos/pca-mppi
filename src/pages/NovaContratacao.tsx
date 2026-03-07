@@ -100,7 +100,7 @@ export default function NovaContratacao() {
       // Verificar limite de orçamento planejado e trava do setor
       const { data: orcamento } = await (supabase as any)
         .from("orcamento_planejado")
-        .select("valor, trava_ativa")
+        .select("valor_pgj, valor_fmmp, valor_fepdc, trava_ativa")
         .eq("setor_requisitante", data.setor_requisitante)
         .eq("ano", new Date().getFullYear())
         .maybeSingle();
@@ -117,7 +117,9 @@ export default function NovaContratacao() {
           0
         );
 
-        if (totalAtual + valorEstimadoTotal > orcamento.valor) {
+        const limiteTotal = (orcamento.valor_pgj || 0) + (orcamento.valor_fmmp || 0) + (orcamento.valor_fepdc || 0);
+
+        if (totalAtual + valorEstimadoTotal > limiteTotal) {
           toast.error("Orçamento planejado excedido! Você não pode prosseguir pois a trava orçamentária para o setor está ativada.");
           setLoading(false);
           return;
