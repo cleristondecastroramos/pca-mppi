@@ -1,5 +1,6 @@
 import { LayoutDashboard, FileText, Plus, Settings, LogOut, BarChart3, Users, CheckSquare, ClipboardList, Gauge, BadgeCheck, Clock, TrendingUp, AlertTriangle, HelpCircle, Terminal } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import { useUserRoles, useAuthSession } from "@/lib/auth";
 import {
   Sidebar,
   SidebarContent,
@@ -31,10 +32,11 @@ const menuItems = [
   { title: "Avaliação e Conformidade", url: "/avaliacao-conformidade", icon: CheckSquare },
   { title: "Resultados Alcançados", url: "/resultados-alcancados", icon: TrendingUp },
   { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
-  { title: "Gerenciamento de Usuários", url: "/gerenciamento-usuarios", icon: Users },
-  { title: "Minha Conta", url: "/minha-conta", icon: Settings },
   { title: "FAQ / Dúvidas", url: "/faq", icon: HelpCircle },
-  { title: "Desenvolvimento", url: "/desenvolvimento", icon: Terminal },
+  { title: "Desenvolvimento", url: "/desenvolvimento", icon: Terminal, adminOnly: true },
+  { title: "Gerenciamento de Usuários", url: "/gerenciamento-usuarios", icon: Users, adminOnly: true },
+  { title: "Orçamento Planejado", url: "/orcamento-planejado", icon: FileText, adminOnly: true },
+  { title: "Minha Conta", url: "/minha-conta", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -43,6 +45,10 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { data: session } = useAuthSession();
+  const { data: roles } = useUserRoles(session?.user?.id);
+
+  const isAdmin = roles?.includes("administrador") || false;
 
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -94,7 +100,9 @@ export function AppSidebar() {
           <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {menuItems
+                .filter((item) => !item.adminOnly || isAdmin)
+                .map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink

@@ -97,6 +97,33 @@ export default function NovaContratacao() {
       // Gerar código único
       const codigo = await generateUniqueCodigo();
 
+      // Verificar limite de orçamento planejado e trava do setor
+      const { data: orcamento } = await (supabase as any)
+        .from("orcamento_planejado")
+        .select("valor, trava_ativa")
+        .eq("setor_requisitante", data.setor_requisitante)
+        .eq("ano", new Date().getFullYear())
+        .maybeSingle();
+
+      if (orcamento?.trava_ativa) {
+        const { data: contratacoesSetor } = await supabase
+          .from("contratacoes")
+          .select("valor_estimado")
+          .eq("setor_requisitante", data.setor_requisitante)
+          .neq("etapa_processo", "Cancelada");
+
+        const totalAtual = (contratacoesSetor || []).reduce(
+          (acc, curr) => acc + (curr.valor_estimado || 0),
+          0
+        );
+
+        if (totalAtual + valorEstimadoTotal > orcamento.valor) {
+          toast.error("Orçamento planejado excedido! Você não pode prosseguir pois a trava orçamentária para o setor está ativada.");
+          setLoading(false);
+          return;
+        }
+      }
+
       // Submit to backend
       const { error } = await supabase.from("contratacoes").insert([{ ...data, codigo }]);
       

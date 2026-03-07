@@ -179,8 +179,8 @@ const SetoresDemandantes = () => {
           const resumo = {
             total_demandas: allData.length,
             valor_estimado: allData.reduce((sum, r) => sum + (r.valor_estimado || 0), 0),
-            valor_contratado: allData.reduce((sum, r) => sum + calcExecutado(r as Row), 0),
-            saldo_orcamentario: allData.reduce((sum, r) => sum + ((r.valor_estimado || 0) - calcExecutado(r as Row)), 0),
+            valor_contratado: allData.reduce((sum, r) => sum + calcExecutado(r as unknown as Row), 0),
+            saldo_orcamentario: allData.reduce((sum, r) => sum + ((r.valor_estimado || 0) - calcExecutado(r as unknown as Row)), 0),
             count_planejamento: allData.filter(r => r.etapa_processo === "Planejamento" || !r.etapa_processo).length,
             count_em_andamento: allData.filter(r => ["Em Licitação", "Contratado"].includes(r.etapa_processo || "")).length,
             count_concluidos: allData.filter(r => r.etapa_processo === "Concluído").length,
@@ -213,7 +213,7 @@ const SetoresDemandantes = () => {
         <Card>
           <CardContent className="p-2">
             <div className="flex items-start gap-2 overflow-x-auto whitespace-nowrap">
-              <div className="basis-[37%] min-w-[420px] shrink-0">
+              <div className="shrink-0">
                 <div className="text-[11px] text-muted-foreground px-0.5">Setor:</div>
                 <div className="flex flex-nowrap gap-0.5 overflow-x-auto whitespace-nowrap py-0.5">
                   {setores.map((s) => (
@@ -228,32 +228,32 @@ const SetoresDemandantes = () => {
                   ))}
                 </div>
               </div>
-              <div className="basis-[30%] min-w-[330px] shrink-0">
+              <div className="shrink-0 ml-24">
                 <div className="text-[11px] text-muted-foreground px-0.5">Tipo de Contratação:</div>
                 <div className="flex flex-nowrap gap-0.5 overflow-x-auto whitespace-nowrap py-0.5">
-                  {[ALL, "Nova Contratação", "Renovação", "Aditivo Quantitativo", "Repactuação", "Apostilamento", "Indeterminado"].map((t) => (
+                  {["Nova Contratação", "Renovação", "Aditivo Quantitativo", "Repactuação", "Apostilamento", "Indeterminado"].map((t) => (
                     <Button
                       key={t}
-                      variant={tipoContratacao === (t === ALL ? undefined : t) ? "default" : "secondary"}
+                      variant={tipoContratacao === t ? "default" : "secondary"}
                       size="xs"
-                      onClick={() => { setTipoContratacao(t === ALL ? undefined : t); setPage(1); }}
+                      onClick={() => { setTipoContratacao(tipoContratacao === t ? undefined : t); setPage(1); }}
                     >
-                      {t === ALL ? "Todos" : t}
+                      {t}
                     </Button>
                   ))}
                 </div>
               </div>
-              <div className="basis-[29%] min-w-[330px] shrink-0">
+              <div className="shrink-0 ml-24">
                 <div className="text-[11px] text-muted-foreground px-0.5">Status:</div>
                 <div className="flex flex-nowrap gap-0.5 overflow-x-auto whitespace-nowrap py-0.5">
-                  {[ALL, "não iniciado", "em andamento", "concluído", "sobrestado"].map((st) => (
+                  {["não iniciado", "em andamento", "concluído", "sobrestado"].map((st) => (
                     <Button
                       key={st}
-                      variant={status === (st === ALL ? undefined : st) ? "default" : "secondary"}
+                      variant={status === st ? "default" : "secondary"}
                       size="xs"
-                      onClick={() => { setStatus(st === ALL ? undefined : st); setPage(1); }}
+                      onClick={() => { setStatus(status === st ? undefined : st); setPage(1); }}
                     >
-                      {st === ALL ? "Todos" : st}
+                      {st}
                     </Button>
                   ))}
                 </div>
@@ -310,7 +310,13 @@ const SetoresDemandantes = () => {
                         <TableCell className={`text-right ${calcSaldo(r) < 0 ? "text-destructive font-medium" : ""}`}>
                           {formatCurrencyBRL(calcSaldo(r))}
                         </TableCell>
-                      <TableCell>{r.etapa_processo || "-"}</TableCell>
+                      <TableCell>
+                        {r.etapa_processo === "Planejamento"
+                          ? "Não iniciado"
+                          : r.etapa_processo === "Em Licitação"
+                          ? "Em andamento"
+                          : r.etapa_processo || "-"}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
