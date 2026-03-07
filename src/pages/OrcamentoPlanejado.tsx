@@ -72,7 +72,7 @@ export default function OrcamentoPlanejado() {
           
           if (profilesData) {
             const profilesMap = profilesData.reduce((acc: any, p: any) => {
-              acc[p.id] = p.full_name;
+              acc[p.id] = p.nome_completo;
               return acc;
             }, {});
             
