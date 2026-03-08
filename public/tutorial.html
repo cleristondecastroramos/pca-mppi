@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutorial Completo — Sistema PCA 2026 | MPPI</title>
+<meta name="description" content="Tutorial detalhado do Sistema de Gerenciamento do Plano de Contratações Anual (PCA 2026) do Ministério Público do Estado do Piauí.">
+<style>
+  :root {
+    --red: #9b1b30;
+    --red-light: #c0334d;
+    --red-bg: #fdf2f4;
+    --bg: #ffffff;
+    --text: #1a1a2e;
+    --text-muted: #555;
+    --border: #e5e5e5;
+    --sidebar-bg: #f8f8fa;
+    --code-bg: #f4f4f8;
+    --green: #22c55e;
+    --amber: #f59e0b;
+    --blue: #3b82f6;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: var(--text);
+    line-height: 1.7;
+    display: flex;
+    min-height: 100vh;
+  }
+  /* Sidebar / TOC */
+  .sidebar {
+    width: 300px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    overflow-y: auto;
+    z-index: 10;
+  }
+  .sidebar-logo {
+    text-align: center;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--red);
+  }
+  .sidebar-logo h2 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--red);
+    letter-spacing: 1px;
+  }
+  .sidebar-logo p {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+  }
+  .toc { list-style: none; }
+  .toc li { margin-bottom: 2px; }
+  .toc a {
+    display: block;
+    padding: 6px 12px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+  .toc a:hover, .toc a.active {
+    background: var(--red-bg);
+    color: var(--red);
+    font-weight: 600;
+  }
+  .toc .section-num {
+    display: inline-block;
+    width: 28px;
+    font-weight: 700;
+    color: var(--red);
+    font-size: 12px;
+  }
+  /* Main content */
+  .main {
+    margin-left: 300px;
+    flex: 1;
+    max-width: 900px;
+    padding: 40px 48px 80px;
+  }
+  .hero {
+    background: linear-gradient(135deg, var(--red) 0%, var(--red-light) 100%);
+    color: white;
+    padding: 40px 36px;
+    border-radius: 16px;
+    margin-bottom: 40px;
+  }
+  .hero h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+  .hero p { opacity: 0.9; font-size: 15px; }
+  .hero .meta {
+    margin-top: 16px;
+    font-size: 12px;
+    opacity: 0.7;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--red);
+    margin: 48px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--red-bg);
+    scroll-margin-top: 24px;
+  }
+  h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 28px 0 10px;
+    scroll-margin-top: 24px;
+  }
+  h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin: 20px 0 8px;
+  }
+  p { margin-bottom: 12px; font-size: 14.5px; }
+  ul, ol {
+    margin: 8px 0 16px 24px;
+    font-size: 14.5px;
+  }
+  li { margin-bottom: 4px; }
+  strong { font-weight: 700; }
+  em { font-style: italic; }
+  .note {
+    background: var(--red-bg);
+    border-left: 4px solid var(--red);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 16px 0;
+    font-size: 13.5px;
+  }
+  .note strong { color: var(--red); }
+  .tip {
+    background: #f0fdf4;
+    border-left: 4px solid var(--green);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 16px 0;
+    font-size: 13.5px;
+  }
+  .tip strong { color: #16a34a; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 13px;
+  }
+  thead th {
+    background: var(--red);
+    color: white;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  tbody td {
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr:nth-child(even) { background: #fafafa; }
+  tbody tr:hover { background: var(--red-bg); }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-red { background: #fee2e2; color: #991b1b; }
+  .badge-amber { background: #fef3c7; color: #92400e; }
+  .badge-blue { background: #dbeafe; color: #1e40af; }
+  .badge-gray { background: #f3f4f6; color: #374151; }
+  .footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  /* Mobile */
+  .menu-toggle {
+    display: none;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 20;
+    background: var(--red);
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; padding: 24px 20px 60px; }
+    .menu-toggle { display: block; }
+    .hero { padding: 24px 20px; }
+    .hero h1 { font-size: 22px; }
+  }
+  @media print {
+    .sidebar, .menu-toggle { display: none; }
+    .main { margin-left: 0; max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰ Menu</button>
+
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <h2>📖 PCA 2026</h2>
+    <p>Tutorial do Sistema</p>
+  </div>
+  <ul class="toc">
+    <li><a href="#sec1"><span class="section-num">1.</span> Introdução ao Sistema</a></li>
+    <li><a href="#sec2"><span class="section-num">2.</span> Acesso e Autenticação</a></li>
+    <li><a href="#sec3"><span class="section-num">3.</span> Perfis de Acesso</a></li>
+    <li><a href="#sec4"><span class="section-num">4.</span> Navegação e Interface</a></li>
+    <li><a href="#sec5"><span class="section-num">5.</span> Home</a></li>
+    <li><a href="#sec6"><span class="section-num">6.</span> Visão Geral</a></li>
+    <li><a href="#sec7"><span class="section-num">7.</span> Contratações</a></li>
+    <li><a href="#sec8"><span class="section-num">8.</span> Nova Contratação</a></li>
+    <li><a href="#sec9"><span class="section-num">9.</span> Setores Demandantes</a></li>
+    <li><a href="#sec10"><span class="section-num">10.</span> Controle de Prazos</a></li>
+    <li><a href="#sec11"><span class="section-num">11.</span> Pontos de Atenção</a></li>
+    <li><a href="#sec12"><span class="section-num">12.</span> Prioridades</a></li>
+    <li><a href="#sec13"><span class="section-num">13.</span> Conformidade</a></li>
+    <li><a href="#sec14"><span class="section-num">14.</span> Resultados</a></li>
+    <li><a href="#sec15"><span class="section-num">15.</span> Relatórios</a></li>
+    <li><a href="#sec16"><span class="section-num">16.</span> Orçamento Planejado</a></li>
+    <li><a href="#sec17"><span class="section-num">17.</span> Gerenc. Usuários</a></li>
+    <li><a href="#sec18"><span class="section-num">18.</span> Notificações</a></li>
+    <li><a href="#sec19"><span class="section-num">19.</span> Minha Conta</a></li>
+    <li><a href="#sec20"><span class="section-num">20.</span> FAQ / Dúvidas</a></li>
+    <li><a href="#sec21"><span class="section-num">21.</span> Glossário</a></li>
+  </ul>
+</nav>
+
+<main class="main">
+
+<div class="hero">
+  <h1>Tutorial Completo do Sistema PCA 2026</h1>
+  <p>Sistema de Gerenciamento do Plano de Contratações Anual — Ministério Público do Estado do Piauí</p>
+  <div class="meta">
+    <span>📄 Versão 1.0</span>
+    <span>📅 Março de 2026</span>
+    <span>🏛️ ASSESPPLAGES</span>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SEÇÃO 1 -->
+<!-- ============================================ -->
+<h2 id="sec1">1. Introdução ao Sistema</h2>
+
+<h3>1.1. O que é o PCA 2026?</h3>
+<p>O <strong>PCA 2026</strong> (Plano de Contratações Anual 2026) é o sistema oficial do Ministério Público do Estado do Piauí (MPPI) desenvolvido para gerenciar de forma centralizada, transparente e eficiente todas as contratações públicas planejadas para o exercício de 2026. Ele substitui o uso de planilhas avulsas e dashboards de Power BI por uma plataforma web integrada, com controle de acesso, rastreabilidade e automação de processos.</p>
+
+<h3>1.2. Objetivo do Sistema</h3>
+<p>O sistema foi projetado para atender aos seguintes objetivos:</p>
+<ul>
+  <li><strong>Centralização:</strong> Reunir em uma única plataforma todas as demandas de contratação dos diversos setores do MPPI.</li>
+  <li><strong>Transparência:</strong> Oferecer visibilidade total sobre o andamento de cada contratação, desde o planejamento até a conclusão.</li>
+  <li><strong>Controle orçamentário:</strong> Gerenciar limites orçamentários por setor e unidade orçamentária, com travas automáticas.</li>
+  <li><strong>Rastreabilidade:</strong> Manter histórico completo de todas as alterações realizadas em cada contratação.</li>
+  <li><strong>Conformidade:</strong> Acompanhar o cumprimento de requisitos documentais e legais de cada processo licitatório.</li>
+  <li><strong>Tomada de decisão:</strong> Fornecer dashboards, indicadores e relatórios para priorização e acompanhamento.</li>
+</ul>
+
+<h3>1.3. Público-alvo</h3>
+<p>O sistema é utilizado por servidores do MPPI envolvidos no processo de planejamento e execução de contratações:</p>
+<ul>
+  <li><strong>Administradores</strong> (ASSESPPLAGES): Gestão global, cadastro de usuários e configurações.</li>
+  <li><strong>Gestores:</strong> Acompanhamento e consolidação das contratações de todos os setores.</li>
+  <li><strong>Setores Requisitantes:</strong> Servidores que cadastram e gerenciam suas demandas (CAA, CCF, CCS, CLC, CPPT, CTI, CRH, CEAF, GAECO, GSI, CONINT, PLAN, PROCON).</li>
+  <li><strong>Consulta:</strong> Acesso somente leitura das informações do sistema.</li>
+</ul>
+
+<h3>1.4. Requisitos de Acesso</h3>
+<ul>
+  <li><strong>Navegador web atualizado:</strong> Chrome, Firefox, Edge ou Safari.</li>
+  <li><strong>Conexão com a internet.</strong></li>
+  <li><strong>Credenciais de acesso:</strong> E-mail institucional e senha fornecidos pelo administrador. <em>Não existe autocadastro.</em></li>
+</ul>
+
+<!-- ============================================ -->
+<!-- SEÇÃO 2 -->
+<!-- ============================================ -->
+<h2 id="sec2">2. Acesso e Autenticação</h2>
+
+<h3>2.1. Tela de Login</h3>
+<p>Para acessar o sistema:</p>
+<ol>
+  <li>Abra o navegador e acesse <strong>https://pca-mppi.lovable.app</strong></li>
+  <li>Na tela de login, preencha:<br>
+    &bull; <strong>E-mail Institucional:</strong> seu.nome@mppi.mp.br<br>
+    &bull; <strong>Senha:</strong> senha fornecida pelo administrador.
+  </li>
+  <li>Clique no botão <strong>"Entrar"</strong>.</li>
+  <li>Se correto, você será redirecionado para a <strong>Página Inicial (Home)</strong>.</li>
+</ol>
+
+<div class="note">
+  <strong>Importante:</strong> O sistema não possui opção de cadastro autônomo. Caso não possua credenciais, entre em contato com o administrador na ASSESPPLAGES.
+</div>
+
+<h3>2.2. Recuperação de Senha</h3>
+<ol>
+  <li>Na tela de login, clique em <strong>"Esqueci minha senha"</strong>.</li>
+  <li>Informe o e-mail institucional associado à sua conta.</li>
+  <li>Clique em <strong>"Enviar link de redefinição"</strong>.</li>
+  <li>Acesse seu e-mail e clique no link recebido.</li>
+  <li>Defina sua nova senha na tela de redefinição.</li>
+</ol>
+
+<div class="note">
+  <strong>Atenção:</strong> O link de redefinição tem validade limitada. Caso expire, repita o processo.
+</div>
+
+<h3>2.3. Redefinição de Senha</h3>
+<p>Após clicar no link recebido por e-mail, informe a nova senha, confirme-a e clique em <strong>"Redefinir Senha"</strong>.</p>
+
+<div class="tip">
+  <strong>Dica:</strong> Utilize senhas fortes com letras maiúsculas, minúsculas, números e caracteres especiais.
+</div>
+
+<h3>2.4. Logout</h3>
+<p>No <strong>menu lateral</strong>, clique no botão <strong>"Sair"</strong> na parte inferior. Sua sessão será encerrada e você será redirecionado para a tela de login.</p>
+
+<div class="note">
+  <strong>Recomendação:</strong> Sempre efetue logout ao finalizar suas atividades, especialmente em computadores compartilhados.
+</div>
+
+<!-- ============================================ -->
+<!-- SEÇÃO 3 -->
+<!-- ============================================ -->
+<h2 id="sec3">3. Perfis de Acesso e Permissões</h2>
+
+<h3>3.1. Perfil Administrador</h3>
+<p>Nível mais alto de acesso. Atribuições:</p>
+<ul>
+  <li>Gerenciamento completo de usuários e perfis de acesso.</li>
+  <li>Configurações globais, incluindo orçamento planejado e travas.</li>
+  <li>Aprovação final de planejamentos.</li>
+  <li>Visualização e edição de todas as contratações.</li>
+  <li>Exclusão de registros.</li>
+  <li>Gerenciamento de notificações.</li>
+</ul>
+
+<h3>3.2. Perfil Gestor</h3>
+<ul>
+  <li>Visualização de todas as contratações de todos os setores.</li>
+  <li>Edição técnica de contratações.</li>
+  <li>Geração de relatórios gerenciais e dashboards.</li>
+  <li>Validação de demandas dos setores.</li>
+  <li><strong>Sem acesso</strong> a gerenciamento de usuários, orçamento e notificações.</li>
+</ul>
+
+<h3>3.3. Perfil Setor Requisitante</h3>
+<ul>
+  <li>Cadastro de novas contratações.</li>
+  <li>Edição de contratações em rascunho do seu setor.</li>
+  <li>Visualização apenas das demandas do seu setor.</li>
+  <li><strong>Sem acesso</strong> a relatórios, conformidade, resultados, setores demandantes ou gerenciamento.</li>
+</ul>
+
+<div class="note">
+  <strong>Observação:</strong> Ao cadastrar nova contratação, o campo "Setor Requisitante" é preenchido automaticamente e não pode ser alterado.
+</div>
+
+<h3>3.4. Perfil Consulta</h3>
+<ul>
+  <li>Visualização somente leitura das contratações.</li>
+  <li>Acesso à Visão Geral, FAQ e Minha Conta.</li>
+  <li><strong>Sem permissão</strong> para cadastrar, editar ou excluir registros.</li>
+</ul>
+
+<h3>3.5. Matriz de Acesso por Funcionalidade</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Funcionalidade</th>
+      <th>Admin</th>
+      <th>Gestor</th>
+      <th>Setor Req.</th>
+      <th>Consulta</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Home / Visão Geral</td><td>Completo</td><td>Completo</td><td>Apenas seu setor</td><td>Somente leitura</td></tr>
+    <tr><td>Contratações</td><td>CRUD completo</td><td>Visualizar e editar</td><td>Edita rascunhos</td><td>Somente leitura</td></tr>
+    <tr><td>Nova Contratação</td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-blue">✓ setor fixo</span></td><td><span class="badge badge-red">✗</span></td></tr>
+    <tr><td>Setores Demandantes</td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-red">✗</span></td><td><span class="badge badge-red">✗</span></td></tr>
+    <tr><td>Controle de Prazos</td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-blue">Seu setor</span></td><td><span class="badge badge-red">✗</span></td></tr>
+    <tr><td>Pontos de Atenção</td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-blue">Seu setor</span></td><td><span class="badge badge-red">✗</span></td></tr>
+    <tr><td>Prioridades</td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-blue">Seu setor</span></td><td><span class="badge badge-red">✗</span></td></tr>
+    <tr><td>Conformidade</td><td>Gerenciar</td><td>Gerenciar</td><td><span class="badge badge-red">✗</span></td><td><span class="badge badge-red">✗</span></td></tr>
+    <tr><td>Resultados</td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-red">✗</span></td><td><span class="badge badge-red">✗</span></td></tr>
+    <tr><td>Relatórios</td><td>Gerar e exportar</td><td>Gerar e exportar</td><td><span class="badge badge-red">✗</span></td><td><span class="badge badge-red">✗</span></td></tr>
+    <tr><td>Orçamento Planejado</td><td>Gerenciar completo</td><td><span class="badge badge-red">✗</span></td><td><span class="badge badge-red">✗</span></td><td><span class="badge badge-red">✗</span></td></tr>
+    <tr><td>Gerenc. Usuários</td><td>Gerenciar completo</td><td><span class="badge badge-red">✗</span></td><td><span class="badge badge-red">✗</span></td><td><span class="badge badge-red">✗</span></td></tr>
+    <tr><td>Notificações</td><td>Gerenciar</td><td><span class="badge badge-gray">Visualizar</span></td><td><span class="badge badge-gray">Visualizar</span></td><td><span class="badge badge-gray">Visualizar</span></td></tr>
+    <tr><td>FAQ / Dúvidas</td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-green">✓</span></td></tr>
+    <tr><td>Minha Conta</td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-green">✓</span></td></tr>
+  </tbody>
+</table>
+
+<!-- ============================================ -->
+<!-- SEÇÃO 4 -->
+<!-- ============================================ -->
+<h2 id="sec4">4. Navegação e Interface</h2>
+
+<h3>4.1. Menu Lateral (Sidebar)</h3>
+<p>O menu lateral é o principal elemento de navegação, posicionado à esquerda da tela:</p>
+<ul>
+  <li><strong>Retrátil:</strong> Pode ser expandido ou colapsado (apenas ícones).</li>
+  <li><strong>Adaptativo:</strong> Exibe apenas módulos permitidos para o seu perfil.</li>
+  <li><strong>Destaque visual:</strong> Módulo ativo é destacado com cor diferenciada.</li>
+  <li><strong>Versão:</strong> Na parte inferior, exibe a versão atual do sistema.</li>
+  <li><strong>Logout:</strong> Botão "Sair" na parte inferior.</li>
+</ul>
+
+<h3>4.2. Cabeçalho (Header)</h3>
+<p>Exibe o nome do módulo atual, informações do usuário logado (nome, setor, avatar) e alternância de tema.</p>
+
+<h3>4.3. Tema Claro / Escuro</h3>
+<ul>
+  <li><strong>Tema Claro:</strong> Fundo branco, texto escuro.</li>
+  <li><strong>Tema Escuro:</strong> Fundo escuro, texto claro.</li>
+</ul>
+<p>Alterne pelo ícone sol/lua no cabeçalho.</p>
+
+<h3>4.4. Responsividade</h3>
+<p>O sistema se adapta a desktop, tablet e mobile. Em telas pequenas, o menu lateral é acessível via botão "hambúrguer".</p>
+
+<!-- ============================================ -->
+<!-- SEÇÃO 5 -->
+<!-- ============================================ -->
+<h2 id="sec5">5. Home — Página Inicial</h2>
+<p>A página Home é a tela de boas-vindas exibida após o login. Serve como ponto de partida para navegação aos módulos disponíveis através do menu lateral.</p>
+
+<!-- ============================================ -->
+<!-- SEÇÃO 6 -->
+<!-- ============================================ -->
+<h2 id="sec6">6. Visão Geral — Dashboard</h2>
+
+<h3>6.1. Indicadores Principais (KPIs)</h3>
+<p>Quatro cards no topo sumarizam o cenário:</p>
+<ul>
+  <li><strong>Total de Demandas:</strong> Quantidade de contratações.</li>
+  <li><strong>Valor Estimado Total:</strong> Soma dos valores estimados (R$).</li>
+  <li><strong>Valor Executado Total:</strong> Soma dos empenhos.</li>
+  <li><strong>Total Concluídas:</strong> Contratações com status "Concluído".</li>
+</ul>
+
+<h3>6.2. Filtros Disponíveis</h3>
+<p>Nove filtros interativos atualizam automaticamente todos os indicadores e gráficos:</p>
+<ul>
+  <li>Unidade Orçamentária (PGJ, FMMP, FEPDC)</li>
+  <li>Setor Requisitante</li>
+  <li>Tipo de Contratação</li>
+  <li>Tipo de Recurso</li>
+  <li>Classe</li>
+  <li>Grau de Prioridade (Alta, Média, Baixa)</li>
+  <li>Normativo (14.133/2021, 8.666/1993)</li>
+  <li>Modalidade</li>
+  <li>Status Atual (Não Iniciado, Em Andamento, Concluído, Sobrestado)</li>
+</ul>
+
+<h3>6.3. Gráficos</h3>
+<h4>Barras — Distribuição por Setor</h4>
+<p>Quantidade ou valor estimado por setor, com alternância de métrica.</p>
+<h4>Pizza — Distribuição por UO</h4>
+<p>Proporção entre PGJ, FMMP e FEPDC.</p>
+<h4>Pizza — Distribuição por Tipo de Contratação</h4>
+<p>Nova Contratação, Renovação, Aditivo, etc.</p>
+<h4>Pizza — Distribuição por Classe</h4>
+<p>Material de Consumo, Serviço, Serviço de TI, etc.</p>
+
+<div class="tip">
+  <strong>Dica:</strong> Passe o cursor sobre os gráficos para ver valores detalhados de cada segmento.
+</div>
+
+<!-- ============================================ -->
+<!-- SEÇÃO 7 -->
+<!-- ============================================ -->
+<h2 id="sec7">7. Contratações</h2>
+
+<h3>7.1. Listagem</h3>
+<p>Tabela com todas as contratações, exibindo: Código (PCA-XXXX-2026), Descrição, Setor, UO, Classe, Valor Estimado, Valor Contratado, Status, Prioridade e Ações.</p>
+
+<h3>7.2. Busca e Filtros</h3>
+<p>Campo de busca textual em tempo real (com debounce) e os mesmos filtros avançados da Visão Geral.</p>
+
+<h3>7.3. Edição</h3>
+<ol>
+  <li>Clique no ícone de edição (lápis) na linha.</li>
+  <li>Modal com todos os campos preenchidos.</li>
+  <li>Altere os campos desejados.</li>
+  <li>Clique em <strong>"Salvar"</strong>.</li>
+</ol>
+
+<div class="note">
+  <strong>Observação:</strong> Toda edição é registrada automaticamente no histórico, com dados anteriores, novos e identificação do usuário.
+</div>
+
+<h3>7.4. Histórico de Alterações</h3>
+<p>Clique no ícone de relógio para ver o histórico completo: data, usuário, ação, dados anteriores e novos.</p>
+
+<h3>7.5. Exclusão</h3>
+<p>Restrita ao perfil <strong>Administrador</strong>. Clique no ícone de lixeira e confirme.</p>
+<div class="note">
+  <strong>Atenção:</strong> A exclusão é <strong>irreversível</strong>.
+</div>
+
+<h3>7.6. Importação CSV</h3>
+<p>Importação em massa a partir de arquivos CSV para migração ou atualização em lote.</p>
+
+<!-- ============================================ -->
+<!-- SEÇÃO 8 -->
+<!-- ============================================ -->
+<h2 id="sec8">8. Nova Contratação</h2>
+
+<h3>8.1. Informações Básicas</h3>
+<table>
+  <thead><tr><th>Campo</th><th>Obrigatório</th><th>Descrição</th></tr></thead>
+  <tbody>
+    <tr><td>Descrição do Objeto</td><td><span class="badge badge-red">Sim</span></td><td>10-500 caracteres</td></tr>
+    <tr><td>PDM/CATSER</td><td><span class="badge badge-gray">Não</span></td><td>Código do catálogo</td></tr>
+    <tr><td>Classe</td><td><span class="badge badge-red">Sim</span></td><td>Material Consumo, Serviço, etc.</td></tr>
+    <tr><td>Setor Requisitante</td><td><span class="badge badge-red">Sim</span></td><td>Auto para perfil Setor Req.</td></tr>
+    <tr><td>Tipo de Contratação</td><td><span class="badge badge-red">Sim</span></td><td>Nova, Renovação, Aditivo, etc.</td></tr>
+    <tr><td>SRP</td><td><span class="badge badge-red">Sim</span></td><td>Sim / Não</td></tr>
+    <tr><td>Modalidade</td><td><span class="badge badge-red">Sim</span></td><td>Pregão, Dispensa, etc.</td></tr>
+    <tr><td>Normativo</td><td><span class="badge badge-red">Sim</span></td><td>14.133/2021 ou 8.666/1993</td></tr>
+    <tr><td>Grau de Prioridade</td><td><span class="badge badge-red">Sim</span></td><td>Alta, Média, Baixa</td></tr>
+    <tr><td>Unidade Orçamentária</td><td><span class="badge badge-red">Sim</span></td><td>PGJ, FMMP, FEPDC</td></tr>
+    <tr><td>Data Prevista</td><td><span class="badge badge-red">Sim</span></td><td>Data estimada de conclusão</td></tr>
+    <tr><td>Justificativa</td><td><span class="badge badge-red">Sim</span></td><td>20-1000 caracteres</td></tr>
+  </tbody>
+</table>
+
+<h3>8.2. Valores e Quantidades</h3>
+<p>Informe Quantidade, Unidade de Fornecimento, Tipo de Recurso e Valor Unitário. O <strong>Valor Estimado Total = Quantidade × Valor Unitário</strong> é calculado automaticamente.</p>
+
+<h3>8.3. Código PCA Automático</h3>
+<p>Ao salvar, o sistema gera um código único no formato <strong>PCA-XXXX-2026</strong>.</p>
+
+<h3>8.4. Trava Orçamentária</h3>
+<p>Se ativa para o setor, o sistema verifica se a nova contratação + total existente ultrapassa o limite. Se sim, a gravação é bloqueada.</p>
+
+<!-- ============================================ -->
+<!-- SEÇÃO 9-12 -->
+<!-- ============================================ -->
+<h2 id="sec9">9. Setores Demandantes</h2>
+<p>Visão consolidada por setor requisitante. Disponível para <strong>Administrador</strong> e <strong>Gestor</strong>. Exibe quantidade, valor estimado, distribuição por status e prioridade de cada setor.</p>
+
+<h2 id="sec10">10. Controle de Prazos</h2>
+<p>Acompanhamento dos prazos de cada contratação: data prevista, envio ao PGEA, finalização da licitação e conclusão. Alertas para prazos próximos ao vencimento ou já vencidos. Disponível para <strong>Admin</strong>, <strong>Gestor</strong> e <strong>Setor Requisitante</strong> (somente seu setor).</p>
+
+<h2 id="sec11">11. Pontos de Atenção</h2>
+<p>Destaca contratações que exigem atenção especial: prazos vencidos, devoluções, sobrestamentos e valores elevados sem evolução. Classifica por critérios de urgência e impacto. Disponível para <strong>Admin</strong>, <strong>Gestor</strong> e <strong>Setor Requisitante</strong>.</p>
+
+<h2 id="sec12">12. Prioridades de Contratação</h2>
+<p>Organiza contratações por grau de prioridade (Alta, Média, Baixa) e alinhamento estratégico com os objetivos do MPPI. Disponível para <strong>Admin</strong>, <strong>Gestor</strong> e <strong>Setor Requisitante</strong>.</p>
+
+<!-- ============================================ -->
+<!-- SEÇÃO 13 -->
+<!-- ============================================ -->
+<h2 id="sec13">13. Avaliação e Conformidade</h2>
+<p>Checklist de conformidade documental para cada contratação. Disponível para <strong>Admin</strong> e <strong>Gestor</strong>.</p>
+
+<h3>Itens do Checklist</h3>
+<ol>
+  <li>Termo de Referência Aprovado</li>
+  <li>Pesquisa de Mercado</li>
+  <li>Pareceres Jurídicos</li>
+  <li>Publicação do Edital</li>
+  <li>Atas do Certame</li>
+  <li>Atos de Autorização</li>
+  <li>Documentação do Fornecedor</li>
+  <li>Termo de Homologação</li>
+  <li>Termo de Adjudicação</li>
+  <li>Assinatura do Contrato</li>
+  <li>Publicação do Contrato</li>
+</ol>
+<p>Campo de observação textual para particularidades ou pendências.</p>
+
+<!-- ============================================ -->
+<!-- SEÇÃO 14-15 -->
+<!-- ============================================ -->
+<h2 id="sec14">14. Resultados Alcançados</h2>
+<p>Indicadores de desempenho: percentual concluído vs. planejado, economia obtida, taxa de sucesso e evolução temporal. Comparativos planejado x realizado. Disponível para <strong>Admin</strong> e <strong>Gestor</strong>.</p>
+
+<h2 id="sec15">15. Relatórios</h2>
+<p>Geração de relatórios gerenciais: geral, por setor, por UO, de prazos e de conformidade. Com opções de exportação. Disponível para <strong>Admin</strong> e <strong>Gestor</strong>.</p>
+
+<!-- ============================================ -->
+<!-- SEÇÃO 16 -->
+<!-- ============================================ -->
+<h2 id="sec16">16. Orçamento Planejado</h2>
+<p>Exclusivo do <strong>Administrador</strong>. Define limites orçamentários anuais para os 13 setores.</p>
+
+<h3>16.1. Fontes de Recurso</h3>
+<ul>
+  <li><strong>PGJ:</strong> Orçamento principal do MPPI.</li>
+  <li><strong>FMMP:</strong> Fundo de Modernização.</li>
+  <li><strong>FEPDC:</strong> Fundo de Defesa do Consumidor.</li>
+</ul>
+
+<h3>16.2. Trava Orçamentária</h3>
+<p>Quando ativada, bloqueia novas contratações que ultrapassem o limite. O interruptor (switch) permite ativar/desativar por setor.</p>
+
+<h3>16.3. Auditoria</h3>
+<p>Todas as alterações são registradas com data, usuário, valores anteriores e novos. Acessível pelo botão <strong>"Histórico"</strong>.</p>
+
+<!-- ============================================ -->
+<!-- SEÇÃO 17 -->
+<!-- ============================================ -->
+<h2 id="sec17">17. Gerenciamento de Usuários</h2>
+<p>Exclusivo do <strong>Administrador</strong>.</p>
+
+<h3>17.1. Criar Usuário</h3>
+<ol>
+  <li>Clique em <strong>"Novo Usuário"</strong>.</li>
+  <li>Preencha: Nome, E-mail, Setor, Cargo, Perfil de Acesso e Senha Temporária.</li>
+  <li>Clique em <strong>"Criar"</strong>.</li>
+</ol>
+
+<div class="note">
+  <strong>Importante:</strong> O sistema não envia e-mails automáticos. Comunique as credenciais diretamente ao novo servidor.
+</div>
+
+<h3>17.2. Editar e Excluir</h3>
+<p>Use os ícones de lápis (editar) e lixeira (excluir) na tabela. A exclusão é permanente e irreversível.</p>
+
+<h3>17.3. Política de Acessos</h3>
+<p>O botão <strong>"Política de Acessos"</strong> abre um modal com a descrição de cada perfil e a Matriz de Acesso completa.</p>
+
+<!-- ============================================ -->
+<!-- SEÇÃO 18-20 -->
+<!-- ============================================ -->
+<h2 id="sec18">18. Notificações</h2>
+<p>O <strong>Administrador</strong> pode criar e gerenciar notificações do sistema. Demais perfis podem apenas visualizar notificações publicadas.</p>
+
+<h2 id="sec19">19. Minha Conta</h2>
+<p>Disponível para <strong>todos os perfis</strong>. Permite editar:</p>
+<ul>
+  <li>Nome completo e ramal.</li>
+  <li>Avatar (galeria pré-definida ou upload de foto).</li>
+</ul>
+<p>E-mail, setor e cargo são exibidos como informação (somente leitura).</p>
+
+<h2 id="sec20">20. FAQ / Dúvidas</h2>
+<p>Perguntas frequentes em formato expansível. Inclui informações de contato da ASSESPPLAGES para suporte técnico e funcional.</p>
+
+<!-- ============================================ -->
+<!-- SEÇÃO 21 -->
+<!-- ============================================ -->
+<h2 id="sec21">21. Glossário de Termos e Siglas</h2>
+
+<h3>Siglas</h3>
+<table>
+  <thead><tr><th>Sigla</th><th>Significado</th></tr></thead>
+  <tbody>
+    <tr><td>PCA</td><td>Plano de Contratações Anual</td></tr>
+    <tr><td>MPPI</td><td>Ministério Público do Estado do Piauí</td></tr>
+    <tr><td>PGJ</td><td>Procuradoria-Geral de Justiça</td></tr>
+    <tr><td>FMMP</td><td>Fundo de Modernização do Ministério Público</td></tr>
+    <tr><td>FEPDC</td><td>Fundo Estadual de Proteção e Defesa do Consumidor</td></tr>
+    <tr><td>UO</td><td>Unidade Orçamentária</td></tr>
+    <tr><td>SRP</td><td>Sistema de Registro de Preços</td></tr>
+    <tr><td>SEI</td><td>Sistema Eletrônico de Informações</td></tr>
+    <tr><td>PGEA</td><td>Plano de Gestão Estratégica e Administrativo</td></tr>
+    <tr><td>CLC</td><td>Coordenadoria de Licitações e Contratos</td></tr>
+    <tr><td>PDM</td><td>Padrão Descritivo de Material</td></tr>
+    <tr><td>CATSER</td><td>Catálogo de Serviços</td></tr>
+    <tr><td>ASSESPPLAGES</td><td>Assessoria de Planejamento e Gestão</td></tr>
+  </tbody>
+</table>
+
+<h3>Setores Requisitantes</h3>
+<table>
+  <thead><tr><th>Sigla</th><th>Setor</th></tr></thead>
+  <tbody>
+    <tr><td>CAA</td><td>Coordenadoria de Apoio Administrativo</td></tr>
+    <tr><td>CCF</td><td>Coordenadoria de Controle Financeiro</td></tr>
+    <tr><td>CCS</td><td>Coordenadoria de Comunicação Social</td></tr>
+    <tr><td>CEAF</td><td>Centro de Estudos e Aperfeiçoamento Funcional</td></tr>
+    <tr><td>CLC</td><td>Coordenadoria de Licitações e Contratos</td></tr>
+    <tr><td>CONINT</td><td>Controladoria Interna</td></tr>
+    <tr><td>CPPT</td><td>Coordenadoria de Planejamento e Projetos de TI</td></tr>
+    <tr><td>CRH</td><td>Coordenadoria de Recursos Humanos</td></tr>
+    <tr><td>CTI</td><td>Coordenadoria de Tecnologia da Informação</td></tr>
+    <tr><td>GAECO</td><td>Grupo de Atuação Especial de Combate ao Crime Organizado</td></tr>
+    <tr><td>GSI</td><td>Gabinete de Segurança Institucional</td></tr>
+    <tr><td>PLAN</td><td>Assessoria de Planejamento (PLANEJAMENTO)</td></tr>
+    <tr><td>PROCON</td><td>Programa de Proteção e Defesa do Consumidor</td></tr>
+  </tbody>
+</table>
+
+<h3>Termos Técnicos</h3>
+<table>
+  <thead><tr><th>Termo</th><th>Definição</th></tr></thead>
+  <tbody>
+    <tr><td>Contratação</td><td>Processo formal de aquisição de bens ou serviços pelo MPPI.</td></tr>
+    <tr><td>Trava Orçamentária</td><td>Mecanismo que bloqueia novas contratações quando o limite é atingido.</td></tr>
+    <tr><td>Etapa do Processo</td><td>Fase atual (Planejamento, Em Licitação, Contratado, Concluído).</td></tr>
+    <tr><td>Sobrestamento</td><td>Paralisação temporária de um processo.</td></tr>
+    <tr><td>Devolução</td><td>Retorno do processo ao setor para correções.</td></tr>
+    <tr><td>Empenho</td><td>Ato que reserva recursos orçamentários para uma despesa.</td></tr>
+    <tr><td>Conformidade</td><td>Verificação de requisitos documentais e legais.</td></tr>
+    <tr><td>Valor Estimado</td><td>Valor previsto antes do certame.</td></tr>
+    <tr><td>Valor Contratado</td><td>Valor acordado no contrato com o fornecedor.</td></tr>
+    <tr><td>Código PCA</td><td>Identificador único no formato PCA-XXXX-2026.</td></tr>
+    <tr><td>Modalidade Licitatória</td><td>Procedimento para seleção do fornecedor.</td></tr>
+    <tr><td>Normativo</td><td>Lei de licitações que rege o processo.</td></tr>
+  </tbody>
+</table>
+
+<div class="footer">
+  <p>© 2026 Sistema PCA 2026 — Ministério Público do Estado do Piauí</p>
+  <p>Desenvolvido pela Assessoria de Planejamento e Gestão (ASSESPPLAGES)</p>
+</div>
+
+</main>
+
+<script>
+  // Highlight active TOC item on scroll
+  const sections = document.querySelectorAll('h2[id]');
+  const tocLinks = document.querySelectorAll('.toc a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 80) current = s.id;
+    });
+    tocLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  });
+  // Close mobile sidebar on link click
+  document.querySelectorAll('.toc a').forEach(a => {
+    a.addEventListener('click', () => {
+      document.querySelector('.sidebar').classList.remove('open');
+    });
+  });
+</script>
+
+</body>
+</html>
