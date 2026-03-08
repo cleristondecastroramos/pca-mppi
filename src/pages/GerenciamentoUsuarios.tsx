@@ -360,18 +360,18 @@ const GerenciamentoUsuarios = () => {
                       <div className="rounded-lg border overflow-hidden">
                         <Table>
                           <TableHeader>
-                            <TableRow className="bg-muted/50">
-                              <TableHead className="text-xs font-semibold w-[200px]">Funcionalidade</TableHead>
-                              <TableHead className="text-xs font-semibold text-center">
+                            <TableRow className="bg-muted/50 h-8">
+                              <TableHead className="text-xs font-semibold w-[200px] py-1.5">Funcionalidade</TableHead>
+                              <TableHead className="text-xs font-semibold text-center py-1.5">
                                 <div className="flex items-center justify-center gap-1"><Shield className="h-3 w-3 text-destructive" />Admin</div>
                               </TableHead>
-                              <TableHead className="text-xs font-semibold text-center">
+                              <TableHead className="text-xs font-semibold text-center py-1.5">
                                 <div className="flex items-center justify-center gap-1"><UserCog className="h-3 w-3 text-amber-600" />Gestor</div>
                               </TableHead>
-                              <TableHead className="text-xs font-semibold text-center">
+                              <TableHead className="text-xs font-semibold text-center py-1.5">
                                 <div className="flex items-center justify-center gap-1"><ClipboardList className="h-3 w-3 text-blue-600" />Setor Req.</div>
                               </TableHead>
-                              <TableHead className="text-xs font-semibold text-center">
+                              <TableHead className="text-xs font-semibold text-center py-1.5">
                                 <div className="flex items-center justify-center gap-1"><Eye className="h-3 w-3 text-muted-foreground" />Consulta</div>
                               </TableHead>
                             </TableRow>
@@ -393,12 +393,12 @@ const GerenciamentoUsuarios = () => {
                               { page: "Notificações", admin: "Gerenciar e visualizar", gestor: "Visualizar", setor: "Visualizar", consulta: "Visualizar" },
                               { page: "Minha Conta / FAQ", admin: "✓", gestor: "✓", setor: "✓", consulta: "✓" },
                             ].map((row, i) => (
-                              <TableRow key={i} className={i % 2 === 0 ? "" : "bg-muted/30"}>
-                                <TableCell className="text-xs font-medium">{row.page}</TableCell>
-                                <TableCell className="text-xs text-center">{row.admin}</TableCell>
-                                <TableCell className="text-xs text-center">{row.gestor}</TableCell>
-                                <TableCell className="text-xs text-center">{row.setor}</TableCell>
-                                <TableCell className="text-xs text-center">{row.consulta}</TableCell>
+                              <TableRow key={i} className={`h-7 ${i % 2 === 0 ? "" : "bg-muted/30"}`}>
+                                <TableCell className="text-xs font-medium py-1">{row.page}</TableCell>
+                                <TableCell className="text-xs text-center py-1">{row.admin}</TableCell>
+                                <TableCell className="text-xs text-center py-1">{row.gestor}</TableCell>
+                                <TableCell className="text-xs text-center py-1">{row.setor}</TableCell>
+                                <TableCell className="text-xs text-center py-1">{row.consulta}</TableCell>
                               </TableRow>
                             ))}
                           </TableBody>
