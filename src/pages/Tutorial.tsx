@@ -440,22 +440,75 @@ export default function Tutorial() {
 
         {/* 13. Conformidade */}
         <Section id="sec13" title="13. Avaliação e Conformidade">
-          <P>Checklist de conformidade documental para cada contratação. Disponível para <strong>Admin</strong> e <strong>Gestor</strong>.</P>
-          <H3>Itens do Checklist</H3>
+          <P>
+            O módulo <strong>Avaliação e Conformidade</strong> é responsável por verificar e registrar o cumprimento dos requisitos documentais e legais de cada processo de contratação. Ele funciona como um checklist estruturado que acompanha todas as etapas obrigatórias, garantindo que nenhum documento ou procedimento seja omitido ao longo do processo licitatório e contratual. Este módulo está disponível exclusivamente para usuários com perfil de <strong>Administrador</strong> e <strong>Gestor</strong>.
+          </P>
+
+          <H3>13.1. Estrutura do Checklist: Duas Fases</H3>
+          <P>
+            O checklist de conformidade é dividido em <strong>duas fases distintas</strong>, que refletem as etapas reais do processo de contratação pública conforme as normas vigentes (Leis nº 8.666/93 e nº 14.133/21):
+          </P>
+
+          <H3>Fase 1 — Fase de Licitação</H3>
+          <P>
+            A primeira fase abrange todos os documentos e atos necessários para a realização do procedimento licitatório. É composta por <strong>7 itens</strong> obrigatórios:
+          </P>
           <OL items={[
-            "Termo de Referência Aprovado",
-            "Pesquisa de Mercado",
-            "Pareceres Jurídicos",
-            "Publicação do Edital",
-            "Atas do Certame",
-            "Atos de Autorização",
-            "Documentação do Fornecedor",
-            "Termo de Homologação",
-            "Termo de Adjudicação",
-            "Assinatura do Contrato",
-            "Publicação do Contrato",
+            <><strong>Termo de Referência aprovado:</strong> Documento que descreve detalhadamente o objeto da contratação, suas especificações técnicas, quantidades, prazos e condições de execução. Deve estar devidamente aprovado pela autoridade competente antes do início do processo licitatório.</>,
+            <><strong>Pesquisa de Mercado:</strong> Levantamento de preços praticados no mercado para o objeto da contratação, utilizado para estimar o valor de referência e garantir a economicidade do processo.</>,
+            <><strong>Pareceres Jurídicos emitidos sobre a licitação:</strong> Manifestação da assessoria jurídica atestando a legalidade e regularidade do procedimento licitatório, conforme exigido pela legislação.</>,
+            <><strong>Publicação de edital conforme normas:</strong> Verificação de que o edital foi publicado nos veículos oficiais exigidos (Diário Oficial, portais de transparência) dentro dos prazos legais.</>,
+            <><strong>Atas do Certame:</strong> Registro formal de todas as sessões do procedimento licitatório, incluindo propostas apresentadas, lances, habilitação e eventuais recursos.</>,
+            <><strong>Termo de Homologação:</strong> Ato da autoridade competente que confirma a regularidade de todo o procedimento licitatório e ratifica o resultado do certame.</>,
+            <><strong>Termo de Adjudicação:</strong> Ato que atribui formalmente ao licitante vencedor o objeto da licitação, após a homologação do resultado.</>,
           ]} />
-          <P>Campo de observação textual para particularidades ou pendências.</P>
+
+          <H3>Fase 2 — Fase de Contratação</H3>
+          <P>
+            A segunda fase abrange os documentos e atos necessários para a formalização do contrato após a conclusão da licitação. É composta por <strong>4 itens</strong> obrigatórios:
+          </P>
+          <OL items={[
+            <><strong>Atos de autorização registrados:</strong> Documentos que comprovam a autorização formal para a celebração do contrato pela autoridade competente.</>,
+            <><strong>Documentação do fornecedor completa:</strong> Verificação de que toda a documentação de habilitação do fornecedor vencedor está válida e em conformidade (certidões negativas, documentos fiscais, regularidade trabalhista, etc.).</>,
+            <><strong>Assinatura do Contrato:</strong> Confirmação de que o instrumento contratual foi devidamente assinado por ambas as partes (contratante e contratado).</>,
+            <><strong>Publicação do Extrato do Contrato:</strong> Verificação de que o extrato do contrato foi publicado no Diário Oficial, conforme exigido pela legislação para garantir transparência e eficácia do ato.</>,
+          ]} />
+
+          <H3>13.2. Regra Especial para Contratações via SRP</H3>
+          <Note>
+            <strong>Importante:</strong> Quando uma contratação é cadastrada como <strong>SRP (Sistema de Registro de Preços)</strong>, o checklist exibe <strong>apenas a Fase de Licitação</strong> (7 itens). A Fase de Contratação <strong>não é aplicável</strong> neste caso, pois no regime de SRP o resultado da licitação gera uma <strong>Ata de Registro de Preços</strong>, e não um contrato imediato. A contratação efetiva ocorre posteriormente, por meio de adesão à ata, em processo próprio. Portanto, o percentual de conformidade para demandas SRP é calculado com base apenas nos 7 itens da Fase de Licitação, enquanto para as demais demandas o cálculo considera todos os 11 itens (7 da licitação + 4 da contratação).
+          </Note>
+
+          <H3>13.3. Percentual de Conformidade</H3>
+          <P>
+            Para cada contratação, o sistema calcula automaticamente um <strong>percentual de conformidade</strong> baseado na proporção de itens marcados como cumpridos em relação ao total aplicável. O percentual é exibido na tabela principal por meio de badges coloridos:
+          </P>
+          <UL items={[
+            <><strong className="text-success">80% ou mais:</strong> Badge verde — conformidade alta, indicando que a maioria dos requisitos foi atendida.</>,
+            <><strong className="text-warning">Entre 30% e 79%:</strong> Badge amarelo — conformidade parcial, sinalizando que há itens pendentes que precisam de atenção.</>,
+            <><strong className="text-muted-foreground">Abaixo de 30%:</strong> Badge cinza — conformidade baixa, indicando que o processo ainda está em estágio inicial de documentação.</>,
+          ]} />
+
+          <H3>13.4. Como Auditar uma Contratação</H3>
+          <P>Para realizar a avaliação de conformidade de uma contratação, siga os passos:</P>
+          <OL items={[
+            "Na tabela principal, localize a contratação desejada utilizando os filtros de busca, setor ou status.",
+            <>Clique no botão <strong>"Auditar"</strong> na coluna de ações da contratação.</>,
+            "Um modal (janela) será aberto exibindo o checklist dividido nas fases aplicáveis.",
+            "Marque os checkboxes correspondentes aos documentos e atos já cumpridos.",
+            "Utilize o campo de observação na parte inferior para registrar particularidades, pendências ou justificativas relevantes.",
+            <>Clique em <strong>"Salvar"</strong> para registrar a avaliação. O percentual de conformidade será atualizado automaticamente na tabela.</>,
+          ]} />
+
+          <H3>13.5. Filtros e Exportação</H3>
+          <P>
+            A página oferece filtros por <strong>busca textual</strong> (descrição ou código PCA), <strong>setor requisitante</strong> e <strong>status da contratação</strong>. Além disso, é possível exportar os dados filtrados em formato <strong>CSV</strong> para análise externa, clicando no botão <strong>"Exportar CSV"</strong> no canto superior direito.
+          </P>
+
+          <H3>13.6. Importância para o Processo</H3>
+          <P>
+            A avaliação de conformidade é fundamental para garantir que todos os processos de contratação do MPPI estejam em conformidade com a legislação vigente, reduzindo riscos de irregularidades, impugnações e questionamentos por parte dos órgãos de controle. Recomenda-se que a auditoria de conformidade seja realizada de forma contínua, à medida que os documentos de cada fase são produzidos e validados.
+          </P>
         </Section>
 
         {/* 14-15 */}
