@@ -28,6 +28,7 @@ const Faq = lazy(() => import("./pages/Faq"));
 const Desenvolvimento = lazy(() => import("./pages/Desenvolvimento"));
 const Notificacoes = lazy(() => import("./pages/Notificacoes"));
 const OrcamentoPlanejado = lazy(() => import("./pages/OrcamentoPlanejado"));
+const Tutorial = lazy(() => import("./pages/Tutorial"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
