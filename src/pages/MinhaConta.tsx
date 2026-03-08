@@ -187,16 +187,29 @@ const MinhaConta = () => {
   };
 
   const handleSelectPredefinedAvatar = async (url: string) => {
-    if (!userId) return;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
+
+    if (!user) {
+      toast.error("Usuário não identificado ou sessão expirada.");
+      return;
+    }
+
     try {
-      await supabase.auth.updateUser({ data: { avatar_url: url } });
-      await supabase.from("profiles").update({ avatar_url: url }).eq("id", userId);
+      const { error: authErr } = await supabase.auth.updateUser({ data: { avatar_url: url } });
+      if (authErr) throw authErr;
+
+      const { error: profErr } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", user.id);
+      if (profErr) throw profErr;
+
       setAvatarUrl(url);
       try { localStorage.setItem("app_avatar_url", url); } catch { }
       try { window.dispatchEvent(new CustomEvent("app-avatar-update", { detail: url })); } catch { }
-      toast.success("Avatar atualizado com sucesso.");
+
+      toast.success("Avatar atualizado com sucesso!");
       setOpenAvatarDialog(false);
     } catch (e: any) {
+      console.error(e);
       toast.error("Falha ao salvar avatar", { description: e.message || String(e) });
     }
   };
