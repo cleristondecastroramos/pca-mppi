@@ -437,12 +437,12 @@ export function getTutorialSections(): PdfSection[] {
       title: "12. Prioridades de Contratação",
       content: [
         { type: "p", text: "O módulo Prioridades de Contratação organiza todas as demandas cadastradas no sistema de acordo com seu grau de prioridade, oferecendo uma visão estratégica que facilita a tomada de decisão sobre quais contratações devem receber atenção prioritária. Disponível para Administradores, Gestores e Setores Requisitantes (limitado ao próprio setor)." },
-        { type: "h3", text: "12.1. Níveis de Prioridade" },
-        { type: "p", text: "O sistema classifica cada contratação em três níveis de prioridade, cada um representado por uma coluna visual distinta:" },
+        { type: "h3", text: "12.1. Niveis de Prioridade" },
+        { type: "p", text: "O sistema classifica cada contratacao em tres niveis de prioridade, cada um representado por uma coluna visual distinta:" },
         { type: "ul", items: [
-          "Alta: Contratações de caráter urgente ou imprescindível para a continuidade dos serviços do MPPI. São demandas que, caso não sejam realizadas no prazo, podem comprometer o funcionamento de setores essenciais, acarretar prejuízos financeiros ou descumprir obrigações legais. Identificadas com ícone de alerta vermelho (⚠️).",
-          "Média: Contratações importantes que possuem relevância para a melhoria dos serviços ou a manutenção de atividades regulares, mas que admitem certa flexibilidade no prazo de execução. Representam o nível padrão atribuído a novas demandas quando não há indicação específica de urgência. Identificadas com ícone circular amarelo (●).",
-          "Baixa: Contratações que, embora necessárias, podem ser postergadas sem impacto significativo nas operações do MPPI. Geralmente envolvem melhorias incrementais, aquisições de menor valor ou demandas que podem aguardar janelas orçamentárias mais favoráveis. Identificadas com ícone de seta para baixo (↓).",
+          "Alta: Contratacoes de carater urgente ou imprescindivel para a continuidade dos servicos do MPPI. Sao demandas que, caso nao sejam realizadas no prazo, podem comprometer o funcionamento de setores essenciais, acarretar prejuizos financeiros ou descumprir obrigacoes legais. Identificadas com icone de alerta vermelho [ALTA].",
+          "Media: Contratacoes importantes que possuem relevancia para a melhoria dos servicos ou a manutencao de atividades regulares, mas que admitem certa flexibilidade no prazo de execucao. Representam o nivel padrao atribuido a novas demandas quando nao ha indicacao especifica de urgencia. Identificadas com icone circular amarelo [MEDIA].",
+          "Baixa: Contratacoes que, embora necessarias, podem ser postergadas sem impacto significativo nas operacoes do MPPI. Geralmente envolvem melhorias incrementais, aquisicoes de menor valor ou demandas que podem aguardar janelas orcamentarias mais favoraveis. Identificadas com icone de seta para baixo [BAIXA].",
         ] },
         { type: "h3", text: "12.2. Layout em Colunas (Kanban)" },
         { type: "p", text: "A interface apresenta as contratações em um layout de três colunas lado a lado, no estilo kanban, onde cada coluna corresponde a um nível de prioridade (Alta, Média, Baixa). Cada coluna exibe no topo o número de demandas e o valor estimado total daquela categoria. Dentro de cada coluna, cada contratação é apresentada como um card contendo: descrição do objeto, setor requisitante, status atual (não iniciado, em andamento, concluído ou sobrestado) e valor estimado." },
