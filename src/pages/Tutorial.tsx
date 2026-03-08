@@ -287,21 +287,155 @@ export default function Tutorial() {
           ]} />
         </Section>
 
-        {/* 9-12 */}
+        {/* 9. Setores Demandantes */}
         <Section id="sec9" title="9. Setores Demandantes">
-          <P>Visão consolidada por setor requisitante. Disponível para <strong>Administrador</strong> e <strong>Gestor</strong>. Exibe quantidade, valor estimado, distribuição por status e prioridade de cada setor.</P>
+          <P>
+            O módulo <strong>Setores Demandantes</strong> oferece uma visão consolidada e analítica de todas as contratações organizadas por setor requisitante. Trata-se de uma ferramenta estratégica voltada para <strong>Administradores</strong> e <strong>Gestores</strong>, que permite compreender o panorama geral das demandas de cada um dos 13 setores cadastrados no sistema: CAA, CCF, CCS, CEAF, CLC, CONINT, CPPT, CRH, CTI, GAECO, GSI, PLANEJAMENTO e PROCON.
+          </P>
+
+          <H3>9.1. Visão Geral e KPIs</H3>
+          <P>
+            Na parte superior da página são exibidos indicadores consolidados (KPIs) que sintetizam o total de demandas cadastradas e o valor estimado acumulado de todas as contratações. Esses indicadores são atualizados automaticamente conforme o setor selecionado, permitindo ao usuário visualizar rapidamente a dimensão e o impacto financeiro das demandas de cada área.
+          </P>
+
+          <H3>9.2. Filtro por Setor</H3>
+          <P>
+            Por meio de botões de seleção rápida, o usuário pode escolher um setor específico para visualizar apenas suas demandas, ou selecionar <strong>"Todos"</strong> para exibir a visão consolidada de todos os setores simultaneamente. Ao selecionar um setor, a tabela abaixo é filtrada automaticamente, exibindo somente as contratações pertencentes àquele setor.
+          </P>
+
+          <H3>9.3. Tabela de Demandas por Setor</H3>
+          <P>
+            A tabela principal exibe as seguintes informações de cada contratação: <strong>Código PCA</strong> (no formato PCA-XXXX-2026), <strong>Descrição</strong> resumida do objeto, <strong>Classe</strong> (Material ou Serviço), <strong>Modalidade</strong> de contratação, <strong>Valor Estimado</strong>, <strong>Valor Contratado</strong>, <strong>Saldo Orçamentário</strong>, <strong>Empenhos</strong> (1º, 2º e 3º) e <strong>Etapa do Processo</strong>. Todos os valores monetários são formatados no padrão brasileiro (R$).
+          </P>
+
+          <H3>9.4. Utilidade Estratégica</H3>
+          <P>
+            Este módulo é especialmente útil para reuniões de planejamento e acompanhamento gerencial, pois permite identificar setores com maior volume de demandas, comparar valores estimados versus contratados, verificar saldos orçamentários remanescentes e acompanhar a evolução dos empenhos. Administradores podem utilizar essas informações para redistribuir recursos, ajustar prioridades e garantir o equilíbrio orçamentário entre os setores.
+          </P>
         </Section>
 
+        {/* 10. Controle de Prazos */}
         <Section id="sec10" title="10. Controle de Prazos">
-          <P>Acompanhamento dos prazos de cada contratação: data prevista, envio ao PGEA, finalização da licitação e conclusão. Alertas para prazos vencidos ou próximos ao vencimento. Disponível para <strong>Admin</strong>, <strong>Gestor</strong> e <strong>Setor Requisitante</strong> (somente seu setor).</P>
+          <P>
+            O módulo <strong>Controle de Prazos</strong> é responsável pelo acompanhamento temporal de todas as contratações cadastradas no sistema. Seu objetivo principal é garantir que nenhuma demanda ultrapasse seus prazos sem que os responsáveis sejam alertados, contribuindo para o cumprimento do calendário do Plano de Contratações Anual. Disponível para <strong>Administradores</strong>, <strong>Gestores</strong> e <strong>Setores Requisitantes</strong> (neste caso, limitado às contratações do próprio setor).
+          </P>
+
+          <H3>10.1. Datas Monitoradas</H3>
+          <P>O sistema monitora quatro datas-chave de cada contratação, que representam os marcos temporais do ciclo de vida processual:</P>
+          <UL items={[
+            <><strong>Data Prevista de Contratação:</strong> Prazo estimado para a conclusão do processo de contratação, definido no momento do cadastro da demanda.</>,
+            <><strong>Data de Envio ao PGEA:</strong> Data em que a documentação foi encaminhada ao Plano de Gestão e Execução Administrativa.</>,
+            <><strong>Data de Finalização da Licitação:</strong> Data em que o procedimento licitatório foi efetivamente concluído.</>,
+            <><strong>Data de Conclusão:</strong> Data em que todo o processo de contratação foi finalizado, incluindo a assinatura do contrato e publicação.</>,
+          ]} />
+
+          <H3>10.2. Classificação de Status de Prazo</H3>
+          <P>Cada contratação é automaticamente classificada com base na data prevista de contratação em relação à data atual:</P>
+          <UL items={[
+            <><strong className="text-destructive">Vencido:</strong> A data prevista já passou e a contratação ainda não foi concluída. Exibido com badge vermelho e ícone de alerta.</>,
+            <><strong className="text-warning">Próximo ao vencimento:</strong> A data prevista está dentro dos próximos 30 dias. Exibido com badge amarelo e ícone de relógio.</>,
+            <><strong className="text-success">No prazo:</strong> A data prevista ainda está a mais de 30 dias. Exibido com badge verde e ícone de confirmação.</>,
+            <><strong>Concluído:</strong> A contratação já foi finalizada, independentemente do prazo original.</>,
+          ]} />
+
+          <H3>10.3. Filtros Disponíveis</H3>
+          <P>A página oferece múltiplos filtros para facilitar a localização e análise das contratações:</P>
+          <UL items={[
+            <><strong>Busca textual:</strong> Pesquisa por descrição, setor requisitante ou código PCA.</>,
+            <><strong>Filtro por status de prazo:</strong> Permite exibir apenas contratações vencidas, próximas ao vencimento, no prazo ou concluídas.</>,
+            <><strong>Filtro por mês:</strong> Permite visualizar apenas contratações cuja data prevista está em um mês específico do ano.</>,
+          ]} />
+
+          <H3>10.4. Edição de Datas</H3>
+          <P>
+            Usuários com perfil de <strong>Administrador</strong> ou <strong>Gestor</strong> podem editar as datas diretamente na tabela, clicando sobre a célula correspondente. Um calendário (datepicker) é exibido para seleção da nova data. Todas as alterações são salvas automaticamente no banco de dados e registradas no histórico de auditoria. O perfil <strong>Setor Requisitante</strong> possui acesso apenas para visualização, sem possibilidade de edição.
+          </P>
+
+          <H3>10.5. Indicadores Resumidos</H3>
+          <P>
+            Na parte superior da página, KPIs exibem o total de contratações monitoradas, a quantidade de contratações com prazo vencido e a quantidade com prazo próximo ao vencimento, proporcionando uma visão rápida da situação geral dos prazos.
+          </P>
         </Section>
 
+        {/* 11. Pontos de Atenção */}
         <Section id="sec11" title="11. Pontos de Atenção">
-          <P>Destaca contratações que exigem atenção especial: prazos vencidos, devoluções, sobrestamentos e valores elevados sem evolução. Classifica por critérios de urgência e impacto. Disponível para <strong>Admin</strong>, <strong>Gestor</strong> e <strong>Setor Requisitante</strong>.</P>
+          <P>
+            O módulo <strong>Pontos de Atenção</strong> (também chamado de <strong>Prioridades de Atenção</strong>) funciona como um painel de alerta inteligente do sistema, destacando automaticamente as contratações que exigem intervenção imediata ou acompanhamento prioritário. Disponível para <strong>Administradores</strong>, <strong>Gestores</strong> e <strong>Setores Requisitantes</strong> (limitado ao próprio setor).
+          </P>
+
+          <H3>11.1. Critérios de Classificação</H3>
+          <P>O sistema analisa automaticamente todas as contratações e as classifica em duas categorias principais de atenção:</P>
+          <UL items={[
+            <><strong className="text-destructive">Atrasados (Prazos Vencidos):</strong> Contratações cuja data prevista de contratação já ultrapassou a data atual e que ainda não foram concluídas nem sobrestadas. Representam situações críticas que demandam ação imediata por parte do setor responsável e da gestão.</>,
+            <><strong className="text-warning">Atenção — Prazo nos Próximos 120 dias:</strong> Contratações cuja data prevista de contratação está dentro dos próximos 120 dias (aproximadamente 4 meses). Funcionam como um alerta preventivo, permitindo que os responsáveis se antecipem e garantam o andamento tempestivo do processo.</>,
+          ]} />
+
+          <H3>11.2. Informações Exibidas</H3>
+          <P>Para cada contratação destacada, o sistema exibe:</P>
+          <UL items={[
+            <><strong>Código PCA:</strong> Identificador único no formato PCA-XXXX-2026.</>,
+            <><strong>Descrição:</strong> Resumo do objeto da contratação.</>,
+            <><strong>Setor Requisitante:</strong> Setor responsável pela demanda.</>,
+            <><strong>Etapa do Processo:</strong> Fase atual da contratação (Planejamento, Em Licitação, Contratado, etc.).</>,
+            <><strong>Data Prevista:</strong> Data originalmente planejada para conclusão da contratação.</>,
+            <><strong>Dias de atraso ou dias restantes:</strong> Cálculo automático mostrando há quantos dias o prazo está vencido (para atrasados) ou quantos dias faltam para o vencimento (para os que exigem atenção).</>,
+          ]} />
+
+          <H3>11.3. Navegação por Abas</H3>
+          <P>
+            A interface é organizada em duas abas (tabs): <strong>"Atrasados"</strong> e <strong>"Atenção (120 dias)"</strong>. Cada aba apresenta uma tabela dedicada com suas respectivas contratações, KPIs de resumo (quantidade de itens na categoria) e badges coloridos para rápida identificação visual. A aba de atrasados é exibida por padrão ao acessar a página.
+          </P>
+
+          <H3>11.4. Finalidade Estratégica</H3>
+          <P>
+            Este módulo é essencial para a gestão proativa das contratações. Ao concentrar em uma única tela todas as situações que requerem atenção, ele permite que gestores identifiquem gargalos, cobrem providências dos setores responsáveis e tomem decisões tempestivas para evitar prejuízos ao planejamento anual. É recomendável que administradores e gestores consultem este módulo diariamente como parte de sua rotina de acompanhamento.
+          </P>
         </Section>
 
+        {/* 12. Prioridades de Contratação */}
         <Section id="sec12" title="12. Prioridades de Contratação">
-          <P>Organiza contratações por grau de prioridade (Alta, Média, Baixa) e alinhamento estratégico com os objetivos do MPPI. Disponível para <strong>Admin</strong>, <strong>Gestor</strong> e <strong>Setor Requisitante</strong>.</P>
+          <P>
+            O módulo <strong>Prioridades de Contratação</strong> organiza todas as demandas cadastradas no sistema de acordo com seu <strong>grau de prioridade</strong>, oferecendo uma visão estratégica que facilita a tomada de decisão sobre quais contratações devem receber atenção prioritária. Disponível para <strong>Administradores</strong>, <strong>Gestores</strong> e <strong>Setores Requisitantes</strong> (limitado ao próprio setor).
+          </P>
+
+          <H3>12.1. Níveis de Prioridade</H3>
+          <P>O sistema classifica cada contratação em três níveis de prioridade, cada um representado por uma coluna visual distinta:</P>
+          <UL items={[
+            <><strong className="text-destructive">Alta:</strong> Contratações de caráter urgente ou imprescindível para a continuidade dos serviços do MPPI. São demandas que, caso não sejam realizadas no prazo, podem comprometer o funcionamento de setores essenciais, acarretar prejuízos financeiros ou descumprir obrigações legais. Identificadas com ícone de alerta vermelho (⚠️).</>,
+            <><strong className="text-warning">Média:</strong> Contratações importantes que possuem relevância para a melhoria dos serviços ou a manutenção de atividades regulares, mas que admitem certa flexibilidade no prazo de execução. Representam o nível padrão atribuído a novas demandas quando não há indicação específica de urgência. Identificadas com ícone circular amarelo (●).</>,
+            <><strong>Baixa:</strong> Contratações que, embora necessárias, podem ser postergadas sem impacto significativo nas operações do MPPI. Geralmente envolvem melhorias incrementais, aquisições de menor valor ou demandas que podem aguardar janelas orçamentárias mais favoráveis. Identificadas com ícone de seta para baixo (↓).</>,
+          ]} />
+
+          <H3>12.2. Layout em Colunas (Kanban)</H3>
+          <P>
+            A interface apresenta as contratações em um layout de três colunas lado a lado, no estilo kanban, onde cada coluna corresponde a um nível de prioridade (Alta, Média, Baixa). Cada coluna exibe no topo o número de demandas e o valor estimado total daquela categoria. Dentro de cada coluna, cada contratação é apresentada como um card contendo: descrição do objeto, setor requisitante, status atual (não iniciado, em andamento, concluído ou sobrestado) e valor estimado.
+          </P>
+
+          <H3>12.3. Filtros</H3>
+          <P>A página oferece dois filtros para refinamento da visualização:</P>
+          <UL items={[
+            <><strong>Busca textual:</strong> Permite pesquisar por descrição ou setor requisitante, atualizando instantaneamente as três colunas conforme o termo digitado.</>,
+            <><strong>Filtro por status:</strong> Permite exibir apenas contratações com determinado status (não iniciado, em andamento, concluído ou sobrestado), facilitando análises focadas em um estágio específico do processo.</>,
+          ]} />
+
+          <H3>12.4. Status das Contratações</H3>
+          <P>Cada contratação dentro dos cards de prioridade exibe seu status atual, determinado automaticamente pelo sistema:</P>
+          <UL items={[
+            <><strong>Não iniciado:</strong> Contratação ainda na fase de planejamento, sem movimentação processual. Badge azul.</>,
+            <><strong>Em andamento:</strong> Contratação em fase de licitação ou já contratada, com atividades em progresso. Badge amarelo.</>,
+            <><strong>Concluído:</strong> Contratação finalizada com sucesso. Badge verde.</>,
+            <><strong>Sobrestado:</strong> Contratação temporariamente suspensa por determinação administrativa ou técnica. Badge cinza.</>,
+          ]} />
+
+          <H3>12.5. Alteração de Prioridade</H3>
+          <P>
+            Usuários com perfil de <strong>Administrador</strong> ou <strong>Gestor</strong> podem alterar o grau de prioridade de qualquer contratação diretamente pela página de detalhes ou pela lista de contratações. Toda alteração é registrada no histórico de auditoria do sistema, incluindo o valor anterior, o novo valor e a identificação do usuário que realizou a mudança. Setores Requisitantes visualizam as prioridades de suas demandas, mas não podem alterá-las.
+          </P>
+
+          <H3>12.6. Importância para a Gestão</H3>
+          <P>
+            A correta classificação das prioridades é fundamental para o sucesso do Plano de Contratações Anual. Ela permite que a equipe de gestão aloque recursos, organize cronogramas e direcione esforços para as demandas mais críticas. Recomenda-se que a revisão das prioridades seja realizada periodicamente, especialmente diante de mudanças orçamentárias, alterações legislativas ou surgimento de novas necessidades institucionais.
+          </P>
         </Section>
 
         {/* 13. Conformidade */}
