@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useState } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Bell, User } from "lucide-react";
+import { Bell, User, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,9 +13,11 @@ import {
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useTheme } from "@/components/theme-provider";
 
 function HeaderBase() {
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState<string>("?");
   const [hasUnread, setHasUnread] = useState(false);
@@ -61,7 +63,7 @@ function HeaderBase() {
           .from("notificacoes_lidas")
           .select("notificacao_id")
           .eq("usuario_id", user.id);
-        
+
         const readSet = new Set<string>((lidas || []).map((l: any) => l.notificacao_id));
         setLidasIds(readSet);
 
@@ -108,6 +110,27 @@ function HeaderBase() {
       </div>
 
       <div className="flex items-center gap-2">
+        <div className="flex items-center gap-0.5 border rounded-full p-0.5 bg-muted/30 mr-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`h-7 w-7 rounded-full ${theme !== "dark" ? "bg-background shadow-sm text-foreground" : "hover:bg-transparent text-muted-foreground"}`}
+            onClick={() => setTheme("light")}
+            title="Tema Claro"
+          >
+            <Sun className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`h-7 w-7 rounded-full ${theme === "dark" ? "bg-background shadow-sm text-foreground" : "hover:bg-transparent text-muted-foreground"}`}
+            onClick={() => setTheme("dark")}
+            title="Tema Escuro"
+          >
+            <Moon className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative">
@@ -121,7 +144,7 @@ function HeaderBase() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80 max-h-[85vh] overflow-y-auto">
             <DropdownMenuLabel>Notificações</DropdownMenuLabel>
-            
+
             {notificacoes.length === 0 ? (
               <div className="p-4 text-center text-xs text-muted-foreground">
                 Nenhuma notificação no momento.
@@ -156,7 +179,7 @@ function HeaderBase() {
             {hasUnread && (
               <>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className="w-full justify-center text-xs font-medium cursor-pointer text-primary"
                   onClick={(e) => {
                     e.preventDefault();
