@@ -874,7 +874,7 @@ export default function Contratacoes() {
                   {displayedContratacoes.map((contratacao) => (
                     <TableRow key={contratacao.id} className="hover:bg-muted/50">
                       <TableCell className="font-medium text-center text-xs">
-                        {contratacao.codigo || contratacao.id.slice(-8)}
+                        {contratacao.codigo?.startsWith("PCA-") ? contratacao.codigo : contratacao.codigo ? `PCA-${contratacao.codigo}-2026` : contratacao.id.slice(-8)}
                       </TableCell>
                       <TableCell className="max-w-xs">
                         <div className="truncate" title={contratacao.descricao}>

@@ -87,7 +87,8 @@ const mapSetorName = (setor: string) => {
 };
 
 const formatId = (id: string, codigo?: string | null) => {
-  return codigo || `${id.slice(-8)}`;
+  if (!codigo) return id.slice(-8);
+  return codigo.startsWith("PCA-") ? codigo : `PCA-${codigo}-2026`;
 };
 
 const SetoresDemandantes = () => {
