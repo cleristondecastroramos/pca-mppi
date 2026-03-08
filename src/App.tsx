@@ -73,7 +73,7 @@ const App = () => {
                   </ProtectedRoute>
                 } />
                 <Route path="/pontos-atencao" element={
-                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
+                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante"]}>
                     <PrioridadesAtencao />
                   </ProtectedRoute>
                 } />
@@ -83,27 +83,27 @@ const App = () => {
                   </ProtectedRoute>
                 } />
                 <Route path="/setores-demandantes" element={
-                  <ProtectedRoute allowed={["administrador", "gestor", "consulta"]}>
+                  <ProtectedRoute allowed={["administrador", "gestor"]}>
                     <SetoresDemandantes />
                   </ProtectedRoute>
                 } />
                 <Route path="/controle-prazos" element={
-                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
+                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante"]}>
                     <ControlePrazos />
                   </ProtectedRoute>
                 } />
                 <Route path="/prioridades-contratacao" element={
-                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
+                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante"]}>
                     <PrioridadesContratacao />
                   </ProtectedRoute>
                 } />
                 <Route path="/avaliacao-conformidade" element={
-                  <ProtectedRoute allowed={["administrador", "gestor", "consulta"]}>
+                  <ProtectedRoute allowed={["administrador", "gestor"]}>
                     <AvaliacaoConformidade />
                   </ProtectedRoute>
                 } />
                 <Route path="/resultados-alcancados" element={
-                  <ProtectedRoute allowed={["administrador", "gestor", "consulta"]}>
+                  <ProtectedRoute allowed={["administrador", "gestor"]}>
                     <ResultadosAlcancados />
                   </ProtectedRoute>
                 } />
