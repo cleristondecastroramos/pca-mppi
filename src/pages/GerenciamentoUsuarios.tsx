@@ -390,6 +390,7 @@ const GerenciamentoUsuarios = () => {
                               { page: "Relatórios", admin: "✓", gestor: "✓", setor: "✗", consulta: "✗" },
                               { page: "Orçamento Planejado", admin: "✓", gestor: "✗", setor: "✗", consulta: "✗" },
                               { page: "Gerenciamento de Usuários", admin: "✓", gestor: "✗", setor: "✗", consulta: "✗" },
+                              { page: "Notificações", admin: "Gerenciar e visualizar", gestor: "Visualizar", setor: "Visualizar", consulta: "Visualizar" },
                               { page: "Minha Conta / FAQ", admin: "✓", gestor: "✓", setor: "✓", consulta: "✓" },
                             ].map((row, i) => (
                               <TableRow key={i} className={i % 2 === 0 ? "" : "bg-muted/30"}>
