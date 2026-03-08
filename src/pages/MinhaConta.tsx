@@ -280,11 +280,11 @@ const MinhaConta = () => {
               </div>
 
               <Dialog open={openAvatarDialog} onOpenChange={setOpenAvatarDialog}>
-                <DialogContent className="sm:max-w-[480px]">
-                  <DialogHeader>
-                    <DialogTitle>Mudar Foto de Perfil</DialogTitle>
+                <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden">
+                  <DialogHeader className="bg-[#B3282D] px-6 py-4 dark:bg-sidebar">
+                    <DialogTitle className="text-white">Mudar Foto de Perfil</DialogTitle>
                   </DialogHeader>
-                  <div className="grid grid-cols-6 gap-3 py-4 place-items-center">
+                  <div className="grid grid-cols-6 gap-3 pt-6 pb-4 px-6 place-items-center">
                     {avatarOptions.map((url, idx) => (
                       <button
                         type="button"
@@ -299,7 +299,7 @@ const MinhaConta = () => {
                       </button>
                     ))}
                   </div>
-                  <div className="flex flex-col gap-2 mt-2 pt-4 border-t border-border">
+                  <div className="flex flex-col gap-2 px-6 pb-6 pt-4 border-t border-border bg-background">
                     <p className="text-xs font-medium text-center text-muted-foreground">Ou envie a sua própria foto</p>
                     <Button
                       variant="outline"
