@@ -923,10 +923,11 @@ export default function Contratacoes() {
                       <TableCell className="text-right">
                         <div className="flex gap-1 justify-end">
                           {(() => {
+                            // Consulta: read-only, no edit/delete
                             // Setor requisitante can only edit drafts (Planejamento or no etapa)
                             const isDraft = !contratacao.etapa_processo || contratacao.etapa_processo === "Planejamento";
-                            const canEdit = !isSetorRequisitante || isDraft;
-                            const canDelete = !isSetorRequisitante;
+                            const canEdit = !isConsulta && (!isSetorRequisitante || isDraft);
+                            const canDelete = !isConsulta && !isSetorRequisitante;
                             return (
                               <>
                                 <Button
