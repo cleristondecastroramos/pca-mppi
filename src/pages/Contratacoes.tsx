@@ -45,6 +45,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Pencil, Play } from "lucide-react";
+import { useAuthSession, useUserRoles, useUserProfile, hasAnyRole } from "@/lib/auth";
 
 type Contratacao = Tables<"contratacoes"> & { codigo?: string | null };
 type HistoricoItem = Tables<"contratacoes_historico"> & {
@@ -65,6 +66,14 @@ export default function Contratacoes() {
   const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
   const navigate = useNavigate();
+
+  // Auth: role and profile info
+  const { data: session } = useAuthSession();
+  const userId = session?.user?.id;
+  const { data: roles } = useUserRoles(userId);
+  const { data: profile } = useUserProfile(userId);
+  const isSetorRequisitante = hasAnyRole(roles, ["setor_requisitante"]) && !hasAnyRole(roles, ["administrador", "gestor"]);
+  const userSetor = profile?.setor || null;
 
   // Filtros iguais à aba Visão Geral
   const ALL_VALUE = "__all__";
