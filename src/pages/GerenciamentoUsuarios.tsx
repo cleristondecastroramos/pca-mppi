@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { PerfilAcesso } from "@/lib/auth";
 import { SETORES_REQUISITANTES } from "@/lib/auth";
-import { Shield, UserCog, ClipboardList, Eye, Info, Pencil, Trash2 } from "lucide-react";
+import { Shield, UserCog, ClipboardList, Eye, Info, Pencil, Trash2, Users } from "lucide-react";
 
 const ROLE_DEFINITIONS = {
   administrador: {
