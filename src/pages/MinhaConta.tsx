@@ -188,21 +188,16 @@ const MinhaConta = () => {
   };
 
   const handleSelectPredefinedAvatar = async (url: string) => {
+    if (!userId) {
+      toast.error("Usuário não identificado ou sessão expirada.");
+      return;
+    }
+    setUpdatingAvatar(true);
     try {
-      setUpdatingAvatar(true);
-
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData.session?.user;
-
-      if (!user) {
-        toast.error("Usuário não identificado ou sessão expirada.");
-        return;
-      }
-
-      const { error: authErr } = await supabase.auth.updateUser({ data: { avatar_url: url } });
-      if (authErr) throw authErr;
-
-      const { error: profErr } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", user.id);
+      const { error: profErr } = await supabase
+        .from("profiles")
+        .update({ avatar_url: url })
+        .eq("id", userId);
       if (profErr) throw profErr;
 
       setAvatarUrl(url);
@@ -210,13 +205,13 @@ const MinhaConta = () => {
       try { window.dispatchEvent(new CustomEvent("app-avatar-update", { detail: url })); } catch { }
 
       setOpenAvatarDialog(false);
-      setTimeout(() => {
-        toast.success("Avatar selecionado com sucesso!");
-      }, 300);
+      toast.success("Avatar selecionado com sucesso!");
 
+      // Update auth metadata in background (non-blocking)
+      supabase.auth.updateUser({ data: { avatar_url: url } }).catch(() => {});
     } catch (e: any) {
-      console.error(e);
-      toast.error("Falha ao atualizar o avatar", { description: e.message || "Tente enviar sua foto manualmente." });
+      console.error("Erro ao atualizar avatar:", e);
+      toast.error("Falha ao atualizar o avatar", { description: e.message || "Tente novamente." });
     } finally {
       setUpdatingAvatar(false);
     }
