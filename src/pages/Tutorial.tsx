@@ -705,7 +705,23 @@ export default function Tutorial() {
         </Section>
 
         <Section id="sec20" title="20. FAQ / Dúvidas">
-          <P>Perguntas frequentes em formato expansível (acordeão). Inclui informações de contato da ASSESPPLAGES para suporte técnico e funcional.</P>
+          <P>A seção de <strong>FAQ (Perguntas Frequentes)</strong> reúne as dúvidas mais comuns sobre o funcionamento do sistema em formato de acordeão expansível, permitindo consulta rápida e objetiva.</P>
+
+          <H3>Conteúdo da Seção</H3>
+          <UL items={[
+            "Respostas para dúvidas operacionais sobre cadastro, edição e exclusão de demandas.",
+            "Orientações sobre funcionalidades específicas como filtros, relatórios e orçamento.",
+            "Esclarecimentos sobre perfis de acesso e permissões do sistema.",
+          ]} />
+
+          <H3>Canais de Suporte</H3>
+          <P>Ao final da página, o sistema disponibiliza os <strong>canais oficiais de suporte</strong> para questões que não estejam contempladas nas perguntas frequentes:</P>
+          <UL items={[
+            <><strong>CLC (Coordenadoria de Licitações e Contratos):</strong> canal de suporte para dúvidas relacionadas aos processos licitatórios, etapas do certame, documentação e conformidade.</>,
+            <><strong>ASSESPPLAGES (Assessoria de Planejamento e Gestão):</strong> canal de suporte para questões de planejamento, orçamento, priorização de demandas e funcionamento geral do sistema PCA.</>,
+          ]} />
+
+          <P>Os contatos incluem <strong>e-mail</strong> e <strong>ramal telefônico</strong> de cada setor, facilitando o acesso direto à equipe responsável conforme a natureza da dúvida.</P>
         </Section>
 
         {/* 21. Glossário */}
