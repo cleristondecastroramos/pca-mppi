@@ -79,7 +79,7 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
       const lines: string[] = doc.splitTextToSize(block.text, CW);
       for (const line of lines) {
         y = checkPage(doc, y, 5);
-        doc.text(line, ML, y);
+        doc.text(line, ML, y, { align: "justify", maxWidth: CW });
         y += 4.5;
       }
       y += 2;
