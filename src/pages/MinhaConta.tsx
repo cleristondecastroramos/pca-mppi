@@ -6,7 +6,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Camera } from "lucide-react";
+import { Camera, Image as ImageIcon } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+const avatarOptions = [
+  { name: "Homem de Negocios", url: "https://api.dicebear.com/7.x/notionists/svg?seed=Felix&backgroundColor=e2e8f0" },
+  { name: "Mulher de Negocios", url: "https://api.dicebear.com/7.x/notionists/svg?seed=Aneka&backgroundColor=e2e8f0" },
+  { name: "Estudante Masculino", url: "https://api.dicebear.com/7.x/notionists/svg?seed=Jack&backgroundColor=e2e8f0" },
+  { name: "Estudante Feminino", url: "https://api.dicebear.com/7.x/notionists/svg?seed=Jocelyn&backgroundColor=e2e8f0" },
+  { name: "Homem Elegante", url: "https://api.dicebear.com/7.x/adventurer/svg?seed=Leo&backgroundColor=e2e8f0" },
+  { name: "Mulher Elegante", url: "https://api.dicebear.com/7.x/adventurer/svg?seed=Mia&backgroundColor=e2e8f0" },
+  { name: "Jovem Masculino", url: "https://api.dicebear.com/7.x/micah/svg?seed=Alex&backgroundColor=e2e8f0" },
+  { name: "Jovem Feminino", url: "https://api.dicebear.com/7.x/micah/svg?seed=Sophia&backgroundColor=e2e8f0" },
+];
 
 const MinhaConta = () => {
   const [newPassword, setNewPassword] = useState("");
@@ -22,6 +34,7 @@ const MinhaConta = () => {
   const [ramal, setRamal] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [openAvatarDialog, setOpenAvatarDialog] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -128,8 +141,8 @@ const MinhaConta = () => {
       if (profErr) throw profErr;
 
       setAvatarUrl(publicUrl);
-      try { localStorage.setItem("app_avatar_url", publicUrl); } catch {}
-      try { window.dispatchEvent(new CustomEvent("app-avatar-update", { detail: publicUrl })); } catch {}
+      try { localStorage.setItem("app_avatar_url", publicUrl); } catch { }
+      try { window.dispatchEvent(new CustomEvent("app-avatar-update", { detail: publicUrl })); } catch { }
       toast.success("Foto atualizada.");
     } catch (e: any) {
       toast.error("Falha ao enviar imagem", { description: e.message || String(e) });
@@ -143,7 +156,22 @@ const MinhaConta = () => {
     fileRef.current?.click();
   };
 
-  
+  const handleSelectPredefinedAvatar = async (url: string) => {
+    if (!userId) return;
+    try {
+      await supabase.auth.updateUser({ data: { avatar_url: url } });
+      await supabase.from("profiles").update({ avatar_url: url }).eq("id", userId);
+      setAvatarUrl(url);
+      try { localStorage.setItem("app_avatar_url", url); } catch { }
+      try { window.dispatchEvent(new CustomEvent("app-avatar-update", { detail: url })); } catch { }
+      toast.success("Avatar atualizado com sucesso.");
+      setOpenAvatarDialog(false);
+    } catch (e: any) {
+      toast.error("Falha ao salvar avatar", { description: e.message || String(e) });
+    }
+  };
+
+
 
   const formatRamal = (v: string) => {
     return v.replace(/\D/g, "").slice(0, 4);
@@ -179,8 +207,8 @@ const MinhaConta = () => {
             <CardTitle>Minha Conta</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-6 md:grid-cols-2 items-stretch">
-            <div className="md:col-span-2 flex items-center justify-center">
-              <div className="relative">
+            <div className="md:col-span-2 flex flex-col items-center justify-center gap-4">
+              <div className="relative group">
                 <Avatar className="h-24 w-24">
                   {avatarUrl ? (
                     <AvatarImage src={avatarUrl} alt="Minha foto" onError={() => setAvatarUrl(null)} />
@@ -189,10 +217,52 @@ const MinhaConta = () => {
                   )}
                 </Avatar>
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUploadAvatar} />
-                <button type="button" onClick={triggerSelectFile} className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-card border border-border shadow flex items-center justify-center text-muted-foreground hover:text-foreground">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full shadow-sm bg-card border-border text-muted-foreground hover:text-foreground"
+                  onClick={() => setOpenAvatarDialog(true)}
+                  title="Alterar Avatar"
+                >
                   <Camera className="h-4 w-4" />
-                </button>
+                </Button>
               </div>
+
+              <Dialog open={openAvatarDialog} onOpenChange={setOpenAvatarDialog}>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Mudar Foto de Perfil</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid grid-cols-4 gap-3 py-4">
+                    {avatarOptions.map((avatar, idx) => (
+                      <div
+                        key={idx}
+                        className="flex flex-col items-center gap-2 cursor-pointer rounded-lg p-2 hover:bg-accent hover:text-accent-foreground border border-transparent hover:border-border transition-all text-center"
+                        onClick={() => handleSelectPredefinedAvatar(avatar.url)}
+                      >
+                        <div className="h-14 w-14 rounded-full overflow-hidden bg-muted">
+                          <img src={avatar.url} alt={avatar.name} className="h-full w-full object-contain" />
+                        </div>
+                        <span className="text-[10px] leading-tight text-muted-foreground font-medium">{avatar.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex flex-col gap-2 mt-2 pt-4 border-t border-border">
+                    <p className="text-xs font-medium text-center text-muted-foreground">Ou envie a sua própria foto</p>
+                    <Button
+                      variant="outline"
+                      className="w-full text-xs h-9"
+                      onClick={() => {
+                        setOpenAvatarDialog(false);
+                        triggerSelectFile();
+                      }}
+                    >
+                      <ImageIcon className="mr-2 h-4 w-4" />
+                      Fazer Upload
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
             <Card className="h-full">
               <CardHeader className="p-3 pb-1">
