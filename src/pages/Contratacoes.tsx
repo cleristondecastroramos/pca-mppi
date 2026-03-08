@@ -680,14 +680,16 @@ export default function Contratacoes() {
               Gerencie todas as contratações do PCA 2026 ({totalCount} registros)
             </p>
           </div>
-          <div className="flex gap-2">
-            <Link to="/nova-contratacao">
-              <Button size="xs">
-                <Plus className="h-4 w-4 mr-1" />
-                Nova Contratação
-              </Button>
-            </Link>
-          </div>
+          {!isConsulta && (
+            <div className="flex gap-2">
+              <Link to="/nova-contratacao">
+                <Button size="xs">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Nova Contratação
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Barra de filtros discretos (copiada da aba Visão Geral) */}
