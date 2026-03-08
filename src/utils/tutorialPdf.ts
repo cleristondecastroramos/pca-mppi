@@ -309,9 +309,25 @@ export async function generateTutorialPdf() {
 
   // ===== Add internal links from TOC to section pages =====
   doc.setPage(tocPageNum);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
   for (const pos of tocItemPositions) {
     if (pos.idx < sectionPageNumbers.length) {
       doc.link(pos.x, pos.y, pos.w, pos.h, { pageNumber: sectionPageNumbers[pos.idx] });
+      // Add page number on the right
+      doc.setTextColor(...GRAY_TEXT);
+      doc.text(`${sectionPageNumbers[pos.idx]}`, PAGE_W - MR, pos.y + 4, { align: "right" });
+      // Dotted leader line
+      doc.setDrawColor(180, 180, 180);
+      doc.setLineWidth(0.1);
+      const textEndX = pos.x + pos.w + 2;
+      const pageNumX = PAGE_W - MR - doc.getTextWidth(`${sectionPageNumbers[pos.idx]}`) - 2;
+      if (pageNumX > textEndX) {
+        // Draw dots
+        doc.setLineDashPattern([0.5, 1.5], 0);
+        doc.line(textEndX, pos.y + 3, pageNumX, pos.y + 3);
+        doc.setLineDashPattern([], 0);
+      }
     }
   }
 
