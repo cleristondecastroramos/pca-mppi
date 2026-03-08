@@ -21,6 +21,13 @@ type Contratacao = Tables<"contratacoes"> & {
 };
 
 const ControlePrazos = () => {
+  const { data: session } = useAuthSession();
+  const uid = session?.user?.id;
+  const { data: roles } = useUserRoles(uid);
+  const { data: userProfile } = useUserProfile(uid);
+  const isSetorRequisitante = hasAnyRole(roles, ["setor_requisitante"]) && !hasAnyRole(roles, ["administrador", "gestor"]);
+  const userSetor = userProfile?.setor || null;
+
   const [rows, setRows] = useState<Contratacao[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
