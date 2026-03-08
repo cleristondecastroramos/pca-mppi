@@ -32,10 +32,7 @@ const Relatorios = () => {
     etapa_processo: "__all__",
   });
 
-  const formatId = (id: any, codigo?: any) => {
-    if (!codigo) return String(id).slice(-8);
-    return codigo.startsWith("PCA-") ? codigo : `PCA-${codigo}-2026`;
-  };
+  const formatId = (id: any, codigo?: any) => codigo ? codigo : `${String(id).slice(-8)}`;
   const getErrorMessage = (e: any) => {
     try {
       if (typeof e === "string") return e;
