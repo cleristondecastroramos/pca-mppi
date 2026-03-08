@@ -913,7 +913,7 @@ const SETORES = [
   ["CEAF", "Centro de Estudos e Aperfeiçoamento Funcional"],
   ["CLC", "Coordenadoria de Licitações e Contratos"],
   ["CONINT", "Controladoria Interna"],
-  ["CPPT", "Coordenadoria de Planejamento e Projetos de TI"],
+  ["CPPT", "Coordenadoria de Perícias e Pareceres Técnicos"],
   ["CRH", "Coordenadoria de Recursos Humanos"],
   ["CTI", "Coordenadoria de Tecnologia da Informação"],
   ["GAECO", "Grupo de Atuação Especial de Combate ao Crime Organizado"],
