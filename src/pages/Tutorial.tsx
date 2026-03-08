@@ -642,9 +642,57 @@ export default function Tutorial() {
           <P>O botão <strong>"Política de Acessos"</strong> abre um modal com a descrição de cada perfil e a Matriz de Acesso completa.</P>
         </Section>
 
-        {/* 18-20 */}
+        {/* 18. Notificações */}
         <Section id="sec18" title="18. Notificações">
-          <P>O <strong>Administrador</strong> pode criar e gerenciar notificações do sistema. Demais perfis podem apenas visualizar notificações publicadas.</P>
+          <P>
+            O módulo <strong>Central de Notificações</strong> é o canal oficial de comunicação rápida do sistema PCA 2026, permitindo que a administração envie alertas, avisos e mensagens importantes a todos os usuários da plataforma de forma instantânea. A criação e o gerenciamento de notificações são exclusivos do perfil <strong>Administrador</strong>, enquanto todos os demais perfis (<strong>Gestor</strong>, <strong>Setor Requisitante</strong> e <strong>Consulta</strong>) podem visualizar as notificações recebidas.
+          </P>
+
+          <H3>18.1. Como Criar uma Notificação</H3>
+          <P>Para criar e disparar uma nova notificação, o Administrador deve acessar a página <strong>"Notificações"</strong> no menu lateral e preencher o formulário disponível no card <strong>"Nova Notificação"</strong>:</P>
+          <OL items={[
+            <><strong>Título Curto (máx. 50 caracteres):</strong> Um resumo objetivo do assunto da notificação. Exemplo: "Prazo de encerramento prorrogado" ou "Novo normativo aplicável".</>,
+            <><strong>Mensagem Direta (máx. 150 caracteres):</strong> O conteúdo da notificação, que deve ser claro e direto. Este texto será exibido a todos os usuários.</>,
+            <>Clique em <strong>"Disparar para Usuários"</strong> para enviar a notificação imediatamente.</>,
+          ]} />
+          <Note>
+            As notificações são enviadas instantaneamente e ficam visíveis para todos os usuários do sistema. Certifique-se de que o conteúdo está correto antes de disparar.
+          </Note>
+
+          <H3>18.2. Como os Usuários Recebem as Notificações</H3>
+          <P>
+            Todas as notificações ativas são exibidas no <strong>ícone de sino (🔔)</strong> localizado no canto superior direito do cabeçalho do sistema, visível em todas as páginas. O funcionamento é o seguinte:
+          </P>
+          <UL items={[
+            <><strong>Indicador de não lida:</strong> Quando há notificações que o usuário ainda não visualizou, um <strong>ponto vermelho</strong> aparece sobre o ícone do sino, sinalizando que existem mensagens pendentes.</>,
+            <><strong>Dropdown de notificações:</strong> Ao clicar no sino, um menu suspenso exibe a lista de notificações ativas, mostrando o título, a mensagem e a data/hora de criação de cada uma.</>,
+            <><strong>Marcação automática como lida:</strong> Ao abrir o dropdown, todas as notificações são automaticamente marcadas como lidas para aquele usuário. O ponto vermelho desaparece, indicando que não há novas mensagens.</>,
+            <><strong>Controle individual de leitura:</strong> Cada usuário possui seu próprio registro de leitura. Ou seja, o fato de um usuário ter lido uma notificação não afeta o status de leitura dos demais usuários.</>,
+          ]} />
+
+          <H3>18.3. Gerenciamento de Notificações</H3>
+          <P>
+            Na página de Notificações, o Administrador visualiza o <strong>Histórico de Notificações Ativas</strong> em uma tabela que exibe o título, a mensagem e a data de criação de cada notificação. As seguintes ações estão disponíveis:
+          </P>
+          <UL items={[
+            <><strong>Excluir (inativar):</strong> O Administrador pode remover uma notificação clicando no ícone de lixeira (🗑️). A exclusão é lógica — a notificação é marcada como inativa e desaparece do painel de todos os usuários, mas permanece registrada no banco de dados para fins de auditoria. Uma confirmação é solicitada antes da exclusão.</>,
+          ]} />
+
+          <H3>18.4. Casos de Uso Recomendados</H3>
+          <P>A Central de Notificações é ideal para comunicar:</P>
+          <UL items={[
+            "Prorrogações ou alterações de prazos do PCA.",
+            "Publicação de novos normativos ou orientações que afetem as contratações.",
+            "Avisos sobre manutenções programadas no sistema.",
+            "Comunicados institucionais da ASSESPPLAGES.",
+            "Alertas sobre mudanças orçamentárias ou bloqueios de trava.",
+            "Lembretes sobre datas-limite para envio de documentação.",
+          ]} />
+
+          <H3>18.5. Limitações</H3>
+          <P>
+            O sistema de notificações é <strong>unidirecional</strong>: apenas o Administrador pode criar e enviar mensagens. Não há funcionalidade de resposta ou interação por parte dos demais usuários. As notificações também não são enviadas por e-mail — são exibidas exclusivamente dentro do sistema PCA 2026.
+          </P>
         </Section>
 
         <Section id="sec19" title="19. Minha Conta">
