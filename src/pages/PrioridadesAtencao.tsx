@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertTriangle, Clock, Calendar, AlertCircle, CheckCircle2, ArrowRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuthSession, useUserRoles, useUserProfile, hasAnyRole } from "@/lib/auth";
 
 type AttItem = {
   id: string;

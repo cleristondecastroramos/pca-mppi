@@ -94,6 +94,13 @@ const mapSetorName = (setor: string) => {
 };
 
 const VisaoGeral = () => {
+  const { data: session } = useAuthSession();
+  const uid = session?.user?.id;
+  const { data: roles } = useUserRoles(uid);
+  const { data: profile } = useUserProfile(uid);
+  const isSetorRequisitante = hasAnyRole(roles, ["setor_requisitante"]) && !hasAnyRole(roles, ["administrador", "gestor"]);
+  const userSetor = profile?.setor || null;
+
   const [rows, setRows] = useState<Contratacao[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

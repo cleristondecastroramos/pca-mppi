@@ -9,6 +9,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, AlertTriangle, Circle, ArrowDownCircle } from "lucide-react";
+import { useAuthSession, useUserRoles, useUserProfile, hasAnyRole } from "@/lib/auth";
 
 type Contratacao = Tables<"contratacoes">;
 

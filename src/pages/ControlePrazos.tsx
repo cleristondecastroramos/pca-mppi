@@ -13,6 +13,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CalendarDays, Loader2, Eraser, AlertCircle, CheckCircle2, Clock, Calendar as CalendarIcon, Filter } from "lucide-react";
 import { ptBR } from "date-fns/locale";
+import { useAuthSession, useUserRoles, useUserProfile, hasAnyRole } from "@/lib/auth";
 
 type Contratacao = Tables<"contratacoes"> & { 
   data_prevista_contratacao?: string | null;
