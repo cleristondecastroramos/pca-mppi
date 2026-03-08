@@ -918,7 +918,7 @@ const SETORES = [
   ["CTI", "Coordenadoria de Tecnologia da Informação"],
   ["GAECO", "Grupo de Atuação Especial de Combate ao Crime Organizado"],
   ["GSI", "Gabinete de Segurança Institucional"],
-  ["PLAN", "Assessoria de Planejamento (PLANEJAMENTO)"],
+  ["PLAN", "Assessoria de Planejamento e Gestão (ASSESPPLAGES)"],
   ["PROCON", "Programa de Proteção e Defesa do Consumidor"],
 ];
 
