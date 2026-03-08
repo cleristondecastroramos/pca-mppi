@@ -199,10 +199,15 @@ const VisaoGeral = () => {
   useEffect(() => {
     if (roles === undefined || (isSetorRequisitante && !userSetor)) return;
     const fetchDistinct = async () => {
-      // Fetch distinct values client-side
-      const { data } = await supabase
+      let query = supabase
         .from("contratacoes")
         .select("unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, etapa_processo");
+      
+      if (isSetorRequisitante && userSetor) {
+        query = query.eq("setor_requisitante", userSetor);
+      }
+
+      const { data } = await query;
       
       if (data) {
         const distinctValues = {
@@ -220,7 +225,7 @@ const VisaoGeral = () => {
       }
     };
     fetchDistinct();
-  }, []);
+  }, [roles, userSetor]);
 
   const distinctOptions = useMemo(() => {
     if (distinctOptionsRpc) {
