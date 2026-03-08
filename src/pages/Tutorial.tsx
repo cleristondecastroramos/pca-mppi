@@ -42,7 +42,7 @@ export default function Tutorial() {
 
           <H3>1.3. Público-alvo</H3>
           <UL items={[
-            <><strong>Administradores do sistema</strong> (ASSESPPLAGES): Responsáveis pela gestão global, cadastro de usuários e configurações.</>,
+            <><strong>Administradores do sistema</strong> (CLC e ASSESPPLAGES): Responsáveis pela gestão global, cadastro de usuários e configurações.</>,
             <><strong>Gestores:</strong> Servidores responsáveis pelo acompanhamento e consolidação das contratações de todos os setores.</>,
             <><strong>Setores Requisitantes:</strong> Servidores dos setores que cadastram e gerenciam suas próprias demandas de contratação (CAA, CCF, CCS, CLC, CPPT, CTI, CRH, CEAF, GAECO, GSI, CONINT, PLANEJAMENTO, PROCON).</>,
             <><strong>Consulta:</strong> Servidores com acesso somente para leitura das informações do sistema.</>,
