@@ -921,30 +921,43 @@ export default function Contratacoes() {
 
                       <TableCell className="text-right">
                         <div className="flex gap-1 justify-end">
-                          <Button
-                            variant="ghost"
-                            size="xs"
-                            onClick={() => handleEdit(contratacao)}
-                            title="Editar contratação"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="xs"
-                            onClick={() => handleShowHistorico(contratacao.id)}
-                            title="Ver histórico"
-                          >
-                            <History className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="xs"
-                            onClick={() => setContratacaoToDelete(contratacao.id)}
-                            title="Excluir contratação"
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          {(() => {
+                            // Setor requisitante can only edit drafts (Planejamento or no etapa)
+                            const isDraft = !contratacao.etapa_processo || contratacao.etapa_processo === "Planejamento";
+                            const canEdit = !isSetorRequisitante || isDraft;
+                            const canDelete = !isSetorRequisitante;
+                            return (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="xs"
+                                  onClick={() => handleEdit(contratacao)}
+                                  title={canEdit ? "Editar contratação" : "Somente rascunhos podem ser editados"}
+                                  disabled={!canEdit}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="xs"
+                                  onClick={() => handleShowHistorico(contratacao.id)}
+                                  title="Ver histórico"
+                                >
+                                  <History className="h-4 w-4" />
+                                </Button>
+                                {canDelete && (
+                                  <Button
+                                    variant="ghost"
+                                    size="xs"
+                                    onClick={() => setContratacaoToDelete(contratacao.id)}
+                                    title="Excluir contratação"
+                                  >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       </TableCell>
                     </TableRow>
