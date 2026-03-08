@@ -932,6 +932,7 @@ const TERMOS = [
   ["Conformidade", "Verificação de requisitos documentais e legais."],
   ["Valor Estimado", "Valor previsto para a contratação, antes do certame."],
   ["Valor Contratado", "Valor efetivamente acordado no contrato."],
+  ["Valor Executado", "Quantia exata de recursos orçamentários que foi empenhada para cobrir uma despesa específica."],
   ["Código PCA", "Identificador único no formato PCA-XXXX-2026."],
   ["Modalidade Licitatória", "Procedimento legal para seleção do fornecedor."],
   ["Normativo", "Lei de licitações que rege o processo."],
