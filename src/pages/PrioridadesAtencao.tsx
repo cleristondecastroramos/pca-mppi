@@ -37,16 +37,30 @@ const getDaysDiff = (targetDate: Date) => {
 };
 
 const PrioridadesAtencao = () => {
+  const { data: session } = useAuthSession();
+  const uid = session?.user?.id;
+  const { data: roles } = useUserRoles(uid);
+  const { data: userProfile } = useUserProfile(uid);
+  const isSetorRequisitante = hasAnyRole(roles, ["setor_requisitante"]) && !hasAnyRole(roles, ["administrador", "gestor"]);
+  const userSetor = userProfile?.setor || null;
+
   const [items, setItems] = useState<AttItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (roles === undefined || (isSetorRequisitante && !userSetor)) return;
     const load = async () => {
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from("contratacoes")
           .select("id, codigo, descricao, setor_requisitante, etapa_processo, sobrestado, data_prevista_contratacao")
           .order("data_prevista_contratacao", { ascending: true });
+
+        if (isSetorRequisitante && userSetor) {
+          query = query.eq("setor_requisitante", userSetor);
+        }
+
+        const { data, error } = await query;
         
         if (error) throw error;
         setItems((data as any) || []);
