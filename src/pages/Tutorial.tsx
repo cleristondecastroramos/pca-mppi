@@ -192,7 +192,7 @@ export default function Tutorial() {
           <UL items={[
             <><strong>Total de Demandas:</strong> Quantidade total de contratações cadastradas.</>,
             <><strong>Valor Estimado Total:</strong> Soma dos valores estimados (R$).</>,
-            <><strong>Valor Executado Total:</strong> Soma dos empenhos (Empenho 1 + 2 + 3).</>,
+            <><strong>Valor Executado Total:</strong> Soma dos empenhos realizados (R$).</>,
             <><strong>Total Concluídas:</strong> Contratações com etapa "Concluído".</>,
           ]} />
 
