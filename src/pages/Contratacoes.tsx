@@ -45,6 +45,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Pencil, Play } from "lucide-react";
+import { useAuthSession, useUserRoles, useUserProfile, hasAnyRole } from "@/lib/auth";
 
 type Contratacao = Tables<"contratacoes"> & { codigo?: string | null };
 type HistoricoItem = Tables<"contratacoes_historico"> & {
@@ -65,6 +66,14 @@ export default function Contratacoes() {
   const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
   const navigate = useNavigate();
+
+  // Auth: role and profile info
+  const { data: session } = useAuthSession();
+  const userId = session?.user?.id;
+  const { data: roles } = useUserRoles(userId);
+  const { data: profile } = useUserProfile(userId);
+  const isSetorRequisitante = hasAnyRole(roles, ["setor_requisitante"]) && !hasAnyRole(roles, ["administrador", "gestor"]);
+  const userSetor = profile?.setor || null;
 
   // Filtros iguais à aba Visão Geral
   const ALL_VALUE = "__all__";
@@ -105,6 +114,8 @@ export default function Contratacoes() {
   }, [searchTerm]);
 
   useEffect(() => {
+    // Only fetch once role/profile are resolved
+    if (roles === undefined || (isSetorRequisitante && !userSetor)) return;
     let mounted = true;
     const run = async () => {
       await fetchContratacoes();
@@ -117,15 +128,22 @@ export default function Contratacoes() {
       mounted = false;
       sub.subscription.unsubscribe();
     };
-  }, []);
+  }, [roles, userSetor]);
 
   const fetchContratacoes = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("contratacoes")
         .select("id, codigo, descricao, setor_requisitante, unidade_orcamentaria, classe, valor_estimado, valor_contratado, etapa_processo, sobrestado, grau_prioridade, justificativa, data_prevista_contratacao, numero_sei_contratacao, pdm_catser, created_at, quantidade_itens, valor_unitario, unidade_fornecimento, tipo_recurso, tipo_contratacao, modalidade, normativo, srp")
         .order("created_at", { ascending: false });
+
+      // Setor requisitante users only see their own setor
+      if (isSetorRequisitante && userSetor) {
+        query = query.eq("setor_requisitante", userSetor);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setContratacoes((data as any) || []);
@@ -903,30 +921,43 @@ export default function Contratacoes() {
 
                       <TableCell className="text-right">
                         <div className="flex gap-1 justify-end">
-                          <Button
-                            variant="ghost"
-                            size="xs"
-                            onClick={() => handleEdit(contratacao)}
-                            title="Editar contratação"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="xs"
-                            onClick={() => handleShowHistorico(contratacao.id)}
-                            title="Ver histórico"
-                          >
-                            <History className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="xs"
-                            onClick={() => setContratacaoToDelete(contratacao.id)}
-                            title="Excluir contratação"
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          {(() => {
+                            // Setor requisitante can only edit drafts (Planejamento or no etapa)
+                            const isDraft = !contratacao.etapa_processo || contratacao.etapa_processo === "Planejamento";
+                            const canEdit = !isSetorRequisitante || isDraft;
+                            const canDelete = !isSetorRequisitante;
+                            return (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="xs"
+                                  onClick={() => handleEdit(contratacao)}
+                                  title={canEdit ? "Editar contratação" : "Somente rascunhos podem ser editados"}
+                                  disabled={!canEdit}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="xs"
+                                  onClick={() => handleShowHistorico(contratacao.id)}
+                                  title="Ver histórico"
+                                >
+                                  <History className="h-4 w-4" />
+                                </Button>
+                                {canDelete && (
+                                  <Button
+                                    variant="ghost"
+                                    size="xs"
+                                    onClick={() => setContratacaoToDelete(contratacao.id)}
+                                    title="Excluir contratação"
+                                  >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       </TableCell>
                     </TableRow>

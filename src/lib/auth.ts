@@ -3,6 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type PerfilAcesso = "administrador" | "gestor" | "setor_requisitante" | "consulta";
 
+export const SETORES_REQUISITANTES = [
+  "CAA", "CCF", "CCS", "CEAF", "CLC", "CONINT", "CPPT", "CRH", "CTI", "GAECO", "GSI", "PLANEJAMENTO", "PROCON",
+] as const;
+
 export async function getSession() {
   const { data } = await supabase.auth.getSession();
   return data.session;
@@ -24,7 +28,6 @@ export async function fetchUserRoles(userId?: string): Promise<PerfilAcesso[]> {
     const id = uid ?? (await getSession())?.user?.id;
     if (!id) return [];
 
-    // Query only user_roles table as single source of truth
     const { data, error } = await supabase
       .from("user_roles")
       .select("role")
@@ -36,7 +39,6 @@ export async function fetchUserRoles(userId?: string): Promise<PerfilAcesso[]> {
     }
     let roles: PerfilAcesso[] = (data || []).map((r: { role: PerfilAcesso }) => r.role);
 
-    // Fallback: se e-mail do usuário corresponder ao admin padrão, garante perfil administrador
     const defaultAdminEmail = import.meta.env.VITE_DEFAULT_ADMIN_EMAIL as string | undefined;
     const { data: sessionData } = await supabase.auth.getSession();
     const email = sessionData.session?.user?.email;
@@ -55,6 +57,31 @@ export function useUserRoles(userId?: string) {
   return useQuery({
     queryKey: ["auth", "roles", userId ?? "anonymous"],
     queryFn: () => fetchUserRoles(userId),
+    staleTime: 120_000,
+    enabled: !!userId,
+  });
+}
+
+export async function fetchUserProfile(userId?: string) {
+  try {
+    const id = userId ?? (await getSession())?.user?.id;
+    if (!id) return null;
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, nome_completo, setor, cargo, email")
+      .eq("id", id)
+      .single();
+    if (error) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+export function useUserProfile(userId?: string) {
+  return useQuery({
+    queryKey: ["auth", "profile", userId ?? "anonymous"],
+    queryFn: () => fetchUserProfile(userId),
     staleTime: 120_000,
     enabled: !!userId,
   });

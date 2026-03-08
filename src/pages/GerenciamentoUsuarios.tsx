@@ -10,6 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { PerfilAcesso } from "@/lib/auth";
+import { SETORES_REQUISITANTES } from "@/lib/auth";
 import { Shield, UserCog, ClipboardList, Eye, Info, Pencil, Trash2 } from "lucide-react";
 
 const ROLE_DEFINITIONS = {
@@ -176,7 +177,10 @@ const GerenciamentoUsuarios = () => {
 
   async function handleEditSave() {
     if (!editTarget) return;
-    setSaving(true);
+    if (editRole === "setor_requisitante" && !editSetor) {
+      toast.error("Para o perfil Setor Requisitante, é obrigatório selecionar um setor.");
+      return;
+    }
     try {
       console.log("Iniciando edição de usuário:", { user_id: editTarget.id, editNome, editRole });
       const { data, error } = await supabase.functions.invoke("admin-update-user", {
@@ -215,6 +219,10 @@ const GerenciamentoUsuarios = () => {
   async function handleCreate() {
     if (!newEmail || !newNome || !newRole) {
       toast.error("Preencha nome, e-mail e perfil de acesso.");
+      return;
+    }
+    if (newRole === "setor_requisitante" && !newSetor) {
+      toast.error("Para o perfil Setor Requisitante, é obrigatório selecionar um setor.");
       return;
     }
     if (newProvisionalPassword && newProvisionalPassword.length < 8) {
@@ -462,8 +470,19 @@ const GerenciamentoUsuarios = () => {
                   <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="usuario@mppi.mp.br" />
                 </div>
                 <div>
-                  <label className="text-sm text-muted-foreground">Setor</label>
-                  <Input value={newSetor} onChange={(e) => setNewSetor(e.target.value)} placeholder="Ex.: TI" />
+                  <label className="text-sm text-muted-foreground">Setor {newRole === "setor_requisitante" ? "*" : ""}</label>
+                  {newRole === "setor_requisitante" ? (
+                    <Select value={newSetor} onValueChange={setNewSetor}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
+                      <SelectContent>
+                        {SETORES_REQUISITANTES.map((s) => (
+                          <SelectItem key={s} value={s}>{s === "PLANEJAMENTO" ? "PLAN" : s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input value={newSetor} onChange={(e) => setNewSetor(e.target.value)} placeholder="Ex.: TI" />
+                  )}
                 </div>
                 <div>
                   <label className="text-sm text-muted-foreground">Cargo</label>
@@ -510,8 +529,19 @@ const GerenciamentoUsuarios = () => {
                   <Input value={editNome} onChange={(e) => setEditNome(e.target.value)} />
                 </div>
                 <div>
-                  <label className="text-sm text-muted-foreground">Setor</label>
-                  <Input value={editSetor} onChange={(e) => setEditSetor(e.target.value)} />
+                  <label className="text-sm text-muted-foreground">Setor {editRole === "setor_requisitante" ? "*" : ""}</label>
+                  {editRole === "setor_requisitante" ? (
+                    <Select value={editSetor} onValueChange={setEditSetor}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
+                      <SelectContent>
+                        {SETORES_REQUISITANTES.map((s) => (
+                          <SelectItem key={s} value={s}>{s === "PLANEJAMENTO" ? "PLAN" : s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input value={editSetor} onChange={(e) => setEditSetor(e.target.value)} />
+                  )}
                 </div>
                 <div>
                   <label className="text-sm text-muted-foreground">Cargo</label>
