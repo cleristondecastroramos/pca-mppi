@@ -360,8 +360,8 @@ const GerenciamentoUsuarios = () => {
                       <div className="rounded-lg border overflow-hidden">
                         <Table>
                           <TableHeader>
-                            <TableRow className="bg-muted/50">
-                              <TableHead className="text-xs font-semibold w-[200px]">Funcionalidade</TableHead>
+                            <TableRow className="bg-muted/50 h-8">
+                              <TableHead className="text-xs font-semibold w-[200px] py-1.5">Funcionalidade</TableHead>
                               <TableHead className="text-xs font-semibold text-center">
                                 <div className="flex items-center justify-center gap-1"><Shield className="h-3 w-3 text-destructive" />Admin</div>
                               </TableHead>
