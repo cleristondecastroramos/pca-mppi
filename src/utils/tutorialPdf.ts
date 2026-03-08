@@ -153,23 +153,22 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       const tipLines: string[] = doc.splitTextToSize(block.text, CW - 10);
-      const boxH = tipLines.length * 4.5 + 6;
+      const boxH = tipLines.length * 4.5 + 10;
       y = checkPage(doc, y, boxH + 2);
       doc.setFillColor(...TIP_BG);
       doc.roundedRect(ML, y - 3, CW, boxH, 1, 1, "F");
       doc.setDrawColor(...TIP_BORDER);
       doc.setLineWidth(1.2);
       doc.line(ML, y - 3, ML, y - 3 + boxH);
+      // Using text instead of emoji
       doc.setFont("helvetica", "bold");
       doc.setTextColor(...GREEN);
-      doc.text("💡 Dica:", ML + 4, y + 1);
+      doc.text("[*] Dica:", ML + 4, y + 1);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(60, 60, 60);
-      if (tipLines.length > 0) {
-        doc.text(tipLines[0], ML + 4, y + 5.5);
-      }
-      for (let i = 1; i < tipLines.length; i++) {
-        doc.text(tipLines[i], ML + 4, y + 5.5 + i * 4.5);
+      // Text content below label
+      for (let i = 0; i < tipLines.length; i++) {
+        doc.text(tipLines[i], ML + 4, y + 6 + i * 4.5, { align: "justify", maxWidth: CW - 12 });
       }
       y += boxH + 4;
       return y;
