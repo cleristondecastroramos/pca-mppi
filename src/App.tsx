@@ -153,6 +153,11 @@ const App = () => {
                     <OrcamentoPlanejado />
                   </ProtectedRoute>
                 } />
+                <Route path="/tutorial" element={
+                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
+                    <Tutorial />
+                  </ProtectedRoute>
+                } />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
