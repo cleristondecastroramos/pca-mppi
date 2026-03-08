@@ -218,6 +218,10 @@ const GerenciamentoUsuarios = () => {
       toast.error("Preencha nome, e-mail e perfil de acesso.");
       return;
     }
+    if (newRole === "setor_requisitante" && !newSetor) {
+      toast.error("Para o perfil Setor Requisitante, é obrigatório selecionar um setor.");
+      return;
+    }
     if (newProvisionalPassword && newProvisionalPassword.length < 8) {
       toast.error("A senha provisória deve ter pelo menos 8 caracteres.");
       return;
