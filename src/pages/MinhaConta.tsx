@@ -281,7 +281,7 @@ const MinhaConta = () => {
 
               <Dialog open={openAvatarDialog} onOpenChange={setOpenAvatarDialog}>
                 <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden">
-                  <DialogHeader className="bg-[#B3282D] px-6 py-4 dark:bg-sidebar">
+                  <DialogHeader className="bg-[#D93F5C] px-6 py-4 dark:bg-sidebar">
                     <DialogTitle className="text-white">Mudar Foto de Perfil</DialogTitle>
                   </DialogHeader>
                   <div className="grid grid-cols-6 gap-3 pt-6 pb-4 px-6 place-items-center">
