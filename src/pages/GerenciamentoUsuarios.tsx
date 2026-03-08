@@ -362,16 +362,16 @@ const GerenciamentoUsuarios = () => {
                           <TableHeader>
                             <TableRow className="bg-muted/50 h-8">
                               <TableHead className="text-xs font-semibold w-[200px] py-1.5">Funcionalidade</TableHead>
-                              <TableHead className="text-xs font-semibold text-center">
+                              <TableHead className="text-xs font-semibold text-center py-1.5">
                                 <div className="flex items-center justify-center gap-1"><Shield className="h-3 w-3 text-destructive" />Admin</div>
                               </TableHead>
-                              <TableHead className="text-xs font-semibold text-center">
+                              <TableHead className="text-xs font-semibold text-center py-1.5">
                                 <div className="flex items-center justify-center gap-1"><UserCog className="h-3 w-3 text-amber-600" />Gestor</div>
                               </TableHead>
-                              <TableHead className="text-xs font-semibold text-center">
+                              <TableHead className="text-xs font-semibold text-center py-1.5">
                                 <div className="flex items-center justify-center gap-1"><ClipboardList className="h-3 w-3 text-blue-600" />Setor Req.</div>
                               </TableHead>
-                              <TableHead className="text-xs font-semibold text-center">
+                              <TableHead className="text-xs font-semibold text-center py-1.5">
                                 <div className="flex items-center justify-center gap-1"><Eye className="h-3 w-3 text-muted-foreground" />Consulta</div>
                               </TableHead>
                             </TableRow>
