@@ -194,9 +194,10 @@ const VisaoGeral = () => {
       setLoading(false);
     };
     fetchData();
-  }, [filtros]);
+  }, [filtros, roles, userSetor]);
 
   useEffect(() => {
+    if (roles === undefined || (isSetorRequisitante && !userSetor)) return;
     const fetchDistinct = async () => {
       // Fetch distinct values client-side
       const { data } = await supabase
