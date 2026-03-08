@@ -39,6 +39,14 @@ export default function NovaContratacao() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Auth: auto-select setor for setor_requisitante users
+  const { data: session } = useAuthSession();
+  const uid = session?.user?.id;
+  const { data: roles } = useUserRoles(uid);
+  const { data: profile } = useUserProfile(uid);
+  const isSetorRequisitante = hasAnyRole(roles, ["setor_requisitante"]) && !hasAnyRole(roles, ["administrador", "gestor"]);
+  const userSetor = profile?.setor || null;
   const [quantidade, setQuantidade] = useState<number>(0);
   const [valorUnitario, setValorUnitario] = useState<number>(0);
 
