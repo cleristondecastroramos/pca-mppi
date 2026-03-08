@@ -177,7 +177,10 @@ const GerenciamentoUsuarios = () => {
 
   async function handleEditSave() {
     if (!editTarget) return;
-    setSaving(true);
+    if (editRole === "setor_requisitante" && !editSetor) {
+      toast.error("Para o perfil Setor Requisitante, é obrigatório selecionar um setor.");
+      return;
+    }
     try {
       console.log("Iniciando edição de usuário:", { user_id: editTarget.id, editNome, editRole });
       const { data, error } = await supabase.functions.invoke("admin-update-user", {
