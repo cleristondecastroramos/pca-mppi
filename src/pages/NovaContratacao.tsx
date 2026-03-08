@@ -232,25 +232,33 @@ export default function NovaContratacao() {
 
                 <div className="space-y-2">
                   <Label htmlFor="setor">Setor Requisitante *</Label>
-                  <Select name="setor_requisitante" required>
-                    <SelectTrigger id="setor" className="h-9">
-                      <SelectValue placeholder="Selecione o setor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="CAA">CAA</SelectItem>
-                      <SelectItem value="CCF">CCF</SelectItem>
-                      <SelectItem value="CCS">CCS</SelectItem>
-                      <SelectItem value="CLC">CLC</SelectItem>
-                      <SelectItem value="CPPT">CPPT</SelectItem>
-                      <SelectItem value="CTI">CTI</SelectItem>
-                      <SelectItem value="CRH">CRH</SelectItem>
-                      <SelectItem value="CEAF">CEAF</SelectItem>
-                      <SelectItem value="GAECO">GAECO</SelectItem>
-                      <SelectItem value="GSI">GSI</SelectItem>
-                      <SelectItem value="CONINT">CONINT</SelectItem>
-                      <SelectItem value="PLANEJAMENTO">PLAN</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  {isSetorRequisitante && userSetor ? (
+                    <>
+                      <Input value={userSetor === "PLANEJAMENTO" ? "PLAN" : userSetor} disabled className="h-9 bg-muted" />
+                      <input type="hidden" name="setor_requisitante" value={userSetor} />
+                    </>
+                  ) : (
+                    <Select name="setor_requisitante" required>
+                      <SelectTrigger id="setor" className="h-9">
+                        <SelectValue placeholder="Selecione o setor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="CAA">CAA</SelectItem>
+                        <SelectItem value="CCF">CCF</SelectItem>
+                        <SelectItem value="CCS">CCS</SelectItem>
+                        <SelectItem value="CLC">CLC</SelectItem>
+                        <SelectItem value="CPPT">CPPT</SelectItem>
+                        <SelectItem value="CTI">CTI</SelectItem>
+                        <SelectItem value="CRH">CRH</SelectItem>
+                        <SelectItem value="CEAF">CEAF</SelectItem>
+                        <SelectItem value="GAECO">GAECO</SelectItem>
+                        <SelectItem value="GSI">GSI</SelectItem>
+                        <SelectItem value="CONINT">CONINT</SelectItem>
+                        <SelectItem value="PLANEJAMENTO">PLAN</SelectItem>
+                        <SelectItem value="PROCON">PROCON</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
                   {errors.setor_requisitante && <p className="text-sm text-destructive">{errors.setor_requisitante}</p>}
                 </div>
 
