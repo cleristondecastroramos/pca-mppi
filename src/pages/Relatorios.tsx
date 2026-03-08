@@ -728,7 +728,7 @@ const Relatorios = () => {
           <CardContent className="p-2">
             <div className="flex flex-wrap md:flex-nowrap gap-2 items-center">
               <div className="w-28 shrink-0">
-                <div className="text-[10px] text-black px-1">UO:</div>
+                <div className="text-[10px] font-medium text-muted-foreground px-1">UO:</div>
                 <Select value={filtros.unidade_orcamentaria} onValueChange={(v) => setFiltros((f: any) => ({ ...f, unidade_orcamentaria: v }))}>
                   <SelectTrigger className="h-9 w-[110px] truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
                   <SelectContent>
@@ -738,7 +738,7 @@ const Relatorios = () => {
                 </Select>
               </div>
               <div className="w-[130px] shrink-0">
-                <div className="text-[10px] text-black px-1">Setor Requisitante:</div>
+                <div className="text-[10px] font-medium text-muted-foreground px-1">Setor Requisitante:</div>
                 <Select value={filtros.setor_requisitante} onValueChange={(v) => setFiltros((f: any) => ({ ...f, setor_requisitante: v }))}>
                   <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
                   <SelectContent>
@@ -748,7 +748,7 @@ const Relatorios = () => {
                 </Select>
               </div>
               <div className="w-[160px] shrink-0 -ml-1">
-                <div className="text-[10px] text-black px-1">Tipo de Contratação:</div>
+                <div className="text-[10px] font-medium text-muted-foreground px-1">Tipo de Contratação:</div>
                 <Select value={filtros.tipo_contratacao} onValueChange={(v) => setFiltros((f: any) => ({ ...f, tipo_contratacao: v }))}>
                   <SelectTrigger className="h-9 w-full truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
                   <SelectContent>
@@ -758,7 +758,7 @@ const Relatorios = () => {
                 </Select>
               </div>
               <div className="w-[130px] shrink-0">
-                <div className="text-[10px] text-black px-1">Tipo de Recurso:</div>
+                <div className="text-[10px] font-medium text-muted-foreground px-1">Tipo de Recurso:</div>
                 <Select value={filtros.tipo_recurso} onValueChange={(v) => setFiltros((f: any) => ({ ...f, tipo_recurso: v }))}>
                   <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
                   <SelectContent>
@@ -768,7 +768,7 @@ const Relatorios = () => {
                 </Select>
               </div>
               <div className="w-[170px] shrink-0 -ml-1">
-                <div className="text-[10px] text-black px-1">Classe de Material:</div>
+                <div className="text-[10px] font-medium text-muted-foreground px-1">Classe de Material:</div>
                 <Select value={filtros.classe} onValueChange={(v) => setFiltros((f: any) => ({ ...f, classe: v }))}>
                   <SelectTrigger className="h-9 w-full truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
                   <SelectContent>
@@ -778,7 +778,7 @@ const Relatorios = () => {
                 </Select>
               </div>
               <div className="w-[130px] shrink-0">
-                <div className="text-[10px] text-black px-1">Grau de Prioridade:</div>
+                <div className="text-[10px] font-medium text-muted-foreground px-1">Grau de Prioridade:</div>
                 <Select value={filtros.grau_prioridade} onValueChange={(v) => setFiltros((f: any) => ({ ...f, grau_prioridade: v }))}>
                   <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
                   <SelectContent>
@@ -788,7 +788,7 @@ const Relatorios = () => {
                 </Select>
               </div>
               <div className="w-[130px] shrink-0 -ml-1">
-                <div className="text-[10px] text-black px-1">Normativo:</div>
+                <div className="text-[10px] font-medium text-muted-foreground px-1">Normativo:</div>
                 <Select value={filtros.normativo} onValueChange={(v) => setFiltros((f: any) => ({ ...f, normativo: v }))}>
                   <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
                   <SelectContent>
@@ -799,7 +799,7 @@ const Relatorios = () => {
                 </Select>
               </div>
               <div className="w-[160px] shrink-0 -ml-1">
-                <div className="text-[10px] text-black px-1">Modalidade de Contratação:</div>
+                <div className="text-[10px] font-medium text-muted-foreground px-1">Modalidade de Contratação:</div>
                 <Select value={filtros.modalidade} onValueChange={(v) => setFiltros((f: any) => ({ ...f, modalidade: v }))}>
                   <SelectTrigger className="h-9 w-full truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
                   <SelectContent>
@@ -809,7 +809,7 @@ const Relatorios = () => {
                 </Select>
               </div>
               <div className="w-[130px] shrink-0">
-                <div className="text-[10px] text-black px-1">Status Atual:</div>
+                <div className="text-[10px] font-medium text-muted-foreground px-1">Status Atual:</div>
                 <Select value={filtros.etapa_processo} onValueChange={(v) => setFiltros((f: any) => ({ ...f, etapa_processo: v }))}>
                   <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
                   <SelectContent>
