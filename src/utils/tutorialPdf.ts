@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 import { getTutorialSections, TOC, type PdfBlock } from "./tutorialPdfData";
 
 // Sidebar red: hsl(349, 67%, 55%) => #D9415D
@@ -179,8 +179,7 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
     }
     case "table": {
       y = checkPage(doc, y, 20);
-      const tableDoc = doc as any;
-      tableDoc.autoTable({
+      autoTable(doc, {
         startY: y,
         head: [block.headers],
         body: block.rows,
@@ -214,7 +213,7 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
           }
         },
       });
-      y = tableDoc.lastAutoTable.finalY + 6;
+      y = (doc as any).lastAutoTable.finalY + 6;
       return y;
     }
     default:
