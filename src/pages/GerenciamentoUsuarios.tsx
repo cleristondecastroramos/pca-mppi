@@ -529,8 +529,19 @@ const GerenciamentoUsuarios = () => {
                   <Input value={editNome} onChange={(e) => setEditNome(e.target.value)} />
                 </div>
                 <div>
-                  <label className="text-sm text-muted-foreground">Setor</label>
-                  <Input value={editSetor} onChange={(e) => setEditSetor(e.target.value)} />
+                  <label className="text-sm text-muted-foreground">Setor {editRole === "setor_requisitante" ? "*" : ""}</label>
+                  {editRole === "setor_requisitante" ? (
+                    <Select value={editSetor} onValueChange={setEditSetor}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
+                      <SelectContent>
+                        {SETORES_REQUISITANTES.map((s) => (
+                          <SelectItem key={s} value={s}>{s === "PLANEJAMENTO" ? "PLAN" : s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input value={editSetor} onChange={(e) => setEditSetor(e.target.value)} />
+                  )}
                 </div>
                 <div>
                   <label className="text-sm text-muted-foreground">Cargo</label>
