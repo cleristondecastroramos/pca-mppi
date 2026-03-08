@@ -72,10 +72,18 @@ function HeaderBase() {
       }
     };
     load();
+
+    const onAvatarUpdate = (e: Event) => {
+      const url = (e as CustomEvent).detail as string | null;
+      setAvatarUrl(url);
+    };
+    window.addEventListener("app-avatar-update" as any, onAvatarUpdate as any);
+
     const { data: sub } = supabase.auth.onAuthStateChange(() => load());
     return () => {
       mounted = false;
       sub.subscription.unsubscribe();
+      window.removeEventListener("app-avatar-update" as any, onAvatarUpdate as any);
     };
   }, []);
 
