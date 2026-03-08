@@ -131,11 +131,13 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <div className="flex flex-col px-4 pb-1 transition-opacity">
-        <span className="text-[11px] font-mono text-sidebar-foreground/80">
-          v1.0.49
-        </span>
-      </div>
+      {!collapsed && (
+        <div className="flex flex-col px-4 pb-1 transition-opacity">
+          <span className="text-[11px] font-mono text-sidebar-foreground/80">
+            v1.0.49
+          </span>
+        </div>
+      )}
       <SidebarFooter className="border-t border-sidebar-border px-4 py-2">
         <Button
           variant="ghost"

@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useEffect, useMemo, useState } from "react";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend } from "@/components/ui/chart";
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis, LabelList, PieChart, Pie, Cell, Legend } from "recharts";
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, LabelList, PieChart, Pie, Cell, Legend, ResponsiveContainer } from "recharts";
 import { Loader2, FileText, CheckCircle, DollarSign } from "lucide-react";
 
 type Contratacao = Tables<"contratacoes">;
@@ -18,6 +18,7 @@ const ResultadosAlcancados = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [metricTipo, setMetricTipo] = useState<"quantidade" | "valor_contratado">("valor_contratado");
   const [metricClasse, setMetricClasse] = useState<"quantidade" | "valor_contratado">("valor_contratado");
+  const [metricUo, setMetricUo] = useState<"quantidade" | "valor_contratado">("valor_contratado");
 
   useEffect(() => {
     let mounted = true;
@@ -26,7 +27,7 @@ const ResultadosAlcancados = () => {
       try {
         const { data, error } = await supabase
           .from("contratacoes")
-          .select("id, descricao, setor_requisitante, tipo_contratacao, classe, etapa_processo, valor_contratado")
+          .select("id, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, classe, etapa_processo, valor_contratado")
           .order("created_at", { ascending: false });
         if (error) throw error;
         if (mounted) setRows((data as any) || []);
@@ -64,6 +65,18 @@ const ResultadosAlcancados = () => {
     });
     return Array.from(map.entries()).map(([name, v]) => ({ name, value: metricTipo === "quantidade" ? v.qtd : v.valor }));
   }, [concluidas, metricTipo]);
+
+  const dadosPorUo = useMemo(() => {
+    const map = new Map<string, { qtd: number; valor: number }>();
+    concluidas.forEach((r) => {
+      const k = r.unidade_orcamentaria || "Não informado";
+      const cur = map.get(k) || { qtd: 0, valor: 0 };
+      cur.qtd += 1;
+      cur.valor += r.valor_contratado || 0;
+      map.set(k, cur);
+    });
+    return Array.from(map.entries()).map(([name, v]) => ({ name, value: metricUo === "quantidade" ? v.qtd : v.valor }));
+  }, [concluidas, metricUo]);
 
   const dadosPorClasse = useMemo(() => {
     const map = new Map<string, { qtd: number; valor: number }>();
@@ -116,7 +129,36 @@ const ResultadosAlcancados = () => {
           </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-3 mb-6">
+          <Card>
+            <CardHeader className="space-y-0">
+              <div className="flex w-full items-start justify-between">
+                <CardTitle className="text-sm">Distribuição por UO</CardTitle>
+                <div className="flex flex-col gap-1 items-end">
+                  <Button size="xs" className="text-[10px] leading-3 w-[160px]" variant={metricUo === "quantidade" ? "default" : "outline"} onClick={() => setMetricUo("quantidade")}>Número de processos</Button>
+                  <Button size="xs" className="text-[10px] leading-3 w-[160px]" variant={metricUo === "valor_contratado" ? "default" : "outline"} onClick={() => setMetricUo("valor_contratado")}>Valores contratados</Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-2 pb-2">
+              <ChartContainer config={{ uo: { label: "UO", color: "hsl(var(--chart-4))" } }} className="w-full !aspect-auto h-[220px] min-h-[220px] overflow-visible" style={{ height: 220 }}>
+                {(() => {
+                  const data = dadosPorUo.length ? dadosPorUo : [{ name: "Sem dados", value: 1 }];
+                  const formatter = (v: number) => (metricUo === "valor_contratado" ? fmtBRL(v) : v);
+                  return (
+                    <PieChart width={400} height={220}>
+                      <ChartTooltip content={<ChartTooltipContent formatter={(value: number) => <span>{formatter(value as number)}</span>} />} />
+                      <Legend layout="horizontal" verticalAlign="bottom" align="center" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 10, lineHeight: "12px", marginTop: 6 }} />
+                      <Pie data={data} dataKey="value" nameKey="name" innerRadius={54} outerRadius={94} labelLine={false}>
+                        {data.map((_: any, index: number) => (<Cell key={`cell-uo-${index}`} fill={pieColors[index % pieColors.length]} />))}
+                      </Pie>
+                    </PieChart>
+                  );
+                })()}
+              </ChartContainer>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader className="space-y-0">
               <div className="flex w-full items-start justify-between">
@@ -174,25 +216,29 @@ const ResultadosAlcancados = () => {
               </ChartContainer>
             </CardContent>
           </Card>
+        </div>
 
+        <div className="grid gap-6 grid-cols-1 mb-6">
           <Card>
             <CardHeader>
               <CardTitle className="text-sm">Valores contratados por Setor</CardTitle>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={{ valores: { label: "Valores (R$)", color: "hsl(var(--chart-2))" } }} className="w-full !aspect-auto h-[260px] min-h-[260px] overflow-visible" style={{ height: 260 }}>
+              <ChartContainer config={{ valores: { label: "Valores (R$)", color: "hsl(var(--chart-2))" } }} className="w-full !aspect-auto h-[320px] min-h-[320px] overflow-visible" style={{ height: 320 }}>
                 {(() => {
                   const chartData = dadosSetor.length ? dadosSetor : [{ setor: "Sem dados", valor: 1 }];
                   return (
-                    <BarChart data={chartData} width={400} height={260} margin={{ top: 24, right: 16, bottom: 8, left: 8 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="setor" />
-                      <YAxis hide domain={[0, 'dataMax + 1']} />
-                      <ChartTooltip content={<ChartTooltipContent formatter={(v: number) => <span>{fmtBRL(v)}</span>} />} />
-                      <Bar dataKey="valor" fill="var(--color-valores)">
-                        <LabelList dataKey="valor" position="top" formatter={(v: number) => fmtBRL(v)} />
-                      </Bar>
-                    </BarChart>
+                    <ResponsiveContainer width="100%" height={320}>
+                      <BarChart data={chartData} margin={{ top: 24, right: 16, bottom: 8, left: 8 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="setor" />
+                        <YAxis hide domain={[0, 'dataMax + 1']} />
+                        <ChartTooltip content={<ChartTooltipContent formatter={(v: number) => <span>{fmtBRL(v)}</span>} />} />
+                        <Bar dataKey="valor" fill="var(--color-valores)">
+                          <LabelList dataKey="valor" position="top" formatter={(v: number) => fmtBRL(v)} fontSize={12} offset={12} />
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
                   );
                 })()}
               </ChartContainer>

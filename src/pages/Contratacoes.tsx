@@ -973,24 +973,24 @@ export default function Contratacoes() {
               </DialogDescription>
             </DialogHeader>
             {editingContratacao && (
-              <div className="space-y-6 pt-3">
-                {/* Linha 1: Descrição ocupa a linha inteira */}
-                <div className="space-y-2">
-                  <Label htmlFor="edit-descricao" className="text-[12px] text-muted-foreground">Descrição:</Label>
+              <div className="space-y-4 pt-4">
+                {/* Linha 1: Descrição */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-descricao" className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Descrição do Objeto</Label>
                   <Textarea
                     id="edit-descricao"
                     value={editingContratacao.descricao}
                     onChange={(e) =>
                       setEditingContratacao({ ...editingContratacao, descricao: e.target.value })
                     }
-                    className="min-h-[90px]"
+                    className="min-h-[60px] text-sm resize-none focus-visible:ring-1"
                   />
                 </div>
 
-                {/* Linha 2: Número SEI + Setor Requisitante + Unidade Orçamentária */}
-                <div className="grid gap-4 sm:grid-cols-6">
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="edit-sei" className="text-[12px] text-muted-foreground">Número SEI:</Label>
+                {/* Bloco 1: Identificação Básica */}
+                <div className="grid gap-3 sm:grid-cols-12 bg-muted/30 p-3 rounded-md border border-border/50">
+                  <div className="space-y-1.5 sm:col-span-3">
+                    <Label htmlFor="edit-sei" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Número SEI</Label>
                     <Input
                       id="edit-sei"
                       type="text"
@@ -1006,17 +1006,18 @@ export default function Contratacoes() {
                           numero_sei_contratacao: formatted || null,
                         } as any);
                       }}
+                      className="h-8 text-xs focus-visible:ring-1"
                     />
                   </div>
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="edit-setor" className="text-[12px] text-muted-foreground">Setor Requisitante:</Label>
+                  <div className="space-y-1.5 sm:col-span-3">
+                    <Label htmlFor="edit-setor" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Setor Requisitante</Label>
                     <Select
                       value={editingContratacao.setor_requisitante}
                       onValueChange={(value) =>
                         setEditingContratacao({ ...editingContratacao, setor_requisitante: value })
                       }
                     >
-                      <SelectTrigger className="h-9 px-3 w-full">
+                      <SelectTrigger className="h-8 px-3 text-xs focus:ring-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1035,15 +1036,15 @@ export default function Contratacoes() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2 sm:col-span-1">
-                    <Label htmlFor="edit-uo" className="text-[12px] text-muted-foreground">UO:</Label>
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label htmlFor="edit-uo" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">UO</Label>
                     <Select
                       value={editingContratacao.unidade_orcamentaria || undefined}
                       onValueChange={(value) =>
                         setEditingContratacao({ ...editingContratacao, unidade_orcamentaria: value })
                       }
                     >
-                      <SelectTrigger className="h-9 px-3">
+                      <SelectTrigger className="h-8 px-3 text-xs focus:ring-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1053,15 +1054,15 @@ export default function Contratacoes() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2 sm:col-span-1">
-                    <Label htmlFor="edit-srp" className="text-[12px] text-muted-foreground">SRP?:</Label>
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label htmlFor="edit-srp" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">SRP?</Label>
                     <Select
                       value={(editingContratacao as any).srp ? "Sim" : "Não"}
                       onValueChange={(value) =>
                         setEditingContratacao({ ...editingContratacao, srp: value === "Sim" } as any)
                       }
                     >
-                      <SelectTrigger className="h-9 px-3">
+                      <SelectTrigger className="h-8 px-3 text-xs focus:ring-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1070,12 +1071,8 @@ export default function Contratacoes() {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-
-                {/* Linha 3: Planejamento */}
-                <div className="grid gap-4 sm:grid-cols-6">
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="edit-data-prevista" className="text-[12px] text-muted-foreground">Data Prevista:</Label>
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label htmlFor="edit-data-prevista" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Data Prevista</Label>
                     <Input
                       id="edit-data-prevista"
                       type="date"
@@ -1083,29 +1080,62 @@ export default function Contratacoes() {
                       onChange={(e) =>
                         setEditingContratacao({ ...editingContratacao, data_prevista_contratacao: e.target.value } as any)
                       }
+                      className="h-8 text-xs focus-visible:ring-1"
                     />
                   </div>
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="edit-pdm-catser" className="text-[12px] text-muted-foreground">PDM/CATSER:</Label>
-                    <Input
-                      id="edit-pdm-catser"
-                      type="text"
-                      placeholder="Código PDM ou CATSER"
-                      value={(editingContratacao as any).pdm_catser || ""}
-                      onChange={(e) =>
-                        setEditingContratacao({ ...editingContratacao, pdm_catser: e.target.value } as any)
+                </div>
+
+                {/* Bloco 2: Classificação */}
+                <div className="grid gap-3 sm:grid-cols-12 bg-muted/30 p-3 rounded-md border border-border/50">
+                  <div className="space-y-1.5 sm:col-span-3">
+                    <Label htmlFor="edit-tipo-contratacao" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Tipo de Contratação</Label>
+                    <Select
+                      value={(editingContratacao as any).tipo_contratacao || undefined}
+                      onValueChange={(value) =>
+                        setEditingContratacao({ ...editingContratacao, tipo_contratacao: value } as any)
                       }
-                    />
+                    >
+                      <SelectTrigger className="h-8 px-3 text-xs focus:ring-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Nova Contratação">Nova Contratação</SelectItem>
+                        <SelectItem value="Renovação">Renovação</SelectItem>
+                        <SelectItem value="Aditivo Quantitativo">Aditivo Quantitativo</SelectItem>
+                        <SelectItem value="Repactuação">Repactuação</SelectItem>
+                        <SelectItem value="Apostilamento">Apostilamento</SelectItem>
+                        <SelectItem value="Indeterminado">Indeterminado</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="edit-classe" className="text-[12px] text-muted-foreground">Classe de Material:</Label>
+                  <div className="space-y-1.5 sm:col-span-3">
+                    <Label htmlFor="edit-modalidade" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Modalidade</Label>
+                    <Select
+                      value={(editingContratacao as any).modalidade || undefined}
+                      onValueChange={(value) =>
+                        setEditingContratacao({ ...editingContratacao, modalidade: value } as any)
+                      }
+                    >
+                      <SelectTrigger className="h-8 px-3 text-xs focus:ring-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Pregão Eletrônico">Pregão Eletrônico</SelectItem>
+                        <SelectItem value="Dispensa">Dispensa</SelectItem>
+                        <SelectItem value="Inexigibilidade">Inexigibilidade</SelectItem>
+                        <SelectItem value="Concorrência">Concorrência</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5 sm:col-span-3">
+                    <Label htmlFor="edit-classe" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Classe de Material</Label>
                     <Select
                       value={editingContratacao.classe || undefined}
                       onValueChange={(value) =>
                         setEditingContratacao({ ...editingContratacao, classe: value })
                       }
                     >
-                      <SelectTrigger className="h-9 px-3 text-sm">
+                      <SelectTrigger className="h-8 px-3 text-xs focus:ring-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1121,59 +1151,30 @@ export default function Contratacoes() {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
+                  <div className="space-y-1.5 sm:col-span-3">
+                    <Label htmlFor="edit-pdm-catser" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">PDM/CATSER</Label>
+                    <Input
+                      id="edit-pdm-catser"
+                      type="text"
+                      placeholder="Código PDM ou CATSER"
+                      value={(editingContratacao as any).pdm_catser || ""}
+                      onChange={(e) =>
+                        setEditingContratacao({ ...editingContratacao, pdm_catser: e.target.value } as any)
+                      }
+                      className="h-8 text-xs focus-visible:ring-1"
+                    />
+                  </div>
 
-                {/* Linha 4: Tipo, Modalidade e Normativo */}
-                <div className="grid gap-4 sm:grid-cols-6">
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="edit-tipo-contratacao" className="text-[12px] text-muted-foreground">Tipo de Contratação:</Label>
-                    <Select
-                      value={(editingContratacao as any).tipo_contratacao || undefined}
-                      onValueChange={(value) =>
-                        setEditingContratacao({ ...editingContratacao, tipo_contratacao: value } as any)
-                      }
-                    >
-                      <SelectTrigger className="h-9 px-3 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Nova Contratação">Nova Contratação</SelectItem>
-                        <SelectItem value="Renovação">Renovação</SelectItem>
-                        <SelectItem value="Aditivo Quantitativo">Aditivo Quantitativo</SelectItem>
-                        <SelectItem value="Repactuação">Repactuação</SelectItem>
-                        <SelectItem value="Apostilamento">Apostilamento</SelectItem>
-                        <SelectItem value="Indeterminado">Indeterminado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="edit-modalidade" className="text-[12px] text-muted-foreground">Modalidade:</Label>
-                    <Select
-                      value={(editingContratacao as any).modalidade || undefined}
-                      onValueChange={(value) =>
-                        setEditingContratacao({ ...editingContratacao, modalidade: value } as any)
-                      }
-                    >
-                      <SelectTrigger className="h-9 px-3 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Pregão Eletrônico">Pregão Eletrônico</SelectItem>
-                        <SelectItem value="Dispensa">Dispensa</SelectItem>
-                        <SelectItem value="Inexigibilidade">Inexigibilidade</SelectItem>
-                        <SelectItem value="Concorrência">Concorrência</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="edit-normativo" className="text-[12px] text-muted-foreground">Normativo:</Label>
+                  {/* Linha 2 do Bloco 2 */}
+                  <div className="space-y-1.5 sm:col-span-3 pt-1">
+                    <Label htmlFor="edit-normativo" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Normativo</Label>
                     <Select
                       value={(editingContratacao as any).normativo || undefined}
                       onValueChange={(value) =>
                         setEditingContratacao({ ...editingContratacao, normativo: value } as any)
                       }
                     >
-                      <SelectTrigger className="h-9 px-3 text-sm">
+                      <SelectTrigger className="h-8 px-3 text-xs focus:ring-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1182,69 +1183,15 @@ export default function Contratacoes() {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-
-                {/* Linha 5: Quantidade, Valor Unitário, Unidade e Tipo Recurso */}
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-quantidade" className="text-[12px] text-muted-foreground">Quantidade:</Label>
-                    <Input
-                      id="edit-quantidade"
-                      type="number"
-                      min="1"
-                      value={(editingContratacao as any).quantidade_itens || 1}
-                      onChange={(e) => {
-                        const qtd = parseInt(e.target.value) || 0;
-                        const unitario = (editingContratacao as any).valor_unitario || 0;
-                        setEditingContratacao({
-                          ...editingContratacao,
-                          quantidade_itens: qtd,
-                          valor_estimado: qtd * unitario,
-                        } as any);
-                      }}
-                      className="h-9 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-valor-unitario" className="text-[12px] text-muted-foreground">Valor Unitário (R$):</Label>
-                    <Input
-                      id="edit-valor-unitario"
-                      inputMode="numeric"
-                      value={formatCurrencyNumber((editingContratacao as any).valor_unitario || 0)}
-                      onChange={(e) => {
-                        const formatted = formatCurrencyInput(e.target.value);
-                        e.currentTarget.value = formatted;
-                        const parsed = parseCurrencyInput(formatted);
-                        const qtd = (editingContratacao as any).quantidade_itens || 1;
-                        setEditingContratacao({
-                          ...editingContratacao,
-                          valor_unitario: parsed,
-                          valor_estimado: qtd * parsed,
-                        } as any);
-                      }}
-                      className="h-9 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-unidade-fornecimento" className="text-[12px] text-muted-foreground">Unidade:</Label>
-                    <Input
-                      id="edit-unidade-fornecimento"
-                      value={(editingContratacao as any).unidade_fornecimento || "Unidade"}
-                      onChange={(e) =>
-                        setEditingContratacao({ ...editingContratacao, unidade_fornecimento: e.target.value } as any)
-                      }
-                      className="h-9 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-tipo-recurso" className="text-[12px] text-muted-foreground">Tipo de Recurso:</Label>
+                  <div className="space-y-1.5 sm:col-span-3 pt-1">
+                    <Label htmlFor="edit-tipo-recurso" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Tipo de Recurso</Label>
                     <Select
                       value={(editingContratacao as any).tipo_recurso || "Custeio"}
                       onValueChange={(value) =>
                         setEditingContratacao({ ...editingContratacao, tipo_recurso: value } as any)
                       }
                     >
-                      <SelectTrigger className="h-9 text-sm">
+                      <SelectTrigger className="h-8 px-3 text-xs focus:ring-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1253,47 +1200,15 @@ export default function Contratacoes() {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-
-                {/* Linha 6: Valor Estimado, Executado, Prioridade e Status */}
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-valor" className="text-[12px] text-muted-foreground">Valor Estimado (R$):</Label>
-                    <Input
-                      id="edit-valor"
-                      inputMode="numeric"
-                      value={formatCurrencyNumber(editingContratacao.valor_estimado)}
-                      readOnly
-                      className="h-9 bg-muted text-sm font-semibold"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-valor-executado" className="text-[12px] text-muted-foreground">Valor Executado (R$):</Label>
-                    <Input
-                      id="edit-valor-executado"
-                      inputMode="numeric"
-                      value={formatCurrencyNumber(editingContratacao.valor_contratado ?? 0)}
-                      onChange={(e) => {
-                        const formatted = formatCurrencyInput(e.target.value);
-                        e.currentTarget.value = formatted;
-                        const parsed = parseCurrencyInput(formatted);
-                        setEditingContratacao({
-                          ...editingContratacao,
-                          valor_contratado: parsed,
-                        });
-                      }}
-                      className="h-9 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-prioridade" className="text-[12px] text-muted-foreground">Prioridade:</Label>
+                  <div className="space-y-1.5 sm:col-span-3 pt-1">
+                    <Label htmlFor="edit-prioridade" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Prioridade</Label>
                     <Select
                       value={editingContratacao.grau_prioridade}
                       onValueChange={(value) =>
                         setEditingContratacao({ ...editingContratacao, grau_prioridade: value })
                       }
                     >
-                      <SelectTrigger className="h-9 text-sm">
+                      <SelectTrigger className="h-8 px-3 text-xs focus:ring-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1303,8 +1218,8 @@ export default function Contratacoes() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-status" className="text-[12px] text-muted-foreground">Status:</Label>
+                  <div className="space-y-1.5 sm:col-span-3 pt-1">
+                    <Label htmlFor="edit-status" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Status Atual</Label>
                     <Select
                       value={(editingContratacao as any).sobrestado
                         ? "sobrestado"
@@ -1328,7 +1243,7 @@ export default function Contratacoes() {
                         setEditingContratacao(next);
                       }}
                     >
-                      <SelectTrigger className="h-9 text-sm">
+                      <SelectTrigger className="h-8 px-3 text-xs font-semibold focus:ring-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1341,24 +1256,109 @@ export default function Contratacoes() {
                   </div>
                 </div>
 
-                {/* Linha 7: Justificativa */}
-                <div className="space-y-2">
-                  <Label htmlFor="edit-justificativa" className="text-[12px] text-muted-foreground">Justificativa:</Label>
+                {/* Bloco 3: Dados Financeiros e de Quantidade */}
+                <div className="grid gap-3 sm:grid-cols-12 bg-muted/30 p-3 rounded-md border border-border/50">
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label htmlFor="edit-quantidade" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Qtd.</Label>
+                    <Input
+                      id="edit-quantidade"
+                      type="number"
+                      min="1"
+                      value={(editingContratacao as any).quantidade_itens || 1}
+                      onChange={(e) => {
+                        const qtd = parseInt(e.target.value) || 0;
+                        const unitario = (editingContratacao as any).valor_unitario || 0;
+                        setEditingContratacao({
+                          ...editingContratacao,
+                          quantidade_itens: qtd,
+                          valor_estimado: qtd * unitario,
+                        } as any);
+                      }}
+                      className="h-8 text-xs focus-visible:ring-1"
+                    />
+                  </div>
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label htmlFor="edit-unidade" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Unidade</Label>
+                    <Input
+                      id="edit-unidade"
+                      value={(editingContratacao as any).unidade_fornecimento || "Unidade"}
+                      onChange={(e) =>
+                        setEditingContratacao({ ...editingContratacao, unidade_fornecimento: e.target.value } as any)
+                      }
+                      className="h-8 text-xs focus-visible:ring-1"
+                    />
+                  </div>
+                  <div className="space-y-1.5 sm:col-span-3">
+                    <Label htmlFor="edit-valor-unitario" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Valor Unitário (R$)</Label>
+                    <Input
+                      id="edit-valor-unitario"
+                      inputMode="numeric"
+                      value={formatCurrencyNumber((editingContratacao as any).valor_unitario || 0)}
+                      onChange={(e) => {
+                        const formatted = formatCurrencyInput(e.target.value);
+                        e.currentTarget.value = formatted;
+                        const parsed = parseCurrencyInput(formatted);
+                        const qtd = (editingContratacao as any).quantidade_itens || 1;
+                        setEditingContratacao({
+                          ...editingContratacao,
+                          valor_unitario: parsed,
+                          valor_estimado: qtd * parsed,
+                        } as any);
+                      }}
+                      className="h-8 text-xs focus-visible:ring-1"
+                    />
+                  </div>
+                  <div className="space-y-1.5 sm:col-span-3">
+                    <Label htmlFor="edit-valor-estimado" className="text-[10px] font-semibold text-primary uppercase tracking-wider">Valor Estimado (R$)</Label>
+                    <Input
+                      id="edit-valor-estimado"
+                      inputMode="numeric"
+                      value={formatCurrencyNumber(editingContratacao.valor_estimado)}
+                      readOnly
+                      className="h-8 text-xs font-bold bg-primary/5 text-primary focus-visible:ring-1"
+                    />
+                  </div>
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label htmlFor="edit-valor-executado" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">V. Executado (R$)</Label>
+                    <Input
+                      id="edit-valor-executado"
+                      inputMode="numeric"
+                      value={formatCurrencyNumber(editingContratacao.valor_contratado ?? 0)}
+                      onChange={(e) => {
+                        const formatted = formatCurrencyInput(e.target.value);
+                        e.currentTarget.value = formatted;
+                        const parsed = parseCurrencyInput(formatted);
+                        setEditingContratacao({
+                          ...editingContratacao,
+                          valor_contratado: parsed,
+                        });
+                      }}
+                      className="h-8 text-xs focus-visible:ring-1"
+                    />
+                  </div>
+                </div>
+
+                {/* Justificativa */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-justificativa" className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Justificativa</Label>
                   <Textarea
                     id="edit-justificativa"
                     value={editingContratacao.justificativa}
                     onChange={(e) =>
                       setEditingContratacao({ ...editingContratacao, justificativa: e.target.value })
                     }
-                    className="min-h-[80px] text-sm"
+                    className="min-h-[50px] text-xs resize-none focus-visible:ring-1"
                   />
                 </div>
 
-                <div className="flex justify-end gap-2 pt-2">
-                  <Button variant="outline" size="sm" onClick={() => setEditingContratacao(null)}>
+                {/* Botões de Ação */}
+                <div className="flex justify-end gap-2 pt-4 border-t border-border/50">
+                  <Button variant="ghost" size="sm" onClick={() => setEditingContratacao(null)} className="h-8 text-xs tracking-wide">
                     Cancelar
                   </Button>
-                  <Button size="sm" onClick={handleSaveEdit}>Salvar Alterações</Button>
+                  <Button size="sm" onClick={handleSaveEdit} className="h-8 text-xs px-6 tracking-wide shadow-sm">
+                    Salvar Alterações
+                  </Button>
                 </div>
               </div>
             )}
