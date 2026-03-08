@@ -13,6 +13,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CalendarDays, Loader2, Eraser, AlertCircle, CheckCircle2, Clock, Calendar as CalendarIcon, Filter } from "lucide-react";
 import { ptBR } from "date-fns/locale";
+import { useAuthSession, useUserRoles, useUserProfile, hasAnyRole } from "@/lib/auth";
 
 type Contratacao = Tables<"contratacoes"> & { 
   data_prevista_contratacao?: string | null;
@@ -20,6 +21,13 @@ type Contratacao = Tables<"contratacoes"> & {
 };
 
 const ControlePrazos = () => {
+  const { data: session } = useAuthSession();
+  const uid = session?.user?.id;
+  const { data: roles } = useUserRoles(uid);
+  const { data: userProfile } = useUserProfile(uid);
+  const isSetorRequisitante = hasAnyRole(roles, ["setor_requisitante"]) && !hasAnyRole(roles, ["administrador", "gestor"]);
+  const userSetor = userProfile?.setor || null;
+
   const [rows, setRows] = useState<Contratacao[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
@@ -52,11 +60,17 @@ const ControlePrazos = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // @ts-ignore
-      const { data, error } = await supabase
+      let query = supabase
         .from("contratacoes")
         .select("*")
         .order("created_at", { ascending: false });
+      
+      if (isSetorRequisitante && userSetor) {
+        query = query.eq("setor_requisitante", userSetor);
+      }
+
+      // @ts-ignore
+      const { data, error } = await query;
       if (error) throw error;
       setRows((data as any) || []);
     } catch (e: any) {
@@ -67,6 +81,7 @@ const ControlePrazos = () => {
   };
 
   useEffect(() => {
+    if (roles === undefined || (isSetorRequisitante && !userSetor)) return;
     fetchData();
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') fetchData();
@@ -74,7 +89,7 @@ const ControlePrazos = () => {
     return () => {
       sub.subscription.unsubscribe();
     };
-  }, []);
+  }, [roles, userSetor]);
 
   const getPrazoStatus = (contratacao: Contratacao) => {
     const dataPrevistaStr = contratacao.data_prevista_contratacao;

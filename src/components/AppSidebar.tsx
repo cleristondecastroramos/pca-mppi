@@ -1,6 +1,6 @@
 import { LayoutDashboard, FileText, Plus, Settings, LogOut, BarChart3, Users, CheckSquare, ClipboardList, Gauge, BadgeCheck, Clock, TrendingUp, AlertTriangle, HelpCircle, Terminal, BellRing } from "lucide-react";
 import { NavLink } from "react-router-dom";
-import { useUserRoles, useAuthSession } from "@/lib/auth";
+import { useUserRoles, useAuthSession, type PerfilAcesso } from "@/lib/auth";
 import {
   Sidebar,
   SidebarContent,
@@ -22,27 +22,29 @@ import { toast } from "sonner";
 import { prefetchPage } from "@/lib/prefetch";
 import { useQueryClient } from "@tanstack/react-query";
 
-const menuItems = [
-  { title: "Visão Geral", url: "/visao-geral", icon: Gauge },
-  { title: "Contratações", url: "/contratacoes", icon: FileText },
-  { title: "Setores Demandantes", url: "/setores-demandantes", icon: ClipboardList },
-  { title: "Controle de Prazos", url: "/controle-prazos", icon: Clock },
-  { title: "Pontos de Atenção", url: "/pontos-atencao", icon: AlertTriangle },
-  { title: "Prioridades de Contratação", url: "/prioridades-contratacao", icon: BadgeCheck },
-  { title: "Avaliação e Conformidade", url: "/avaliacao-conformidade", icon: CheckSquare },
-  { title: "Resultados Alcançados", url: "/resultados-alcancados", icon: TrendingUp },
-  { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
-  { title: "FAQ / Dúvidas", url: "/faq", icon: HelpCircle },
-  {
-    title: "Notificações",
-    url: "/notificacoes",
-    icon: BellRing,
-    adminOnly: true, // Assuming 'roles' should be 'adminOnly' for consistency with existing filter
-  },
-  { title: "Desenvolvimento", url: "/desenvolvimento", icon: Terminal, adminOnly: true },
-  { title: "Gerenciamento de Usuários", url: "/gerenciamento-usuarios", icon: Users, adminOnly: true },
-  { title: "Orçamento Planejado", url: "/orcamento-planejado", icon: FileText, adminOnly: true },
-  { title: "Minha Conta", url: "/minha-conta", icon: Settings },
+type MenuItem = {
+  title: string;
+  url: string;
+  icon: any;
+  allowedRoles: PerfilAcesso[];
+};
+
+const menuItems: MenuItem[] = [
+  { title: "Visão Geral", url: "/visao-geral", icon: Gauge, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
+  { title: "Contratações", url: "/contratacoes", icon: FileText, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
+  { title: "Setores Demandantes", url: "/setores-demandantes", icon: ClipboardList, allowedRoles: ["administrador", "gestor"] },
+  { title: "Controle de Prazos", url: "/controle-prazos", icon: Clock, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
+  { title: "Pontos de Atenção", url: "/pontos-atencao", icon: AlertTriangle, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
+  { title: "Prioridades de Contratação", url: "/prioridades-contratacao", icon: BadgeCheck, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
+  { title: "Avaliação e Conformidade", url: "/avaliacao-conformidade", icon: CheckSquare, allowedRoles: ["administrador", "gestor"] },
+  { title: "Resultados Alcançados", url: "/resultados-alcancados", icon: TrendingUp, allowedRoles: ["administrador", "gestor"] },
+  { title: "Relatórios", url: "/relatorios", icon: BarChart3, allowedRoles: ["administrador", "gestor"] },
+  { title: "Orçamento Planejado", url: "/orcamento-planejado", icon: FileText, allowedRoles: ["administrador"] },
+  { title: "Gerenciamento de Usuários", url: "/gerenciamento-usuarios", icon: Users, allowedRoles: ["administrador"] },
+  { title: "Notificações", url: "/notificacoes", icon: BellRing, allowedRoles: ["administrador"] },
+  { title: "Desenvolvimento", url: "/desenvolvimento", icon: Terminal, allowedRoles: ["administrador"] },
+  { title: "FAQ / Dúvidas", url: "/faq", icon: HelpCircle, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
+  { title: "Minha Conta", url: "/minha-conta", icon: Settings, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
 ];
 
 export function AppSidebar() {
@@ -54,7 +56,10 @@ export function AppSidebar() {
   const { data: session } = useAuthSession();
   const { data: roles } = useUserRoles(session?.user?.id);
 
-  const isAdmin = roles?.includes("administrador") || false;
+  const visibleItems = menuItems.filter((item) => {
+    if (!roles || roles.length === 0) return false;
+    return item.allowedRoles.some((r) => roles.includes(r));
+  });
 
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -62,15 +67,12 @@ export function AppSidebar() {
     setIsLoggingOut(true);
 
     const forceRedirect = () => {
-      // Limpa storage local se houver
       localStorage.clear();
       sessionStorage.clear();
-      // Força redirecionamento via window.location para garantir refresh limpo
       window.location.replace("/auth");
     };
 
     try {
-      // Timeout de segurança para não travar no signOut
       const signOutPromise = supabase.auth.signOut();
       const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -106,9 +108,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems
-                .filter((item) => !item.adminOnly || isAdmin)
-                .map((item) => (
+              {visibleItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
                       <NavLink

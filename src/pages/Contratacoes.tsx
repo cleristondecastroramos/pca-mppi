@@ -73,6 +73,7 @@ export default function Contratacoes() {
   const { data: roles } = useUserRoles(userId);
   const { data: profile } = useUserProfile(userId);
   const isSetorRequisitante = hasAnyRole(roles, ["setor_requisitante"]) && !hasAnyRole(roles, ["administrador", "gestor"]);
+  const isConsulta = hasAnyRole(roles, ["consulta"]) && !hasAnyRole(roles, ["administrador", "gestor", "setor_requisitante"]);
   const userSetor = profile?.setor || null;
 
   // Filtros iguais à aba Visão Geral
@@ -679,14 +680,16 @@ export default function Contratacoes() {
               Gerencie todas as contratações do PCA 2026 ({totalCount} registros)
             </p>
           </div>
-          <div className="flex gap-2">
-            <Link to="/nova-contratacao">
-              <Button size="xs">
-                <Plus className="h-4 w-4 mr-1" />
-                Nova Contratação
-              </Button>
-            </Link>
-          </div>
+          {!isConsulta && (
+            <div className="flex gap-2">
+              <Link to="/nova-contratacao">
+                <Button size="xs">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Nova Contratação
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Barra de filtros discretos (copiada da aba Visão Geral) */}
@@ -922,10 +925,11 @@ export default function Contratacoes() {
                       <TableCell className="text-right">
                         <div className="flex gap-1 justify-end">
                           {(() => {
+                            // Consulta: read-only, no edit/delete
                             // Setor requisitante can only edit drafts (Planejamento or no etapa)
                             const isDraft = !contratacao.etapa_processo || contratacao.etapa_processo === "Planejamento";
-                            const canEdit = !isSetorRequisitante || isDraft;
-                            const canDelete = !isSetorRequisitante;
+                            const canEdit = !isConsulta && (!isSetorRequisitante || isDraft);
+                            const canDelete = !isConsulta && !isSetorRequisitante;
                             return (
                               <>
                                 <Button

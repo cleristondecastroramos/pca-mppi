@@ -10,6 +10,7 @@ import { FileText, DollarSign, CheckCircle, Loader2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis, LabelList, PieChart, Pie, Cell, Legend } from "recharts";
+import { useAuthSession, useUserRoles, useUserProfile, hasAnyRole } from "@/lib/auth";
 
 const ALL_VALUE = "__all__";
 
@@ -93,6 +94,13 @@ const mapSetorName = (setor: string) => {
 };
 
 const VisaoGeral = () => {
+  const { data: session } = useAuthSession();
+  const uid = session?.user?.id;
+  const { data: roles } = useUserRoles(uid);
+  const { data: profile } = useUserProfile(uid);
+  const isSetorRequisitante = hasAnyRole(roles, ["setor_requisitante"]) && !hasAnyRole(roles, ["administrador", "gestor"]);
+  const userSetor = profile?.setor || null;
+
   const [rows, setRows] = useState<Contratacao[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -139,8 +147,12 @@ const VisaoGeral = () => {
             "normativo",
             "etapa_processo",
           ].join(","),
-          { count: "exact" }
+           { count: "exact" }
         );
+      // Setor requisitante: always filter by their setor
+      if (isSetorRequisitante && userSetor) {
+        query = query.eq("setor_requisitante", userSetor);
+      }
       if (filtros.unidade_orcamentaria && filtros.unidade_orcamentaria !== ALL_VALUE) query = query.eq("unidade_orcamentaria", filtros.unidade_orcamentaria);
       if (filtros.setor_requisitante && filtros.setor_requisitante !== ALL_VALUE) query = query.eq("setor_requisitante", filtros.setor_requisitante);
       if (filtros.tipo_contratacao && filtros.tipo_contratacao !== ALL_VALUE) query = query.eq("tipo_contratacao", filtros.tipo_contratacao);
@@ -182,14 +194,20 @@ const VisaoGeral = () => {
       setLoading(false);
     };
     fetchData();
-  }, [filtros]);
+  }, [filtros, roles, userSetor]);
 
   useEffect(() => {
+    if (roles === undefined || (isSetorRequisitante && !userSetor)) return;
     const fetchDistinct = async () => {
-      // Fetch distinct values client-side
-      const { data } = await supabase
+      let query = supabase
         .from("contratacoes")
         .select("unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, etapa_processo");
+      
+      if (isSetorRequisitante && userSetor) {
+        query = query.eq("setor_requisitante", userSetor);
+      }
+
+      const { data } = await query;
       
       if (data) {
         const distinctValues = {
@@ -207,7 +225,7 @@ const VisaoGeral = () => {
       }
     };
     fetchDistinct();
-  }, []);
+  }, [roles, userSetor]);
 
   const distinctOptions = useMemo(() => {
     if (distinctOptionsRpc) {
