@@ -297,7 +297,15 @@ export async function generateTutorialPdf() {
     y += 8;
 
     // Render all blocks
-    for (const block of section.content) {
+    for (let blockIdx = 0; blockIdx < section.content.length; blockIdx++) {
+      const block = section.content[blockIdx];
+      
+      // Special case: "3.5. Matriz de Acesso por Funcionalidade" - force new page before the table
+      if (block.type === "h3" && block.text === "3.5. Matriz de Acesso por Funcionalidade") {
+        doc.addPage();
+        y = CONTENT_Y;
+      }
+      
       y = renderBlock(doc, block, y);
     }
   }
