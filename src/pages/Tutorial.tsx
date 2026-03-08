@@ -899,7 +899,7 @@ const SIGLAS = [
   ["UO", "Unidade Orçamentária"],
   ["SRP", "Sistema de Registro de Preços"],
   ["SEI", "Sistema Eletrônico de Informações"],
-  ["PGEA", "Plano de Gestão Estratégica e Administrativo"],
+  ["PGEA", "Procedimento de Gestão Administrativa"],
   ["CLC", "Coordenadoria de Licitações e Contratos"],
   ["PDM", "Padrão Descritivo de Material"],
   ["CATSER", "Catálogo de Serviços"],
