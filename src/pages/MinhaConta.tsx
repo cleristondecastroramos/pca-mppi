@@ -10,14 +10,30 @@ import { Camera, Image as ImageIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const avatarOptions = [
-  { name: "Homem de Negocios", url: "https://api.dicebear.com/7.x/notionists/svg?seed=Felix&backgroundColor=e2e8f0" },
-  { name: "Mulher de Negocios", url: "https://api.dicebear.com/7.x/notionists/svg?seed=Aneka&backgroundColor=e2e8f0" },
-  { name: "Estudante Masculino", url: "https://api.dicebear.com/7.x/notionists/svg?seed=Jack&backgroundColor=e2e8f0" },
-  { name: "Estudante Feminino", url: "https://api.dicebear.com/7.x/notionists/svg?seed=Jocelyn&backgroundColor=e2e8f0" },
-  { name: "Homem Elegante", url: "https://api.dicebear.com/7.x/adventurer/svg?seed=Leo&backgroundColor=e2e8f0" },
-  { name: "Mulher Elegante", url: "https://api.dicebear.com/7.x/adventurer/svg?seed=Mia&backgroundColor=e2e8f0" },
-  { name: "Jovem Masculino", url: "https://api.dicebear.com/7.x/micah/svg?seed=Alex&backgroundColor=e2e8f0" },
-  { name: "Jovem Feminino", url: "https://api.dicebear.com/7.x/micah/svg?seed=Sophia&backgroundColor=e2e8f0" },
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Felix&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Aneka&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Jack&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Jocelyn&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Aidan&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Adrian&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Brian&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/notionists/svg?seed=Caleb&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/adventurer/svg?seed=Leo&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/adventurer/svg?seed=Mia&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/adventurer/svg?seed=Oscar&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/adventurer/svg?seed=Zoe&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/adventurer/svg?seed=Abby&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/adventurer/svg?seed=Cali&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/adventurer/svg?seed=Dustin&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/adventurer/svg?seed=George&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/micah/svg?seed=Alex&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/micah/svg?seed=Sophia&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/micah/svg?seed=Liam&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/micah/svg?seed=Olivia&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/micah/svg?seed=Noah&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/micah/svg?seed=Emma&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/micah/svg?seed=James&backgroundColor=e2e8f0",
+  "https://api.dicebear.com/7.x/micah/svg?seed=Mia2&backgroundColor=e2e8f0",
 ];
 
 const MinhaConta = () => {
@@ -229,21 +245,20 @@ const MinhaConta = () => {
               </div>
 
               <Dialog open={openAvatarDialog} onOpenChange={setOpenAvatarDialog}>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-[480px]">
                   <DialogHeader>
                     <DialogTitle>Mudar Foto de Perfil</DialogTitle>
                   </DialogHeader>
-                  <div className="grid grid-cols-4 gap-3 py-4">
-                    {avatarOptions.map((avatar, idx) => (
+                  <div className="grid grid-cols-6 gap-3 py-4 place-items-center">
+                    {avatarOptions.map((url, idx) => (
                       <div
                         key={idx}
-                        className="flex flex-col items-center gap-2 cursor-pointer rounded-lg p-2 hover:bg-accent hover:text-accent-foreground border border-transparent hover:border-border transition-all text-center"
-                        onClick={() => handleSelectPredefinedAvatar(avatar.url)}
+                        className="cursor-pointer rounded-full p-1 hover:ring-2 hover:ring-ring hover:ring-offset-2 hover:ring-offset-background transition-all"
+                        onClick={() => handleSelectPredefinedAvatar(url)}
                       >
-                        <div className="h-14 w-14 rounded-full overflow-hidden bg-muted">
-                          <img src={avatar.url} alt={avatar.name} className="h-full w-full object-contain" />
+                        <div className="h-12 w-12 rounded-full overflow-hidden bg-muted">
+                          <img src={url} alt={`Avatar ${idx}`} className="h-full w-full object-contain" />
                         </div>
-                        <span className="text-[10px] leading-tight text-muted-foreground font-medium">{avatar.name}</span>
                       </div>
                     ))}
                   </div>
