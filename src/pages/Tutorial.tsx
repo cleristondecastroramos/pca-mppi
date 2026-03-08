@@ -908,7 +908,7 @@ const SIGLAS = [
 
 const SETORES = [
   ["CAA", "Coordenadoria de Apoio Administrativo"],
-  ["CCF", "Coordenadoria de Controle Financeiro"],
+  ["CCF", "Coordenadoria de Contabilidade e Finanças"],
   ["CCS", "Coordenadoria de Comunicação Social"],
   ["CEAF", "Centro de Estudos e Aperfeiçoamento Funcional"],
   ["CLC", "Coordenadoria de Licitações e Contratos"],
