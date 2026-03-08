@@ -61,7 +61,7 @@ export default function Tutorial() {
           <H3>2.1. Tela de Login</H3>
           <P>Para acessar o sistema:</P>
           <OL items={[
-            <>Abra o navegador e acesse o endereço do sistema: <strong>https://pca-mppi.lovable.app</strong></>,
+            <>Abra o navegador e acesse o endereço do sistema: <strong>https://pca-mppi.vercel.app</strong></>,
             <>Na tela de login, preencha o <strong>E-mail Institucional</strong> (formato seu.nome@mppi.mp.br) e a <strong>Senha</strong>.</>,
             <>Clique no botão <strong>"Entrar"</strong>.</>,
             <>Se as credenciais estiverem corretas, você será redirecionado para a <strong>Página Inicial (Home)</strong>.</>,
