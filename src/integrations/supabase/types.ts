@@ -52,6 +52,7 @@ export type Database = {
           setor_atual: string | null
           setor_requisitante: string
           sobrestado: boolean | null
+          srp: boolean | null
           status_conclusao: string | null
           status_inicio: string | null
           tipo_contratacao: string
@@ -65,7 +66,6 @@ export type Database = {
           valor_estimado: number
           valor_licitado: number | null
           valor_unitario: number | null
-          srp: boolean | null
         }
         Insert: {
           ajuste_orcamentario?: number | null
@@ -104,6 +104,7 @@ export type Database = {
           setor_atual?: string | null
           setor_requisitante: string
           sobrestado?: boolean | null
+          srp?: boolean | null
           status_conclusao?: string | null
           status_inicio?: string | null
           tipo_contratacao: string
@@ -117,7 +118,6 @@ export type Database = {
           valor_estimado: number
           valor_licitado?: number | null
           valor_unitario?: number | null
-          srp?: boolean | null
         }
         Update: {
           ajuste_orcamentario?: number | null
@@ -156,6 +156,7 @@ export type Database = {
           setor_atual?: string | null
           setor_requisitante?: string
           sobrestado?: boolean | null
+          srp?: boolean | null
           status_conclusao?: string | null
           status_inicio?: string | null
           tipo_contratacao?: string
@@ -169,12 +170,12 @@ export type Database = {
           valor_estimado?: number
           valor_licitado?: number | null
           valor_unitario?: number | null
-          srp?: boolean | null
         }
         Relationships: []
       }
       contratacoes_conformidade: {
         Row: {
+          assinatura_contrato: boolean | null
           atas_certame: boolean | null
           atos_autorizacao: boolean | null
           contratacao_id: string
@@ -184,16 +185,16 @@ export type Database = {
           observacao: string | null
           pareceres_juridicos: boolean | null
           pesquisa_mercado: boolean | null
+          publicacao_contrato: boolean | null
           publicacao_edital: boolean | null
           termo_adjudicacao: boolean | null
           termo_homologacao: boolean | null
           termo_referencia_aprovado: boolean | null
-          assinatura_contrato: boolean | null
-          publicacao_contrato: boolean | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          assinatura_contrato?: boolean | null
           atas_certame?: boolean | null
           atos_autorizacao?: boolean | null
           contratacao_id: string
@@ -203,16 +204,16 @@ export type Database = {
           observacao?: string | null
           pareceres_juridicos?: boolean | null
           pesquisa_mercado?: boolean | null
+          publicacao_contrato?: boolean | null
           publicacao_edital?: boolean | null
           termo_adjudicacao?: boolean | null
           termo_homologacao?: boolean | null
           termo_referencia_aprovado?: boolean | null
-          assinatura_contrato?: boolean | null
-          publicacao_contrato?: boolean | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          assinatura_contrato?: boolean | null
           atas_certame?: boolean | null
           atos_autorizacao?: boolean | null
           contratacao_id?: string
@@ -222,12 +223,11 @@ export type Database = {
           observacao?: string | null
           pareceres_juridicos?: boolean | null
           pesquisa_mercado?: boolean | null
+          publicacao_contrato?: boolean | null
           publicacao_edital?: boolean | null
           termo_adjudicacao?: boolean | null
           termo_homologacao?: boolean | null
           termo_referencia_aprovado?: boolean | null
-          assinatura_contrato?: boolean | null
-          publicacao_contrato?: boolean | null
           updated_at?: string | null
           user_id?: string
         }
