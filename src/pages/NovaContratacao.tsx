@@ -18,6 +18,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { generateUniqueCodigo } from "@/utils/codigoPca";
+import { useAuthSession, useUserRoles, useUserProfile, hasAnyRole } from "@/lib/auth";
 
 const contratacaoSchema = z.object({
   descricao: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres").max(500, "Descrição muito longa"),
