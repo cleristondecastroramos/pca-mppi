@@ -470,8 +470,19 @@ const GerenciamentoUsuarios = () => {
                   <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="usuario@mppi.mp.br" />
                 </div>
                 <div>
-                  <label className="text-sm text-muted-foreground">Setor</label>
-                  <Input value={newSetor} onChange={(e) => setNewSetor(e.target.value)} placeholder="Ex.: TI" />
+                  <label className="text-sm text-muted-foreground">Setor {newRole === "setor_requisitante" ? "*" : ""}</label>
+                  {newRole === "setor_requisitante" ? (
+                    <Select value={newSetor} onValueChange={setNewSetor}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
+                      <SelectContent>
+                        {SETORES_REQUISITANTES.map((s) => (
+                          <SelectItem key={s} value={s}>{s === "PLANEJAMENTO" ? "PLAN" : s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input value={newSetor} onChange={(e) => setNewSetor(e.target.value)} placeholder="Ex.: TI" />
+                  )}
                 </div>
                 <div>
                   <label className="text-sm text-muted-foreground">Cargo</label>
