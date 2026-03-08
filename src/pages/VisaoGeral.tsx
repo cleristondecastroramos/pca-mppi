@@ -147,8 +147,12 @@ const VisaoGeral = () => {
             "normativo",
             "etapa_processo",
           ].join(","),
-          { count: "exact" }
+           { count: "exact" }
         );
+      // Setor requisitante: always filter by their setor
+      if (isSetorRequisitante && userSetor) {
+        query = query.eq("setor_requisitante", userSetor);
+      }
       if (filtros.unidade_orcamentaria && filtros.unidade_orcamentaria !== ALL_VALUE) query = query.eq("unidade_orcamentaria", filtros.unidade_orcamentaria);
       if (filtros.setor_requisitante && filtros.setor_requisitante !== ALL_VALUE) query = query.eq("setor_requisitante", filtros.setor_requisitante);
       if (filtros.tipo_contratacao && filtros.tipo_contratacao !== ALL_VALUE) query = query.eq("tipo_contratacao", filtros.tipo_contratacao);
