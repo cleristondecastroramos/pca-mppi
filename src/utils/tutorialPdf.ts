@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 import { getTutorialSections, TOC, type PdfBlock } from "./tutorialPdfData";
 
 // Sidebar red: hsl(349, 67%, 55%) => #D9415D
