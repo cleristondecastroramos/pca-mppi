@@ -127,7 +127,7 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       const noteLines: string[] = doc.splitTextToSize(block.text, CW - 10);
-      const boxH = noteLines.length * 4.5 + 6;
+      const boxH = noteLines.length * 4.5 + 10;
       y = checkPage(doc, y, boxH + 2);
       // Background
       doc.setFillColor(...NOTE_BG);
@@ -136,20 +136,15 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
       doc.setDrawColor(...NOTE_BORDER);
       doc.setLineWidth(1.2);
       doc.line(ML, y - 3, ML, y - 3 + boxH);
-      // Icon text
+      // Icon text - using text instead of emoji
       doc.setFont("helvetica", "bold");
       doc.setTextColor(...RED);
-      doc.text("⚠ Importante:", ML + 4, y + 1);
-      const labelW = doc.getTextWidth("⚠ Importante: ");
+      doc.text("[!] Importante:", ML + 4, y + 1);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(60, 60, 60);
-      // First line continuation
-      if (noteLines.length > 0) {
-        const firstLineRest = noteLines[0];
-        doc.text(firstLineRest, ML + 4, y + 5.5);
-      }
-      for (let i = 1; i < noteLines.length; i++) {
-        doc.text(noteLines[i], ML + 4, y + 5.5 + i * 4.5);
+      // Text content below label
+      for (let i = 0; i < noteLines.length; i++) {
+        doc.text(noteLines[i], ML + 4, y + 6 + i * 4.5, { align: "justify", maxWidth: CW - 12 });
       }
       y += boxH + 4;
       return y;
