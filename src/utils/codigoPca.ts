@@ -53,5 +53,5 @@ export async function generateUniqueCodigo(): Promise<string> {
     throw new Error("Não foi possível gerar um código único após várias tentativas.");
   }
 
-  return codigo;
+  return fullCodigo;
 }
