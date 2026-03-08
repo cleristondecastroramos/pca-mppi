@@ -17,26 +17,30 @@ export function generateRandomCode(): string {
  * Gera um código único verificando no banco de dados se já existe.
  * Tenta até 5 vezes encontrar um código livre.
  */
+export function formatCodigoPCA(randomPart: string, ano: number = new Date().getFullYear()): string {
+  return `PCA-${randomPart}-${ano}`;
+}
+
 export async function generateUniqueCodigo(): Promise<string> {
-  let codigo = "";
+  let randomPart = "";
+  let fullCodigo = "";
   let isUnique = false;
   let attempts = 0;
 
   while (!isUnique && attempts < 10) {
-    codigo = generateRandomCode();
+    randomPart = generateRandomCode();
+    fullCodigo = formatCodigoPCA(randomPart);
     
     // Verifica se já existe
     const { data, error } = await (supabase as any)
       .from("contratacoes")
       .select("id")
-      .eq("codigo", codigo)
+      .eq("codigo", fullCodigo)
       .maybeSingle();
 
     if (error) {
         console.error("Erro ao verificar unicidade do código:", error);
-        // Em caso de erro (ex: coluna não existe), retornamos o código gerado mesmo assim
-        // para não travar o fluxo, mas logamos o erro.
-        return codigo; 
+        return fullCodigo; 
     }
 
     if (!data) {
@@ -49,5 +53,5 @@ export async function generateUniqueCodigo(): Promise<string> {
     throw new Error("Não foi possível gerar um código único após várias tentativas.");
   }
 
-  return codigo;
+  return fullCodigo;
 }
