@@ -812,7 +812,7 @@ function H3({ children }: { children: React.ReactNode }) {
 }
 
 function P({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm text-foreground/90 leading-relaxed">{children}</p>;
+  return <p className="text-sm text-foreground/90 leading-relaxed text-justify">{children}</p>;
 }
 
 function UL({ items }: { items: (string | React.ReactNode)[] }) {
