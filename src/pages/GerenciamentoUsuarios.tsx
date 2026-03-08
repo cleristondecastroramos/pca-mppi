@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { PerfilAcesso } from "@/lib/auth";
 import { SETORES_REQUISITANTES } from "@/lib/auth";
-import { Shield, UserCog, ClipboardList, Eye, Info, Pencil, Trash2 } from "lucide-react";
+import { Shield, UserCog, ClipboardList, Eye, Info, Pencil, Trash2, Users } from "lucide-react";
 
 const ROLE_DEFINITIONS = {
   administrador: {
@@ -314,43 +314,99 @@ const GerenciamentoUsuarios = () => {
                     Política de Acessos
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-3xl p-0 overflow-hidden [&>button]:text-white">
+                <DialogContent className="max-w-4xl max-h-[85vh] p-0 overflow-hidden [&>button]:text-white">
                   <DialogHeader className="bg-sidebar p-6">
-                    <DialogTitle className="text-white">Política de Acessos e Atribuições</DialogTitle>
+                    <DialogTitle className="text-white text-lg">Política de Acessos e Atribuições</DialogTitle>
                     <DialogDescription className="text-white/80">
-                      Entenda as responsabilidades e permissões de cada perfil no sistema.
+                      Visão completa das responsabilidades, permissões e acessos de cada perfil no sistema PCA 2026.
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="grid gap-4 p-6">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[180px]">Perfil</TableHead>
-                          <TableHead>Descrição</TableHead>
-                          <TableHead>Principais Atribuições</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
+                  <div className="overflow-y-auto max-h-[calc(85vh-100px)] p-6 space-y-6">
+                    {/* Seção 1: Perfis */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                        <Users className="h-4 w-4 text-primary" />
+                        Perfis de Acesso
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {(Object.entries(ROLE_DEFINITIONS) as [keyof typeof ROLE_DEFINITIONS, typeof ROLE_DEFINITIONS[keyof typeof ROLE_DEFINITIONS]][]).map(([key, def]) => (
-                          <TableRow key={key}>
-                            <TableCell className="font-medium align-top">
-                              <div className="flex items-center gap-2">
-                                <def.icon className={`h-4 w-4 ${def.color}`} />
-                                {def.label}
+                          <Card key={key} className="border shadow-none">
+                            <CardContent className="p-4">
+                              <div className="flex items-center gap-2 mb-2">
+                                <def.icon className={`h-5 w-5 ${def.color}`} />
+                                <span className="font-semibold text-sm">{def.label}</span>
                               </div>
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground align-top">{def.description}</TableCell>
-                            <TableCell className="align-top">
-                              <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                              <p className="text-xs text-muted-foreground mb-2">{def.description}</p>
+                              <ul className="space-y-1">
                                 {def.tasks.map((task, i) => (
-                                  <li key={i}>{task}</li>
+                                  <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                                    <span className="text-primary mt-0.5">•</span>
+                                    {task}
+                                  </li>
                                 ))}
                               </ul>
-                            </TableCell>
-                          </TableRow>
+                            </CardContent>
+                          </Card>
                         ))}
-                      </TableBody>
-                    </Table>
+                      </div>
+                    </div>
+
+                    {/* Seção 2: Matriz de Acesso */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                        <Shield className="h-4 w-4 text-primary" />
+                        Matriz de Acesso por Funcionalidade
+                      </h3>
+                      <div className="rounded-lg border overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-muted/50">
+                              <TableHead className="text-xs font-semibold w-[200px]">Funcionalidade</TableHead>
+                              <TableHead className="text-xs font-semibold text-center">
+                                <div className="flex items-center justify-center gap-1"><Shield className="h-3 w-3 text-destructive" />Admin</div>
+                              </TableHead>
+                              <TableHead className="text-xs font-semibold text-center">
+                                <div className="flex items-center justify-center gap-1"><UserCog className="h-3 w-3 text-amber-600" />Gestor</div>
+                              </TableHead>
+                              <TableHead className="text-xs font-semibold text-center">
+                                <div className="flex items-center justify-center gap-1"><ClipboardList className="h-3 w-3 text-blue-600" />Setor Req.</div>
+                              </TableHead>
+                              <TableHead className="text-xs font-semibold text-center">
+                                <div className="flex items-center justify-center gap-1"><Eye className="h-3 w-3 text-muted-foreground" />Consulta</div>
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {[
+                              { page: "Home / Visão Geral", admin: "Completo", gestor: "Completo", setor: "Apenas seu setor", consulta: "Somente leitura" },
+                              { page: "Contratações", admin: "CRUD completo", gestor: "Visualizar e editar", setor: "Edita rascunhos do setor", consulta: "Somente leitura" },
+                              { page: "Nova Contratação", admin: "✓", gestor: "✓", setor: "✓ (setor fixo)", consulta: "✗" },
+                              { page: "Setores Demandantes", admin: "✓", gestor: "✓", setor: "✗", consulta: "✗" },
+                              { page: "Controle de Prazos", admin: "✓", gestor: "✓", setor: "Apenas seu setor", consulta: "✗" },
+                              { page: "Pontos de Atenção", admin: "✓", gestor: "✓", setor: "Apenas seu setor", consulta: "✗" },
+                              { page: "Prioridades de Contratação", admin: "✓", gestor: "✓", setor: "Apenas seu setor", consulta: "✗" },
+                              { page: "Avaliação e Conformidade", admin: "✓", gestor: "✓", setor: "✗", consulta: "✗" },
+                              { page: "Resultados Alcançados", admin: "✓", gestor: "✓", setor: "✗", consulta: "✗" },
+                              { page: "Relatórios", admin: "✓", gestor: "✓", setor: "✗", consulta: "✗" },
+                              { page: "Orçamento Planejado", admin: "✓", gestor: "✗", setor: "✗", consulta: "✗" },
+                              { page: "Gerenciamento de Usuários", admin: "✓", gestor: "✗", setor: "✗", consulta: "✗" },
+                              { page: "Minha Conta / FAQ", admin: "✓", gestor: "✓", setor: "✓", consulta: "✓" },
+                            ].map((row, i) => (
+                              <TableRow key={i} className={i % 2 === 0 ? "" : "bg-muted/30"}>
+                                <TableCell className="text-xs font-medium">{row.page}</TableCell>
+                                <TableCell className="text-xs text-center">{row.admin}</TableCell>
+                                <TableCell className="text-xs text-center">{row.gestor}</TableCell>
+                                <TableCell className="text-xs text-center">{row.setor}</TableCell>
+                                <TableCell className="text-xs text-center">{row.consulta}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-2 italic">
+                        ✓ = Acesso permitido &nbsp;|&nbsp; ✗ = Sem acesso &nbsp;|&nbsp; Usuários do tipo "Setor Requisitante" visualizam e interagem apenas com dados do seu próprio setor.
+                      </p>
+                    </div>
                   </div>
                 </DialogContent>
               </Dialog>
