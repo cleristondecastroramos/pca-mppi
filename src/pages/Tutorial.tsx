@@ -1,15 +1,41 @@
+import { useState } from "react";
 import { Layout } from "@/components/Layout";
+import { FileDown, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { generateTutorialPdf } from "@/utils/tutorialPdf";
 
 export default function Tutorial() {
+  const [generating, setGenerating] = useState(false);
+
+  const handleExportPdf = async () => {
+    setGenerating(true);
+    try {
+      await generateTutorialPdf();
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   return (
     <Layout>
       <div className="space-y-6 max-w-4xl">
-        <div>
-          <h1 className="text-xl font-bold text-foreground">📖 Tutorial Completo do Sistema PCA 2026</h1>
-          <p className="text-sm text-muted-foreground">
-            Sistema de Gerenciamento do Plano de Contratações Anual — Ministério Público do Estado do Piauí
-          </p>
-          
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-foreground">📖 Tutorial Completo do Sistema PCA 2026</h1>
+            <p className="text-sm text-muted-foreground">
+              Sistema de Gerenciamento do Plano de Contratações Anual — Ministério Público do Estado do Piauí
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleExportPdf}
+            disabled={generating}
+            title="Exportar Tutorial em PDF"
+            className="h-8 w-8 text-muted-foreground hover:text-primary flex-shrink-0"
+          >
+            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+          </Button>
         </div>
 
         {/* Sumário */}
