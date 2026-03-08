@@ -696,12 +696,20 @@ export default function Tutorial() {
         </Section>
 
         <Section id="sec19" title="19. Minha Conta">
-          <P>Disponível para <strong>todos os perfis</strong>. Permite editar:</P>
+          <P>A página <strong>Minha Conta</strong> está disponível para <strong>todos os perfis de acesso</strong> e permite que cada usuário gerencie suas informações pessoais dentro do sistema. Manter esses dados atualizados é fundamental para garantir a correta identificação do responsável em cada ação registrada, facilitar a comunicação entre os setores e assegurar a rastreabilidade das operações realizadas.</P>
+
+          <H3>Informações Editáveis</H3>
           <UL items={[
-            "Nome completo e ramal.",
-            "Avatar (galeria pré-definida ou upload de foto pessoal).",
+            <><strong>Nome completo:</strong> Utilizado na identificação do usuário em históricos, relatórios e registros de auditoria. É essencial que esteja correto e atualizado.</>,
+            <><strong>Ramal:</strong> Facilita o contato direto entre setores para esclarecimentos sobre demandas e processos.</>,
+            <><strong>Avatar:</strong> O usuário pode personalizar sua foto de perfil escolhendo entre uma galeria pré-definida de imagens ou fazendo upload de uma foto pessoal.</>,
           ]} />
-          <P>E-mail, setor e cargo são exibidos como informação (somente leitura).</P>
+
+          <H3>Informações Somente Leitura</H3>
+          <P>Os campos <strong>e-mail</strong>, <strong>setor</strong> e <strong>cargo</strong> são exibidos apenas para consulta e não podem ser alterados pelo próprio usuário. Caso haja necessidade de correção nesses dados, o usuário deve solicitar a atualização a um administrador do sistema.</P>
+
+          <H3>Alteração de Senha</H3>
+          <P>A página também oferece a funcionalidade de <strong>troca de senha</strong>, permitindo que o usuário atualize sua credencial de acesso a qualquer momento. Recomenda-se alterar a senha periodicamente para manter a segurança da conta, especialmente após o primeiro acesso ao sistema.</P>
         </Section>
 
         <Section id="sec20" title="20. FAQ / Dúvidas">
