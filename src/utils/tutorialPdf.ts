@@ -252,6 +252,7 @@ export async function generateTutorialPdf() {
 
   // ===== TABLE OF CONTENTS PAGE =====
   doc.addPage();
+  const tocPageNum = doc.getNumberOfPages();
   let y = CONTENT_Y;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
@@ -263,6 +264,8 @@ export async function generateTutorialPdf() {
   doc.line(ML, y, PAGE_W - MR, y);
   y += 8;
 
+  // Store TOC item positions for linking later
+  const tocItemPositions: { x: number; y: number; w: number; h: number; idx: number }[] = [];
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.setTextColor(...BLACK);
@@ -272,13 +275,19 @@ export async function generateTutorialPdf() {
     doc.setTextColor(...RED);
     doc.text(`${i + 1}.`, ML, y);
     doc.setTextColor(...BLACK);
-    doc.text(item, ML + 8, y);
+    const fullText = item;
+    doc.text(fullText, ML + 8, y);
+    const textW = doc.getTextWidth(`${i + 1}. ${fullText}`);
+    // Save position for internal link
+    tocItemPositions.push({ x: ML, y: y - 4, w: textW + 8, h: 5, idx: i });
     y += 6;
   });
 
   // ===== CONTENT SECTIONS (each starts on new page) =====
+  const sectionPageNumbers: number[] = [];
   for (const section of sections) {
     doc.addPage();
+    sectionPageNumbers.push(doc.getNumberOfPages());
     y = CONTENT_Y;
 
     // Section title
@@ -296,6 +305,25 @@ export async function generateTutorialPdf() {
     for (const block of section.content) {
       y = renderBlock(doc, block, y);
     }
+  }
+
+  // ===== Add internal links from TOC to section pages =====
+  doc.setPage(tocPageNum);
+  for (const pos of tocItemPositions) {
+    if (pos.idx < sectionPageNumbers.length) {
+      doc.link(pos.x, pos.y, pos.w, pos.h, { pageNumber: sectionPageNumbers[pos.idx] });
+    }
+  }
+
+  // ===== Add PDF outline/bookmarks =====
+  const docInternal = (doc as any).internal;
+  if (typeof doc.outline !== "undefined") {
+    // jsPDF 2.x+ supports outline
+    TOC.forEach((item, i) => {
+      if (i < sectionPageNumbers.length) {
+        (doc.outline as any).add(null, `${i + 1}. ${item}`, { pageNumber: sectionPageNumbers[i] });
+      }
+    });
   }
 
   // ===== PASS 2: Headers & Footers =====
