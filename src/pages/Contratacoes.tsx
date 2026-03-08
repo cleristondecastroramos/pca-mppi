@@ -73,6 +73,7 @@ export default function Contratacoes() {
   const { data: roles } = useUserRoles(userId);
   const { data: profile } = useUserProfile(userId);
   const isSetorRequisitante = hasAnyRole(roles, ["setor_requisitante"]) && !hasAnyRole(roles, ["administrador", "gestor"]);
+  const isConsulta = hasAnyRole(roles, ["consulta"]) && !hasAnyRole(roles, ["administrador", "gestor", "setor_requisitante"]);
   const userSetor = profile?.setor || null;
 
   // Filtros iguais à aba Visão Geral
