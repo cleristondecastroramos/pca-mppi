@@ -45,7 +45,9 @@ function addHeaderFooter(doc: jsPDF, logo: HTMLImageElement | null, page: number
   doc.line(ML, FOOTER_Y - 3, PAGE_W - MR, FOOTER_Y - 3);
   doc.setFontSize(8);
   doc.setTextColor(...GRAY_TEXT);
-  doc.text("PCA MPPI", ML, FOOTER_Y + 2);
+  doc.setFontSize(6);
+  doc.text("Tutorial do Sistema de Gerenciamento do Plano de Contratações Anual", ML, FOOTER_Y + 2);
+  doc.setFontSize(8);
   doc.text(`${page} / ${total}`, PAGE_W - MR, FOOTER_Y + 2, { align: "right" });
 }
 
@@ -77,7 +79,7 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
       const lines: string[] = doc.splitTextToSize(block.text, CW);
       for (const line of lines) {
         y = checkPage(doc, y, 5);
-        doc.text(line, ML, y);
+        doc.text(line, ML, y, { align: "justify", maxWidth: CW });
         y += 4.5;
       }
       y += 2;
@@ -125,7 +127,7 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       const noteLines: string[] = doc.splitTextToSize(block.text, CW - 10);
-      const boxH = noteLines.length * 4.5 + 6;
+      const boxH = noteLines.length * 4.5 + 10;
       y = checkPage(doc, y, boxH + 2);
       // Background
       doc.setFillColor(...NOTE_BG);
@@ -134,20 +136,15 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
       doc.setDrawColor(...NOTE_BORDER);
       doc.setLineWidth(1.2);
       doc.line(ML, y - 3, ML, y - 3 + boxH);
-      // Icon text
+      // Icon text - using text instead of emoji
       doc.setFont("helvetica", "bold");
       doc.setTextColor(...RED);
-      doc.text("⚠ Importante:", ML + 4, y + 1);
-      const labelW = doc.getTextWidth("⚠ Importante: ");
+      doc.text("[!] Importante:", ML + 4, y + 1);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(60, 60, 60);
-      // First line continuation
-      if (noteLines.length > 0) {
-        const firstLineRest = noteLines[0];
-        doc.text(firstLineRest, ML + 4, y + 5.5);
-      }
-      for (let i = 1; i < noteLines.length; i++) {
-        doc.text(noteLines[i], ML + 4, y + 5.5 + i * 4.5);
+      // Text content below label
+      for (let i = 0; i < noteLines.length; i++) {
+        doc.text(noteLines[i], ML + 4, y + 6 + i * 4.5, { align: "justify", maxWidth: CW - 12 });
       }
       y += boxH + 4;
       return y;
@@ -156,23 +153,22 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       const tipLines: string[] = doc.splitTextToSize(block.text, CW - 10);
-      const boxH = tipLines.length * 4.5 + 6;
+      const boxH = tipLines.length * 4.5 + 10;
       y = checkPage(doc, y, boxH + 2);
       doc.setFillColor(...TIP_BG);
       doc.roundedRect(ML, y - 3, CW, boxH, 1, 1, "F");
       doc.setDrawColor(...TIP_BORDER);
       doc.setLineWidth(1.2);
       doc.line(ML, y - 3, ML, y - 3 + boxH);
+      // Using text instead of emoji
       doc.setFont("helvetica", "bold");
       doc.setTextColor(...GREEN);
-      doc.text("💡 Dica:", ML + 4, y + 1);
+      doc.text("[*] Dica:", ML + 4, y + 1);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(60, 60, 60);
-      if (tipLines.length > 0) {
-        doc.text(tipLines[0], ML + 4, y + 5.5);
-      }
-      for (let i = 1; i < tipLines.length; i++) {
-        doc.text(tipLines[i], ML + 4, y + 5.5 + i * 4.5);
+      // Text content below label
+      for (let i = 0; i < tipLines.length; i++) {
+        doc.text(tipLines[i], ML + 4, y + 6 + i * 4.5, { align: "justify", maxWidth: CW - 12 });
       }
       y += boxH + 4;
       return y;
@@ -301,7 +297,15 @@ export async function generateTutorialPdf() {
     y += 8;
 
     // Render all blocks
-    for (const block of section.content) {
+    for (let blockIdx = 0; blockIdx < section.content.length; blockIdx++) {
+      const block = section.content[blockIdx];
+      
+      // Special case: "3.5. Matriz de Acesso por Funcionalidade" - force new page before the table
+      if (block.type === "h3" && block.text === "3.5. Matriz de Acesso por Funcionalidade") {
+        doc.addPage();
+        y = CONTENT_Y;
+      }
+      
       y = renderBlock(doc, block, y);
     }
   }
@@ -350,9 +354,10 @@ export async function generateTutorialPdf() {
       doc.setDrawColor(...RED);
       doc.setLineWidth(0.5);
       doc.line(ML, FOOTER_Y - 3, PAGE_W - MR, FOOTER_Y - 3);
-      doc.setFontSize(8);
+      doc.setFontSize(6);
       doc.setTextColor(...GRAY_TEXT);
-      doc.text("PCA MPPI", ML, FOOTER_Y + 2);
+      doc.text("Tutorial do Sistema de Gerenciamento do Plano de Contratações Anual", ML, FOOTER_Y + 2);
+      doc.setFontSize(8);
       doc.text(`${i} / ${totalPages}`, PAGE_W - MR, FOOTER_Y + 2, { align: "right" });
     } else {
       addHeaderFooter(doc, logo, i, totalPages);

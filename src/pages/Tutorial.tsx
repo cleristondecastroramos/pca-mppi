@@ -331,7 +331,7 @@ export default function Tutorial() {
 
           <H3>9.3. Tabela de Demandas por Setor</H3>
           <P>
-            A tabela principal exibe as seguintes informações de cada contratação: <strong>Código PCA</strong> (no formato PCA-XXXX-2026), <strong>Descrição</strong> resumida do objeto, <strong>Classe</strong> (Material ou Serviço), <strong>Modalidade</strong> de contratação, <strong>Valor Estimado</strong>, <strong>Valor Contratado</strong>, <strong>Saldo Orçamentário</strong>, <strong>Empenhos</strong> (1º, 2º e 3º) e <strong>Etapa do Processo</strong>. Todos os valores monetários são formatados no padrão brasileiro (R$).
+            A tabela principal exibe as seguintes informações de cada contratação: <strong>Código PCA</strong> (no formato PCA-XXXX-2026), <strong>Descrição</strong> resumida do objeto, <strong>Classe</strong> (Material ou Serviço), <strong>Modalidade</strong> de contratação, <strong>Valor Estimado</strong>, <strong>Valor Contratado</strong>, <strong>Saldo Orçamentário</strong>, <strong>Empenhos</strong> e <strong>Etapa do Processo</strong>. Todos os valores monetários são formatados no padrão brasileiro (R$).
           </P>
 
           <H3>9.4. Utilidade Estratégica</H3>
