@@ -65,6 +65,7 @@ const MinhaConta = () => {
   const [savingProfile, setSavingProfile] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [openAvatarDialog, setOpenAvatarDialog] = useState(false);
+  const [updatingAvatar, setUpdatingAvatar] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -187,11 +188,14 @@ const MinhaConta = () => {
   };
 
   const handleSelectPredefinedAvatar = async (url: string) => {
+    setUpdatingAvatar(true);
+    const toastId = toast.loading("Salvando o seu novo avatar...");
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData.session?.user;
 
     if (!user) {
-      toast.error("Usuário não identificado ou sessão expirada.");
+      toast.error("Usuário não identificado ou sessão expirada.", { id: toastId });
+      setUpdatingAvatar(false);
       return;
     }
 
@@ -206,11 +210,13 @@ const MinhaConta = () => {
       try { localStorage.setItem("app_avatar_url", url); } catch { }
       try { window.dispatchEvent(new CustomEvent("app-avatar-update", { detail: url })); } catch { }
 
-      toast.success("Avatar atualizado com sucesso!");
+      toast.success("Avatar atualizado com sucesso!", { id: toastId });
       setOpenAvatarDialog(false);
     } catch (e: any) {
       console.error(e);
-      toast.error("Falha ao salvar avatar", { description: e.message || String(e) });
+      toast.error("Falha ao salvar avatar", { description: e.message || String(e), id: toastId });
+    } finally {
+      setUpdatingAvatar(false);
     }
   };
 
@@ -278,15 +284,17 @@ const MinhaConta = () => {
                   </DialogHeader>
                   <div className="grid grid-cols-6 gap-3 py-4 place-items-center">
                     {avatarOptions.map((url, idx) => (
-                      <div
+                      <button
+                        type="button"
                         key={idx}
-                        className="cursor-pointer rounded-full p-1 hover:ring-2 hover:ring-ring hover:ring-offset-2 hover:ring-offset-background transition-all"
+                        disabled={updatingAvatar}
+                        className={`cursor-pointer rounded-full p-1 transition-all ${updatingAvatar ? 'opacity-50 pointer-events-none' : 'hover:ring-2 hover:ring-ring hover:ring-offset-2 hover:ring-offset-background'}`}
                         onClick={() => handleSelectPredefinedAvatar(url)}
                       >
                         <div className="h-12 w-12 rounded-full overflow-hidden bg-muted">
                           <img src={url} alt={`Avatar ${idx}`} className="h-full w-full object-contain" />
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                   <div className="flex flex-col gap-2 mt-2 pt-4 border-t border-border">
