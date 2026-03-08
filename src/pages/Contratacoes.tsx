@@ -114,6 +114,8 @@ export default function Contratacoes() {
   }, [searchTerm]);
 
   useEffect(() => {
+    // Only fetch once role/profile are resolved
+    if (roles === undefined || (isSetorRequisitante && !userSetor)) return;
     let mounted = true;
     const run = async () => {
       await fetchContratacoes();
@@ -126,7 +128,7 @@ export default function Contratacoes() {
       mounted = false;
       sub.subscription.unsubscribe();
     };
-  }, []);
+  }, [roles, userSetor]);
 
   const fetchContratacoes = async () => {
     setLoading(true);
