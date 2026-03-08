@@ -899,7 +899,7 @@ const SIGLAS = [
   ["UO", "Unidade Orçamentária"],
   ["SRP", "Sistema de Registro de Preços"],
   ["SEI", "Sistema Eletrônico de Informações"],
-  ["PGEA", "Plano de Gestão Estratégica e Administrativo"],
+  ["PGEA", "Procedimento de Gestão Administrativa"],
   ["CLC", "Coordenadoria de Licitações e Contratos"],
   ["PDM", "Padrão Descritivo de Material"],
   ["CATSER", "Catálogo de Serviços"],
@@ -908,17 +908,17 @@ const SIGLAS = [
 
 const SETORES = [
   ["CAA", "Coordenadoria de Apoio Administrativo"],
-  ["CCF", "Coordenadoria de Controle Financeiro"],
+  ["CCF", "Coordenadoria de Contabilidade e Finanças"],
   ["CCS", "Coordenadoria de Comunicação Social"],
   ["CEAF", "Centro de Estudos e Aperfeiçoamento Funcional"],
   ["CLC", "Coordenadoria de Licitações e Contratos"],
   ["CONINT", "Controladoria Interna"],
-  ["CPPT", "Coordenadoria de Planejamento e Projetos de TI"],
+  ["CPPT", "Coordenadoria de Perícias e Pareceres Técnicos"],
   ["CRH", "Coordenadoria de Recursos Humanos"],
   ["CTI", "Coordenadoria de Tecnologia da Informação"],
   ["GAECO", "Grupo de Atuação Especial de Combate ao Crime Organizado"],
   ["GSI", "Gabinete de Segurança Institucional"],
-  ["PLAN", "Assessoria de Planejamento (PLANEJAMENTO)"],
+  ["PLAN", "Assessoria de Planejamento e Gestão (ASSESPPLAGES)"],
   ["PROCON", "Programa de Proteção e Defesa do Consumidor"],
 ];
 
@@ -932,6 +932,7 @@ const TERMOS = [
   ["Conformidade", "Verificação de requisitos documentais e legais."],
   ["Valor Estimado", "Valor previsto para a contratação, antes do certame."],
   ["Valor Contratado", "Valor efetivamente acordado no contrato."],
+  ["Valor Executado", "Quantia exata de recursos orçamentários que foi empenhada para cobrir uma despesa específica."],
   ["Código PCA", "Identificador único no formato PCA-XXXX-2026."],
   ["Modalidade Licitatória", "Procedimento legal para seleção do fornecedor."],
   ["Normativo", "Lei de licitações que rege o processo."],
