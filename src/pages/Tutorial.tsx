@@ -9,7 +9,7 @@ export default function Tutorial() {
           <p className="text-sm text-muted-foreground">
             Sistema de Gerenciamento do Plano de Contratações Anual — Ministério Público do Estado do Piauí
           </p>
-          <p className="text-xs text-muted-foreground mt-1">Versão 1.0 · Março de 2026 · ASSESPPLAGES</p>
+          
         </div>
 
         {/* Sumário */}
