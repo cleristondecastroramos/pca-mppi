@@ -131,10 +131,17 @@ export default function Contratacoes() {
   const fetchContratacoes = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("contratacoes")
         .select("id, codigo, descricao, setor_requisitante, unidade_orcamentaria, classe, valor_estimado, valor_contratado, etapa_processo, sobrestado, grau_prioridade, justificativa, data_prevista_contratacao, numero_sei_contratacao, pdm_catser, created_at, quantidade_itens, valor_unitario, unidade_fornecimento, tipo_recurso, tipo_contratacao, modalidade, normativo, srp")
         .order("created_at", { ascending: false });
+
+      // Setor requisitante users only see their own setor
+      if (isSetorRequisitante && userSetor) {
+        query = query.eq("setor_requisitante", userSetor);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setContratacoes((data as any) || []);
