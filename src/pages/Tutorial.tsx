@@ -511,13 +511,98 @@ export default function Tutorial() {
           </P>
         </Section>
 
-        {/* 14-15 */}
+        {/* 14. Resultados Alcançados */}
         <Section id="sec14" title="14. Resultados Alcançados">
-          <P>Indicadores de desempenho: percentual concluído vs. planejado, economia obtida, taxa de sucesso e evolução temporal. Comparativos planejado x realizado. Disponível para <strong>Admin</strong> e <strong>Gestor</strong>.</P>
+          <P>
+            O módulo <strong>Resultados Alcançados</strong> é o painel de desempenho do sistema PCA 2026, responsável por consolidar e apresentar de forma visual os resultados efetivos das contratações concluídas pelo MPPI. Disponível exclusivamente para <strong>Administradores</strong> e <strong>Gestores</strong>, este módulo transforma dados brutos em indicadores estratégicos que permitem avaliar o desempenho institucional no cumprimento do Plano de Contratações Anual.
+          </P>
+
+          <H3>14.1. KPIs (Indicadores-Chave de Desempenho)</H3>
+          <P>Na parte superior da página, três indicadores principais sintetizam o panorama das contratações concluídas:</P>
+          <UL items={[
+            <><strong>Demandas Concluídas:</strong> Quantidade total de contratações que atingiram a etapa "Concluído", representando os processos que foram integralmente finalizados.</>,
+            <><strong>Valor Contratado:</strong> Soma dos valores efetivamente contratados em todas as demandas concluídas, formatado em reais (R$). Este indicador permite comparar o valor planejado (estimado) com o valor real da contratação.</>,
+            <><strong>Taxa de Conclusão:</strong> Percentual de demandas concluídas em relação ao total de demandas cadastradas no sistema. Indica o grau de execução do Plano de Contratações Anual.</>,
+          ]} />
+
+          <H3>14.2. Gráficos Analíticos</H3>
+          <P>O módulo apresenta três gráficos interativos que permitem análises sob diferentes perspectivas. Cada gráfico possui botões de alternância para visualizar os dados por <strong>número de processos</strong> ou por <strong>valores contratados</strong>:</P>
+          <UL items={[
+            <><strong>Distribuição por Unidade Orçamentária (UO):</strong> Gráfico de pizza que mostra como as contratações concluídas estão distribuídas entre as unidades orçamentárias (PGJ, FMMP, FEPDC). Permite identificar qual fonte de recurso foi mais utilizada.</>,
+            <><strong>Distribuição por Tipo de Contratação:</strong> Gráfico de pizza que categoriza as contratações concluídas por tipo (Aquisição, Serviço Continuado, Obra, etc.), revelando quais modalidades de contratação são mais frequentes ou movimentam maior volume financeiro.</>,
+            <><strong>Distribuição por Classe:</strong> Gráfico de pizza que segmenta as contratações entre Material e Serviço, oferecendo uma visão clara da natureza predominante das aquisições do MPPI.</>,
+          ]} />
+
+          <H3>14.3. Tabela de Valor Contratado por Setor</H3>
+          <P>
+            Na parte inferior da página, uma tabela detalhada apresenta o valor total contratado por cada setor requisitante. Esta informação é essencial para avaliar quais setores estão mais avançados na execução de suas demandas e quais ainda possuem margem significativa entre o planejado e o realizado.
+          </P>
+
+          <H3>14.4. Finalidade Estratégica</H3>
+          <P>
+            O módulo Resultados Alcançados desempenha um papel central na <strong>prestação de contas</strong> e na <strong>avaliação de desempenho institucional</strong>. Seus dados permitem que a alta gestão do MPPI:
+          </P>
+          <UL items={[
+            <><strong>Avalie a efetividade do planejamento:</strong> Ao comparar a taxa de conclusão com o total planejado, é possível identificar se o PCA está sendo executado conforme previsto ou se há atrasos sistêmicos que exigem intervenção.</>,
+            <><strong>Identifique economias:</strong> A comparação entre valores estimados e contratados revela se houve economia nas contratações, informação relevante para relatórios de gestão fiscal e prestação de contas aos órgãos de controle.</>,
+            <><strong>Subsidie decisões orçamentárias futuras:</strong> Os padrões de execução identificados neste módulo (quais tipos de contratação são mais frequentes, quais setores consomem mais recursos) alimentam o planejamento do próximo exercício.</>,
+            <><strong>Produza relatórios de gestão:</strong> Os gráficos e indicadores podem ser utilizados em apresentações à Procuradoria-Geral de Justiça, ao Conselho Superior do Ministério Público e aos órgãos de controle externo.</>,
+          ]} />
         </Section>
 
+        {/* 15. Relatórios */}
         <Section id="sec15" title="15. Relatórios">
-          <P>Geração de relatórios gerenciais: geral, por setor, por UO, de prazos e de conformidade. Com opções de exportação. Disponível para <strong>Admin</strong> e <strong>Gestor</strong>.</P>
+          <P>
+            O módulo <strong>Relatórios</strong> é a ferramenta de geração e exportação de relatórios gerenciais do sistema PCA 2026. Ele permite que <strong>Administradores</strong> e <strong>Gestores</strong> produzam documentos estruturados a partir dos dados das contratações, aplicando filtros avançados e escolhendo entre diferentes tipos de relatório conforme a necessidade da análise.
+          </P>
+
+          <H3>15.1. Tipos de Relatório Disponíveis</H3>
+          <P>O sistema oferece cinco tipos de relatório, cada um com foco em uma dimensão específica do processo de contratação:</P>
+          <UL items={[
+            <><strong>Contratações — Detalhado:</strong> Listagem completa de todas as contratações com código PCA, descrição, setor requisitante, unidade orçamentária, prioridade, valores estimado e contratado, normativo aplicável e data prevista. É o relatório mais abrangente e indicado para análises gerais.</>,
+            <><strong>Contratações — Por Status:</strong> Relatório que agrupa as contratações por seu status atual (não iniciado, em andamento, concluído, sobrestado), incluindo a situação do prazo (no prazo, próximo ao vencimento, vencido). Ideal para acompanhamento do andamento geral do PCA.</>,
+            <><strong>Contratações — Por Setor:</strong> Relatório organizado por setor requisitante, exibindo código PCA, descrição, prioridade e valores. Útil para reuniões setoriais e prestação de contas por área.</>,
+            <><strong>Auditoria — Conformidade:</strong> Relatório que apresenta o percentual de conformidade documental de cada contratação, com base no checklist de auditoria (Fases de Licitação e Contratação). Permite identificar processos com documentação incompleta.</>,
+            <><strong>Prazos — Críticos e Alertas:</strong> Relatório focado exclusivamente em contratações com prazos vencidos ou próximos ao vencimento. Filtra automaticamente apenas os processos que demandam atenção imediata, ordenando-os por criticidade.</>,
+          ]} />
+
+          <H3>15.2. Filtros Avançados</H3>
+          <P>Todos os relatórios podem ser refinados por meio de um painel completo de filtros, que inclui:</P>
+          <UL items={[
+            <><strong>Unidade Orçamentária:</strong> PGJ, FMMP, FEPDC ou todas.</>,
+            <><strong>Setor Requisitante:</strong> Qualquer um dos 13 setores cadastrados.</>,
+            <><strong>Tipo de Contratação:</strong> Aquisição, Serviço Continuado, Obra, etc.</>,
+            <><strong>Tipo de Recurso:</strong> Filtragem por fonte de financiamento.</>,
+            <><strong>Classe:</strong> Material ou Serviço.</>,
+            <><strong>Grau de Prioridade:</strong> Alta, Média ou Baixa.</>,
+            <><strong>Normativo:</strong> Lei 8.666/1993 ou Lei 14.133/2021.</>,
+            <><strong>Modalidade:</strong> Pregão, Concorrência, Dispensa, etc.</>,
+            <><strong>Etapa do Processo:</strong> Não iniciado, em andamento, concluído ou sobrestado.</>,
+          ]} />
+
+          <H3>15.3. Formatos de Exportação</H3>
+          <P>Cada relatório pode ser exportado em dois formatos:</P>
+          <UL items={[
+            <><strong>PDF:</strong> Documento formatado para impressão e compartilhamento, com cabeçalho institucional do MPPI, data de geração, filtros aplicados e tabela estilizada. Abre em uma nova aba do navegador para visualização e impressão.</>,
+            <><strong>CSV:</strong> Arquivo de dados separados por vírgula, compatível com Microsoft Excel, Google Sheets e outros softwares de planilha. Ideal para análises adicionais, cruzamentos de dados e elaboração de gráficos personalizados.</>,
+          ]} />
+
+          <H3>15.4. Visualização Prévia</H3>
+          <P>
+            Antes de exportar, o usuário pode visualizar o relatório diretamente na tela do sistema. A tabela de prévia exibe os mesmos dados que serão incluídos no documento exportado, permitindo verificar se os filtros aplicados estão corretos e se o relatório contém as informações desejadas.
+          </P>
+
+          <H3>15.5. Finalidade Estratégica</H3>
+          <P>
+            O módulo de Relatórios é a principal ferramenta de <strong>comunicação institucional</strong> e <strong>prestação de contas</strong> do sistema PCA 2026. Seus documentos atendem a diversas finalidades:
+          </P>
+          <UL items={[
+            <><strong>Prestação de contas aos órgãos de controle:</strong> Os relatórios detalhados e de conformidade fornecem evidências documentais do cumprimento das obrigações legais de planejamento e execução de contratações públicas.</>,
+            <><strong>Suporte a decisões da alta gestão:</strong> Relatórios por setor e por status permitem que a Procuradoria-Geral e a ASSESPPLAGES identifiquem rapidamente áreas que necessitam de reforço, redistribuição de recursos ou intervenção direta.</>,
+            <><strong>Reuniões de acompanhamento:</strong> Os relatórios em PDF podem ser impressos ou projetados em reuniões periódicas de acompanhamento do PCA, servindo como base objetiva para discussões e deliberações.</>,
+            <><strong>Análises avançadas:</strong> A exportação em CSV permite que analistas e gestores realizem cruzamentos de dados, construam gráficos customizados e integrem as informações do PCA com outras bases de dados institucionais.</>,
+            <><strong>Transparência e publicidade:</strong> Os relatórios podem ser utilizados para atender demandas de transparência pública e solicitações de informação sobre as contratações planejadas e executadas pelo MPPI.</>,
+          ]} />
         </Section>
 
         {/* 16. Orçamento */}
