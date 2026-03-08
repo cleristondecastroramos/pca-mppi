@@ -14,20 +14,34 @@ import { useAuthSession, useUserRoles, useUserProfile, hasAnyRole } from "@/lib/
 type Contratacao = Tables<"contratacoes">;
 
 const PrioridadesContratacao = () => {
+  const { data: session } = useAuthSession();
+  const uid = session?.user?.id;
+  const { data: roles } = useUserRoles(uid);
+  const { data: userProfile } = useUserProfile(uid);
+  const isSetorRequisitante = hasAnyRole(roles, ["setor_requisitante"]) && !hasAnyRole(roles, ["administrador", "gestor"]);
+  const userSetor = userProfile?.setor || null;
+
   const [rows, setRows] = useState<Contratacao[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
 
   useEffect(() => {
+    if (roles === undefined || (isSetorRequisitante && !userSetor)) return;
     let mounted = true;
     const fetchData = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from("contratacoes")
           .select("id, descricao, setor_requisitante, grau_prioridade, valor_estimado, etapa_processo, sobrestado")
           .order("created_at", { ascending: false });
+
+        if (isSetorRequisitante && userSetor) {
+          query = query.eq("setor_requisitante", userSetor);
+        }
+
+        const { data, error } = await query;
         if (error) throw error;
         if (mounted) setRows((data as any) || []);
       } catch (e: any) {
@@ -42,7 +56,7 @@ const PrioridadesContratacao = () => {
       mounted = false;
       sub.subscription.unsubscribe();
     };
-  }, []);
+  }, [roles, userSetor]);
 
   function statusLabel(c: Contratacao) {
     if ((c as any).sobrestado === true) return "sobrestado";

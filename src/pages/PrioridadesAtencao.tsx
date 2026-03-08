@@ -71,7 +71,7 @@ const PrioridadesAtencao = () => {
       }
     };
     load();
-  }, []);
+  }, [roles, userSetor]);
 
   const { atrasados, atencao120 } = useMemo(() => {
     const atrasadosList: AttItem[] = [];
