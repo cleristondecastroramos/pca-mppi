@@ -409,11 +409,7 @@ const GerenciamentoUsuarios = () => {
                     </div>
                   </div>
                 </DialogContent>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </DialogContent>
+              </Dialog>
               </Dialog>
 
               <Button onClick={() => setShowCreate(true)}>Cadastrar usuário</Button>
