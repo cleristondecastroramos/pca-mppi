@@ -252,6 +252,7 @@ export async function generateTutorialPdf() {
 
   // ===== TABLE OF CONTENTS PAGE =====
   doc.addPage();
+  const tocPageNum = doc.getNumberOfPages();
   let y = CONTENT_Y;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
@@ -263,6 +264,8 @@ export async function generateTutorialPdf() {
   doc.line(ML, y, PAGE_W - MR, y);
   y += 8;
 
+  // Store TOC item positions for linking later
+  const tocItemPositions: { x: number; y: number; w: number; h: number; idx: number }[] = [];
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.setTextColor(...BLACK);
@@ -272,13 +275,19 @@ export async function generateTutorialPdf() {
     doc.setTextColor(...RED);
     doc.text(`${i + 1}.`, ML, y);
     doc.setTextColor(...BLACK);
-    doc.text(item, ML + 8, y);
+    const fullText = item;
+    doc.text(fullText, ML + 8, y);
+    const textW = doc.getTextWidth(`${i + 1}. ${fullText}`);
+    // Save position for internal link
+    tocItemPositions.push({ x: ML, y: y - 4, w: textW + 8, h: 5, idx: i });
     y += 6;
   });
 
   // ===== CONTENT SECTIONS (each starts on new page) =====
+  const sectionPageNumbers: number[] = [];
   for (const section of sections) {
     doc.addPage();
+    sectionPageNumbers.push(doc.getNumberOfPages());
     y = CONTENT_Y;
 
     // Section title
@@ -296,6 +305,41 @@ export async function generateTutorialPdf() {
     for (const block of section.content) {
       y = renderBlock(doc, block, y);
     }
+  }
+
+  // ===== Add internal links from TOC to section pages =====
+  doc.setPage(tocPageNum);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  for (const pos of tocItemPositions) {
+    if (pos.idx < sectionPageNumbers.length) {
+      doc.link(pos.x, pos.y, pos.w, pos.h, { pageNumber: sectionPageNumbers[pos.idx] });
+      // Add page number on the right
+      doc.setTextColor(...GRAY_TEXT);
+      doc.text(`${sectionPageNumbers[pos.idx]}`, PAGE_W - MR, pos.y + 4, { align: "right" });
+      // Dotted leader line
+      doc.setDrawColor(180, 180, 180);
+      doc.setLineWidth(0.1);
+      const textEndX = pos.x + pos.w + 2;
+      const pageNumX = PAGE_W - MR - doc.getTextWidth(`${sectionPageNumbers[pos.idx]}`) - 2;
+      if (pageNumX > textEndX) {
+        // Draw dots
+        doc.setLineDashPattern([0.5, 1.5], 0);
+        doc.line(textEndX, pos.y + 3, pageNumX, pos.y + 3);
+        doc.setLineDashPattern([], 0);
+      }
+    }
+  }
+
+  // ===== Add PDF outline/bookmarks =====
+  const docInternal = (doc as any).internal;
+  if (typeof doc.outline !== "undefined") {
+    // jsPDF 2.x+ supports outline
+    TOC.forEach((item, i) => {
+      if (i < sectionPageNumbers.length) {
+        (doc.outline as any).add(null, `${i + 1}. ${item}`, { pageNumber: sectionPageNumbers[i] });
+      }
+    });
   }
 
   // ===== PASS 2: Headers & Footers =====
