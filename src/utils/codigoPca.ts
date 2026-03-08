@@ -40,9 +40,7 @@ export async function generateUniqueCodigo(): Promise<string> {
 
     if (error) {
         console.error("Erro ao verificar unicidade do código:", error);
-        // Em caso de erro (ex: coluna não existe), retornamos o código gerado mesmo assim
-        // para não travar o fluxo, mas logamos o erro.
-        return codigo; 
+        return fullCodigo; 
     }
 
     if (!data) {
