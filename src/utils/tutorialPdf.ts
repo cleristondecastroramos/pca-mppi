@@ -45,7 +45,9 @@ function addHeaderFooter(doc: jsPDF, logo: HTMLImageElement | null, page: number
   doc.line(ML, FOOTER_Y - 3, PAGE_W - MR, FOOTER_Y - 3);
   doc.setFontSize(8);
   doc.setTextColor(...GRAY_TEXT);
-  doc.text("PCA MPPI", ML, FOOTER_Y + 2);
+  doc.setFontSize(6);
+  doc.text("Tutorial do Sistema de Gerenciamento do Plano de Contratações Anual", ML, FOOTER_Y + 2);
+  doc.setFontSize(8);
   doc.text(`${page} / ${total}`, PAGE_W - MR, FOOTER_Y + 2, { align: "right" });
 }
 
