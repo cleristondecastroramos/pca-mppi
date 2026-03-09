@@ -29,6 +29,7 @@ function HeaderBase() {
 
   useEffect(() => {
     let mounted = true;
+    
     const load = async () => {
       const { data } = await supabase.auth.getSession();
       const user = data.session?.user;
@@ -42,6 +43,7 @@ function HeaderBase() {
         .map((s) => s[0]?.toUpperCase())
         .join("") || "?";
       setInitials(init);
+      
       // Prefer profiles.avatar_url when available
       const { data: profile } = await (supabase as any)
         .from("profiles")
@@ -71,6 +73,12 @@ function HeaderBase() {
         setRoleDisplayName(displayName);
       }
 
+      await fetchNotifications(user.id);
+    };
+
+    const fetchNotifications = async (userId: string) => {
+      if (!mounted) return;
+
       // Fetch Notifications System
       const { data: notifs } = await (supabase as any)
         .from("notificacoes")
@@ -85,7 +93,7 @@ function HeaderBase() {
         const { data: lidas } = await (supabase as any)
           .from("notificacoes_lidas")
           .select("notificacao_id")
-          .eq("usuario_id", user.id);
+          .eq("usuario_id", userId);
 
         const readSet = new Set<string>((lidas || []).map((l: any) => l.notificacao_id));
         setLidasIds(readSet);
@@ -94,7 +102,27 @@ function HeaderBase() {
         setHasUnread(anyUnread);
       }
     };
+
     load();
+
+    // Setup Realtime Subscription for Notifications
+    const channel = supabase
+      .channel('notificacoes-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'notificacoes'
+        },
+        async () => {
+          const { data } = await supabase.auth.getSession();
+          if (data.session?.user) {
+            fetchNotifications(data.session.user.id);
+          }
+        }
+      )
+      .subscribe();
 
     const onAvatarUpdate = (e: Event) => {
       const url = (e as CustomEvent).detail as string | null;
@@ -102,10 +130,12 @@ function HeaderBase() {
     };
     window.addEventListener("app-avatar-update" as any, onAvatarUpdate as any);
 
-    const { data: sub } = supabase.auth.onAuthStateChange(() => load());
+    const { data: authListener } = supabase.auth.onAuthStateChange(() => load());
+
     return () => {
       mounted = false;
-      sub.subscription.unsubscribe();
+      authListener.subscription.unsubscribe();
+      supabase.removeChannel(channel);
       window.removeEventListener("app-avatar-update" as any, onAvatarUpdate as any);
     };
   }, []);

@@ -53,33 +53,46 @@ export default function Notificacoes() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Iniciando disparo de notificação:", { titulo, mensagem });
+
     if (!titulo.trim() || !mensagem.trim()) {
       toast.warning("Preencha o título e a mensagem.");
       return;
     }
 
+    if (!session?.user?.id) {
+      toast.error("Sua sessão expirou ou usuário não identificado. Por favor, faça login novamente.");
+      return;
+    }
+
     setSaving(true);
     try {
-      const { error } = await (supabase as any)
+      const { data, error } = await (supabase as any)
         .from("notificacoes")
         .insert([
           {
             titulo: titulo.trim(),
             mensagem: mensagem.trim(),
-            autor_id: session?.user?.id,
+            autor_id: session.user.id,
             tipo: "info",
+            ativa: true
           },
-        ]);
+        ])
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erro Supabase:", error);
+        throw error;
+      }
 
+      console.log("Notificação disparada com sucesso:", data);
       toast.success("Notificação enviada a todos os usuários com sucesso!");
       setTitulo("");
       setMensagem("");
       fetchNotificacoes();
     } catch (err: any) {
-      console.error(err);
-      toast.error("Erro ao criar notificação: " + err.message);
+      console.error("Erro ao criar notificação:", err);
+      toast.error("Erro ao disparar notificação: " + (err.message || "Erro desconhecido"));
     } finally {
       setSaving(false);
     }
