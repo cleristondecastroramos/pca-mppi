@@ -92,7 +92,7 @@ export default function Tutorial() {
             <>Clique no botão <strong>"Entrar"</strong>.</>,
             <>Se as credenciais estiverem corretas, você será redirecionado para a <strong>Página Inicial (Home)</strong>.</>,
           ]} />
-          <Note>O sistema não possui opção de cadastro autônomo. Caso não possua credenciais, entre em contato com o administrador na ASSESPPLAGES.</Note>
+          <Note>O sistema não possui opção de cadastro autônomo. Caso não possua credenciais, entre em contato com o administrador na Coordenadoria de Licitações e Contratos ou na Assessoria de Planejamento e Gestão.</Note>
 
           <H3>2.2. Recuperação de Senha (Esqueci Minha Senha)</H3>
           <OL items={[

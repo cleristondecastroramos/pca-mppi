@@ -166,7 +166,7 @@ export function getTutorialSections(): PdfSection[] {
           "Clique no botão \"Entrar\".",
           "Se as credenciais estiverem corretas, você será redirecionado para a Página Inicial (Home).",
         ] },
-        { type: "note", text: "O sistema não possui opção de cadastro autônomo. Caso não possua credenciais, entre em contato com o administrador na ASSESPPLAGES." },
+        { type: "note", text: "O sistema não possui opção de cadastro autônomo. Caso não possua credenciais, entre em contato com o administrador na Coordenadoria de Licitações e Contratos ou na Assessoria de Planejamento e Gestão." },
         { type: "h3", text: "2.2. Recuperação de Senha (Esqueci Minha Senha)" },
         { type: "ol", items: [
           "Na tela de login, clique em \"Esqueci minha senha\".",
