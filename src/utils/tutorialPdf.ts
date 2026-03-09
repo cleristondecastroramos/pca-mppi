@@ -263,7 +263,7 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
             const cellText = String(data.cell.raw || "");
             if (cellText.includes("[V]") || cellText.includes("[X]")) {
               data.cell.text = data.cell.text.map((t: string) => 
-                t.replace(/\[V\]/g, "v").replace(/\[X\]/g, "x")
+                t.replace(/\[V\]/g, "o").replace(/\[X\]/g, "x")
               );
             }
           }
