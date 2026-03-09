@@ -100,22 +100,35 @@ export default function NovaContratacao() {
       etapa_processo: "Planejamento",
     };
 
+    console.log("Iniciando submissão de contratação...", data);
+
     try {
       // Validate input
+      console.log("Validando dados...");
       contratacaoSchema.parse(data);
 
       // Gerar código único
+      console.log("Gerando código único...");
       const codigo = await generateUniqueCodigo();
+      console.log("Código gerado:", codigo);
 
       // Verificar limite de orçamento planejado e trava do setor
-      const { data: orcamento } = await (supabase as any)
+      console.log("Verificando orçamento planejado...");
+      const { data: orcamento, error: orcamentoError } = await (supabase as any)
         .from("orcamento_planejado")
         .select("valor_pgj, valor_fmmp, valor_fepdc, trava_ativa")
         .eq("setor_requisitante", data.setor_requisitante)
         .eq("ano", new Date().getFullYear())
         .maybeSingle();
+      
+      if (orcamentoError) {
+        console.error("Erro ao buscar orçamento:", orcamentoError);
+      }
+
+      console.log("Orçamento encontrado:", orcamento);
 
       if (orcamento?.trava_ativa) {
+        console.log("Trava ativa para o setor, verificando total atual...");
         const { data: contratacoesSetor } = await supabase
           .from("contratacoes")
           .select("valor_estimado")
@@ -129,6 +142,8 @@ export default function NovaContratacao() {
 
         const limiteTotal = (orcamento.valor_pgj || 0) + (orcamento.valor_fmmp || 0) + (orcamento.valor_fepdc || 0);
 
+        console.log(`Total atual: R$ ${totalAtual}, Novo valor: R$ ${valorEstimadoTotal}, Limite: R$ ${limiteTotal}`);
+
         if (totalAtual + valorEstimadoTotal > limiteTotal) {
           toast.error("Orçamento planejado excedido! Você não pode prosseguir pois a trava orçamentária para o setor está ativada.");
           setLoading(false);
@@ -137,9 +152,11 @@ export default function NovaContratacao() {
       }
 
       // Submit to backend
+      console.log("Inserindo contratação no banco...");
       const { error } = await supabase.from("contratacoes").insert([{ ...data, codigo }]);
 
       if (error) {
+        console.error("Erro na inserção:", error);
         const msg = String(error.message || error);
         if (msg.includes("Saldo orçamentário insuficiente") || msg.includes("saldo orçamentário insuficiente")) {
           toast.error("Saldo orçamentário insuficiente na UO selecionada. Solicite autorização do administrador para excedente.");
@@ -149,6 +166,7 @@ export default function NovaContratacao() {
         throw error;
       }
 
+      console.log("Inserção concluída com sucesso!");
       toast.success("Contratação cadastrada com sucesso!");
       navigate("/contratacoes");
     } catch (error) {

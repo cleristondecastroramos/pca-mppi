@@ -88,6 +88,7 @@ export default function Contratacoes() {
     normativo?: string;
     modalidade?: string;
     etapa_processo?: string; // "Status Atual"
+    srp?: string;
   };
   const defaultFiltros: Filtros = {
     unidade_orcamentaria: ALL_VALUE,
@@ -99,6 +100,7 @@ export default function Contratacoes() {
     normativo: ALL_VALUE,
     modalidade: ALL_VALUE,
     etapa_processo: ALL_VALUE,
+    srp: ALL_VALUE,
   };
   const [filtros, setFiltros] = useState<Filtros>(defaultFiltros);
   const setFiltro = (key: keyof Filtros, value: string) => setFiltros((prev) => ({ ...prev, [key]: value }));
@@ -191,16 +193,46 @@ export default function Contratacoes() {
   };
 
   const handleDelete = async (id: string | null) => {
-    if (!id) return;
+    if (!id) {
+      console.warn("[Exclusão] ID não fornecido.");
+      return;
+    }
+    
+    // Criar um ID único para o toast para podermos referenciá-lo com segurança
+    const toastId = "delete-contratacao";
+    
     try {
-      const { error } = await supabase.from("contratacoes").delete().eq("id", id);
-      if (error) throw error;
-      toast.success("Contratação excluída com sucesso");
+      console.log("[Exclusão] Iniciando para ID:", id);
+      toast.loading("Excluindo demanda...", { id: toastId });
+
+      // Deletar apenas o registro principal. 
+      // O banco de dados está configurado com ON DELETE CASCADE para histórico e conformidade.
+      const { error } = await supabase
+        .from("contratacoes")
+        .delete()
+        .eq("id", id);
+      
+      if (error) {
+        console.error("[Exclusão] Erro do Supabase:", error);
+        toast.error("Não foi possível excluir", {
+          id: toastId,
+          description: error.message || "Erro de permissão ou restrição de integridade."
+        });
+        return;
+      }
+
+      console.log("[Exclusão] Sucesso.");
+      toast.success("Demanda excluída com sucesso", { id: toastId });
+      
       setContratacaoToDelete(null);
-      fetchContratacoes();
-    } catch (error: any) {
-      console.error("Erro ao excluir:", error);
-      toast.error("Erro ao excluir contratação", { description: error.message });
+      // Recarregar a lista
+      await fetchContratacoes();
+    } catch (err: any) {
+      console.error("[Exclusão] Erro inesperado:", err);
+      toast.error("Erro inesperado", { 
+        id: toastId,
+        description: err.message || "Ocorreu um erro ao processar a exclusão." 
+      });
     }
   };
 
@@ -479,6 +511,11 @@ export default function Contratacoes() {
     applyEq("normativo", "normativo");
     applyEq("modalidade", "modalidade");
 
+    const srpVal = filtros.srp;
+    if (srpVal && srpVal !== ALL_VALUE) {
+      result = result.filter((item) => (item.srp === true ? "Sim" : "Não") === srpVal);
+    }
+
     // 3. Filtro de Status
     const status = filtros.etapa_processo;
     if (status && status !== ALL_VALUE) {
@@ -566,6 +603,11 @@ export default function Contratacoes() {
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "-";
+    // Para strings de data pura (AAAA-MM-DD), extraímos partes para evitar deslocamento de fuso horário
+    if (dateString.includes("-") && dateString.length === 10) {
+      const [year, month, day] = dateString.split("-").map(Number);
+      return new Date(year, month - 1, day).toLocaleDateString("pt-BR");
+    }
     return new Date(dateString).toLocaleDateString("pt-BR");
   };
 
@@ -805,6 +847,19 @@ export default function Contratacoes() {
                     {distinctOptions.modalidade.map((opt) => (
                       <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[100px] shrink-0 -ml-1">
+                <div className="text-[10px] font-medium text-muted-foreground px-1">SRP:</div>
+                <Select onValueChange={(v) => setFiltro("srp", v)} value={filtros.srp}>
+                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
+                    <SelectItem className="text-xs" value="Sim">Sim</SelectItem>
+                    <SelectItem className="text-xs" value="Não">Não</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

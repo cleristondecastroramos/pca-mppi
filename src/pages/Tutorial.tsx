@@ -109,8 +109,12 @@ export default function Tutorial() {
           <Tip>Utilize senhas fortes contendo letras maiúsculas, minúsculas, números e caracteres especiais.</Tip>
 
           <H3>2.4. Logout (Sair do Sistema)</H3>
-          <P>No <strong>menu lateral (sidebar)</strong>, clique no botão <strong>"Sair"</strong> na parte inferior. Sua sessão será encerrada e você será redirecionado para a tela de login.</P>
-          <Note>Sempre efetue o logout ao finalizar suas atividades, especialmente em computadores compartilhados.</Note>
+          <P>O sistema oferece duas formas práticas para o encerramento seguro da sessão:</P>
+          <UL items={[
+            <><strong>Pelo Menu Lateral (Sidebar):</strong> Localizado na parte inferior do menu à esquerda, basta clicar no botão <strong>"Sair"</strong>.</>,
+            <><strong>Pelo Menu do Avatar (Header):</strong> No canto superior direito, clique sobre sua foto ou iniciais e utilize o botão <strong>"Sair"</strong> com ícone posicionado à direita no menu suspenso.</>,
+          ]} />
+          <Note>Sempre efetue o logout ao finalizar suas atividades, especialmente em computadores compartilhados, para garantir a segurança dos dados e da sua conta.</Note>
         </Section>
 
         {/* 3. Perfis */}
@@ -140,9 +144,8 @@ export default function Tutorial() {
           <H3>3.3. Perfil Setor Requisitante</H3>
           <UL items={[
             "Cadastro de novas contratações no PCA.",
-            "Edição de contratações em rascunho do seu próprio setor.",
-            "Visualização apenas das demandas do seu setor.",
-            <><strong>Sem acesso</strong> a relatórios, conformidade, resultados, setores demandantes ou gerenciamento.</>,
+            "Visualização e edição de todas as demandas do seu próprio setor.",
+            <><strong>Sem acesso</strong> a relatórios, conformidade, resultados ou gerenciamento.</>,
           ]} />
           <Note>Ao cadastrar nova contratação, o campo "Setor Requisitante" é preenchido automaticamente com o setor do usuário logado.</Note>
 
@@ -193,7 +196,13 @@ export default function Tutorial() {
           ]} />
 
           <H3>4.2. Cabeçalho (Header)</H3>
-          <P>Exibe o nome do módulo atual, informações do usuário logado (nome, setor, avatar) e alternância de tema.</P>
+          <P>O cabeçalho é a barra superior constante em todo o sistema. Ele exibe o nome da página atual, o sino de notificações, a troca de temas e o <strong>Menu do Avatar</strong>.</P>
+          <P>Ao clicar no avatar do usuário no canto direito, um menu compacto fornece as seguintes informações e ferramentas:</P>
+          <UL items={[
+            <><strong>Identificação:</strong> Mostra seu nome completo, e-mail institucional e o perfil de acesso atribuído (ex: Administrador, Gestor, etc.).</>,
+            <><strong>Botão "Minha Conta":</strong> Localizado à esquerda na parte inferior do menu, permite acessar rapidamente a página de edição de perfil e senha.</>,
+            <><strong>Botão "Sair":</strong> Localizado à direita na parte inferior, permite o encerramento rápido da sessão atual.</>,
+          ]} />
 
           <H3>4.3. Tema Claro / Escuro</H3>
           <UL items={[
@@ -214,7 +223,7 @@ export default function Tutorial() {
           <P>A página Home apresenta uma interface limpa e objetiva, composta pelos seguintes elementos principais:</P>
           <UL items={[
             <><strong>Menu Lateral (Sidebar):</strong> Localizado à esquerda da tela, o menu lateral é o principal meio de navegação do sistema. Ele apresenta de forma hierárquica todos os módulos e funcionalidades aos quais o usuário tem acesso, de acordo com seu perfil de permissões.</>,
-            <><strong>Cabeçalho Superior:</strong> Exibe informações do usuário logado, opções de configuração da conta e o botão de logout para encerramento seguro da sessão.</>,
+            <><strong>Cabeçalho Superior:</strong> Exibe o título do módulo atual, notificações do sistema, seletor de tema (claro/escuro) e o menu do avatar, que centraliza as informações do perfil e botões de acesso rápido para conta e logout.</>,
             <><strong>Área de Conteúdo Principal:</strong> Região central da tela onde são exibidas mensagens de boas-vindas e informações contextuais sobre o sistema.</>,
           ]} />
           
@@ -949,7 +958,7 @@ const TOC = [
 
 const MATRIX = [
   ["Home / Visão Geral", "Completo", "Completo", "Apenas seu setor", "Somente leitura"],
-  ["Contratações", "CRUD completo", "Visualizar e editar", "Edita rascunhos", "Somente leitura"],
+  ["Contratações", "CRUD completo", "Visualizar e editar", "Visualiza e edita o setor", "Somente leitura"],
   ["Nova Contratação", "✓", "✓", "✓ (setor fixo)", "✗"],
   ["Setores Demandantes", "✓", "✓", "✗", "✗"],
   ["Controle de Prazos", "✓", "✓", "Apenas seu setor", "✗"],
@@ -994,6 +1003,9 @@ const SIGLAS = [
   ["PDM", "Padrão Descritivo de Material"],
   ["CATSER", "Catálogo de Serviços"],
   ["ASSESPPLAGES", "Assessoria de Planejamento e Gestão"],
+  ["DFD", "Documento de Formalização de Demanda"],
+  ["ETP", "Estudo Técnico Preliminar"],
+  ["TR", "Termo de Referência"],
 ];
 
 const SETORES = [
@@ -1024,6 +1036,21 @@ const TERMOS = [
   ["Valor Contratado", "Valor efetivamente acordado no contrato."],
   ["Valor Executado", "Quantia exata de recursos orçamentários que foi empenhada para cobrir uma despesa específica."],
   ["Código PCA", "Identificador único no formato PCA-XXXX-2026."],
-  ["Modalidade Licitatória", "Procedimento legal para seleção do fornecedor."],
-  ["Normativo", "Lei de licitações que rege o processo."],
+  ["Modalidade Licitatória", "Procedimento legal para seleção do fornecedor (ex: Pregão, Dispensa)."],
+  ["Normativo", "Lei de licitações que rege o processo (Lei 14.133 ou 8.666)."],
+  ["Termo de Referência", "Documento que detalha o objeto, especificações e obrigações da contratação."],
+  ["DFD", "Documento de Formalização de Demanda que oficializa a necessidade de compra."],
+  ["ETP", "Estudo Técnico Preliminar que analisa a viabilidade da solução escolhida."],
+  ["Mapa de Riscos", "Documento que identifica e mitiga riscos que podem afetar a contratação."],
+  ["Pesquisa de Preços", "Levantamento de valores de mercado para balizar o custo estimado."],
+  ["Homologação", "Confirmação da validade jurídica do processo pela autoridade superior."],
+  ["Adjudicação", "Atribuição formal do objeto da licitação ao vencedor."],
+  ["Aditivo", "Instrumento para alteração de valor ou prazo de contratos vigentes."],
+  ["Apostilamento", "Anotação administrativa de ajustes contratuais que não exigem aditivo."],
+  ["Repactuação", "Reajuste de preços para contratos de serviços contínuos com mão de obra."],
+  ["Dispensa de Licitação", "Contratação direta por baixo valor ou situações específicas em lei."],
+  ["Inexigibilidade", "Contratação direta quando não há possibilidade de competição."],
+  ["Pregão Eletrônico", "Leilão em formato eletrônico para aquisição de bens e serviços comuns."],
+  ["Registro de Preços", "Sistema para registro formal de preços para futuras contratações (SRP)."],
+  ["Saldo Orçamentário", "Recurso ainda disponível no orçamento do setor após os empenhos realizados."],
 ];

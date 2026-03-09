@@ -30,6 +30,7 @@ export async function generateUniqueCodigo(): Promise<string> {
   while (!isUnique && attempts < 10) {
     randomPart = generateRandomCode();
     fullCodigo = formatCodigoPCA(randomPart);
+    console.log(`Tentativa ${attempts + 1}: Verificando código ${fullCodigo}`);
     
     // Verifica se já existe
     const { data, error } = await (supabase as any)
@@ -44,7 +45,10 @@ export async function generateUniqueCodigo(): Promise<string> {
     }
 
     if (!data) {
+      console.log("Código único encontrado!");
       isUnique = true;
+    } else {
+      console.log("Código já existe, tentando novamente...");
     }
     attempts++;
   }

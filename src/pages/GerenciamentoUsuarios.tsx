@@ -44,8 +44,8 @@ const ROLE_DEFINITIONS = {
     description: "Cadastro e acompanhamento de demandas próprias.",
     tasks: [
       "Cadastro de novas contratações (PCA)",
-      "Edição de contratações em rascunho do próprio setor",
-      "Visualização apenas das demandas do seu setor"
+      "Visualização e edição das demandas do seu próprio setor",
+      "Indicação automática do setor requisitante no cadastro"
     ],
     icon: ClipboardList,
     color: "text-blue-600",
@@ -379,7 +379,7 @@ const GerenciamentoUsuarios = () => {
                           <TableBody>
                             {[
                               { page: "Home / Visão Geral", admin: "Completo", gestor: "Completo", setor: "Apenas seu setor", consulta: "Somente leitura" },
-                              { page: "Contratações", admin: "CRUD completo", gestor: "Visualizar e editar", setor: "Edita rascunhos do setor", consulta: "Somente leitura" },
+                              { page: "Contratações", admin: "CRUD completo", gestor: "Visualizar e editar", setor: "Visualiza e edita o setor", consulta: "Somente leitura" },
                               { page: "Nova Contratação", admin: "✓", gestor: "✓", setor: "✓ (setor fixo)", consulta: "✗" },
                               { page: "Setores Demandantes", admin: "✓", gestor: "✓", setor: "✗", consulta: "✗" },
                               { page: "Controle de Prazos", admin: "✓", gestor: "✓", setor: "Apenas seu setor", consulta: "✗" },

@@ -43,6 +43,7 @@ type Filtros = {
   normativo?: string;
   modalidade?: string;
   etapa_processo?: string; // "Status Atual"
+  srp?: string;
 };
 
 const formatCurrencyBRL = (value: number) =>
@@ -114,6 +115,7 @@ const VisaoGeral = () => {
     normativo: ALL_VALUE,
     modalidade: ALL_VALUE,
     etapa_processo: ALL_VALUE,
+    srp: ALL_VALUE,
   };
   const [filtros, setFiltros] = useState<Filtros>(defaultFiltros);
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -146,6 +148,7 @@ const VisaoGeral = () => {
             "grau_prioridade",
             "normativo",
             "etapa_processo",
+            "srp",
           ].join(","),
            { count: "exact" }
         );
@@ -161,6 +164,7 @@ const VisaoGeral = () => {
       if (filtros.grau_prioridade && filtros.grau_prioridade !== ALL_VALUE) query = query.eq("grau_prioridade", filtros.grau_prioridade);
       if (filtros.normativo && filtros.normativo !== ALL_VALUE) query = query.eq("normativo", filtros.normativo);
       if (filtros.modalidade && filtros.modalidade !== ALL_VALUE) query = query.eq("modalidade", filtros.modalidade);
+      if (filtros.srp && filtros.srp !== ALL_VALUE) query = query.eq("srp", filtros.srp === "Sim");
       if (filtros.etapa_processo && filtros.etapa_processo !== ALL_VALUE) {
         const STATUS_CATEGORY_MAP: Record<string, { etapas: string[]; sobrestado?: boolean }> = {
           "não iniciado": { etapas: ["Planejamento"], sobrestado: false },
@@ -579,6 +583,19 @@ const VisaoGeral = () => {
                     {distinctOptions.modalidade.map((opt) => (
                       <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[100px] shrink-0 -ml-1">
+                <div className="text-[10px] font-medium text-muted-foreground px-1">SRP:</div>
+                <Select onValueChange={(v) => setFiltro("srp", v)} value={filtros.srp}>
+                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
+                    <SelectItem className="text-xs" value="Sim">Sim</SelectItem>
+                    <SelectItem className="text-xs" value="Não">Não</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

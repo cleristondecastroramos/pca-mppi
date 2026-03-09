@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useState } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Bell, User, Sun, Moon } from "lucide-react";
+import { Bell, User, Sun, Moon, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -20,6 +20,9 @@ function HeaderBase() {
   const { theme, setTheme } = useTheme();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState<string>("?");
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [roleDisplayName, setRoleDisplayName] = useState<string | null>(null);
   const [hasUnread, setHasUnread] = useState(false);
   const [notificacoes, setNotificacoes] = useState<any[]>([]);
   const [lidasIds, setLidasIds] = useState<Set<string>>(new Set());
@@ -47,6 +50,26 @@ function HeaderBase() {
         .single();
       const url = (profile?.avatar_url as string) || (meta.avatar_url as string) || null;
       setAvatarUrl(url);
+      setUserName(profile?.nome_completo || meta.nome_completo || user.email);
+      setUserEmail(profile?.email || user.email);
+
+      // Fetch user roles
+      const { data: roleData } = await (supabase as any)
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id);
+      
+      if (roleData && roleData.length > 0) {
+        const roles = roleData.map((r: any) => r.role);
+        const roleNames: Record<string, string> = {
+          'administrador': 'Administrador',
+          'gestor': 'Gestor',
+          'setor_requisitante': 'Unidade Demandante',
+          'consulta': 'Perfil de Consulta'
+        };
+        const displayName = roles.map((r: string) => roleNames[r] || r).join(", ");
+        setRoleDisplayName(displayName);
+      }
 
       // Fetch Notifications System
       const { data: notifs } = await (supabase as any)
@@ -105,6 +128,29 @@ function HeaderBase() {
       setHasUnread(false);
     } catch (e) {
       console.error("Erro ao registrar notificações lidas:", e);
+    }
+  };
+
+  const handleLogout = async () => {
+    console.log("[Header] Solicitando logout...");
+    
+    const forceRedirect = () => {
+      localStorage.clear();
+      sessionStorage.clear();
+      // Usar href para forçar recarregamento completo da aplicação
+      window.location.href = "/auth";
+    };
+
+    try {
+      // Timeout de 1s para o signOut para evitar que o sistema trave caso o Supabase demore a responder
+      await Promise.race([
+        supabase.auth.signOut(),
+        new Promise(resolve => setTimeout(resolve, 1000))
+      ]);
+    } catch (e) {
+      console.error("Erro no signOut:", e);
+    } finally {
+      forceRedirect();
     }
   };
 
@@ -215,10 +261,33 @@ function HeaderBase() {
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate("/minha-conta")}>Configurações</DropdownMenuItem>
+          <DropdownMenuContent align="end" className="w-56 p-0">
+            <div className="flex flex-col p-3">
+              <span className="text-sm font-semibold truncate leading-none">{userName}</span>
+              <span className="text-xs text-muted-foreground truncate mt-1">{userEmail}</span>
+              {roleDisplayName && (
+                <span className="text-[10px] uppercase tracking-wider font-bold text-primary mt-1.5">
+                  {roleDisplayName}
+                </span>
+              )}
+            </div>
+            <DropdownMenuSeparator className="m-0" />
+            <div className="grid grid-cols-2 p-1 gap-1">
+              <DropdownMenuItem 
+                onClick={() => navigate("/minha-conta")} 
+                className="cursor-pointer flex items-center justify-center gap-1.5 py-2 text-xs font-medium border"
+              >
+                <User className="h-3.5 w-3.5 text-primary" />
+                Minha Conta
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onSelect={handleLogout} 
+                className="cursor-pointer flex items-center justify-center gap-1.5 py-2 text-xs font-medium border text-destructive focus:text-destructive focus:bg-destructive/5"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                Sair
+              </DropdownMenuItem>
+            </div>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

@@ -41,7 +41,7 @@ export const TOC = [
 
 const MATRIX: string[][] = [
   ["Home / Visão Geral", "Completo", "Completo", "Apenas seu setor", "Somente leitura"],
-  ["Contratações", "CRUD completo", "Visualizar e editar", "Edita rascunhos", "Somente leitura"],
+  ["Contratações", "CRUD completo", "Visualizar e editar", "Visualiza e edita o setor", "Somente leitura"],
   ["Nova Contratação", "[V]", "[V]", "[V] (setor fixo)", "[X]"],
   ["Setores Demandantes", "[V]", "[V]", "[X]", "[X]"],
   ["Controle de Prazos", "[V]", "[V]", "Apenas seu setor", "[X]"],
@@ -86,6 +86,9 @@ const SIGLAS: string[][] = [
   ["PDM", "Padrão Descritivo de Material"],
   ["CATSER", "Catálogo de Serviços"],
   ["ASSESPPLAGES", "Assessoria de Planejamento e Gestão"],
+  ["DFD", "Documento de Formalização de Demanda"],
+  ["ETP", "Estudo Técnico Preliminar"],
+  ["TR", "Termo de Referência"],
 ];
 
 const SETORES: string[][] = [
@@ -116,8 +119,23 @@ const TERMOS: string[][] = [
   ["Valor Contratado", "Valor efetivamente acordado no contrato."],
   ["Valor Executado", "Quantia exata de recursos orçamentários que foi empenhada para cobrir uma despesa específica."],
   ["Código PCA", "Identificador único no formato PCA-XXXX-2026."],
-  ["Modalidade Licitatória", "Procedimento legal para seleção do fornecedor."],
-  ["Normativo", "Lei de licitações que rege o processo."],
+  ["Modalidade Licitatória", "Procedimento legal para seleção do fornecedor (ex: Pregão, Dispensa)."],
+  ["Normativo", "Lei de licitações que rege o processo (Lei 14.133 ou 8.666)."],
+  ["Termo de Referência", "Documento que detalha o objeto, especificações e obrigações da contratação."],
+  ["DFD", "Documento de Formalização de Demanda que oficializa a necessidade de compra."],
+  ["ETP", "Estudo Técnico Preliminar que analisa a viabilidade da solução escolhida."],
+  ["Mapa de Riscos", "Documento que identifica e mitiga riscos que podem afetar a contratação."],
+  ["Pesquisa de Preços", "Levantamento de valores de mercado para balizar o custo estimado."],
+  ["Homologação", "Confirmação da validade jurídica do processo pela autoridade superior."],
+  ["Adjudicação", "Atribuição formal do objeto da licitação ao vencedor."],
+  ["Aditivo", "Instrumento para alteração de valor ou prazo de contratos vigentes."],
+  ["Apostilamento", "Anotação administrativa de ajustes contratuais que não exigem aditivo."],
+  ["Repactuação", "Reajuste de preços para contratos de serviços contínuos com mão de obra."],
+  ["Dispensa de Licitação", "Contratação direta por baixo valor ou situações específicas em lei."],
+  ["Inexigibilidade", "Contratação direta quando não há possibilidade de competição."],
+  ["Pregão Eletrônico", "Leilão em formato eletrônico para aquisição de bens e serviços comuns."],
+  ["Registro de Preços", "Sistema para registro formal de preços para futuras contratações (SRP)."],
+  ["Saldo Orçamentário", "Recurso ainda disponível no orçamento do setor após os empenhos realizados."],
 ];
 
 export function getTutorialSections(): PdfSection[] {
@@ -180,8 +198,12 @@ export function getTutorialSections(): PdfSection[] {
         { type: "p", text: "Após clicar no link recebido por e-mail, informe a nova senha, confirme-a e clique em \"Redefinir Senha\"." },
         { type: "tip", text: "Utilize senhas fortes contendo letras maiúsculas, minúsculas, números e caracteres especiais." },
         { type: "h3", text: "2.4. Logout (Sair do Sistema)" },
-        { type: "p", text: "No menu lateral (sidebar), clique no botão \"Sair\" na parte inferior. Sua sessão será encerrada e você será redirecionado para a tela de login." },
-        { type: "note", text: "Sempre efetue o logout ao finalizar suas atividades, especialmente em computadores compartilhados." },
+        { type: "p", text: "O sistema oferece duas formas práticas para o encerramento seguro da sessão:" },
+        { type: "ul", items: [
+          "Pelo Menu Lateral (Sidebar): Localizado na parte inferior do menu à esquerda, basta clicar no botão \"Sair\".",
+          "Pelo Menu do Avatar (Header): No canto superior direito, clique sobre sua foto ou iniciais e utilize o botão \"Sair\" com ícone posicionado à direita no menu suspenso.",
+        ] },
+        { type: "note", text: "Sempre efetue o logout ao finalizar suas atividades, especialmente em computadores compartilhados, para garantir a segurança dos dados e da sua conta." },
       ],
     },
     // 3. Perfis
@@ -211,9 +233,8 @@ export function getTutorialSections(): PdfSection[] {
         { type: "h3", text: "3.3. Perfil Setor Requisitante" },
         { type: "ul", items: [
           "Cadastro de novas contratações no PCA.",
-          "Edição de contratações em rascunho do seu próprio setor.",
-          "Visualização apenas das demandas do seu setor.",
-          "Sem acesso a relatórios, conformidade, resultados, setores demandantes ou gerenciamento.",
+          "Visualização e edição de todas as demandas do seu próprio setor.",
+          "Sem acesso a relatórios, conformidade, resultados ou gerenciamento.",
         ] },
         { type: "note", text: "Ao cadastrar nova contratação, o campo \"Setor Requisitante\" é preenchido automaticamente com o setor do usuário logado." },
         { type: "h3", text: "3.4. Perfil Consulta" },
@@ -246,7 +267,13 @@ export function getTutorialSections(): PdfSection[] {
           "Botão \"Sair\": Na parte inferior, permite encerrar a sessão.",
         ] },
         { type: "h3", text: "4.2. Cabeçalho (Header)" },
-        { type: "p", text: "Exibe o nome do módulo atual, informações do usuário logado (nome, setor, avatar) e alternância de tema." },
+        { type: "p", text: "O cabeçalho é a barra superior constante em todo o sistema. Ele exibe o nome da página atual, o sino de notificações, a troca de temas e o Menu do Avatar." },
+        { type: "p", text: "Ao clicar no avatar do usuário no canto direito, um menu compacto fornece as seguintes informações e ferramentas:" },
+        { type: "ul", items: [
+          "Identificação: Mostra seu nome completo, e-mail institucional e o perfil de acesso atribuído (ex: Administrador, Gestor, etc.).",
+          "Botão \"Minha Conta\": Localizado à esquerda na parte inferior do menu, permite acessar rapidamente a página de edição de perfil e senha.",
+          "Botão \"Sair\": Localizado à direita na parte inferior, permite o encerramento rápido da sessão atual.",
+        ] },
         { type: "h3", text: "4.3. Tema Claro / Escuro" },
         { type: "ul", items: [
           "Tema Claro: Fundo branco com texto escuro, ideal para ambientes iluminados.",
@@ -267,7 +294,7 @@ export function getTutorialSections(): PdfSection[] {
         { type: "p", text: "A página Home apresenta uma interface limpa e objetiva, composta pelos seguintes elementos principais:" },
         { type: "ul", items: [
           "Menu Lateral (Sidebar): Localizado à esquerda da tela, o menu lateral é o principal meio de navegação do sistema. Ele apresenta de forma hierárquica todos os módulos e funcionalidades aos quais o usuário tem acesso, de acordo com seu perfil de permissões.",
-          "Cabeçalho Superior: Exibe informações do usuário logado, opções de configuração da conta e o botão de logout para encerramento seguro da sessão.",
+          "Cabeçalho Superior: Exibe o título do módulo atual, notificações do sistema, seletor de tema (claro/escuro) e o menu do avatar, que centraliza as informações do perfil e botões de acesso rápido para conta e logout.",
           "Área de Conteúdo Principal: Região central da tela onde são exibidas mensagens de boas-vindas e informações contextuais sobre o sistema.",
         ] },
         { type: "h3", text: "5.2. Funcionalidades Disponíveis" },
