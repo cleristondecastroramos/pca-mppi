@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertTriangle, Clock, Calendar, AlertCircle, CheckCircle2, ArrowRight } from "lucide-react";
+import { AlertTriangle, Clock, Calendar, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthSession, useUserRoles, useUserProfile, hasAnyRole } from "@/lib/auth";
@@ -84,16 +84,12 @@ const PrioridadesAtencao = () => {
       const daysDiff = getDaysDiff(dataPrevista);
       
       const isConcluido = item.etapa_processo === "Concluído" || item.etapa_processo === "Contratado";
-      const isEmLicitacao = item.etapa_processo === "Em Licitação"; // Talvez considerar em andamento
 
-      // Se já foi concluído, ignorar para alertas de atraso/atenção
       if (isConcluido) return;
 
-      // Lógica para Atrasados
       if (daysDiff < 0) {
         atrasadosList.push(item);
       } 
-      // Lógica para Atenção (0 a 120 dias)
       else if (daysDiff >= 0 && daysDiff <= 120) {
         atencaoList.push(item);
       }
@@ -171,7 +167,6 @@ const PrioridadesAtencao = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Tab: Atrasados */}
           <TabsContent value="atrasados" className="space-y-4">
             <Card>
               <CardHeader>
@@ -195,7 +190,7 @@ const PrioridadesAtencao = () => {
                     <Table>
                       <TableHeader className="bg-muted/50">
                         <TableRow>
-                          <TableHead className="w-[80px]">ID</TableHead>
+                          <TableHead className="w-[80px]">Cod. PCA</TableHead>
                           <TableHead>Objeto / Descrição</TableHead>
                           <TableHead>Setor</TableHead>
                           <TableHead>Etapa Atual</TableHead>
@@ -209,8 +204,8 @@ const PrioridadesAtencao = () => {
                           const days = Math.abs(getDaysDiff(date));
                           return (
                             <TableRow key={item.id} className="hover:bg-destructive/5">
-                              <TableCell className="font-mono text-xs text-muted-foreground">
-                                {item.codigo || item.id.slice(-8)}
+                              <TableCell className="font-mono text-[10px] text-muted-foreground whitespace-nowrap">
+                                {item.codigo?.startsWith("PCA-") ? item.codigo : item.codigo ? `PCA-${item.codigo}-2026` : item.id.slice(-8)}
                               </TableCell>
                               <TableCell className="font-medium max-w-[400px]">
                                 <div className="truncate" title={item.descricao}>
@@ -240,7 +235,6 @@ const PrioridadesAtencao = () => {
             </Card>
           </TabsContent>
 
-          {/* Tab: Atenção */}
           <TabsContent value="atencao" className="space-y-4">
             <Card>
               <CardHeader>
@@ -264,7 +258,7 @@ const PrioridadesAtencao = () => {
                     <Table>
                       <TableHeader className="bg-muted/50">
                         <TableRow>
-                          <TableHead className="w-[80px]">ID</TableHead>
+                          <TableHead className="w-[80px]">Cod. PCA</TableHead>
                           <TableHead>Objeto / Descrição</TableHead>
                           <TableHead>Setor</TableHead>
                           <TableHead>Etapa Atual</TableHead>
@@ -283,8 +277,8 @@ const PrioridadesAtencao = () => {
 
                           return (
                             <TableRow key={item.id} className="hover:bg-muted/30">
-                              <TableCell className="font-mono text-xs text-muted-foreground">
-                                {item.codigo || item.id.slice(-8)}
+                              <TableCell className="font-mono text-[10px] text-muted-foreground whitespace-nowrap">
+                                {item.codigo?.startsWith("PCA-") ? item.codigo : item.codigo ? `PCA-${item.codigo}-2026` : item.id.slice(-8)}
                               </TableCell>
                               <TableCell className="font-medium max-w-[400px]">
                                 <div className="truncate" title={item.descricao}>

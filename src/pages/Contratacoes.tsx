@@ -850,15 +850,15 @@ export default function Contratacoes() {
           <Table containerClassName="max-h-[60vh]">
             <TableHeader>
               <TableRow>
-                <TableHead className="text-center w-[90px]">ID</TableHead>
+                <TableHead className="text-center w-[110px]">Cod. PCA</TableHead>
                 <TableHead className="text-center w-[280px]">Descrição</TableHead>
-                <TableHead className="text-center w-[120px]">Setor</TableHead>
+                <TableHead className="text-center w-[110px]">Setor</TableHead>
                 <TableHead className="text-center w-[140px]">Classe</TableHead>
                 <TableHead className="text-center w-[140px]">Valor Estimado</TableHead>
                 <TableHead className="text-center w-[140px]">Valor Executado</TableHead>
                 <TableHead className="text-center w-[120px]">Data Prevista</TableHead>
                 <TableHead className="text-center w-[130px]">Status</TableHead>
-                <TableHead className="text-center w-[120px]">Prioridade</TableHead>
+                <TableHead className="text-center w-[110px]">Prioridade</TableHead>
                 <TableHead className="text-center w-[120px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -873,7 +873,7 @@ export default function Contratacoes() {
                 <>
                   {displayedContratacoes.map((contratacao) => (
                     <TableRow key={contratacao.id} className="hover:bg-muted/50">
-                      <TableCell className="font-medium text-center text-xs">
+                      <TableCell className="font-mono text-center text-[10px] text-muted-foreground">
                         {contratacao.codigo?.startsWith("PCA-") ? contratacao.codigo : contratacao.codigo ? `PCA-${contratacao.codigo}-2026` : contratacao.id.slice(-8)}
                       </TableCell>
                       <TableCell className="max-w-xs">

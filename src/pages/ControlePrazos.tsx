@@ -296,7 +296,7 @@ const ControlePrazos = () => {
                 <Input 
                   value={search} 
                   onChange={(e) => setSearch(e.target.value)} 
-                  placeholder="Buscar por descrição, objeto, setor ou ID..." 
+                  placeholder="Buscar por descrição, objeto, setor ou Cod. PCA..." 
                   className="pl-9"
                 />
                 <Filter className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -347,7 +347,7 @@ const ControlePrazos = () => {
                 <Table>
                   <TableHeader className="bg-muted/50">
                     <TableRow>
-                      <TableHead className="w-[8%]">ID</TableHead>
+                      <TableHead className="w-[8%]">Cod. PCA</TableHead>
                       <TableHead className="w-[50%]">Objeto / Descrição</TableHead>
                       <TableHead className="w-[10%]">Setor</TableHead>
                       <TableHead className="w-[12%]">Status Processo</TableHead>
@@ -367,7 +367,9 @@ const ControlePrazos = () => {
                         const status = getPrazoStatus(r);
                         return (
                           <TableRow key={r.id} className="hover:bg-muted/30">
-                            <TableCell className="font-mono text-xs text-muted-foreground">{r.codigo || r.id.slice(-8)}</TableCell>
+                            <TableCell className="font-mono text-[10px] text-muted-foreground whitespace-nowrap">
+                              {r.codigo?.startsWith("PCA-") ? r.codigo : r.codigo ? `PCA-${r.codigo}-2026` : r.id.slice(-8)}
+                            </TableCell>
                         <TableCell>
                           <div className="font-medium truncate max-w-[500px]" title={r.descricao}>{r.descricao}</div>
                         </TableCell>

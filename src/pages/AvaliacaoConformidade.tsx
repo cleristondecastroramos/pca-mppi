@@ -238,7 +238,7 @@ const AvaliacaoConformidade = () => {
   };
 
   const exportCSV = () => {
-    const header = ["ID", "Código", "Descrição", "Setor", "Status", "Valor Estimado"].join(",");
+    const header = ["Cod. PCA", "Código", "Descrição", "Setor", "Status", "Valor Estimado"].join(",");
     const lines = filtered.map((r) => [
       r.id,
       (r as any).codigo || "",
@@ -274,7 +274,7 @@ const AvaliacaoConformidade = () => {
           <CardContent className="p-3">
             <div className="flex flex-wrap gap-2 items-center">
               <div className="flex-1 min-w-[220px]">
-                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por ID ou descrição" />
+                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por Cod. PCA ou descrição" />
               </div>
               <div className="w-[200px]">
                 <Select value={setorFiltro} onValueChange={setSetorFiltro}>
@@ -326,7 +326,7 @@ const AvaliacaoConformidade = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[110px]">ID</TableHead>
+                      <TableHead className="w-[110px]">Cod. PCA</TableHead>
                       <TableHead className="min-w-[280px]">Descrição</TableHead>
                       <TableHead className="w-[160px]">Setor</TableHead>
                       <TableHead className="w-[120px]">Status</TableHead>
@@ -341,7 +341,9 @@ const AvaliacaoConformidade = () => {
                     ) : (
                       paginated.map((r) => (
                         <TableRow key={r.id} className="hover:bg-muted/40">
-                          <TableCell className="font-medium">{(r as any).codigo || String(r.id).slice(-8)}</TableCell>
+                          <TableCell className="font-mono text-[10px] text-muted-foreground whitespace-nowrap">
+                            {(r as any).codigo?.startsWith("PCA-") ? (r as any).codigo : (r as any).codigo ? `PCA-${(r as any).codigo}-2026` : String(r.id).slice(-8)}
+                          </TableCell>
                           <TableCell><div className="truncate" title={r.descricao}>{r.descricao}</div></TableCell>
                           <TableCell>{r.setor_requisitante || "-"}</TableCell>
                           <TableCell>

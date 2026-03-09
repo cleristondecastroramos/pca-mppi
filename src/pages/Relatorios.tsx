@@ -243,10 +243,10 @@ const Relatorios = () => {
   > = {
     detalhado: {
       label: "Contratações — Detalhado",
-      description: "Listagem completa com ID, descrição, setor, prioridade e valores (estimado e executado).",
+      description: "Listagem completa com Cod. PCA, descrição, setor, prioridade e valores (estimado e executado).",
       icon: FileText,
-      columns: ["ID", "Descrição", "Setor", "Prioridade", "Valor Estimado", "Valor Executado", "Data Prevista"],
-      csvColumns: ["ID", "Descrição", "Setor", "Prioridade", "Valor Estimado", "Valor Executado", "Data Prevista"],
+      columns: ["Cod. PCA", "Descrição", "Setor", "Prioridade", "Valor Estimado", "Valor Executado", "Data Prevista"],
+      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Prioridade", "Valor Estimado", "Valor Executado", "Data Prevista"],
       mapRow: (r) => [
         formatId(r.id, r.codigo),
         String(r.descricao || ""),
@@ -262,8 +262,8 @@ const Relatorios = () => {
       label: "Contratações — Por Status",
       description: "Listagem focada no status e andamento das contratações.",
       icon: BarChart3,
-      columns: ["ID", "Descrição", "Setor", "Status", "Situação"],
-      csvColumns: ["ID", "Descrição", "Setor", "Status", "Situação"],
+      columns: ["Cod. PCA", "Descrição", "Setor", "Status", "Situação"],
+      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Status", "Situação"],
       mapRow: (r) => {
          const status = getPrazoStatus(r);
          return [
@@ -280,8 +280,8 @@ const Relatorios = () => {
       label: "Contratações — Por Setor",
       description: "Listagem agrupável por setor requisitante.",
       icon: ClipboardList,
-      columns: ["ID", "Descrição", "Setor", "Status", "Valor Estimado", "Valor Executado"],
-      csvColumns: ["ID", "Descrição", "Setor", "Status", "Valor Estimado", "Valor Executado"],
+      columns: ["Cod. PCA", "Descrição", "Setor", "Status", "Valor Estimado", "Valor Executado"],
+      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Status", "Valor Estimado", "Valor Executado"],
       mapRow: (r) => [
         formatId(r.id, r.codigo),
         String(r.descricao || ""),
@@ -302,8 +302,8 @@ const Relatorios = () => {
       label: "Demandas — Por Prioridade",
       description: "Visão por grau de prioridade (Alta, Média, Baixa).",
       icon: BadgeCheck,
-      columns: ["ID", "Descrição", "Prioridade", "Setor", "Status", "Valor Estimado"],
-      csvColumns: ["ID", "Descrição", "Prioridade", "Setor", "Status", "Valor Estimado"],
+      columns: ["Cod. PCA", "Descrição", "Prioridade", "Setor", "Status", "Valor Estimado"],
+      csvColumns: ["Cod. PCA", "Descrição", "Prioridade", "Setor", "Status", "Valor Estimado"],
       mapRow: (r) => [
         formatId(r.id, r.codigo),
         String(r.descricao || ""),
@@ -324,8 +324,8 @@ const Relatorios = () => {
       label: "Financeiro — Estimado vs Contratado",
       description: "Comparativo financeiro entre valores estimados e contratados.",
       icon: DollarSign,
-      columns: ["ID", "Descrição", "Valor Estimado", "Valor Contratado", "Valor Executado"],
-      csvColumns: ["ID", "Descrição", "Valor Estimado", "Valor Contratado", "Valor Executado"],
+      columns: ["Cod. PCA", "Descrição", "Valor Estimado", "Valor Contratado", "Valor Executado"],
+      csvColumns: ["Cod. PCA", "Descrição", "Valor Estimado", "Valor Contratado", "Valor Executado"],
       mapRow: (r) => [
         formatId(r.id, r.codigo),
         String(r.descricao || ""),
@@ -339,8 +339,8 @@ const Relatorios = () => {
       label: "SEI — Processos por Contratação",
       description: "Relação de contratações com seus números de SEI para consulta.",
       icon: FileSearch,
-      columns: ["ID", "Descrição", "SEI", "Status"],
-      csvColumns: ["ID", "Descrição", "SEI", "Status"],
+      columns: ["Cod. PCA", "Descrição", "SEI", "Status"],
+      csvColumns: ["Cod. PCA", "Descrição", "SEI", "Status"],
       mapRow: (r) => [
         formatId(r.id, r.codigo),
         String(r.descricao || ""),
@@ -359,8 +359,8 @@ const Relatorios = () => {
       label: "Auditoria — Conformidade",
       description: "Relatório de conformidade com itens de checklist de auditoria.",
       icon: BadgeCheck,
-      columns: ["ID", "Descrição", "Setor", "Conformidade", "Status"],
-      csvColumns: ["ID", "Descrição", "Setor", "Conformidade", "Status"],
+      columns: ["Cod. PCA", "Descrição", "Setor", "Conformidade", "Status"],
+      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Conformidade", "Status"],
       mapRow: (r) => [
         formatId(r.id, r.codigo),
         String(r.descricao || ""),
@@ -374,8 +374,8 @@ const Relatorios = () => {
       label: "Prazos — Críticos e Alertas",
       description: "Relatório focado em processos atrasados ou com prazo curto.",
       icon: AlertCircle,
-      columns: ["ID", "Descrição", "Setor", "Data Prevista", "Situação"],
-      csvColumns: ["ID", "Descrição", "Setor", "Data Prevista", "Situação"],
+      columns: ["Cod. PCA", "Descrição", "Setor", "Data Prevista", "Situação"],
+      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Data Prevista", "Situação"],
       mapRow: (r) => {
          const status = getPrazoStatus(r);
          return [
@@ -518,7 +518,7 @@ const Relatorios = () => {
       } else {
         const logo = `${location.origin}/logo-mppi.png`;
         const widthClass = (col: string) => {
-          if (col === "ID") return "col-ID";
+          if (col === "Cod. PCA") return "col-ID";
           if (col === "Descrição") return "col-Descrição";
           if (col === "Setor") return "col-Setor";
           if (col === "Prioridade") return "col-Prioridade";
@@ -556,7 +556,7 @@ const Relatorios = () => {
                   ? "text-right"
                   : col === "Descrição"
                   ? "text-left"
-                  : ["ID", "Setor", "Prioridade", "Status", "Situação", "Conformidade"].includes(col) || col.includes("Data")
+                  : ["Cod. PCA", "Setor", "Prioridade", "Status", "Situação", "Conformidade"].includes(col) || col.includes("Data")
                   ? "text-center"
                   : "text-left";
               return `<td class="${align} ${widthClass(col)}">${val}</td>`;
