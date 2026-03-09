@@ -208,7 +208,31 @@ export default function Tutorial() {
 
         {/* 5. Home */}
         <Section id="sec5" title="5. Home — Página Inicial">
-          <P>A página Home é a tela de boas-vindas do sistema, exibida imediatamente após o login. Serve como ponto de partida para a navegação, apresentando o menu lateral com acesso a todos os módulos permitidos.</P>
+          <P>A página Home é a tela de boas-vindas do sistema, exibida imediatamente após o login do usuário. Esta tela serve como ponto de partida central para toda a navegação dentro da plataforma, proporcionando uma experiência de entrada intuitiva e organizada.</P>
+          
+          <H3>5.1. Estrutura da Página Inicial</H3>
+          <P>A página Home apresenta uma interface limpa e objetiva, composta pelos seguintes elementos principais:</P>
+          <UL items={[
+            <><strong>Menu Lateral (Sidebar):</strong> Localizado à esquerda da tela, o menu lateral é o principal meio de navegação do sistema. Ele apresenta de forma hierárquica todos os módulos e funcionalidades aos quais o usuário tem acesso, de acordo com seu perfil de permissões.</>,
+            <><strong>Cabeçalho Superior:</strong> Exibe informações do usuário logado, opções de configuração da conta e o botão de logout para encerramento seguro da sessão.</>,
+            <><strong>Área de Conteúdo Principal:</strong> Região central da tela onde são exibidas mensagens de boas-vindas e informações contextuais sobre o sistema.</>,
+          ]} />
+          
+          <H3>5.2. Funcionalidades Disponíveis</H3>
+          <P>A partir da Home, o usuário pode acessar rapidamente qualquer módulo do sistema através do menu lateral. Os módulos disponíveis variam conforme o perfil de acesso do usuário autenticado. As principais áreas acessíveis incluem:</P>
+          <UL items={[
+            <><strong>Visão Geral:</strong> Dashboard com indicadores e gráficos consolidados.</>,
+            <><strong>Contratações:</strong> Gestão completa das demandas de contratação.</>,
+            <><strong>Orçamento Planejado:</strong> Controle orçamentário por setor requisitante.</>,
+            <><strong>Setores Demandantes:</strong> Visualização das demandas por área.</>,
+            <><strong>Relatórios:</strong> Geração de relatórios e exportação de dados.</>,
+            <><strong>Gerenciamento de Usuários:</strong> Administração de contas (apenas para administradores).</>,
+          ]} />
+          
+          <H3>5.3. Personalização da Experiência</H3>
+          <P>O sistema memoriza as preferências do usuário, como o estado de expansão/colapso do menu lateral, proporcionando uma experiência personalizada a cada acesso. O tema visual (claro ou escuro) também pode ser alternado conforme a preferência do usuário.</P>
+          
+          <Tip>Utilize o menu lateral para navegar entre os módulos de forma rápida. Os itens são organizados de acordo com a frequência de uso e importância operacional, facilitando o acesso às funcionalidades mais utilizadas.</Tip>
         </Section>
 
         {/* 6. Visão Geral */}
