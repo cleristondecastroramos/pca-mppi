@@ -522,12 +522,11 @@ export async function generateTutorialPdf() {
 
   // ===== PASS 2: Headers & Footers =====
   const totalPages = doc.getNumberOfPages();
+  // First content section page (page 4+: after cover, ficha técnica, sumário)
+  const firstContentPage = sectionPageNumbers.length > 0 ? sectionPageNumbers[0] : 4;
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
-    if (i === 1) {
-      // Cover: sem rodapé nem numeração
-      // Não faz nada - capa limpa
-    } else {
+    if (i >= firstContentPage) {
       addHeaderFooter(doc, logo, i, totalPages);
     }
   }
