@@ -18,8 +18,8 @@ const PAGE_H = 297;
 const ML = 20;
 const MR = 20;
 const CW = PAGE_W - ML - MR;
-const HEADER_Y = 18;
-const CONTENT_Y = 32;
+const HEADER_Y = 22;
+const CONTENT_Y = 36;
 const FOOTER_Y = PAGE_H - 15;
 const MAX_Y = FOOTER_Y - 10;
 
