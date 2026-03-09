@@ -279,6 +279,77 @@ export type Database = {
           },
         ]
       }
+      notificacoes: {
+        Row: {
+          ativa: boolean | null
+          autor_id: string | null
+          data_criacao: string
+          id: string
+          mensagem: string
+          tipo: string | null
+          titulo: string
+        }
+        Insert: {
+          ativa?: boolean | null
+          autor_id?: string | null
+          data_criacao?: string
+          id?: string
+          mensagem: string
+          tipo?: string | null
+          titulo: string
+        }
+        Update: {
+          ativa?: boolean | null
+          autor_id?: string | null
+          data_criacao?: string
+          id?: string
+          mensagem?: string
+          tipo?: string | null
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notificacoes_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notificacoes_lidas: {
+        Row: {
+          data_leitura: string
+          notificacao_id: string
+          usuario_id: string
+        }
+        Insert: {
+          data_leitura?: string
+          notificacao_id: string
+          usuario_id: string
+        }
+        Update: {
+          data_leitura?: string
+          notificacao_id?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notificacoes_lidas_notificacao_id_fkey"
+            columns: ["notificacao_id"]
+            isOneToOne: false
+            referencedRelation: "notificacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notificacoes_lidas_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orcamento_planejado: {
         Row: {
           ano: number
