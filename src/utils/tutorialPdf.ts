@@ -177,7 +177,8 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
     case "tip": {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
-      const tipLines: string[] = doc.splitTextToSize(block.text, CW - 10);
+      const tipWidth = CW - 12;
+      const tipLines: string[] = doc.splitTextToSize(block.text, tipWidth);
       const boxH = tipLines.length * 4.5 + 10;
       y = checkPage(doc, y, boxH + 2);
       doc.setFillColor(...TIP_BG);
@@ -191,9 +192,10 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
       doc.text("[*] Dica:", ML + 4, y + 1);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(60, 60, 60);
-      // Text content below label
+      // Text content below label - using manual justification
       for (let i = 0; i < tipLines.length; i++) {
-        doc.text(tipLines[i], ML + 4, y + 6 + i * 4.5, { align: "justify", maxWidth: CW - 12 });
+        const isLastLine = i === tipLines.length - 1;
+        drawJustifiedLine(doc, tipLines[i], ML + 4, y + 6 + i * 4.5, tipWidth, isLastLine);
       }
       y += boxH + 4;
       return y;
