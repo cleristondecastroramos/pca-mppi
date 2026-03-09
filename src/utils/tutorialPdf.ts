@@ -420,6 +420,19 @@ export async function generateTutorialPdf() {
   doc.setTextColor(...BLACK);
   doc.text("Documento de uso interno", labelX, fichaY + 4);
 
+  // Texto explicativo DataTrend MPPI na parte inferior da ficha técnica
+  const dataTrendText = "Este tutorial integra o ecossistema DataTrend MPPI, plataforma de inteligência analítica e governança de dados do Ministério Público do Estado do Piauí. O sistema de gerenciamento do Plano de Contratações Anual (PCA) oferece monitoramento integrado da execução contratual, conformidade e governança alinhadas à Lei 14.133/2021 e execução orçamentária, proporcionando visão estratégica e operacional para a gestão eficiente das contratações públicas.";
+  const dtTextWidth = PAGE_W - ML - MR - 10;
+  const dtLines: string[] = doc.splitTextToSize(dataTrendText, dtTextWidth);
+  const dtStartY = PAGE_H - 60;
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(8);
+  doc.setTextColor(...GRAY_TEXT);
+  for (let i = 0; i < dtLines.length; i++) {
+    const isLast = i === dtLines.length - 1;
+    drawJustifiedLine(doc, dtLines[i], ML + 5, dtStartY + i * 4, dtTextWidth, isLast);
+  }
+
   // ===== TABLE OF CONTENTS PAGE =====
   doc.addPage();
   const tocPageNum = doc.getNumberOfPages();
