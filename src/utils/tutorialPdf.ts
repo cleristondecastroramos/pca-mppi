@@ -60,6 +60,28 @@ function checkPage(doc: jsPDF, y: number, needed: number): number {
   return y;
 }
 
+/** Draw a justified line of text by distributing extra space between words */
+function drawJustifiedLine(doc: jsPDF, text: string, x: number, y: number, maxWidth: number, isLastLine: boolean = false) {
+  const words = text.trim().split(/\s+/);
+  if (words.length <= 1 || isLastLine) {
+    // Single word or last line: left-align
+    doc.text(text.trim(), x, y);
+    return;
+  }
+  
+  const textWithoutSpaces = words.join("");
+  const textWidth = doc.getTextWidth(textWithoutSpaces);
+  const totalSpaceWidth = maxWidth - textWidth;
+  const spaceCount = words.length - 1;
+  const spaceWidth = totalSpaceWidth / spaceCount;
+  
+  let currentX = x;
+  for (let i = 0; i < words.length; i++) {
+    doc.text(words[i], currentX, y);
+    currentX += doc.getTextWidth(words[i]) + spaceWidth;
+  }
+}
+
 function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
   switch (block.type) {
     case "h3": {
