@@ -326,7 +326,11 @@ export default function Tutorial() {
           <P>Informe Quantidade, Unidade de Fornecimento, Tipo de Recurso e Valor Unitário. O <strong>Valor Estimado Total = Quantidade × Valor Unitário</strong> é calculado automaticamente.</P>
 
           <H3>8.3. Código PCA Automático</H3>
-          <P>Ao salvar, o sistema gera um código único no formato <strong>PCA-XXXX-2026</strong>.</P>
+          <P>Ao salvar uma nova contratação, o sistema gera automaticamente um código único no formato <strong>PCA-XXXX-2026</strong>. Este código é o identificador oficial de cada demanda aprovada no Plano de Contratações Anual e possui papel fundamental no processo de aquisição.</P>
+          <P>O código PCA é utilizado para especificar o alinhamento da contratação com o planejamento institucional na etapa de formalização da demanda, por meio do <strong>Documento de Formalização de Demanda (DFD)</strong>.</P>
+          <Note>
+            O Documento de Formalização de Demanda (DFD) é o instrumento inicial previsto na Nova Lei de Licitações (Lei nº 14.133/2021) que formaliza a necessidade de compra ou contratação. O DFD garante que cada aquisição esteja devidamente alinhada com o Plano de Contratações Anual (PCA) e com os objetivos estratégicos da instituição, sendo obrigatório para o início de qualquer processo de contratação.
+          </Note>
 
           <H3>8.4. Validações e Trava Orçamentária</H3>
           <UL items={[
