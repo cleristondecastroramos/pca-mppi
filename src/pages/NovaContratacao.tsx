@@ -27,7 +27,7 @@ const contratacaoSchema = z.object({
   setor_requisitante: z.string().min(1, "Setor requisitante é obrigatório"),
   tipo_contratacao: z.string().min(1, "Tipo de contratação é obrigatório"),
   modalidade: z.string().min(1, "Modalidade é obrigatória"),
-  normativo: z.enum(["14.133/2021", "8.666/1993"]).default("14.133/2021"),
+  normativo: z.enum(["Lei 14.133/2021", "Lei 8.666/1993"]).default("Lei 14.133/2021"),
   unidade_orcamentaria: z.string().min(1, "Unidade orçamentária é obrigatória"),
   tipo_recurso: z.string().min(1, "Tipo de recurso é obrigatório"),
   grau_prioridade: z.string().min(1, "Grau de prioridade é obrigatório"),
@@ -97,7 +97,7 @@ export default function NovaContratacao() {
       unidade_fornecimento: formData.get("unidade_fornecimento") as string,
       pdm_catser: formData.get("pdm_catser") as string,
       srp: formData.get("srp") === "Sim",
-      status: "Planejamento",
+      etapa_processo: "Planejamento",
     };
 
     try {
@@ -316,8 +316,8 @@ export default function NovaContratacao() {
                       <SelectValue placeholder="Selecione o normativo" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="14.133/2021">14.133/2021</SelectItem>
-                      <SelectItem value="8.666/1993">8.666/1993</SelectItem>
+                      <SelectItem value="Lei 14.133/2021">14.133/2021</SelectItem>
+                      <SelectItem value="Lei 8.666/1993">8.666/1993</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

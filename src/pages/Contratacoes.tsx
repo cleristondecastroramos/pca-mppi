@@ -926,17 +926,17 @@ export default function Contratacoes() {
                         <div className="flex gap-1 justify-end">
                           {(() => {
                             // Consulta: read-only, no edit/delete
-                            // Setor requisitante can only edit drafts (Planejamento or no etapa)
-                            const isDraft = !contratacao.etapa_processo || contratacao.etapa_processo === "Planejamento";
-                            const canEdit = !isConsulta && (!isSetorRequisitante || isDraft);
-                            const canDelete = !isConsulta && !isSetorRequisitante;
+                            // Gestor: can edit and view history, but cannot delete
+                            // Unidade Demandante (setor_requisitante): can edit all their own items regardless of stage
+                            const canEdit = !isConsulta;
+                            const canDelete = hasAnyRole(roles, ["administrador"]);
                             return (
                               <>
                                 <Button
                                   variant="ghost"
                                   size="xs"
                                   onClick={() => handleEdit(contratacao)}
-                                  title={canEdit ? "Editar contratação" : "Somente rascunhos podem ser editados"}
+                                  title="Editar contratação"
                                   disabled={!canEdit}
                                 >
                                   <Edit className="h-4 w-4" />
@@ -1213,8 +1213,8 @@ export default function Contratacoes() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="14.133/2021">14.133/2021</SelectItem>
-                        <SelectItem value="8.666/1993">8.666/1993</SelectItem>
+                        <SelectItem value="Lei 14.133/2021">14.133/2021</SelectItem>
+                        <SelectItem value="Lei 8.666/1993">8.666/1993</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
