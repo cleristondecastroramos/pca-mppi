@@ -53,26 +53,32 @@ export default function Notificacoes() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Iniciando disparo de notificação:", { titulo, mensagem });
+    
+    const trimTitulo = titulo.trim();
+    const trimMensagem = mensagem.trim();
 
-    if (!titulo.trim() || !mensagem.trim()) {
+    console.log("Iniciando disparo de notificação. Dados:", { titulo: trimTitulo, mensagem: trimMensagem });
+
+    if (!trimTitulo || !trimMensagem) {
       toast.warning("Preencha o título e a mensagem.");
       return;
     }
 
     if (!session?.user?.id) {
+      console.error("Tentativa de disparo sem sessão ativa.");
       toast.error("Sua sessão expirou ou usuário não identificado. Por favor, faça login novamente.");
       return;
     }
 
     setSaving(true);
     try {
+      console.log("Executando insert no Supabase...");
       const { data, error } = await (supabase as any)
         .from("notificacoes")
         .insert([
           {
-            titulo: titulo.trim(),
-            mensagem: mensagem.trim(),
+            titulo: trimTitulo,
+            mensagem: trimMensagem,
             autor_id: session.user.id,
             tipo: "info",
             ativa: true
@@ -81,18 +87,21 @@ export default function Notificacoes() {
         .select();
 
       if (error) {
-        console.error("Erro Supabase:", error);
+        console.error("Erro retornado pelo Supabase:", error);
         throw error;
       }
 
-      console.log("Notificação disparada com sucesso:", data);
+      console.log("Resultado do insert:", data);
       toast.success("Notificação enviada a todos os usuários com sucesso!");
+      
       setTitulo("");
       setMensagem("");
-      fetchNotificacoes();
+      
+      console.log("Atualizando lista de notificações...");
+      await fetchNotificacoes();
     } catch (err: any) {
-      console.error("Erro ao criar notificação:", err);
-      toast.error("Erro ao disparar notificação: " + (err.message || "Erro desconhecido"));
+      console.error("Erro fatal ao criar notificação:", err);
+      toast.error("Erro ao disparar notificação: " + (err.message || "Erro de conexão com o banco de dados"));
     } finally {
       setSaving(false);
     }
