@@ -420,15 +420,8 @@ export async function generateTutorialPdf() {
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
     if (i === 1) {
-      // Cover: footer only
-      doc.setDrawColor(...RED);
-      doc.setLineWidth(0.5);
-      doc.line(ML, FOOTER_Y - 3, PAGE_W - MR, FOOTER_Y - 3);
-      doc.setFontSize(6);
-      doc.setTextColor(...GRAY_TEXT);
-      doc.text("Tutorial do Sistema de Gerenciamento do Plano de Contratações Anual", ML, FOOTER_Y + 2);
-      doc.setFontSize(8);
-      doc.text(`${i} / ${totalPages}`, PAGE_W - MR, FOOTER_Y + 2, { align: "right" });
+      // Cover: sem rodapé nem numeração
+      // Não faz nada - capa limpa
     } else {
       addHeaderFooter(doc, logo, i, totalPages);
     }
