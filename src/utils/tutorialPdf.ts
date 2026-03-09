@@ -99,9 +99,10 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
       doc.setFontSize(9.5);
       doc.setTextColor(...BLACK);
       const lines: string[] = doc.splitTextToSize(block.text, CW);
-      for (const line of lines) {
+      for (let i = 0; i < lines.length; i++) {
         y = checkPage(doc, y, 5);
-        doc.text(line, ML, y, { align: "justify", maxWidth: CW });
+        const isLastLine = i === lines.length - 1;
+        drawJustifiedLine(doc, lines[i], ML, y, CW, isLastLine);
         y += 4.5;
       }
       y += 2;
