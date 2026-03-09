@@ -326,6 +326,138 @@ export async function generateTutorialPdf() {
     doc.addImage(coverImage, "PNG", imgX, 115, imgW, imgH);
   }
 
+  // ===== BIBLIOGRAPHIC PAGE (FICHA TÉCNICA) =====
+  doc.addPage();
+  
+  // Frame decorativo externo
+  doc.setDrawColor(...RED);
+  doc.setLineWidth(0.8);
+  doc.roundedRect(ML - 5, 25, CW + 10, 200, 3, 3, "S");
+  
+  // Frame interno mais leve
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(ML, 30, CW, 190, 2, 2, "S");
+  
+  // Título da ficha
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.setTextColor(...RED);
+  doc.text("FICHA TÉCNICA", PAGE_W / 2, 50, { align: "center" });
+  
+  // Linha decorativa abaixo do título
+  doc.setDrawColor(...RED);
+  doc.setLineWidth(0.5);
+  doc.line(ML + 30, 55, PAGE_W - MR - 30, 55);
+  
+  // Informações da ficha - Layout elegante
+  let fichaY = 75;
+  const labelX = ML + 10;
+  const valueX = ML + 10;
+  const lineHeight = 8;
+  
+  // Título do documento
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(...GRAY_TEXT);
+  doc.text("TÍTULO", labelX, fichaY);
+  fichaY += 5;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.setTextColor(...BLACK);
+  doc.text("Tutorial Completo do Sistema de Gerenciamento", valueX, fichaY);
+  fichaY += 5;
+  doc.text("do Plano de Contratações Anual – PCA 2026", valueX, fichaY);
+  fichaY += lineHeight + 6;
+  
+  // Subtítulo
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(...GRAY_TEXT);
+  doc.text("SUBTÍTULO", labelX, fichaY);
+  fichaY += 5;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.setTextColor(...BLACK);
+  doc.text("Manual de Operação e Referência para Usuários", valueX, fichaY);
+  fichaY += lineHeight + 6;
+  
+  // Instituição
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(...GRAY_TEXT);
+  doc.text("INSTITUIÇÃO", labelX, fichaY);
+  fichaY += 5;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.setTextColor(...BLACK);
+  doc.text("Ministério Público do Estado do Piauí – MPPI", valueX, fichaY);
+  fichaY += lineHeight + 6;
+  
+  // Elaboração
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(...GRAY_TEXT);
+  doc.text("ELABORAÇÃO", labelX, fichaY);
+  fichaY += 5;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.setTextColor(...BLACK);
+  doc.text("Assessoria de Planejamento e Gestão – ASPLAG", valueX, fichaY);
+  fichaY += lineHeight + 6;
+  
+  // Data de publicação
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(...GRAY_TEXT);
+  doc.text("DATA DE PUBLICAÇÃO", labelX, fichaY);
+  fichaY += 5;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.setTextColor(...BLACK);
+  doc.text("Março de 2026", valueX, fichaY);
+  fichaY += lineHeight + 6;
+  
+  // Versão
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(...GRAY_TEXT);
+  doc.text("VERSÃO", labelX, fichaY);
+  fichaY += 5;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.setTextColor(...BLACK);
+  doc.text("1.0", valueX, fichaY);
+  fichaY += lineHeight + 6;
+  
+  // Classificação
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(...GRAY_TEXT);
+  doc.text("CLASSIFICAÇÃO", labelX, fichaY);
+  fichaY += 5;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.setTextColor(...BLACK);
+  doc.text("Documento de uso interno", valueX, fichaY);
+  fichaY += lineHeight + 10;
+  
+  // Linha separadora
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
+  doc.line(ML + 20, fichaY, PAGE_W - MR - 20, fichaY);
+  fichaY += 10;
+  
+  // Observação final
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(9);
+  doc.setTextColor(...GRAY_TEXT);
+  const obsText = "Este documento foi elaborado para orientar os usuários do Sistema de Gerenciamento do Plano de Contratações Anual do MPPI, em conformidade com a Lei nº 14.133/2021 (Nova Lei de Licitações e Contratos Administrativos).";
+  const obsLines = doc.splitTextToSize(obsText, CW - 20);
+  for (let i = 0; i < obsLines.length; i++) {
+    doc.text(obsLines[i], PAGE_W / 2, fichaY + i * 4.5, { align: "center" });
+  }
+
   // ===== TABLE OF CONTENTS PAGE =====
   doc.addPage();
   const tocPageNum = doc.getNumberOfPages();
