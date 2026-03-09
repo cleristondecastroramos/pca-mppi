@@ -128,7 +128,7 @@ export function getTutorialSections(): PdfSection[] {
       title: "1. Introdução ao Sistema",
       content: [
         { type: "h3", text: "1.1. O que é o PCA 2026?" },
-        { type: "p", text: "O PCA 2026 (Plano de Contratações Anual 2026) é o sistema oficial do Ministério Público do Estado do Piauí (MPPI) desenvolvido para gerenciar de forma centralizada, transparente e eficiente todas as contratações públicas planejadas para o exercício de 2026. Ele substitui o uso de planilhas avulsas e dashboards de Power BI por uma plataforma web integrada, com controle de acesso, rastreabilidade e automação de processos." },
+        { type: "p", text: "O Sistema de Gerenciamento PCA MPPI 2026 é o sistema oficial do Ministério Público do Estado do Piauí (MPPI) desenvolvido para gerenciar de forma centralizada, transparente e eficiente todas as contratações públicas planejadas para o exercício de 2026. Ele substitui o uso de planilhas avulsas e dashboards de Power BI por uma plataforma web integrada, com controle de acesso, rastreabilidade e automação de processos." },
         { type: "h3", text: "1.2. Objetivo do Sistema" },
         { type: "ul", items: [
           "Centralização: Reunir em uma única plataforma todas as demandas de contratação dos diversos setores do MPPI.",
