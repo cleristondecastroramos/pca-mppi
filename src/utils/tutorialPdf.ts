@@ -149,7 +149,8 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
     case "note": {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
-      const noteLines: string[] = doc.splitTextToSize(block.text, CW - 10);
+      const noteWidth = CW - 12;
+      const noteLines: string[] = doc.splitTextToSize(block.text, noteWidth);
       const boxH = noteLines.length * 4.5 + 10;
       y = checkPage(doc, y, boxH + 2);
       // Background
@@ -165,9 +166,10 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
       doc.text("[!] Importante:", ML + 4, y + 1);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(60, 60, 60);
-      // Text content below label
+      // Text content below label - using manual justification
       for (let i = 0; i < noteLines.length; i++) {
-        doc.text(noteLines[i], ML + 4, y + 6 + i * 4.5, { align: "justify", maxWidth: CW - 12 });
+        const isLastLine = i === noteLines.length - 1;
+        drawJustifiedLine(doc, noteLines[i], ML + 4, y + 6 + i * 4.5, noteWidth, isLastLine);
       }
       y += boxH + 4;
       return y;
