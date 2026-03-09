@@ -329,134 +329,96 @@ export async function generateTutorialPdf() {
   // ===== BIBLIOGRAPHIC PAGE (FICHA TÉCNICA) =====
   doc.addPage();
   
-  // Frame decorativo externo
-  doc.setDrawColor(...RED);
-  doc.setLineWidth(0.8);
-  doc.roundedRect(ML - 5, 25, CW + 10, 200, 3, 3, "S");
+  // Posicionamento: margem superior 70mm, margem direita 70mm
+  const fichaTop = 70; // 7cm do topo
+  const fichaRight = 70; // 7cm da direita
+  const fichaWidth = PAGE_W - fichaRight - ML; // largura disponível
+  const fichaX = ML;
   
-  // Frame interno mais leve
-  doc.setDrawColor(200, 200, 200);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(ML, 30, CW, 190, 2, 2, "S");
+  // Moldura minimalista preta
+  doc.setDrawColor(...BLACK);
+  doc.setLineWidth(0.5);
+  doc.rect(fichaX, fichaTop, fichaWidth, 120);
   
   // Título da ficha
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.setTextColor(...RED);
-  doc.text("FICHA TÉCNICA", PAGE_W / 2, 50, { align: "center" });
+  doc.setFontSize(11);
+  doc.setTextColor(...BLACK);
+  doc.text("FICHA TÉCNICA", fichaX + fichaWidth / 2, fichaTop + 12, { align: "center" });
   
-  // Linha decorativa abaixo do título
-  doc.setDrawColor(...RED);
-  doc.setLineWidth(0.5);
-  doc.line(ML + 30, 55, PAGE_W - MR - 30, 55);
+  // Linha fina abaixo do título
+  doc.setLineWidth(0.2);
+  doc.line(fichaX + 10, fichaTop + 17, fichaX + fichaWidth - 10, fichaTop + 17);
   
-  // Informações da ficha - Layout elegante
-  let fichaY = 75;
-  const labelX = ML + 10;
-  const valueX = ML + 10;
-  const lineHeight = 8;
+  // Informações da ficha - Layout minimalista
+  let fichaY = fichaTop + 28;
+  const labelX = fichaX + 8;
+  const lineHeight = 12;
   
   // Título do documento
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
+  doc.setFontSize(8);
   doc.setTextColor(...GRAY_TEXT);
   doc.text("TÍTULO", labelX, fichaY);
-  fichaY += 5;
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
+  doc.setFontSize(9);
   doc.setTextColor(...BLACK);
-  doc.text("Tutorial Completo do Sistema de Gerenciamento", valueX, fichaY);
-  fichaY += 5;
-  doc.text("do Plano de Contratações Anual – PCA 2026", valueX, fichaY);
-  fichaY += lineHeight + 6;
-  
-  // Subtítulo
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  doc.setTextColor(...GRAY_TEXT);
-  doc.text("SUBTÍTULO", labelX, fichaY);
-  fichaY += 5;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  doc.setTextColor(...BLACK);
-  doc.text("Manual de Operação e Referência para Usuários", valueX, fichaY);
-  fichaY += lineHeight + 6;
+  doc.text("Tutorial do Sistema de Gerenciamento do PCA 2026", labelX, fichaY + 4);
+  fichaY += lineHeight;
   
   // Instituição
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
+  doc.setFontSize(8);
   doc.setTextColor(...GRAY_TEXT);
   doc.text("INSTITUIÇÃO", labelX, fichaY);
-  fichaY += 5;
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
+  doc.setFontSize(9);
   doc.setTextColor(...BLACK);
-  doc.text("Ministério Público do Estado do Piauí – MPPI", valueX, fichaY);
-  fichaY += lineHeight + 6;
+  doc.text("Ministério Público do Estado do Piauí – MPPI", labelX, fichaY + 4);
+  fichaY += lineHeight;
   
   // Elaboração
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
+  doc.setFontSize(8);
   doc.setTextColor(...GRAY_TEXT);
   doc.text("ELABORAÇÃO", labelX, fichaY);
-  fichaY += 5;
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
+  doc.setFontSize(9);
   doc.setTextColor(...BLACK);
-  doc.text("Assessoria de Planejamento e Gestão – ASPLAG", valueX, fichaY);
-  fichaY += lineHeight + 6;
+  doc.text("Assessoria de Planejamento e Gestão – ASSESPPLAGES", labelX, fichaY + 4);
+  fichaY += lineHeight;
   
   // Data de publicação
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
+  doc.setFontSize(8);
   doc.setTextColor(...GRAY_TEXT);
-  doc.text("DATA DE PUBLICAÇÃO", labelX, fichaY);
-  fichaY += 5;
+  doc.text("DATA", labelX, fichaY);
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
+  doc.setFontSize(9);
   doc.setTextColor(...BLACK);
-  doc.text("Março de 2026", valueX, fichaY);
-  fichaY += lineHeight + 6;
+  doc.text("Março de 2026", labelX, fichaY + 4);
+  fichaY += lineHeight;
   
   // Versão
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
+  doc.setFontSize(8);
   doc.setTextColor(...GRAY_TEXT);
   doc.text("VERSÃO", labelX, fichaY);
-  fichaY += 5;
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
+  doc.setFontSize(9);
   doc.setTextColor(...BLACK);
-  doc.text("1.0", valueX, fichaY);
-  fichaY += lineHeight + 6;
+  doc.text("1.0", labelX, fichaY + 4);
+  fichaY += lineHeight;
   
   // Classificação
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
+  doc.setFontSize(8);
   doc.setTextColor(...GRAY_TEXT);
   doc.text("CLASSIFICAÇÃO", labelX, fichaY);
-  fichaY += 5;
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  doc.setTextColor(...BLACK);
-  doc.text("Documento de uso interno", valueX, fichaY);
-  fichaY += lineHeight + 10;
-  
-  // Linha separadora
-  doc.setDrawColor(200, 200, 200);
-  doc.setLineWidth(0.3);
-  doc.line(ML + 20, fichaY, PAGE_W - MR - 20, fichaY);
-  fichaY += 10;
-  
-  // Observação final
-  doc.setFont("helvetica", "italic");
   doc.setFontSize(9);
-  doc.setTextColor(...GRAY_TEXT);
-  const obsText = "Este documento foi elaborado para orientar os usuários do Sistema de Gerenciamento do Plano de Contratações Anual do MPPI, em conformidade com a Lei nº 14.133/2021 (Nova Lei de Licitações e Contratos Administrativos).";
-  const obsLines = doc.splitTextToSize(obsText, CW - 20);
-  for (let i = 0; i < obsLines.length; i++) {
-    doc.text(obsLines[i], PAGE_W / 2, fichaY + i * 4.5, { align: "center" });
-  }
+  doc.setTextColor(...BLACK);
+  doc.text("Documento de uso interno", labelX, fichaY + 4);
 
   // ===== TABLE OF CONTENTS PAGE =====
   doc.addPage();
