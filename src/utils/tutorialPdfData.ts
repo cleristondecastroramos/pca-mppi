@@ -13,7 +13,7 @@ export type PdfBlock =
   | { type: "ol"; items: string[] }
   | { type: "note"; text: string }
   | { type: "tip"; text: string }
-  | { type: "table"; headers: string[]; rows: string[][]; headerAlign?: string[] };
+  | { type: "table"; headers: string[]; rows: string[][]; headerAlign?: string[]; columnWidths?: number[] };
 
 export const TOC = [
   "Introdução ao Sistema",
