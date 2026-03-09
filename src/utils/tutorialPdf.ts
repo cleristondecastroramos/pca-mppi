@@ -272,27 +272,48 @@ export async function generateTutorialPdf() {
   const sections = getTutorialSections();
 
   // ===== COVER PAGE =====
+  const coverImage = await loadImage("/22933-removebg-preview.png");
+  
+  // Logo menor no topo
   if (logo) {
-    const h = 30;
+    const h = 18;
     const w = (logo.width / logo.height) * h;
-    doc.addImage(logo, "PNG", (PAGE_W - w) / 2, 40, w, h);
+    doc.addImage(logo, "PNG", (PAGE_W - w) / 2, 20, w, h);
   }
+  
+  // Linha decorativa superior
   doc.setDrawColor(...RED);
-  doc.setLineWidth(0.8);
-  doc.line(ML, 80, PAGE_W - MR, 80);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(22);
-  doc.setTextColor(...BLACK);
-  doc.text("Tutorial Completo do Sistema", PAGE_W / 2, 95, { align: "center" });
-  doc.text("PCA 2026", PAGE_W / 2, 107, { align: "center" });
-  doc.setFontSize(12);
-  doc.setTextColor(...GRAY_TEXT);
+  doc.setLineWidth(0.6);
+  doc.line(ML + 20, 45, PAGE_W - MR - 20, 45);
+  
+  // Textos da capa - ordem invertida
   doc.setFont("helvetica", "normal");
-  doc.text("Sistema de Gerenciamento do Plano de Contratações Anual", PAGE_W / 2, 122, { align: "center" });
-  doc.text("Ministério Público do Estado do Piauí", PAGE_W / 2, 130, { align: "center" });
+  doc.setFontSize(11);
+  doc.setTextColor(...GRAY_TEXT);
+  doc.text("Ministério Público do Estado do Piauí", PAGE_W / 2, 58, { align: "center" });
+  
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.setTextColor(...RED);
+  doc.text("Sistema de Gerenciamento do Plano de Contratações Anual", PAGE_W / 2, 70, { align: "center" });
+  
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20);
+  doc.setTextColor(...BLACK);
+  doc.text("Tutorial Completo do Sistema | PCA 2026", PAGE_W / 2, 88, { align: "center" });
+  
+  // Linha decorativa abaixo do título
   doc.setDrawColor(...RED);
-  doc.setLineWidth(0.8);
-  doc.line(ML, 140, PAGE_W - MR, 140);
+  doc.setLineWidth(0.6);
+  doc.line(ML + 20, 98, PAGE_W - MR - 20, 98);
+  
+  // Imagem centralizada
+  if (coverImage) {
+    const imgH = 120;
+    const imgW = (coverImage.width / coverImage.height) * imgH;
+    const imgX = (PAGE_W - imgW) / 2;
+    doc.addImage(coverImage, "PNG", imgX, 115, imgW, imgH);
+  }
 
   // ===== TABLE OF CONTENTS PAGE =====
   doc.addPage();
