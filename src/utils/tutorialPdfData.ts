@@ -13,7 +13,7 @@ export type PdfBlock =
   | { type: "ol"; items: string[] }
   | { type: "note"; text: string }
   | { type: "tip"; text: string }
-  | { type: "table"; headers: string[]; rows: string[][]; headerAlign?: string[] };
+  | { type: "table"; headers: string[]; rows: string[][]; headerAlign?: string[]; columnWidths?: number[] };
 
 export const TOC = [
   "Introdução ao Sistema",
@@ -745,18 +745,21 @@ export function getTutorialSections(): PdfSection[] {
           type: "table",
           headers: ["Sigla", "Significado"],
           rows: SIGLAS,
+          columnWidths: [35, 135],
         },
         { type: "h3", text: "Setores Requisitantes" },
         {
           type: "table",
           headers: ["Sigla", "Setor"],
           rows: SETORES,
+          columnWidths: [35, 135],
         },
         { type: "h3", text: "Termos Técnicos" },
         {
           type: "table",
           headers: ["Termo", "Definição"],
           rows: TERMOS,
+          columnWidths: [35, 135],
         },
       ],
     },

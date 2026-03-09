@@ -790,7 +790,11 @@ export default function Tutorial() {
         <Section id="sec21" title="21. Glossário de Termos e Siglas">
           <H3>Siglas</H3>
           <div className="overflow-x-auto rounded-lg border">
-            <table className="w-full text-xs">
+            <table className="w-full text-xs table-fixed">
+              <colgroup>
+                <col className="w-[140px]" />
+                <col />
+              </colgroup>
               <thead>
                 <tr className="bg-sidebar text-white">
                   <th className="text-left p-2 font-semibold">Sigla</th>
@@ -810,7 +814,11 @@ export default function Tutorial() {
 
           <H3>Setores Requisitantes</H3>
           <div className="overflow-x-auto rounded-lg border">
-            <table className="w-full text-xs">
+            <table className="w-full text-xs table-fixed">
+              <colgroup>
+                <col className="w-[140px]" />
+                <col />
+              </colgroup>
               <thead>
                 <tr className="bg-sidebar text-white">
                   <th className="text-left p-2 font-semibold">Sigla</th>
@@ -830,7 +838,11 @@ export default function Tutorial() {
 
           <H3>Termos Técnicos</H3>
           <div className="overflow-x-auto rounded-lg border">
-            <table className="w-full text-xs">
+            <table className="w-full text-xs table-fixed">
+              <colgroup>
+                <col className="w-[140px]" />
+                <col />
+              </colgroup>
               <thead>
                 <tr className="bg-sidebar text-white">
                   <th className="text-left p-2 font-semibold">Termo</th>

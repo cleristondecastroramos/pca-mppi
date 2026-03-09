@@ -202,6 +202,22 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
     }
     case "table": {
       y = checkPage(doc, y, 20);
+      
+      // Build columnStyles with widths and alignment
+      const columnStyles: Record<number, any> = {};
+      if (block.columnWidths) {
+        block.columnWidths.forEach((width, i) => {
+          columnStyles[i] = { cellWidth: width };
+        });
+      }
+      if (block.headerAlign) {
+        block.headerAlign.forEach((align, i) => {
+          if (i > 0) {
+            columnStyles[i] = { ...columnStyles[i], halign: align };
+          }
+        });
+      }
+      
       autoTable(doc, {
         startY: y,
         head: [block.headers],
@@ -223,12 +239,7 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
         alternateRowStyles: {
           fillColor: [245, 245, 245],
         },
-        columnStyles: block.headerAlign
-          ? block.headerAlign.reduce((acc: Record<number, any>, align: string, i: number) => {
-              if (i > 0) acc[i] = { halign: align };
-              return acc;
-            }, {})
-          : {},
+        columnStyles,
         didParseCell: (data: any) => {
           // Bold first column
           if (data.section === "body" && data.column.index === 0) {
