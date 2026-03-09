@@ -234,6 +234,28 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
           if (data.section === "body" && data.column.index === 0) {
             data.cell.styles.fontStyle = "bold";
           }
+          // Color [V] green and [X] red with bold
+          if (data.section === "body") {
+            const cellText = String(data.cell.raw || "");
+            if (cellText.includes("[V]")) {
+              data.cell.styles.textColor = GREEN;
+              data.cell.styles.fontStyle = "bold";
+            } else if (cellText.includes("[X]")) {
+              data.cell.styles.textColor = RED;
+              data.cell.styles.fontStyle = "bold";
+            }
+          }
+        },
+        willDrawCell: (data: any) => {
+          // Replace [V] with v and [X] with x for display
+          if (data.section === "body") {
+            const cellText = String(data.cell.raw || "");
+            if (cellText.includes("[V]") || cellText.includes("[X]")) {
+              data.cell.text = data.cell.text.map((t: string) => 
+                t.replace(/\[V\]/g, "v").replace(/\[X\]/g, "x")
+              );
+            }
+          }
         },
       });
       y = (doc as any).lastAutoTable.finalY + 6;
