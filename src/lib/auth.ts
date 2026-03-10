@@ -1,5 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
+import type { Session } from "@supabase/supabase-js";
 
 export type PerfilAcesso = "administrador" | "gestor" | "setor_requisitante" | "consulta";
 
@@ -12,13 +14,46 @@ export async function getSession() {
   return data.session;
 }
 
+/**
+ * Validates the session server-side using getUser().
+ * Returns the session only if the token is still valid on the server.
+ */
+async function getValidatedSession(): Promise<Session | null> {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const session = sessionData.session;
+  if (!session) return null;
+
+  // Validate the token server-side
+  const { data: userData, error } = await supabase.auth.getUser();
+  if (error || !userData.user) {
+    // Token is invalid/expired - sign out to clear stale session
+    await supabase.auth.signOut();
+    return null;
+  }
+
+  return session;
+}
+
 export function useAuthSession() {
+  const queryClient = useQueryClient();
+
+  // Listen for auth state changes and update the query cache reactively
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        queryClient.setQueryData(["auth", "session"], session);
+      }
+    );
+    return () => subscription.unsubscribe();
+  }, [queryClient]);
+
   return useQuery({
     queryKey: ["auth", "session"],
-    queryFn: () => getSession(),
-    staleTime: 0,
+    queryFn: () => getValidatedSession(),
+    staleTime: 30_000, // revalidate every 30s
     refetchOnMount: "always",
     refetchOnReconnect: true,
+    retry: false,
   });
 }
 
