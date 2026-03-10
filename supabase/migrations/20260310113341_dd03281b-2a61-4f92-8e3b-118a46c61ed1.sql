@@ -1,0 +1,1 @@
+UPDATE notificacoes SET ativa = false WHERE id = 'e0fb6525-c4b7-487e-a932-c5463e806e48';
