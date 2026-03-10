@@ -73,7 +73,7 @@ export default function Notificacoes() {
     setSaving(true);
     try {
       console.log("Executando insert no Supabase...");
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("notificacoes")
         .insert([
           {
