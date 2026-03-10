@@ -35,7 +35,7 @@ export default function Notificacoes() {
   const fetchNotificacoes = async () => {
     setLoading(true);
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("notificacoes")
         .select("*")
         .eq("ativa", true)
