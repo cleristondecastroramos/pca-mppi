@@ -113,23 +113,18 @@ export default function Notificacoes() {
     try {
       console.log("Tentando inativar notificação:", id);
       
-      const { data, error, status } = await supabase
+      // Não usar .select() após update pois a política SELECT filtra ativa=true
+      // e a linha atualizada para ativa=false ficaria invisível
+      const { error, count } = await supabase
         .from("notificacoes")
         .update({ ativa: false })
-        .eq("id", id)
-        .select();
+        .eq("id", id);
 
-      console.log("Resultado da exclusão:", { data, error, status });
+      console.log("Resultado da exclusão:", { error, count });
 
       if (error) {
         console.error("Erro RLS/DB ao excluir:", error);
         throw error;
-      }
-
-      if (!data || data.length === 0) {
-        console.warn("Nenhuma linha afetada — possível bloqueio de RLS");
-        toast.error("Não foi possível excluir. Verifique suas permissões.");
-        return;
       }
 
       toast.success("Notificação removida.");
