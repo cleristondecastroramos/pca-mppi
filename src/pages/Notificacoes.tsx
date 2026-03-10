@@ -35,7 +35,7 @@ export default function Notificacoes() {
   const fetchNotificacoes = async () => {
     setLoading(true);
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("notificacoes")
         .select("*")
         .eq("ativa", true)
@@ -73,7 +73,7 @@ export default function Notificacoes() {
     setSaving(true);
     try {
       console.log("Executando insert no Supabase...");
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("notificacoes")
         .insert([
           {
@@ -111,18 +111,27 @@ export default function Notificacoes() {
     if (!window.confirm("Deseja realmente excluir (inativar) esta notificação? Ela sumirá do painel de todos os usuários.")) return;
     
     try {
-      const { error } = await (supabase as any)
+      console.log("Tentando inativar notificação:", id);
+      
+      // Não usar .select() após update pois a política SELECT filtra ativa=true
+      // e a linha atualizada para ativa=false ficaria invisível
+      const { error, count } = await supabase
         .from("notificacoes")
         .update({ ativa: false })
         .eq("id", id);
 
-      if (error) throw error;
+      console.log("Resultado da exclusão:", { error, count });
+
+      if (error) {
+        console.error("Erro RLS/DB ao excluir:", error);
+        throw error;
+      }
 
       toast.success("Notificação removida.");
       setNotificacoes((prev) => prev.filter((n) => n.id !== id));
     } catch (err: any) {
-      console.error(err);
-      toast.error("Erro ao excluir notificação.");
+      console.error("Erro ao excluir notificação:", err);
+      toast.error("Erro ao excluir notificação: " + (err?.message || "Erro desconhecido"));
     }
   };
 
