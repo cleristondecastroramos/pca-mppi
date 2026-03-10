@@ -27,12 +27,21 @@ export default function Auth() {
   } as React.CSSProperties;
 
   useEffect(() => {
-    // Verifica se já existe sessão ativa ao montar a página
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+    // Valida a sessão no servidor antes de redirecionar
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      // Confirma que o token é válido no servidor
+      const { data, error } = await supabase.auth.getUser();
+      if (data?.user && !error) {
         navigate("/home", { replace: true });
+      } else {
+        // Sessão local inválida — limpar
+        await supabase.auth.signOut();
       }
-    });
+    };
+    checkSession();
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
