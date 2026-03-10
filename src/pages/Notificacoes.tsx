@@ -111,18 +111,32 @@ export default function Notificacoes() {
     if (!window.confirm("Deseja realmente excluir (inativar) esta notificação? Ela sumirá do painel de todos os usuários.")) return;
     
     try {
-      const { error } = await (supabase as any)
+      console.log("Tentando inativar notificação:", id);
+      
+      const { data, error, status } = await supabase
         .from("notificacoes")
         .update({ ativa: false })
-        .eq("id", id);
+        .eq("id", id)
+        .select();
 
-      if (error) throw error;
+      console.log("Resultado da exclusão:", { data, error, status });
+
+      if (error) {
+        console.error("Erro RLS/DB ao excluir:", error);
+        throw error;
+      }
+
+      if (!data || data.length === 0) {
+        console.warn("Nenhuma linha afetada — possível bloqueio de RLS");
+        toast.error("Não foi possível excluir. Verifique suas permissões.");
+        return;
+      }
 
       toast.success("Notificação removida.");
       setNotificacoes((prev) => prev.filter((n) => n.id !== id));
     } catch (err: any) {
-      console.error(err);
-      toast.error("Erro ao excluir notificação.");
+      console.error("Erro ao excluir notificação:", err);
+      toast.error("Erro ao excluir notificação: " + (err?.message || "Erro desconhecido"));
     }
   };
 
