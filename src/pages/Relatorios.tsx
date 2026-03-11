@@ -201,7 +201,7 @@ const Relatorios = () => {
     const dataPrevista = new Date(y, (m || 1) - 1, d || 1);
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
-    
+
     const diffTime = dataPrevista.getTime() - hoje.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
@@ -209,28 +209,28 @@ const Relatorios = () => {
     const isNaoIniciado = !isConcluido && contratacao.etapa_processo !== "Em Licitação";
 
     if (diffDays < 0 && !isConcluido) {
-      return { 
-        label: `Atrasado (${Math.abs(diffDays)}d)`, 
+      return {
+        label: `Atrasado (${Math.abs(diffDays)}d)`,
         variant: "destructive"
       };
     }
 
     if (diffDays >= 0 && diffDays <= 120 && isNaoIniciado) {
-      return { 
-        label: "Atenção (Prazo Curto)", 
+      return {
+        label: "Atenção (Prazo Curto)",
         variant: "warning"
       };
     }
 
     if (isConcluido) {
-      return { 
-        label: "Concluído", 
+      return {
+        label: "Concluído",
         variant: "success"
       };
     }
 
-    return { 
-      label: "No Prazo", 
+    return {
+      label: "No Prazo",
       variant: "outline"
     };
   };
@@ -271,14 +271,14 @@ const Relatorios = () => {
       columns: ["Cod. PCA", "Descrição", "Setor", "Status", "Situação"],
       csvColumns: ["Cod. PCA", "Descrição", "Setor", "Status", "Situação"],
       mapRow: (r) => {
-         const status = getPrazoStatus(r);
-         return [
-            formatId(r.id, r.codigo),
-            String(r.descricao || ""),
-            String(r.setor_requisitante || ""),
-            statusLabel(r),
-            status.label,
-         ];
+        const status = getPrazoStatus(r);
+        return [
+          formatId(r.id, r.codigo),
+          String(r.descricao || ""),
+          String(r.setor_requisitante || ""),
+          statusLabel(r),
+          status.label,
+        ];
       },
       title: (n) => `Relatório por Status (${n} registros)`,
     },
@@ -295,10 +295,10 @@ const Relatorios = () => {
         r.sobrestado === true
           ? "sobrestado"
           : r.etapa_processo === "Concluído"
-          ? "concluído"
-          : r.etapa_processo === "Em Licitação" || r.etapa_processo === "Contratado"
-          ? "em andamento"
-          : "não iniciado",
+            ? "concluído"
+            : r.etapa_processo === "Em Licitação" || r.etapa_processo === "Contratado"
+              ? "em andamento"
+              : "não iniciado",
         r.valor_estimado || 0,
         (r as any).valor_executado ?? r.valor_contratado ?? 0,
       ],
@@ -318,10 +318,10 @@ const Relatorios = () => {
         r.sobrestado === true
           ? "sobrestado"
           : r.etapa_processo === "Concluído"
-          ? "concluído"
-          : r.etapa_processo === "Em Licitação" || r.etapa_processo === "Contratado"
-          ? "em andamento"
-          : "não iniciado",
+            ? "concluído"
+            : r.etapa_processo === "Em Licitação" || r.etapa_processo === "Contratado"
+              ? "em andamento"
+              : "não iniciado",
         r.valor_estimado || 0,
       ],
       title: (n) => `Relatório por Prioridade (${n} registros)`,
@@ -354,10 +354,10 @@ const Relatorios = () => {
         r.sobrestado === true
           ? "sobrestado"
           : r.etapa_processo === "Concluído"
-          ? "concluído"
-          : r.etapa_processo === "Em Licitação" || r.etapa_processo === "Contratado"
-          ? "em andamento"
-          : "não iniciado",
+            ? "concluído"
+            : r.etapa_processo === "Em Licitação" || r.etapa_processo === "Contratado"
+              ? "em andamento"
+              : "não iniciado",
       ],
       title: (n) => `Relatório SEI (${n} registros)`,
     },
@@ -383,19 +383,36 @@ const Relatorios = () => {
       columns: ["Cod. PCA", "Descrição", "Setor", "Data Prevista", "Situação"],
       csvColumns: ["Cod. PCA", "Descrição", "Setor", "Data Prevista", "Situação"],
       mapRow: (r) => {
-         const status = getPrazoStatus(r);
-         return [
-            formatId(r.id, r.codigo),
-            String(r.descricao || ""),
-            r.setor_requisitante || "",
-            r.data_prevista_contratacao ? (() => {
-               const [y, m, d] = r.data_prevista_contratacao.split("-").map(Number);
-               return new Date(y, m - 1, d).toLocaleDateString("pt-BR");
-            })() : "—",
-            status.label
-         ];
+        const status = getPrazoStatus(r);
+        return [
+          formatId(r.id, r.codigo),
+          String(r.descricao || ""),
+          r.setor_requisitante || "",
+          r.data_prevista_contratacao ? (() => {
+            const [y, m, d] = r.data_prevista_contratacao.split("-").map(Number);
+            return new Date(y, m - 1, d).toLocaleDateString("pt-BR");
+          })() : "—",
+          status.label
+        ];
       },
       title: (n) => `Relatório de Prazos Críticos (${n} registros)`,
+    },
+    pca_2_0: {
+      label: "Documento — PCA 2026 (Versão 2.0)",
+      description: "Versão oficial, moderna e profissional do Plano de Contratações Anual do MPPI.",
+      icon: FileText,
+      columns: ["Cod. PCA", "Descrição", "Setor Demandante", "UO", "Tipo de Contratação", "Grau de Prioridade", "Valor Planejado"],
+      csvColumns: ["Cod. PCA", "Descrição", "Setor Demandante", "UO", "Tipo de Contratação", "Grau de Prioridade", "Valor Planejado"],
+      mapRow: (r) => [
+        formatId(r.id, r.codigo),
+        r.descricao || "",
+        r.setor_requisitante || "",
+        r.unidade_orcamentaria || "",
+        r.tipo_contratacao || "",
+        r.grau_prioridade || "",
+        r.valor_estimado || 0,
+      ],
+      title: () => `Plano de Contratações Anual — MPPI — 2026`,
     },
   };
 
@@ -426,7 +443,7 @@ const Relatorios = () => {
   async function handleGenerate(tipo: "pdf" | "csv", keyOverride?: string) {
     const rType = keyOverride || reportType;
     // Removido setReportType para evitar re-renderizações desnecessárias durante a geração
-    
+
     let pdfWindow: Window | null = null;
     if (tipo === "pdf") {
       // Usamos _blank para garantir sempre uma nova aba
@@ -453,11 +470,11 @@ const Relatorios = () => {
           </html>
         `);
       } else {
-         toast.error("Pop-up bloqueado", { description: "Permita pop-ups para visualizar o relatório." });
-         return;
+        toast.error("Pop-up bloqueado", { description: "Permita pop-ups para visualizar o relatório." });
+        return;
       }
     }
-    
+
     setLoading(true);
     toast.message("Gerando relatório...", { description: `Preparando ${tipo.toUpperCase()}...` });
     try {
@@ -468,43 +485,43 @@ const Relatorios = () => {
       if (rType === 'auditoria') {
         const ids = sourceRows.map(r => r.id);
         if (ids.length) {
-            // Batch requests to avoid URL length limits
-            const batchSize = 50;
-            const promises = [];
-            for (let i = 0; i < ids.length; i += batchSize) {
-                const batch = ids.slice(i, i + batchSize);
-                promises.push(supabase.from("contratacoes_conformidade").select("*").in("contratacao_id", batch));
-            }
-            
-            const results = await Promise.all(promises);
-            const confAll: any[] = [];
-            for (const res of results) {
-                if (res.error) throw res.error;
-                if (res.data) confAll.push(...res.data);
-            }
-            
-            const map: Record<string, number> = {};
-            confAll.forEach((c: any) => {
-              map[c.contratacao_id] = calculateConformity(c);
-            });
-            
-            sourceRows = sourceRows.map(r => ({
-                ...r,
-                conformidade: map[r.id] || 0
-            }));
+          // Batch requests to avoid URL length limits
+          const batchSize = 50;
+          const promises = [];
+          for (let i = 0; i < ids.length; i += batchSize) {
+            const batch = ids.slice(i, i + batchSize);
+            promises.push(supabase.from("contratacoes_conformidade").select("*").in("contratacao_id", batch));
+          }
+
+          const results = await Promise.all(promises);
+          const confAll: any[] = [];
+          for (const res of results) {
+            if (res.error) throw res.error;
+            if (res.data) confAll.push(...res.data);
+          }
+
+          const map: Record<string, number> = {};
+          confAll.forEach((c: any) => {
+            map[c.contratacao_id] = calculateConformity(c);
+          });
+
+          sourceRows = sourceRows.map(r => ({
+            ...r,
+            conformidade: map[r.id] || 0
+          }));
         }
       } else if (rType === 'prazos_criticos') {
-         sourceRows = sourceRows.filter(r => {
-             const status = getPrazoStatus(r);
-             return status.variant === 'destructive' || status.variant === 'warning';
-         });
-         sourceRows.sort((a, b) => {
-             const sa = getPrazoStatus(a);
-             const sb = getPrazoStatus(b);
-             if (sa.variant === sb.variant) return 0;
-             if (sa.variant === 'destructive') return -1;
-             return 1;
-         });
+        sourceRows = sourceRows.filter(r => {
+          const status = getPrazoStatus(r);
+          return status.variant === 'destructive' || status.variant === 'warning';
+        });
+        sourceRows.sort((a, b) => {
+          const sa = getPrazoStatus(a);
+          const sb = getPrazoStatus(b);
+          if (sa.variant === sb.variant) return 0;
+          if (sa.variant === 'destructive') return -1;
+          return 1;
+        });
       }
 
       if (tipo === "csv") {
@@ -521,9 +538,810 @@ const Relatorios = () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "relatorio.csv";
+        a.download = `relatorio_${rType}.csv`;
         a.click();
         URL.revokeObjectURL(url);
+      } else if (rType === "pca_2_0") {
+        const logo = `${location.origin}/logo-mppi.png`;
+        const mapaEstrategico = `${location.origin}/Mapa-Estrategico.jpeg`;
+        const today = new Date().toLocaleDateString('pt-BR');
+
+        // Calcular métricas para o documento
+        const totalDemandas = sourceRows.length;
+        const totalEstimado = sourceRows.reduce((sum, r) => sum + (r.valor_estimado || 0), 0);
+        const formatCurrency = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
+
+        // -- Cálculos para as tabelas da seção 4 --
+
+        // Função auxiliar para normalizar nomes de setores (merging CAA/PROCON)
+        const normalizeSector = (s: string) => {
+          if (s === "CAA" || s === "PROCON") return "CAA/PROCON";
+          if (s === "PLANEJAMENTO") return "PLAN";
+          return s;
+        };
+
+        // TABELA 01 e TABELA 3 & 4: Agrupamento por Setor e UO
+        const sectorData: Record<string, {
+          totalQty: number;
+          newQty: number;
+          newVal: number;
+          renQty: number;
+          renVal: number;
+          uoVals: Record<string, number>;
+          uoRenVals: Record<string, number>;
+        }> = {};
+
+        sourceRows.forEach(r => {
+          const s = normalizeSector(r.setor_requisitante || "Outros");
+          const uo = r.unidade_orcamentaria || "Outros";
+          const isNew = r.tipo_contratacao === "Nova Contratação";
+          const val = r.valor_estimado || 0;
+
+          if (!sectorData[s]) {
+            sectorData[s] = { totalQty: 0, newQty: 0, newVal: 0, renQty: 0, renVal: 0, uoVals: {}, uoRenVals: {} };
+          }
+
+          sectorData[s].totalQty++;
+          if (isNew) {
+            sectorData[s].newQty++;
+            sectorData[s].newVal += val;
+          } else {
+            sectorData[s].renQty++;
+            sectorData[s].renVal += val;
+          }
+
+          sectorData[s].uoVals[uo] = (sectorData[s].uoVals[uo] || 0) + val;
+          if (!isNew) {
+            sectorData[s].uoRenVals[uo] = (sectorData[s].uoRenVals[uo] || 0) + val;
+          }
+        });
+
+        // TABELA 2: Por Tipo de Recurso
+        const resourceMap: Record<string, number> = { "Investimento": 0, "Recorrente/Custeio": 0 };
+        sourceRows.forEach(r => {
+          const type = (r.tipo_recurso === "Investimento") ? "Investimento" : "Recorrente/Custeio";
+          resourceMap[type] += (r.valor_estimado || 0);
+        });
+
+        // Totais por UO (para rodapé das tabelas 3 e 4)
+        const uoTotalsMap: Record<string, number> = {};
+        const uoRenTotalsMap: Record<string, number> = {};
+        sourceRows.forEach(r => {
+          const uo = r.unidade_orcamentaria || "Outros";
+          uoTotalsMap[uo] = (uoTotalsMap[uo] || 0) + (r.valor_estimado || 0);
+          if (r.tipo_contratacao !== "Nova Contratação") {
+            uoRenTotalsMap[uo] = (uoRenTotalsMap[uo] || 0) + (r.valor_estimado || 0);
+          }
+        });
+
+        // Gerar HTML das tabelas calculadas
+        const sortedSectors = Object.keys(sectorData).sort((a, b) => sectorData[b].newVal + sectorData[b].renVal - (sectorData[a].newVal + sectorData[a].renVal));
+
+        const table01Html = sortedSectors.map(s => {
+          const d = sectorData[s];
+          const totalVal = d.newVal + d.renVal;
+          return `
+            <tr>
+              <td>${s}</td>
+              <td class="text-center">${d.totalQty}</td>
+              <td class="text-center">${d.newQty}</td>
+              <td class="text-right">${formatCurrency(d.newVal)}</td>
+              <td class="text-center">${d.renQty}</td>
+              <td class="text-right">${formatCurrency(d.renVal)}</td>
+              <td class="text-right">${formatCurrency(totalVal)}</td>
+              <td class="text-center">${((totalVal / (totalEstimado || 1)) * 100).toFixed(2)}%</td>
+            </tr>`;
+        }).join("");
+
+        const table02Html = Object.entries(resourceMap).map(([type, val]) => `
+          <tr>
+            <td>${type}</td>
+            <td class="text-right">${formatCurrency(val)}</td>
+            <td class="text-center">${((val / (totalEstimado || 1)) * 100).toFixed(0)}%</td>
+          </tr>
+        `).join("");
+
+        const distinctUOs = ["PGJ", "FMMP", "FEPDC"];
+
+        const table03Html = sortedSectors.map(s => {
+          const d = sectorData[s];
+          return `
+            <tr>
+              <td>${s}</td>
+              ${distinctUOs.map(uo => `<td class="text-right">${formatCurrency(d.uoVals[uo] || 0)}</td>`).join("")}
+            </tr>`;
+        }).join("");
+
+        const table04Html = sortedSectors.filter(s => sectorData[s].renQty > 0).map(s => {
+          const d = sectorData[s];
+          return `
+            <tr>
+              <td>${s}</td>
+              ${distinctUOs.map(uo => `<td class="text-right">${formatCurrency(d.uoRenVals[uo] || 0)}</td>`).join("")}
+            </tr>`;
+        }).join("");
+
+        const rowsHtml = sourceRows.map(r => {
+          const data = def.mapRow(r);
+          return `
+            <tr>
+              <td class="text-center" style="width: 12%;">${data[0]}</td>
+              <td class="text-left" style="width: 35%;">${data[1]}</td>
+              <td class="text-left" style="width: 15%;">${data[2]}</td>
+              <td class="text-center" style="width: 10%;">${data[3]}</td>
+              <td class="text-center" style="width: 10%;">${data[4]}</td>
+              <td class="text-center" style="width: 8%;">${data[5]}</td>
+              <td class="text-right" style="width: 10%;">${formatCurrency(Number(data[6]))}</td>
+            </tr>
+          `;
+        }).join("");
+
+        const html = `<!doctype html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <title>PCA 2026 - Versão 2.0 - MPPI</title>
+            <style>
+              @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+              * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+              body { margin: 0; color: #1f2937; background: #fff; line-height: 1.5; text-align: justify; }
+              
+              .cover { height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 20mm 0; text-align: center; border-left: 15mm solid #D9415D; }
+              .logo { margin-bottom: 20mm; }
+              .logo img { height: 120px; }
+              .title-box { margin-top: 20mm; }
+              .main-title { font-size: 32pt; font-weight: 700; color: #111827; margin: 0; text-transform: uppercase; letter-spacing: 2px; }
+              .sub-title { font-size: 18pt; font-weight: 500; color: #D9415D; margin-top: 10mm; }
+              .version-badge { display: inline-block; background: #D9415D; color: #fff; padding: 4px 16px; border-radius: 99px; font-size: 14pt; margin-top: 5mm; }
+              .footer-cover { font-size: 12pt; color: #6b7280; }
+              
+              .page-break { page-break-before: always; }
+              .section { padding: 0mm 0mm 10mm; }
+              p { text-align: justify; }
+              h2 { color: #D9415D; border-bottom: 2px solid #D9415D; padding-bottom: 8px; font-size: 20pt; margin-top: 0; text-align: left; }
+              .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10mm; }
+              .summary-card { padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background: #f9fafb; }
+              .summary-label { font-size: 10pt; color: #6b7280; font-weight: 600; text-transform: uppercase; }
+              .summary-value { font-size: 24pt; font-weight: 700; color: #111827; margin-top: 4px; }
+              
+              table { width: 100%; border-collapse: collapse; margin-top: 10mm; font-size: 9pt; }
+              th { background: #f3f4f6; color: #374151; font-weight: 600; border: 1px solid #d1d5db; padding: 10px 8px; }
+              td { border: 1px solid #e5e7eb; padding: 8px; }
+              .text-right { text-align: right; }
+              .text-center { text-align: center; }
+              .text-left { text-align: left; }
+              
+              .footer-global { position: fixed; bottom: 5mm; left: 20mm; right: 20mm; border-top: 0.5px solid #D9415D; padding-top: 1mm; font-size: 7pt; color: #9ca3af; text-align: left; }
+              .page-number:after { content: counter(page); }
+              
+              @page { size: A4; margin: 20mm 20mm 15mm 20mm; }
+              @page landscape { size: A4 landscape; margin: 20mm 20mm 15mm 20mm; }
+              .landscape-section { page: landscape; }
+              @media print {
+                .no-print { display: none; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="cover">
+              <div class="logo">
+                <img src="${logo}" alt="MPPI Logo">
+              </div>
+              <div class="title-box">
+                <h1 class="main-title">Plano de Contratações Anual</h1>
+                <div class="sub-title">Ministério Público do Estado do Piauí</div>
+                <div class="version-badge">Exercício 2026 - Versão 2.0</div>
+              </div>
+              <div class="footer-cover">
+                Teresina-PI <br> ${today}
+              </div>
+            </div>
+
+            <div class="page-break section">
+              <div style="text-align: left; max-width: 140mm; margin: 0 auto; padding-top: 10mm;">
+                <h3 style="color: #D9415D; font-size: 14pt; margin-bottom: 8mm; text-transform: uppercase; border-bottom: 2px solid #D9415D; padding-bottom: 4px;">Ficha Técnica</h3>
+                
+                <div style="margin-bottom: 6mm;">
+                  <strong style="display: block; font-size: 10pt; color: #111827; margin-bottom: 2px;">ADMINISTRAÇÃO SUPERIOR DO MPPI</strong>
+                  <div style="font-size: 9pt; color: #4b5563;">
+                    Cláudia Pessoa Marques da Rocha Seabra – Procuradora-Geral de Justiça<br>
+                    Cleandro Alves de Moura - Subprocurador de Justiça Institucional<br>
+                    Jorge Luiz da Costa Pessoa - Chefe de Gabinete<br>
+                    Plínio Fabrício de Carvalho Fontes - Subprocurador de Justiça Administrativo<br>
+                    Denise Costa Aguiar - Assessora de Planejamento e Gestão
+                  </div>
+                </div>
+
+                <div style="margin-bottom: 6mm;">
+                  <strong style="display: block; font-size: 10pt; color: #111827; margin-bottom: 2px;">GOVERNANÇA E GESTÃO DAS CONTRATAÇÕES</strong>
+                  <div style="font-size: 9pt; color: #4b5563;">
+                    Jorge Luiz da Costa Pessoa - Chefe de Gabinete<br>
+                    Denise Costa Aguiar - Assessora de Planejamento e Gestão<br>
+                    Afrânio Oliveira da Silva – Coordenador de Licitações e Contratos
+                  </div>
+                </div>
+
+                <div style="margin-bottom: 6mm;">
+                  <strong style="display: block; font-size: 10pt; color: #111827; margin-bottom: 2px;">ASSESSORIA PARA PROGRAMAÇÃO E GESTÃO ORÇAMENTÁRIA</strong>
+                  <div style="font-size: 9pt; color: #4b5563;">
+                    Clériston de Castro Ramos – Analista de Orçamento<br>
+                    Italo Silva Vaz – Analista de Orçamento
+                  </div>
+                </div>
+
+                <div style="margin-bottom: 6mm;">
+                  <strong style="display: block; font-size: 10pt; color: #111827; margin-bottom: 2px;">EXPEDIENTE - CONTEÚDO E REDAÇÃO</strong>
+                  <div style="font-size: 9pt; color: #4b5563;">
+                    Afrânio Oliveira da Silva<br>
+                    Clériston de Castro Ramos<br>
+                    Ítalo Silva Vaz<br>
+                    Maria Gabrielle da Costa Nascimento
+                  </div>
+                </div>
+
+                <div style="margin-bottom: 6mm;">
+                  <strong style="display: block; font-size: 10pt; color: #111827; margin-bottom: 2px;">PROJETO GRÁFICO - DIAGRAMAÇÃO E IMPRESSÃO</strong>
+                  <div style="font-size: 9pt; color: #4b5563;">
+                    Afrânio Oliveira da Silva<br>
+                    Clériston de Castro Ramos<br>
+                    Ítalo Silva Vaz<br>
+                    Maria Gabrielle da Costa Nascimento
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="page-break section">
+              <h2 style="margin-bottom: 10mm;">Lista de Siglas e Termos</h2>
+              <div style="column-count: 1; font-size: 9pt;">
+                <table style="margin-top: 0;">
+                  <thead>
+                    <tr>
+                      <th style="width: 25%;">Sigla / Termo</th>
+                      <th style="width: 75%;">Significado / Definição</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><strong>Adjudicação</strong></td><td>Atribuição formal do objeto da licitação ao vencedor.</td></tr>
+                    <tr><td><strong>Aditivo</strong></td><td>Instrumento para alteração de valor ou prazo de contratos vigentes.</td></tr>
+                    <tr><td><strong>Apostilamento</strong></td><td>Anotação administrativa de ajustes contratuais que não exigem aditivo.</td></tr>
+                    <tr><td><strong>ASSESPPLAGES</strong></td><td>Assessoria de Planejamento e Gestão</td></tr>
+                    <tr><td><strong>CAA</strong></td><td>Coordenadoria de Apoio Administrativo</td></tr>
+                    <tr><td><strong>CATSER</strong></td><td>Catálogo de Serviços</td></tr>
+                    <tr><td><strong>CCF</strong></td><td>Coordenadoria de Contabilidade e Finanças</td></tr>
+                    <tr><td><strong>CCS</strong></td><td>Coordenadoria de Comunicação Social</td></tr>
+                    <tr><td><strong>CEAF</strong></td><td>Centro de Estudos e Aperfeiçoamento Funcional</td></tr>
+                    <tr><td><strong>CLC</strong></td><td>Coordenadoria de Licitações e Contratos</td></tr>
+                    <tr><td><strong>Código PCA</strong></td><td>Identificador único no formato PCA-XXXX-2026.</td></tr>
+                    <tr><td><strong>Conformidade</strong></td><td>Verificação de requisitos documentais e legais.</td></tr>
+                    <tr><td><strong>CONINT</strong></td><td>Controladoria Interna</td></tr>
+                    <tr><td><strong>Contratação</strong></td><td>Processo formal de aquisição de bens ou serviços pelo MPPI.</td></tr>
+                    <tr><td><strong>CPPT</strong></td><td>Coordenadoria de Perícias e Pareceres Técnicos</td></tr>
+                    <tr><td><strong>CRH</strong></td><td>Coordenadoria de Recursos Humanos</td></tr>
+                    <tr><td><strong>CTI</strong></td><td>Coordenadoria de Tecnologia da Informação</td></tr>
+                    <tr><td><strong>Devolução</strong></td><td>Retorno do processo ao setor para correções.</td></tr>
+                    <tr><td><strong>DFD</strong></td><td>Documento de Formalização de Demanda que oficializa a necessidade de compra.</td></tr>
+                    <tr><td><strong>Dispensa de Licitação</strong></td><td>Contratação direta por baixo valor ou situações específicas em lei.</td></tr>
+                    <tr><td><strong>Empenho</strong></td><td>Ato administrativo que reserva recursos orçamentários.</td></tr>
+                    <tr><td><strong>Etapa do Processo</strong></td><td>Fase atual (Planejamento, Em Licitação, Contratado, Concluído).</td></tr>
+                    <tr><td><strong>ETP</strong></td><td>Estudo Técnico Preliminar que analisa a viabilidade da solução escolhida.</td></tr>
+                    <tr><td><strong>FEPDC</strong></td><td>Fundo Estadual de Proteção e Defesa do Consumidor</td></tr>
+                    <tr><td><strong>FMMP</strong></td><td>Fundo de Modernização do Ministério Público</td></tr>
+                    <tr><td><strong>GAECO</strong></td><td>Grupo de Atuação Especial de Combate ao Crime Organizado</td></tr>
+                    <tr><td><strong>GSI</strong></td><td>Gabinete de Segurança Institucional</td></tr>
+                    <tr><td><strong>Homologação</strong></td><td>Confirmação da validade jurídica do processo pela autoridade superior.</td></tr>
+                    <tr><td><strong>Inexigibilidade</strong></td><td>Contratação direta quando não há possibilidade de competição.</td></tr>
+                    <tr><td><strong>Mapa de Riscos</strong></td><td>Documento que identifica e mitiga riscos que podem afetar a contratação.</td></tr>
+                    <tr><td><strong>Modalidade Licitatória</strong></td><td>Procedimento legal para seleção do fornecedor (ex: Pregão, Dispensa).</td></tr>
+                    <tr><td><strong>MPPI</strong></td><td>Ministério Público do Estado do Piauí</td></tr>
+                    <tr><td><strong>Normativo</strong></td><td>Lei de licitações que rege o processo (Lei 14.133 ou 8.666).</td></tr>
+                    <tr><td><strong>PCA</strong></td><td>Plano de Contratações Anual</td></tr>
+                    <tr><td><strong>PDM</strong></td><td>Padrão Descritivo de Material</td></tr>
+                    <tr><td><strong>Pesquisa de Preços</strong></td><td>Levantamento de valores de mercado para balizar o custo estimado.</td></tr>
+                    <tr><td><strong>PGEA</strong></td><td>Procedimento de Gestão Administrativa</td></tr>
+                    <tr><td><strong>PGJ</strong></td><td>Procuradoria-Geral de Justiça</td></tr>
+                    <tr><td><strong>PLAN / ASSESPPLAGES</strong></td><td>Assessoria de Planejamento e Gestão</td></tr>
+                    <tr><td><strong>Pregão Eletrônico</strong></td><td>Leilão em formato eletrônico para aquisição de bens e serviços comuns.</td></tr>
+                    <tr><td><strong>PROCON</strong></td><td>Programa de Proteção e Defesa do Consumidor</td></tr>
+                    <tr><td><strong>Registro de Preços / SRP</strong></td><td>Sistema para registro formal de preços para futuras contratações.</td></tr>
+                    <tr><td><strong>Repactuação</strong></td><td>Reajuste de preços para contratos de serviços contínuos com mão de obra.</td></tr>
+                    <tr><td><strong>Saldo Orçamentário</strong></td><td>Recurso ainda disponível no orçamento do setor após os empenhos realizados.</td></tr>
+                    <tr><td><strong>SEI</strong></td><td>Sistema Eletrônico de Informações</td></tr>
+                    <tr><td><strong>Sobrestamento</strong></td><td>Paralisação temporária de um processo de contratação.</td></tr>
+                    <tr><td><strong>SRP</strong></td><td>Sistema de Registro de Preços</td></tr>
+                    <tr><td><strong>Termo de Referência / TR</strong></td><td>Documento que detalha o objeto, especificações e obrigações da contratação.</td></tr>
+                    <tr><td><strong>Trava Orçamentária</strong></td><td>Mecanismo que bloqueia novas contratações quando o limite é atingido.</td></tr>
+                    <tr><td><strong>UO</strong></td><td>Unidade Orçamentária</td></tr>
+                    <tr><td><strong>Valor Contratado</strong></td><td>Valor efetivamente acordado no contrato.</td></tr>
+                    <tr><td><strong>Valor Estimado</strong></td><td>Valor previsto para a contratação, antes do certame.</td></tr>
+                    <tr><td><strong>Valor Executado</strong></td><td>Quantia exata de recursos orçamentários empenhada para cobrir despesa.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="page-break section">
+              <h2>1. Apresentação</h2>
+              <p>O Plano de Contratações Anual (PCA) do Ministério Público do Estado do Piauí, referente ao exercício de 2026, consolida-se como o instrumento central de governança estruturante e planejamento logístico institucional. Alinhado aos preceitos da Nova Lei de Licitações e Contratos (Lei nº 14.133/2021), o PCA transcende a mera formalidade administrativa para atuar como um guia estratégico, assegurando que as aquisições e contratações de serviços e obras guardem estrita consonância com o Planejamento Estratégico e as diretrizes orçamentárias deste Parquet.</p>
+              
+              <p>Esta Versão 2.0 reflete um processo de amadurecimento na gestão de insumos, fundamentado em análises de dados precisas e na interlocução direta entre as unidades requisitantes e a Administração Superior. Por meio da racionalização de demandas e da busca contínua pela economia de escala e padronização, o plano visa otimizar a alocação de recursos públicos, mitigando riscos de descontinuidade administrativa e elevando os padrões de transparência, eficácia e eficiência operacional.</p>
+
+              <p>As métricas consolidadas a seguir sintetizam a magnitude do planejamento para o próximo exercício, refletindo o compromisso do MPPI com a excelência e a responsabilidade na gestão da coisa pública.</p>
+
+              <div class="summary-grid">
+                <div class="summary-card">
+                  <div class="summary-label">Total de Demandas</div>
+                  <div class="summary-value">${totalDemandas}</div>
+                </div>
+                <div class="summary-card">
+                  <div class="summary-label">Montante Planejado</div>
+                  <div class="summary-value">${formatCurrency(totalEstimado)}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="page-break section">
+              <h2>2. Considerações Iniciais</h2>
+              <p>O Plano de Contratações Anual (PCA), um dos principais instrumentos da governança em contratações, compreende as demandas a serem realizadas no exercício, sejam elas relacionadas a bens, serviços ou obras. Além das demandas novas, contempla também todas as renovações de contratos do Órgão (serviços e fornecimentos continuados). Sua relevância foi ampliada pela Nova Lei de Licitações (Lei 14.133/2021), consolidando-o como peça fundamental para o alcance de resultados mais sustentáveis e eficientes.</p>
+              
+              <p>Para o exercício de 2026, o PCA-MPPI evoluciona de um planejamento estático para uma ferramenta de gestão ativa e dinâmica. Uma das grandes inovações deste ano é a migração da gestão, outrora realizada exclusivamente por planilhas de Business Intelligence (Power BI), para um <strong>sistema web próprio dedicado</strong>. Essa transição tecnológica permite um controle mais rigoroso e transparente, minimizando inconsistências e agilizando a tomada de decisão estratégica.</p>
+
+              <p>A importância estratégica do acompanhamento e monitoramento da execução é reforçada pela instituição de <strong>reuniões mensais de acompanhamento</strong> envolvendo todas as unidades administrativas e técnicas. Esses encontros visam avaliar o progresso das contratações, identificar gargalos técnicos e garantir o estrito cumprimento do cronograma estabelecido. Ademais, o novo sistema implementa inovações cruciais como a definição de <strong>limites de utilização orçamentária</strong> e <strong>travas sistêmicas por setor</strong>, assegurando que a execução financeira guarde total sintonia com os parâmetros aprovados pela Administração Superior.</p>
+
+              <p>Em suma, o PCA-2026 representa um salto qualitativo na governança institucional do Parquet, unindo tecnologia de ponta, monitoramento sistemático e disciplina fiscal para garantir a otimização dos recursos públicos e a transparência em todo o ciclo de contratação.</p>
+              <p>O PCA é um documento dinâmico e deve acomodar ajustes estratégicos, caso surjam novas oportunidades ou desafios, devidamente justificados, ao longo do ano.</p>
+              <p>Após a consolidação do PCA, conforme o prazo previsto no art. 11, do Ato 1381/2024/PGJ-PI, o setor de licitações e contratos, juntamente com a Assessoria de Planejamento e Gestão, elaborarão o Calendário de Contratações e Renovações de Contratos e submeterão a aprovação do Procurador-Geral de Justiça.</p>
+            </div>
+
+            <div class="page-break section">
+              <h2>3. Diretrizes da Política de Aquisições</h2>
+              <p>A elaboração do plano de contratações anual pelas unidades administrativas tem como diretrizes:</p>
+              <ul style="list-style-type: none; padding-left: 0; margin-top: 5mm;">
+                <li style="margin-bottom: 4mm; display: flex; align-items: flex-start; gap: 8px;">
+                  <span style="color: #D9415D; font-weight: bold;">✓</span>
+                  <span>Racionalizar as contratações das unidades administrativas de sua competência, por meio da promoção de contratações centralizadas e compartilhadas, a fim de obtenção de economia de escala, padronização de produtos e serviços e redução de custos processuais;</span>
+                </li>
+                <li style="margin-bottom: 4mm; display: flex; align-items: flex-start; gap: 8px;">
+                  <span style="color: #D9415D; font-weight: bold;">✓</span>
+                  <span>Garantir o alinhamento com o planejamento estratégico, plano diretor de logística sustentável, plano de gestão de estoque e outros instrumentos de governança existentes;</span>
+                </li>
+                <li style="margin-bottom: 4mm; display: flex; align-items: flex-start; gap: 8px;">
+                  <span style="color: #D9415D; font-weight: bold;">✓</span>
+                  <span>Subsidiar a elaboração das leis orçamentárias;</span>
+                </li>
+                <li style="margin-bottom: 4mm; display: flex; align-items: flex-start; gap: 8px;">
+                  <span style="color: #D9415D; font-weight: bold;">✓</span>
+                  <span>Evitar o fracionamento de despesas;</span>
+                </li>
+                <li style="margin-bottom: 4mm; display: flex; align-items: flex-start; gap: 8px;">
+                  <span style="color: #D9415D; font-weight: bold;">✓</span>
+                  <span>Sinalizar intenções ao mercado fornecedor, de forma a aumentar o diálogo potencial com o mercado e incrementar a competitividade.</span>
+                </li>
+                <li style="margin-bottom: 4mm; display: flex; align-items: flex-start; gap: 8px;">
+                  <span style="color: #D9415D; font-weight: bold;">✓</span>
+                  <span>Promover a comunicação aberta, voluntária e transparente dos procedimentos e dos resultados das aquisições do MPPI, de maneira a fortalecer o acesso público à informação;</span>
+                </li>
+                <li style="margin-bottom: 4mm; display: flex; align-items: flex-start; gap: 8px;">
+                  <span style="color: #D9415D; font-weight: bold;">✓</span>
+                  <span>Aperfeiçoar a gestão por competências por meio da capacitação e desenvolvimento de servidores e gestores que atuam na área de aquisições do MPPI;</span>
+                </li>
+                <li style="margin-bottom: 4mm; display: flex; align-items: flex-start; gap: 8px;">
+                  <span style="color: #D9415D; font-weight: bold;">✓</span>
+                  <span>adotar práticas de gestão e planejamento setoriais que assegurem a otimização de custos e a potencialização dos recursos disponíveis.</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="page-break section">
+              <h2>4. Do Plano de Contratação Anual</h2>
+              <p>Com o propósito de avançar no cumprimento de sua missão institucional, o Ministério Público do Estado do Piauí, e seus fundos, têm envidado esforços para o melhor aproveitamento dos recursos públicos.</p>
+              <p>Nesse sentido, seguindo as diretrizes da Política de Governança de Aquisições do MPPI, e com o empenho das áreas responsáveis pela gestão contratual e pela prestação de serviços que dão suporte à atividade finalística, realizou-se o alinhamento das contratações, propostas na LOA, aos objetivos estratégicos e às reais necessidades deste Órgão.</p>
+              <p>Fruto de uma gestão comprometida com resultados, o Plano de Contratações Anual (PCA) do MPPI se propõe a identificar oportunidades de otimização dos recursos disponíveis e de aprimoramento dos processos de trabalho.</p>
+              <p>A primeira etapa da elaboração do PCA consiste no levantamento de necessidades junto às unidades requisitantes e aos órgãos ministeriais, assessorado pela Chefia de Gabinete do PGJ, Assessoria de Planejamento Estratégico e Coordenadoria de Licitações e Contratos. Cada unidade requisitante, levantou e relacionou as suas propostas de novas compras e contratações, além de listar as contratações de natureza continuada que serão renovadas no exercício de 2026.</p>
+              <p>Coube a cada Coordenadoria Técnica/Assessoria, Órgãos Ministeriais, ou unidade equivalente, levantar e relacionar as suas propostas de novas aquisições/contratações (recorrentes, custeio ou investimento), de natureza continuada ou não, conforme Ato PGJ 1381/2024 e/ou normativos que o modifique.</p>
+
+              <h3 style="font-size: 11pt; color: #111827; margin-top: 6mm; margin-bottom: 3mm;">3.1. Do levantamento das necessidades</h3>
+              <p>O Plano de Contratações Anual foi normatizado através do Ato PGJ-1381/2024, a Coordenadoria de Licitações e Contratos enviou para as unidades requisitantes, Promotorias e Procuradorias de Justiça e Diretores de Sede PGEA/SEI: 19.21.0013.0025806/2025-68, para que as unidades formulassem suas propostas para aquisições novas durante o exercício de 2026.</p>
+              <p>A metodologia de elaboração do PCA-MPPI segue um processo estruturado que se inicia com a elaboração pela Coordenadoria de Licitações e as unidades requisitantes de uma lista prévia de demandas possíveis que o MPPI pretende contratar. Em seguida tal listagem de produtos, passa pela análise e compatibilização de demandas pela área de contratações e pela Chefia de Gabinete do PGJ e Assessoria de Planejamento Estratégico. Após isso, é feito debate entre as unidades requisitantes e Alta Administração, para elegermos os itens mais importantes para contratação e de acordo com as disponibilidades orçamentárias.</p>
+              <p>Ato contínuo, a listagem é submetida ao PGJ, para homologação. Finda essa fase, a listagem é submetida às unidades Técnicas da área estruturante, às diretorias de sede, Promotorias e Procuradorias de Justiça, Assessorias, para elegerem as suas necessidades para serem contratadas no ano seguinte. Através de questionário forms, todas as unidades responderam de acordo com suas necessidades. As respostas são coletadas em planilha, que por sua vez são consolidadas e submetidas ao PGJ.</p>
+
+              <h3 style="font-size: 11pt; color: #111827; margin-top: 6mm; margin-bottom: 3mm;">3.2. Do Tratamento dos dados</h3>
+              <p>Após o recebimento das informações, acerca das necessidades de contratação, os dados são tratados e organizados em painel interativo em ferramenta de Business Intelligence. Tendo em vista a eficiência operacional, para o PCA-2026 foram aprimorados alguns procedimentos, buscando sempre que possível adotar as melhores práticas da Administração Pública:</p>
+              <ul style="list-style-type: none; padding-left: 0; margin-top: 5mm;">
+                <li style="margin-bottom: 4mm; display: flex; align-items: flex-start; gap: 8px;">
+                  <span style="color: #D9415D; font-weight: bold;">✓</span>
+                  <span>A etapa de levantamento de demandas contemplou apenas as propostas de novas contratações, incluindo as solicitações de compras por meio do sistema de registro de preços.</span>
+                </li>
+                <li style="margin-bottom: 4mm; display: flex; align-items: flex-start; gap: 8px;">
+                  <span style="color: #D9415D; font-weight: bold;">✓</span>
+                  <span>No caso das contratações vigentes, a unidade demandante informou a pretensão de renová-las ou de prorrogá-las durante o exercício, sem a necessidade de inserção do Documento de Formalização de Demanda (DFD).</span>
+                </li>
+                <li style="margin-bottom: 4mm; display: flex; align-items: flex-start; gap: 8px;">
+                  <span style="color: #D9415D; font-weight: bold;">✓</span>
+                  <span>No preenchimento do questionário do PCA, a unidade requisitante preencheu o campo “PDM/CATSER”, visando complementar as informações contidas na “Descrição da Demanda” e otimizar o processo de cadastramento dos itens no Portal Nacional de Contratações Públicas (PNCP), conforme a Lei 14133/2021.</span>
+                </li>
+              </ul>
+
+              <h3 style="font-size: 11pt; color: #111827; margin-top: 6mm; margin-bottom: 3mm;">3.3. Da consolidação</h3>
+              <p>A partir das informações disponibilizadas através do questionário forms e dos ajustes necessários junto aos gestores responsáveis, em reuniões de alinhamento por meio da plataforma Teams e presencial, foi elaborada a planilha consolidando as demandas de cada unidade gestora. Alguns cuidados foram tomados na elaboração deste PCA, como apresentação do monitoramento do que pude comprometer o orçamento de 2026, feito conjuntamente com as demandas apresentadas; a inclusão de algumas colunas no calendário das contratações como “ PDM/CATSER”, “DATA DE ENVIO DO PGEA” DATA DE ENTRADA NA CLC” permaneceram, para uma melhor análise dos riscos; assim como nos anos anteriores, o indicativo de alinhamento às diretrizes ao Planejamento Estratégico, ajustes de calendários para otimização do processo; e, tendo em vista a mitigação de riscos de fracionamento de despesas e a economia processual, proposta de unificação de demandas apresentadas para os mesmos objetos, mesmo que de setores distintos.</p>
+              <p>Em reuniões com a presença dos representantes de cada unidade gestora, os setores de Licitações, Orçamento e Planejamento e Chefia de Gabinete do PGJ, com base nas diretrizes da Administração e no orçamento disponibilizado para o próximo exercício, apreciou-se as demandas propostas pelas unidades CAA, CCF, CCS, CEAF, CLC, CONINT, CPPT, CRH, CTI, GAECO, GSI, PROCON, autorizando ou não a inclusão no PCA-2026, bem como realizando recomendações necessárias. As propostas foram aprovadas em reunião com a PGJ-PI, Assessoria de Planejamento e Gestão, Chefia de Gabinete da PGJ e as Unidades Requisitantes, definidas no Ato PGJ 1381/2024. Após essa fase, todo the PCA foi devidamente revisado e submetido à PGJ-PI para aprovação final e execução pelas Unidade Requisitantes.</p>
+            </div>
+
+            <div class="page-break section">
+              <h2>5. Perspectiva Orçamentária do PCA-2026</h2>
+              <h3 style="font-size: 12pt; color: #111827; margin-top: 6mm; margin-bottom: 3mm;">5.1 Valores totais em percentual e em milhões de reais:</h3>
+              <p>De acordo com os valores informados para as demandas apresentadas e após deliberação da PGJ-PI, o PCA-2026 totalizou o valor de <strong>${formatCurrency(totalEstimado)}</strong>.</p>
+              <p>A quantidade de itens do PCA-26 totalizou <strong>${totalDemandas}</strong> demandas, conforme consta no calendário de contratações e no Anexo I deste documento.</p>
+              <p>Na tabela abaixo, segue a representatividade de cada unidade requisitante no PCA. Observa-se a distribuição em termos de quantidades e valores das demandas de contratações para o exercício de 2026.</p>
+              <p>Após o início da execução do PCA, é possível que novas demandas não previstas aqui, surjam dentro da organização. Tais demandas deverão ser autorizadas pela PGJ mediante parecer prévio da Assessoria de Planejamento e Gestão confirmando ou não a existência de rubrica orçamentária para cobrir as novas despesas. Após tal comprovação de recursos orçamentários e aprovação da PGJ, o pedido será enviado para o setor de Licitações e Contratos para inserção da demanda no PCA vigente. Após inserção do referido item, a Unidade Requisitante poderá proceder à produção dos artefatos de planejamento da contratação do referido objeto. A seguir, serão apresentadas informações acerca dos itens do PCA, Unidades Orçamentárias e Unidades Requisitantes.</p>
+              
+              <div style="margin-top: 8mm;">
+                <p style="font-size: 8pt; font-weight: 600; margin-bottom: 2mm;">TABELA 01: Representatividade total do PCA: nova contratação e renovação contratual.</p>
+                <table style="font-size: 7.5pt;">
+                  <thead>
+                    <tr>
+                      <th rowspan="2">Unidade Requisitante</th>
+                      <th rowspan="2">Qtd Itens</th>
+                      <th colspan="2" style="background: #fef2f2;">Nova Contratação</th>
+                      <th colspan="2" style="background: #f0fdf4;">Renovação de Contrato</th>
+                      <th rowspan="2">Valor Total</th>
+                      <th rowspan="2">% PCA</th>
+                    </tr>
+                    <tr>
+                      <th style="background: #fef2f2;">Qtd</th>
+                      <th style="background: #fef2f2;">Valor</th>
+                      <th style="background: #f0fdf4;">Qtd</th>
+                      <th style="background: #f0fdf4;">Valor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${table01Html}
+                  </tbody>
+                  <tfoot>
+                    <tr style="font-weight: bold; background: #f9fafb;">
+                      <td>TOTAIS</td>
+                      <td class="text-center">${totalDemandas}</td>
+                      <td class="text-center">${sourceRows.filter(r => r.tipo_contratacao === 'Nova Contratação').length}</td>
+                      <td class="text-right">${formatCurrency(sourceRows.filter(r => r.tipo_contratacao === 'Nova Contratação').reduce((s, r) => s + (r.valor_estimado || 0), 0))}</td>
+                      <td class="text-center">${sourceRows.filter(r => r.tipo_contratacao !== 'Nova Contratação').length}</td>
+                      <td class="text-right">${formatCurrency(sourceRows.filter(r => r.tipo_contratacao !== 'Nova Contratação').reduce((s, r) => s + (r.valor_estimado || 0), 0))}</td>
+                      <td class="text-right">${formatCurrency(totalEstimado)}</td>
+                      <td class="text-center">100%</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              <div style="margin-top: 10mm; width: 60%;">
+                <p style="font-size: 8pt; font-weight: 600; margin-bottom: 2mm;">TABELA 2: Representatividade quanto ao tipo de recurso no PCA</p>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Tipo</th>
+                      <th>Valor</th>
+                      <th>Percentual</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${table02Html}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="page-break section">
+              <div style="margin-top: 5mm;">
+                <p style="font-size: 8pt; font-weight: 600; margin-bottom: 2mm;">TABELA 3: Representatividade dos valores totais do PCA por unidade orçamentária e Unidade Requisitante.</p>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Unidade Requisitante</th>
+                      <th>PGJ</th>
+                      <th>FMMP</th>
+                      <th>FEPDC</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${table03Html}
+                  </tbody>
+                  <tfoot>
+                    <tr style="font-weight: bold; background: #f9fafb;">
+                      <td>VALORES TOTAIS</td>
+                      <td class="text-right">${formatCurrency(uoTotalsMap["PGJ"] || 0)}</td>
+                      <td class="text-right">${formatCurrency(uoTotalsMap["FMMP"] || 0)}</td>
+                      <td class="text-right">${formatCurrency(uoTotalsMap["FEPDC"] || 0)}</td>
+                    </tr>
+                    <tr style="font-weight: bold; background: #f9fafb;">
+                      <td>PERCENTUAL</td>
+                      <td class="text-right">${((uoTotalsMap["PGJ"] || 0) / (totalEstimado || 1) * 100).toFixed(2)}%</td>
+                      <td class="text-right">${((uoTotalsMap["FMMP"] || 0) / (totalEstimado || 1) * 100).toFixed(2)}%</td>
+                      <td class="text-right">${((uoTotalsMap["FEPDC"] || 0) / (totalEstimado || 1) * 100).toFixed(2)}%</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              <div style="margin-top: 10mm;">
+                <p style="font-size: 8pt; font-weight: 600; margin-bottom: 2mm;">TABELA 4: Representatividade do PCA das renovações de contratos por unidade orçamentária</p>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Unidade Requisitante</th>
+                      <th>PGJ</th>
+                      <th>FMMP</th>
+                      <th>FEPDC</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${table04Html}
+                  </tbody>
+                  <tfoot>
+                    <tr style="font-weight: bold; background: #f9fafb;">
+                      <td>VALORES TOTAIS (Renov.)</td>
+                      <td class="text-right">${formatCurrency(uoRenTotalsMap["PGJ"] || 0)}</td>
+                      <td class="text-right">${formatCurrency(uoRenTotalsMap["FMMP"] || 0)}</td>
+                      <td class="text-right">${formatCurrency(uoRenTotalsMap["FEPDC"] || 0)}</td>
+                    </tr>
+                    <tr style="font-weight: bold; background: #f9fafb;">
+                      <td>PERCENTUAL</td>
+                      <td class="text-right">${((uoRenTotalsMap["PGJ"] || 0) / (totalEstimado || 1) * 100).toFixed(2)}%</td>
+                      <td class="text-right">${((uoRenTotalsMap["FMMP"] || 0) / (totalEstimado || 1) * 100).toFixed(2)}%</td>
+                      <td class="text-right">${((uoRenTotalsMap["FEPDC"] || 0) / (totalEstimado || 1) * 100).toFixed(2)}%</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
+            <div class="page-break section">
+              <h2>6. Alinhamento Estratégico</h2>
+              <p>O Plano de Contratações Anual (PCA-2026) constitui-se como um instrumento fundamental de viabilização da estratégia institucional. Todas as demandas consolidadas neste documento foram criteriosamente analisadas sob a ótica de sua contribuição direta para os Objetivos Estratégicos definidos no Plano Estratégico 2020–2029 do Ministério Público do Estado do Piauí, em estrita observância à Estratégia Nacional do Ministério Público Brasileiro (Resolução CNMP nº 147/2016 e alterações).</p>
+              
+              <p>Este alinhamento garante que a alocação de recursos em bens, serviços e obras esteja vinculada ao fortalecimento da atuação finalística, ao aprimoramento da governança corporativa e à promoção da eficiência administrativa. A integração entre o planejamento logístico e o Mapa Estratégico institucional assegura a aderência às diretrizes de sustentabilidade e transparência, reforçando o compromisso deste Parquet com a entrega de resultados efetivos à sociedade piauiense.</p>
+
+              <div style="margin-top: 10mm; text-align: center;">
+                <p style="font-size: 8pt; font-weight: 600; margin-bottom: 4mm; color: #374151;">MAPA ESTRATÉGICO INSTITUCIONAL (2020-2029)</p>
+                <img src="${mapaEstrategico}" style="width: 100%; max-width: 180mm; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);" alt="Mapa Estratégico MPPI">
+              </div>
+            </div>
+
+            <div class="page-break section">
+              <h2>7. Contratações que não permitem renovação em 2026</h2>
+              <p>Considerando o limite de prorrogações previsto em lei ou por decisão administrativa, as seguintes contratações deverão ter novos processos licitatórios iniciados, visto que não admitem novas renovações contratuais para o exercício de 2026.</p>
+              
+              <div style="margin-top: 5mm;">
+                <p style="font-size: 8pt; font-weight: 600; margin-bottom: 2mm;">TABELA 5: Contratos não renováveis</p>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Objeto</th>
+                      <th>Unidade Orçamentária</th>
+                      <th>Unidade Requisitante</th>
+                      <th>Número do Contrato</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Contratação de Transporte Intermunicipal de Carga - PAC correios.</td>
+                      <td class="text-center">PGJ</td>
+                      <td class="text-center">CAA</td>
+                      <td class="text-center">52/2021</td>
+                    </tr>
+                    <tr>
+                      <td>Prestação de Serviço de Coleta de Lixo do MP-PI em Teresina</td>
+                      <td class="text-center">PGJ</td>
+                      <td class="text-center">CAA</td>
+                      <td class="text-center">76/2021</td>
+                    </tr>
+                    <tr>
+                      <td>Serviços de manutenção preventiva e corretiva, com o fornecimento de peças, para 2 (dois) motores-geradores de energia elétrica</td>
+                      <td class="text-center">PGJ</td>
+                      <td class="text-center">CAA</td>
+                      <td class="text-center">79/2021</td>
+                    </tr>
+                    <tr>
+                      <td>link de internet</td>
+                      <td class="text-center">PGJ</td>
+                      <td class="text-center">CTI</td>
+                      <td class="text-center">15/2021</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="page-break section">
+              <h2>8. Contratos com prazo indeterminado</h2>
+              <p>Os contratos de serviços públicos essenciais (água, energia, correios) são celebrados com prazo indeterminado, conforme a natureza do serviço e a legislação vigente, garantindo a continuidade das atividades institucionais.</p>
+              
+              <div style="margin-top: 5mm;">
+                <p style="font-size: 8pt; font-weight: 600; margin-bottom: 2mm;">TABELA 6: Contratos com prazo indeterminado</p>
+                <table style="font-size: 7.5pt;">
+                  <thead>
+                    <tr>
+                      <th>Objeto</th>
+                      <th>UO</th>
+                      <th>Unidade Requisitante</th>
+                      <th>Contrato</th>
+                      <th>Valor Anual Previsto</th>
+                      <th>Término</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Fornecimento de Água Tratada e tratamento de Esgoto - SAAE OEIRAS</td>
+                      <td class="text-center">PGJ</td>
+                      <td class="text-center">CAA</td>
+                      <td class="text-center">45/2018</td>
+                      <td class="text-right">R$ 2.000,00</td>
+                      <td class="text-center">Indeterminado</td>
+                    </tr>
+                    <tr>
+                      <td>Fornecimento de Água Tratada e Tratamento de Esgoto - SAAE CAMPO MAIOR</td>
+                      <td class="text-center">PGJ</td>
+                      <td class="text-center">CAA</td>
+                      <td class="text-center">55/2019</td>
+                      <td class="text-right">R$ 1.000,00</td>
+                      <td class="text-center">Indeterminado</td>
+                    </tr>
+                    <tr>
+                      <td>Fornecimento de Água Tratada e Tratamento de Esgoto Sanitário - Águas de Teresina</td>
+                      <td class="text-center">PGJ</td>
+                      <td class="text-center">CAA</td>
+                      <td class="text-center">58/2019</td>
+                      <td class="text-right">R$ 160.000,00</td>
+                      <td class="text-center">Indeterminado</td>
+                    </tr>
+                    <tr>
+                      <td>Fornecimento de Energia elétrica - Equatorial</td>
+                      <td class="text-center">FMMPPI</td>
+                      <td class="text-center">CPPT</td>
+                      <td class="text-center">88/2025</td>
+                      <td class="text-right">R$ 1.680.000,00</td>
+                      <td class="text-center">Indeterminado</td>
+                    </tr>
+                    <tr>
+                      <td>Contratação de produtos e serviços por meio de pacote de Serviço dos correios</td>
+                      <td class="text-center">PGJ</td>
+                      <td class="text-center">CAA</td>
+                      <td class="text-center">76/2024</td>
+                      <td class="text-right">R$ 74.000,00</td>
+                      <td class="text-center">Indeterminado</td>
+                    </tr>
+                    <tr>
+                      <td>Contratação de serviços de fornecimento de água tratada e coleta de esgoto sanitário para os imóveis sedes do Ministério Público do Estado do Piauí localizadas no interior do Estado - ÁGUAS DO PIAUÍ</td>
+                      <td class="text-center">PGJ</td>
+                      <td class="text-center">CAA</td>
+                      <td class="text-center">96/2025</td>
+                      <td class="text-right">R$ 450.259,20</td>
+                      <td class="text-center">Indeterminado</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="page-break section">
+              <h2>9. Gestão de Risco do PCA</h2>
+              <p>A Gestão de Riscos do PCA-2026 será feita com base no art. 17º do Ato PGJ 1381/2024 que diz que, a partir de julho do ano de execução do plano de contratações anual, o setor de licitações e a Assessoria de Planejamento e Gestão elaborarão relatórios de riscos referentes à provável não efetivação da contratação dos itens constantes no plano de contratações até o término daquele exercício.</p>
+              <p>Portanto o relatório de gestão de riscos terá frequência mínima bimestral e sua apresentação deverá ocorrer, no mínimo, nos meses de julho, setembro e novembro de cada ano. O relatório em comento será encaminhado à autoridade competente para adoção das medidas de correção pertinentes.</p>
+              <p>Ao final do ano de vigência do plano de contratações anual, as contratações planejadas e não realizadas deverão ser objeto de justificativa quanto aos motivos de sua não consecução, e, se permanecerem necessárias, poderão ser incorporadas ao plano de contratações referente ao ano subsequente. A tabela a seguir fixa os prazos finais para envio das demandas de contratação e renovação de contratos:</p>
+              
+              <div style="margin-top: 5mm;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Modalidades</th>
+                      <th>Prazo final para envio</th>
+                      <th>Observação</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Licitação</td>
+                      <td class="text-center">Até 30/08/2026</td>
+                      <td>Caso a demanda não seja enviada no prazo, deverá ser avaliado para inserir no PCA-2027</td>
+                    </tr>
+                    <tr>
+                      <td>Dispensa</td>
+                      <td class="text-center">Até 15/10/2026</td>
+                      <td>—</td>
+                    </tr>
+                    <tr>
+                      <td>Inexigibilidade</td>
+                      <td class="text-center">Até 15/10/2026</td>
+                      <td>—</td>
+                    </tr>
+                    <tr>
+                      <td>Compra por ARP do MPPI</td>
+                      <td class="text-center">Até 30/10/2026</td>
+                      <td>—</td>
+                    </tr>
+                    <tr>
+                      <td>Adesão a ARP de outros órgãos</td>
+                      <td class="text-center">Até 15/10/2026</td>
+                      <td>—</td>
+                    </tr>
+                    <tr>
+                      <td>Prorrogações de contratos com vigência até mês de janeiro de 2027</td>
+                      <td class="text-center">Até 30/09/2026</td>
+                      <td>Caso esses contratos não sejam renovados, o MPPI ficará sem os serviços contratados</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p style="margin-top: 5mm; font-style: italic;">Os casos omissos e as situações excepcionais serão decididos pela Procuradora-Geral de Justiça-PI.</p>
+            </div>
+
+            <div class="page-break section">
+              <h2>10. Disposições Finais</h2>
+              <p>Desde sua implementação em 2021, o Plano de Contratações Anual (PCA) tem se consolidado como uma prática robusta no planejamento das contratações realizadas pelo MPPI. O esforço colaborativo na sua elaboração, a comunicação eficaz entre as diversas unidades envolvidas e a revisão constante dos procedimentos e normativos internos têm contribuído significativamente para aumentar a eficiência e a eficácia das contratações. Além disso, essas práticas têm promovido um ambiente mais íntegro e confiável, reduzindo a vulnerabilidade aos riscos associados às compras públicas.</p>
+              <p>No contexto orçamentário atual, o PCA se destaca como uma ferramenta essencial para garantir a alocação eficiente dos recursos públicos, alinhando-se à Lei Orçamentária Anual. A execução do Plano depende de um monitoramento contínuo e da apresentação de relatórios, que permitem ajustes proativos e um planejamento mais preciso, assegurando transparência e responsabilidade na gestão dos recursos. Ademais, o PCA, sendo uma ferramenta de gestão dinâmica, está sujeito a alterações e ajustes durante o exercício, possibilitando o remanejamento, a inclusão, bem como a exclusão de demandas conforme as necessidades da Administração.</p>
+              <p>Em suma, a execução do Plano de Contratações Anual-PCA, possui um monitoramento sistemático e flexível, fundamental para alcançar os objetivos orçamentários e para o aprimoramento contínuo da gestão pública.</p>
+              <p>Nele, estão apresentadas as demandas com quantidades e valores estimados, podendo, no decorrer da fase de planejamento da contratação, por meio dos estudos preliminares, sofrer alterações, por decisão do Procurador-Geral de Justiça.</p>
+              <p>O PCA-2026, está passível de ajustes ao longo do exercício, observadas as regras que disciplinam a sua elaboração e monitoramento. Há possibilidade de inclusão de novas aquisições e contratações que não foram apresentadas no período de levantamento das demandas, que deverão ser apresentadas ao Procurador-Geral de Justiça.</p>
+              <p>O Plano de Contratações Anual, instrumento que consolida demandas a serem contratadas no exercício seguinte, previsto na Nova Lei de Licitações, como essencial para o alcance de resultados mais sustentáveis para a Administração Pública, é prática consolidada no MPPI desde 2022. Sobre o PCA, importante tecer alguns comentários finais:</p>
+              <ol style="padding-left: 20px;">
+                <li style="margin-bottom: 4mm;">Os pedidos de contratação não contemplados no Plano de Contratação Anual, previstos no ano de sua elaboração, devem ser enviados à Assessoria de Planejamento e Gestão para comprovação dos recursos orçamentários e após submeter à aprovação da PGJ;</li>
+                <li style="margin-bottom: 4mm;">Por fim, considerando tais apontamentos, segue o Plano de Contratações Anual de 2026, com vista à aprovação e homologação pelo PGJ-PI em exercício.</li>
+              </ol>
+            </div>
+
+            <div class="page-break section">
+              <h2>11. Aprovação</h2>
+              <div style="margin-top: 10mm; padding: 20px; border: 2px solid #D9415D; border-radius: 8px; background: #fffafb;">
+                <p style="font-size: 14pt; font-weight: 700; color: #D9415D; text-transform: uppercase; margin-bottom: 6mm; letter-spacing: 1px;">Aprovação</p>
+                <p style="font-size: 11pt; line-height: 1.6; text-align: justify; font-weight: 500;">
+                  APROVO O PCA-2026 E DETERMINO SUA PUBLICAÇÃO NOS SITES E PORTAIS EXIGIDOS PELA LEGISLAÇÃO E SUA EXECUÇÃO PELAS UNIDADES TÉCNICAS REQUISITANTES DESTA PROCURADORIA GERAL DE JUSTIÇA, CONFORME DIRETRIZES APRESENTADAS NESTE DOCUMENTO E NO ATO PGJ-1381/2024.
+                </p>
+                
+                <div style="margin-top: 20mm; text-align: center;">
+                  <p>Teresina, na data da assinatura eletrônica.</p>
+                  <div style="margin-top: 15mm; border-top: 1px solid #374151; display: inline-block; padding-top: 2mm; min-width: 300px;">
+                    <p style="font-weight: 700; margin: 0;">Dra. Cláudia Pessoa Marques da Rocha Seabra</p>
+                    <p style="margin: 0; color: #6b7280;">Procuradora-Geral de Justiça</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="page-break section landscape-section">
+              <h2>Anexo I: Relação Completa de Demandas</h2>
+              <p>A tabela a seguir apresenta a listagem completa de todas as demandas de contratação registradas para o exercício de 2026.</p>
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 12%;">Cod.PCA</th>
+                    <th style="width: 35%;">Descrição</th>
+                    <th style="width: 15%;">Setor Demandante</th>
+                    <th style="width: 10%;">UO</th>
+                    <th style="width: 10%;">Tipo</th>
+                    <th style="width: 8%;">Prioridade</th>
+                    <th style="width: 10%;">Valor Planejado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsHtml}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="footer-global">
+              MPPI - Plano de Contratação Anual 2026 - Versão 2.0
+            </div>
+
+            <script>
+              window.onload = () => { setTimeout(() => { window.print(); }, 1000); };
+            </script>
+          </body>
+          </html>`;
+
+        if (pdfWindow) {
+          const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          pdfWindow.location.href = url;
+          setTimeout(() => URL.revokeObjectURL(url), 60000);
+        }
       } else {
         const logo = `${location.origin}/logo-mppi.png`;
         const widthClass = (col: string) => {
@@ -553,10 +1371,10 @@ const Relatorios = () => {
                 const dt = String(v || "");
                 // Only format if it looks like a date and isn't already formatted (simple check)
                 if (dt.includes("-") && dt.length === 10) {
-                    const [y, m, d] = dt.split("-").map(Number);
-                    val = new Date(y, m - 1, d).toLocaleDateString("pt-BR");
+                  const [y, m, d] = dt.split("-").map(Number);
+                  val = new Date(y, m - 1, d).toLocaleDateString("pt-BR");
                 } else {
-                    val = dt;
+                  val = dt;
                 }
               } else {
                 val = String(v).replace(/</g, "&lt;");
@@ -565,10 +1383,10 @@ const Relatorios = () => {
                 col.toLowerCase().includes("valor")
                   ? "text-right"
                   : col === "Descrição"
-                  ? "text-left"
-                  : ["Cod. PCA", "Setor", "Prioridade", "Status", "Situação", "Conformidade"].includes(col) || col.includes("Data")
-                  ? "text-center"
-                  : "text-left";
+                    ? "text-left"
+                    : ["Cod. PCA", "Setor", "Prioridade", "Status", "Situação", "Conformidade"].includes(col) || col.includes("Data")
+                      ? "text-center"
+                      : "text-left";
               return `<td class="${align} ${widthClass(col)}">${val}</td>`;
             });
             return `<tr>${formatted.join("")}</tr>`;
@@ -597,12 +1415,12 @@ const Relatorios = () => {
                 <div class="filters-title">Filtros aplicados</div>
                 <div class="filters-grid">
                   ${activeFilters
-                    .map(([key, val]) => {
-                      const label = labelMap[key] || key;
-                      const displayVal = key === "setor_requisitante" ? mapSetorName(String(val)) : String(val);
-                      return `<div class="chip"><span class="k">${label}:</span><span class="v">${displayVal}</span></div>`;
-                    })
-                    .join("")}
+              .map(([key, val]) => {
+                const label = labelMap[key] || key;
+                const displayVal = key === "setor_requisitante" ? mapSetorName(String(val)) : String(val);
+                return `<div class="chip"><span class="k">${label}:</span><span class="v">${displayVal}</span></div>`;
+              })
+              .join("")}
                 </div>
               </div>`
             : "";
@@ -704,14 +1522,14 @@ const Relatorios = () => {
             </script>
           </body>
           </html>`;
-        
+
         if (pdfWindow) {
-             // Usamos Blob URL para evitar problemas de cache e restrições de segurança
-             const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-             const url = URL.createObjectURL(blob);
-             pdfWindow.location.href = url;
-             // Revogamos a URL após um tempo seguro para garantir o carregamento
-             setTimeout(() => URL.revokeObjectURL(url), 60000);
+          // Usamos Blob URL para evitar problemas de cache e restrições de segurança
+          const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          pdfWindow.location.href = url;
+          // Revogamos a URL após um tempo seguro para garantir o carregamento
+          setTimeout(() => URL.revokeObjectURL(url), 60000);
         }
       }
       toast.success("Relatório pronto", { description: `Exportado ${tipo.toUpperCase()}.` });

@@ -119,7 +119,7 @@ const App = () => {
                   </ProtectedRoute>
                 } />
                 <Route path="/relatorios" element={
-                  <ProtectedRoute allowed={["administrador", "gestor"]}>
+                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
                     <Relatorios />
                   </ProtectedRoute>
                 } />
