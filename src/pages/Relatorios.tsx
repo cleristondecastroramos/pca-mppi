@@ -711,14 +711,6 @@ const Relatorios = () => {
               .text-right { text-align: right; }
               .text-center { text-align: center; }
               
-              .toc-list { list-style: none; padding: 0; margin-top: 10mm; }
-              .toc-item { display: flex; align-items: baseline; margin-bottom: 4mm; text-decoration: none; color: #374151; font-size: 11pt; }
-              .toc-item:hover { color: #D9415D; }
-              .toc-text { font-weight: 600; }
-              .toc-dots { flex-grow: 1; border-bottom: 1px dotted #9ca3af; margin: 0 8px; position: relative; top: -4px; }
-              .toc-page { font-weight: 700; color: #D9415D; }
-              .toc-item a { text-decoration: none; color: inherit; display: flex; width: 100%; align-items: baseline; }
-              
                table { width: 100%; border-collapse: collapse; margin-top: 4mm; font-size: 9pt; }
                th { border: 1px solid #000; padding: 8px; text-align: center; vertical-align: middle; background: #f3f4f6; font-weight: 700; }
                td { border: 1px solid #000; padding: 8px; }
@@ -832,30 +824,10 @@ const Relatorios = () => {
                   </div>
                 </div>
               </div>
-            <div class="page-break section">
-              <h2 id="sumario" style="margin-bottom: 10mm;">Sumário</h2>
-              <div class="toc-list">
-                <div class="toc-item"><a href="#siglas"><span class="toc-text">Lista de Termos e Siglas</span><span class="toc-dots"></span></a></div>
-                <div class="toc-item"><a href="#section-1"><span class="toc-text">1. Apresentação</span><span class="toc-dots"></span></a></div>
-                <div class="toc-item"><a href="#section-2"><span class="toc-text">2. Considerações Iniciais</span><span class="toc-dots"></span></a></div>
-                <div class="toc-item"><a href="#section-3"><span class="toc-text">3. Diretrizes da Política de Aquisições</span><span class="toc-dots"></span></a></div>
-                <div class="toc-item"><a href="#section-4"><span class="toc-text">4. Do Plano de Contratação Anual</span><span class="toc-dots"></span></a></div>
-                <div class="toc-item" style="padding-left: 20px;"><a href="#section-4-1"><span class="toc-text">4.1. Do Levantamento de Necessidades</span><span class="toc-dots"></span></a></div>
-                <div class="toc-item" style="padding-left: 20px;"><a href="#section-4-2"><span class="toc-text">4.2. Do Processamento e Tratamento dos Dados</span><span class="toc-dots"></span></a></div>
-                <div class="toc-item" style="padding-left: 20px;"><a href="#section-4-3"><span class="toc-text">4.3. Da Consolidação Estratégica</span><span class="toc-dots"></span></a></div>
-                <div class="toc-item"><a href="#section-5"><span class="toc-text">5. Perspectiva Orçamentária do PCA-2026</span><span class="toc-dots"></span></a></div>
-                <div class="toc-item"><a href="#section-6"><span class="toc-text">6. Alinhamento Estratégico</span><span class="toc-dots"></span></a></div>
-                <div class="toc-item"><a href="#section-7"><span class="toc-text">7. Alocação de Recursos para Novos Certames</span><span class="toc-dots"></span></a></div>
-                <div class="toc-item"><a href="#section-8"><span class="toc-text">8. Contratações de Serviços Públicos - Prazo Indeterminado</span><span class="toc-dots"></span></a></div>
-                <div class="toc-item"><a href="#section-9"><span class="toc-text">9. Metodologia de Monitoramento e Gestão de Riscos</span><span class="toc-dots"></span></a></div>
-                <div class="toc-item"><a href="#section-10"><span class="toc-text">10. Conclusão e Disposições Finais</span><span class="toc-dots"></span></a></div>
-                <div class="toc-item"><a href="#section-11"><span class="toc-text">11. Homologação</span><span class="toc-dots"></span></a></div>
-                <div class="toc-item"><a href="#anexo-1"><span class="toc-text">Anexo I: Relação Completa de Demandas</span><span class="toc-dots"></span></a></div>
-              </div>
             </div>
 
             <div class="page-break section">
-              <h2 id="siglas" style="margin-bottom: 10mm;">Lista de Termos e Siglas</h2>
+              <h2 style="margin-bottom: 10mm;">Lista de Termos e Siglas</h2>
               <div style="column-count: 1; font-size: 9pt;">
                 <table style="margin-top: 0;">
                   <thead>
@@ -924,7 +896,7 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section">
-              <h2 id="section-1">1. Apresentação</h2>
+              <h2>1. Apresentação</h2>
               <p>O Plano de Contratações Anual (PCA) do Ministério Público do Estado do Piauí, referente ao exercício de 2026, consolida-se como o instrumento central de governança estruturante e planejamento logístico institucional. Alinhado aos preceitos da Nova Lei de Licitações e Contratos (Lei nº 14.133/2021), o PCA transcende a mera formalidade administrativa para atuar como um guia estratégico, assegurando que as aquisições e contratações de serviços e obras guardem estrita consonância com o Planejamento Estratégico e as diretrizes orçamentárias deste Parquet.</p>
               
               <p>Esta Versão 2.0 reflete um processo de amadurecimento na gestão de insumos, fundamentado em análises de dados precisas e na interlocução direta entre as unidades requisitantes e a Administração Superior. Por meio da racionalização de demandas e da busca contínua pela economia de escala e padronização, o plano visa otimizar a alocação de recursos públicos, mitigando riscos de descontinuidade administrativa e elevando os padrões de transparência, eficácia e eficiência operacional.</p>
@@ -945,7 +917,7 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section">
-              <h2 id="section-2">2. Considerações Iniciais</h2>
+              <h2>2. Considerações Iniciais</h2>
               <p>O Plano de Contratações Anual (PCA), um dos principais instrumentos da governança em contratações, compreende as demandas a serem realizadas no exercício, sejam elas relacionadas a bens, serviços ou obras. Além das demandas novas, contempla também todas as renovações de contratos do Órgão (serviços e fornecimentos continuados). Sua relevância foi ampliada pela Nova Lei de Licitações (Lei 14.133/2021), consolidando-o como peça fundamental para o alcance de resultados mais sustentáveis e eficientes.</p>
               
               <p>Para o exercício de 2026, o PCA-MPPI evoluciona de um planejamento estático para uma ferramenta de gestão ativa e dinâmica. Uma das grandes inovações deste ano é a migração da gestão, outrora realizada exclusivamente por planilhas de Business Intelligence (Power BI), para um <strong>sistema web próprio dedicado</strong>. Essa transição tecnológica permite um controle mais rigoroso e transparente, minimizando inconsistências e agilizando a tomada de decisão estratégica.</p>
@@ -958,7 +930,7 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section">
-              <h2 id="section-3">3. Diretrizes da Política de Aquisições</h2>
+              <h2>3. Diretrizes da Política de Aquisições</h2>
               <p>A formulação do Plano de Contratações Anual para o exercício de 2026 fundamenta-se em diretrizes estratégicas que visam a excelência operacional e a integridade administrativa. Estas diretrizes orientam as unidades requisitantes na identificação de suas necessidades, assegurando que cada aquisição contribua para o interesse público e para o fortalecimento institucional do Ministério Público do Estado do Piauí:</p>
               <ul style="list-style-type: none; padding-left: 0; margin-top: 8mm;">
                 <li style="margin-bottom: 6mm; display: flex; align-items: flex-start; gap: 12px;">
@@ -1007,12 +979,12 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section">
-              <h2 id="section-4">4. Do Plano de Contratação Anual</h2>
+              <h2>4. Do Plano de Contratação Anual</h2>
               <p>O Plano de Contratações Anual (PCA) do Ministério Público do Estado do Piauí e de seus fundos institucionais representa o ápice do planejamento preventivo e da governança de recursos. Com o propósito de elevar a eficiência no aproveitamento do erário, este documento consolida a estratégia de aquisições para o exercício de 2026, assegurando que cada demanda esteja estritamente vinculada à missão constitucional e aos objetivos estratégicos do Órgão.</p>
               
               <p>Este planejamento é fruto de um esforço multifuncional, envolvendo unidades administrativas e técnicas em um diálogo construtivo para alinhar as propostas orçamentárias (LOA) às reais necessidades finalísticas. O PCA não apenas identifica o que será contratado, mas também como essas contratações otimizarão os processos de trabalho e garantirão a sustentabilidade operacional da instituição.</p>
 
-              <h3 id="section-4-1" style="font-size: 11pt; color: #111827; margin-top: 8mm; margin-bottom: 4mm;">4.1. Do Levantamento de Necessidades</h3>
+              <h3 style="font-size: 11pt; color: #111827; margin-top: 8mm; margin-bottom: 4mm;">4.1. Do Levantamento de Necessidades</h3>
               <p>A fase de levantamento de necessidades constitui o alicerce do PCA. Regulamentada pelo Ato PGJ nº 1381/2024, esta etapa envolveu a participação ativa de todas as unidades requisitantes, incluindo Promotorias, Procuradorias de Justiça e órgãos da Administração Superior. O processo iniciou-se com a abertura oficial por meio de expedientes técnicos (PGEA/SEI nº 19.21.0013.0025806/2025-68), orientando as unidades na formulação de suas propostas para o exercício vindouro.</p>
               
               <p>A metodologia adotada foi estruturada em ciclos de análise:</p>
@@ -1031,7 +1003,7 @@ const Relatorios = () => {
                 </li>
               </ul>
 
-              <h3 id="section-4-2" style="font-size: 11pt; color: #111827; margin-top: 8mm; margin-bottom: 4mm;">4.2. Do Processamento e Tratamento dos Dados</h3>
+              <h3 style="font-size: 11pt; color: #111827; margin-top: 8mm; margin-bottom: 4mm;">4.2. Do Processamento e Tratamento dos Dados</h3>
               <p>Após a coleta de informações por meio de ferramentas sistêmicas e formulários padronizados, os dados foram submetidos a um rigoroso processo de tratamento e validação. Para o ciclo de 2026, o MPPI implementou inovações significativas no processamento de dados, migrando para um ecossistema de dados mais íntegro e visual. Tendo em vista a eficiência operacional, foram aprimorados os seguintes procedimentos:</p>
               
               <ul style="list-style-type: none; padding-left: 0; margin-top: 5mm; margin-bottom: 8mm;">
@@ -1049,13 +1021,13 @@ const Relatorios = () => {
                 </li>
               </ul>
 
-              <h3 id="section-4-3" style="font-size: 11pt; color: #111827; margin-top: 8mm; margin-bottom: 4mm;">4.3. Da Consolidação Estratégica</h3>
+              <h3 style="font-size: 11pt; color: #111827; margin-top: 8mm; margin-bottom: 4mm;">4.3. Da Consolidação Estratégica</h3>
               <p>A consolidação final do PCA resultou de um ciclo de reuniões de alinhamento técnico e estratégico, unificando as metas de cada unidade gestora sob uma governança centralizada. Este processo assegurou a mitigação de riscos de fracionamento de despesas por meio da unificação de itens assemelhados, maximizando o ganho processual.</p>
               <p>Com base no orçamento aprovado, as demandas de unidades como CAA, CCF, CCS, CEAF, CLC, entre outras, foram tecnicamente apreciadas. O resultado é um documento robusto, devidamente revisado pela Chefia de Gabinete e homologado pela Procuradora-Geral de Justiça, pronto para guiar a execução administrativa com transparência e disciplina fiscal em 2026.</p>
             </div>
 
             <div class="page-break section">
-              <h2 id="section-5">5. Perspectiva Orçamentária do PCA-2026</h2>
+              <h2>5. Perspectiva Orçamentária do PCA-2026</h2>
               <p>A perspectiva orçamentária do Plano de Contratações Anual para 2026 reflete a aplicação rigorosa dos princípios de responsabilidade fiscal e planejamento estratégico. O montante global planejado foi meticulosamente calculado para garantir a manutenção dos serviços essenciais e o suporte às novas iniciativas institucionais, mantendo-se em estrita consonância com os limites orçamentários previstos para o exercício.</p>
 
               <div style="display: flex; align-items: center; justify-content: center; gap: 40px; margin: 10mm 0; background: #f9fafb; padding: 25px; border-radius: 12px; border: 1px solid #e5e7eb;">
@@ -1209,7 +1181,7 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section">
-              <h2 id="section-6">6. Alinhamento Estratégico</h2>
+              <h2>6. Alinhamento Estratégico</h2>
               <p>O Plano de Contratações Anual (PCA-2026) funciona como o principal instrumento de viabilização tática da estratégia institucional do Ministério Público do Estado do Piauí. Cada demanda consolidada neste documento foi criteriosamente avaliada sob o prisma de sua contribuição para os Objetivos Estratégicos estabelecidos no Ciclo 2020–2029, garantindo que o dispêndio de recursos públicos esteja intrinsecamente vinculado à entrega de valor à sociedade piauiense.</p>
               
               <p>Em estrita observância à Resolução CNMP nº 147/2016, que institui a Estratégia Nacional do Ministério Público, o alinhamento aqui demonstrado assegura que as aquisições e contratações de serviços reforcem a atuação finalística e aprimorem a governança corporativa. A integração sistêmica entre o planejamento logístico e o Mapa Estratégico reflete o compromisso deste Parquet com a eficiência administrativa e a busca contínua por resultados institucionais de alto impacto.</p>
@@ -1221,7 +1193,7 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section">
-              <h2 id="section-7">7. Alocação de Recursos para Novos Certames por Vencimento Improrrogável</h2>
+              <h2>7. Alocação de Recursos para Novos Certames por Vencimento Improrrogável</h2>
               <p>Em estrita observância aos limites temporais estabelecidos pela legislação vigente e pelas diretrizes normativas da Administração Superior, as contratações relacionadas abaixo atingirão o termo final de sua vigência máxima permitida ao longo do exercício de 2026. Ante a impossibilidade jurídica de novas prorrogações aditivas, torna-se imperativa a deflagração tempestiva de novos procedimentos licitatórios. Este planejamento preventivo visa assegurar a continuidade ininterrupta de serviços e fornecimentos essenciais à manutenção das atividades institucionais deste Parquet.</p>
               
               <div style="margin-top: 5mm;">
@@ -1266,7 +1238,7 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section">
-              <h2 id="section-8">8. Contratações de Serviços Públicos com Vigência por Prazo Indeterminado</h2>
+              <h2>8. Contratações de Serviços Públicos com Vigência por Prazo Indeterminado</h2>
               <p>As contratações de serviços públicos essenciais, operados sob regime de monopólio ou caracterizados como utilidade pública de natureza contínua (tais como fornecimento de energia elétrica, saneamento básico e serviços postais), são regidas por marcos regulatórios específicos que facultam a vigência por prazo indeterminado. Tais instrumentos são fundamentais para a estabilidade da infraestrutura operacional do MPPI, e o seu monitoramento é focado na fidedignidade da prestação e na conformidade com as estruturas tarifárias vigentes fixadas pelas agências reguladoras.</p>
               
               <div style="margin-top: 5mm;">
@@ -1337,7 +1309,7 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section">
-              <h2 id="section-9">9. Metodologia de Monitoramento e Gestão de Riscos da Execução do PCA</h2>
+              <h2>9. Metodologia de Monitoramento e Gestão de Riscos da Execução do PCA</h2>
               <p>O modelo de governança do PCA-2026 fundamenta-se nas disposições do art. 17 do Ato PGJ nº 1381/2024, estabelecendo um ciclo de controle rigoroso e preventivo. O monitoramento sistemático objetiva antecipar eventuais óbices técnicos ou orçamentários que possam comprometer o cronograma de contratações. Por meio desta gestão de riscos, a Coordenadoria de Licitações e Contratos e a Assessoria de Planejamento mantêm a visibilidade total sobre o fluxo processual, garantindo a eficiência na aplicação dos recursos e o cumprimento das metas institucionais através das seguintes instâncias de controle:</p>
               
               <ul style="padding-left: 20px; list-style-type: square; margin-bottom: 6mm;">
@@ -1396,7 +1368,7 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section">
-              <h2 id="section-10">10. Conclusão e Disposições Finais</h2>
+              <h2>10. Conclusão e Disposições Finais</h2>
               <p>O Plano de Contratações Anual (PCA) do Ministério Público do Estado do Piauí, consolidado como prática de excelência desde 2021, atinge para o exercício de 2026 um novo patamar de maturidade institucional e robustez administrativa. A principal inovação deste ciclo reside na transição definitiva da governança baseada em ferramentas de visualização estática para um ecossistema tecnológico próprio e dedicado. Este avanço permite o rastreamento integral de cada etapa do planejamento, transformando dados em inteligência estratégica e assegurando uma sincronia sem precedentes entre o planejamento logístico e a execução orçamentária.</p>
               
               <p>O aprimoramento contínuo dos fluxos de trabalho e a interlocução sinérgica entre as unidades técnicas e requisitantes consolidaram o PCA como um instrumento de mitigação de riscos e promoção da integridade nas compras públicas. Para o exercício de 2026, o bom andamento do planejamento é garantido por mecanismos de controle proativos, incluindo travas sistêmicas por setor e o monitoramento rigoroso de limites de empenho, assegurando que cada contratação guarde estrita fidelidade aos parâmetros fiscais aprovados.</p>
@@ -1413,7 +1385,7 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section">
-              <h2 id="section-11">11. Homologação</h2>
+              <h2>11. Homologação</h2>
               <div style="margin-top: 10mm; padding: 25px; border: 1.5px solid #D9415D; border-radius: 8px; background: #fffafb;">
                 <p style="font-size: 14pt; font-weight: 700; color: #D9415D; margin-bottom: 6mm; letter-spacing: 1px;">Homologação Institucional</p>
                 <p style="font-size: 11pt; line-height: 1.7; text-align: justify; font-weight: 500; color: #1f2937;">
@@ -1431,7 +1403,7 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section landscape-section">
-              <h2 id="anexo-1">Anexo I: Relação Completa de Demandas</h2>
+              <h2>Anexo I: Relação Completa de Demandas</h2>
               <p>A tabela a seguir apresenta a listagem completa de todas as demandas de contratação registradas para o exercício de 2026.</p>
               <table>
                 <thead>
