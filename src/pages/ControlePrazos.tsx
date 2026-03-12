@@ -368,8 +368,8 @@ const ControlePrazos = () => {
                         const status = getPrazoStatus(r);
                         return (
                           <TableRow key={r.id} className="hover:bg-muted/30">
-                            <TableCell className="font-mono text-[10px] text-muted-foreground whitespace-nowrap">
-                              {r.codigo?.startsWith("PCA-") ? r.codigo : r.codigo ? `PCA-${r.codigo}-2026` : r.id.slice(-8)}
+                            <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                              {r.codigo?.replace(/^PCA-/, "").replace(/-2026$/, "") || r.id.slice(-4)}
                             </TableCell>
                         <TableCell>
                           <div className="font-medium truncate max-w-[500px]" title={r.descricao}>{r.descricao}</div>

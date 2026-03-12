@@ -41,6 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AIWriter } from "@/components/AIWriter";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -139,7 +140,7 @@ export default function Contratacoes() {
     try {
       let query = supabase
         .from("contratacoes")
-        .select("id, codigo, descricao, setor_requisitante, unidade_orcamentaria, classe, valor_estimado, valor_contratado, etapa_processo, sobrestado, grau_prioridade, justificativa, data_prevista_contratacao, numero_sei_contratacao, pdm_catser, created_at, quantidade_itens, valor_unitario, unidade_fornecimento, tipo_recurso, tipo_contratacao, modalidade, normativo, srp")
+        .select("id, codigo, descricao, setor_requisitante, unidade_orcamentaria, classe, valor_estimado, valor_contratado, etapa_processo, sobrestado, grau_prioridade, justificativa, data_prevista_contratacao, data_entrada_clc, numero_sei_contratacao, pdm_catser, created_at, quantidade_itens, valor_unitario, unidade_fornecimento, tipo_recurso, tipo_contratacao, modalidade, normativo, srp")
         .order("created_at", { ascending: false });
 
       // Setor requisitante users only see their own setor
@@ -332,6 +333,7 @@ export default function Contratacoes() {
       if ((editingContratacao as any).data_prevista_contratacao !== undefined) {
         payload.data_prevista_contratacao = (editingContratacao as any).data_prevista_contratacao || null;
       }
+      // data_entrada_clc removed from payload as per requirement (start date is now calculated)
       if ((editingContratacao as any).srp !== undefined) {
         payload.srp = (editingContratacao as any).srp;
       }
@@ -620,6 +622,35 @@ export default function Contratacoes() {
     return `${formattedDate} às ${formattedTime}`;
   };
 
+  const calculateStartDate = (tipo: string | null, modalidade: string | null, dataTermino: string | null) => {
+    if (!dataTermino) return null;
+    
+    let date: Date;
+    if (dataTermino.includes("-") && dataTermino.length === 10) {
+      const [year, month, day] = dataTermino.split("-").map(Number);
+      date = new Date(year, month - 1, day);
+    } else {
+      date = new Date(dataTermino);
+    }
+
+    let days = 120; // Regra 3: Renovação, Aditivo, etc.
+
+    if (tipo === "Nova Contratação") {
+      if (modalidade === "Pregão Eletrônico" || modalidade === "Concorrência") {
+        days = 150; // Regra 1
+      } else if (modalidade === "Dispensa" || modalidade === "Inexigibilidade" || modalidade === "Concurso" || modalidade === "Inexibilidade") {
+        days = 90; // Regra 2
+      }
+    }
+
+    date.setDate(date.getDate() - days);
+    
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
   const HISTORICO_LABELS: Record<string, string> = {
     descricao: "Descrição",
     setor_requisitante: "Setor Requisitante",
@@ -904,24 +935,27 @@ export default function Contratacoes() {
 
         <div className="rounded-lg border border-border bg-card">
           <Table containerClassName="max-h-[60vh]">
-            <TableHeader>
+            <TableHeader className="bg-primary hover:bg-primary">
               <TableRow>
-                <TableHead className="text-center w-[110px]">Cod. PCA</TableHead>
-                <TableHead className="text-center w-[280px]">Descrição</TableHead>
-                <TableHead className="text-center w-[110px]">Setor</TableHead>
-                <TableHead className="text-center w-[140px]">Classe</TableHead>
-                <TableHead className="text-center w-[140px]">Valor Estimado</TableHead>
-                <TableHead className="text-center w-[140px]">Valor Executado</TableHead>
-                <TableHead className="text-center w-[120px]">Data Prevista</TableHead>
-                <TableHead className="text-center w-[130px]">Status</TableHead>
-                <TableHead className="text-center w-[110px]">Prioridade</TableHead>
-                <TableHead className="text-center w-[120px]">Ações</TableHead>
+                <TableHead className="text-center w-[80px] text-white font-bold">Cod. PCA</TableHead>
+                <TableHead className="text-center min-w-[180px] text-white font-bold">Descrição</TableHead>
+                <TableHead className="text-center w-[90px] text-white font-bold">Setor</TableHead>
+                <TableHead className="text-center w-[110px] text-white font-bold">Classe</TableHead>
+                <TableHead className="text-center w-[80px] text-white font-bold">Quantidade</TableHead>
+                <TableHead className="text-center w-[120px] text-white font-bold">Valor Unitário</TableHead>
+                <TableHead className="text-center w-[120px] text-white font-bold">Valor Estimado</TableHead>
+                <TableHead className="text-center w-[120px] text-white font-bold">Valor Executado</TableHead>
+                <TableHead className="text-center w-[130px] text-white font-bold">Data Prevista de Início</TableHead>
+                <TableHead className="text-center w-[130px] text-white font-bold">Data Prevista de Conclusão</TableHead>
+                <TableHead className="text-center w-[110px] text-white font-bold">Status</TableHead>
+                <TableHead className="text-center w-[90px] text-white font-bold">Prioridade</TableHead>
+                <TableHead className="text-center w-[90px] text-white font-bold">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {displayedContratacoes.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={13} className="text-center py-8 text-muted-foreground">
                     {searchTerm ? "Nenhuma contratação encontrada com os critérios de busca." : "Nenhuma contratação cadastrada."}
                   </TableCell>
                 </TableRow>
@@ -929,26 +963,33 @@ export default function Contratacoes() {
                 <>
                   {displayedContratacoes.map((contratacao) => (
                     <TableRow key={contratacao.id} className="hover:bg-muted/50">
-                      <TableCell className="font-mono text-center text-[10px] text-muted-foreground">
-                        {contratacao.codigo?.startsWith("PCA-") ? contratacao.codigo : contratacao.codigo ? `PCA-${contratacao.codigo}-2026` : contratacao.id.slice(-8)}
+                      <TableCell className="text-center text-sm text-muted-foreground">
+                        {contratacao.codigo?.replace(/^PCA-/, "").replace(/-2026$/, "") || contratacao.id.slice(-4)}
                       </TableCell>
                       <TableCell className="max-w-xs">
                         <div className="truncate" title={contratacao.descricao}>
                           {contratacao.descricao}
                         </div>
                       </TableCell>
-                      <TableCell>{formatSetor(contratacao.setor_requisitante)}</TableCell>
-                      <TableCell>{contratacao.classe || "-"}</TableCell>
-                      <TableCell className="text-right w-[140px]">
+                      <TableCell className="max-w-xs text-center">{formatSetor(contratacao.setor_requisitante)}</TableCell>
+                      <TableCell className="text-sm text-center">{contratacao.classe || "-"}</TableCell>
+                      <TableCell className="text-center">{contratacao.quantidade_itens || "-"}</TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(contratacao.valor_unitario)}
+                      </TableCell>
+                      <TableCell className="text-right">
                         {formatCurrency(contratacao.valor_estimado)}
                       </TableCell>
-                      <TableCell className="text-right w-[140px]">
+                      <TableCell className="text-right">
                         {formatCurrency(contratacao.valor_contratado)}
                       </TableCell>
-                      <TableCell className="text-center w-[120px]">
+                      <TableCell className="text-center">
+                        {formatDate(calculateStartDate(contratacao.tipo_contratacao, contratacao.modalidade, (contratacao as any).data_prevista_contratacao))}
+                      </TableCell>
+                      <TableCell className="text-center">
                         {formatDate((contratacao as any).data_prevista_contratacao)}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center">
                         {(() => {
                           const getCategory = (c: Contratacao) => {
                             if ((c as any).sobrestado === true) return "sobrestado";
@@ -1067,7 +1108,14 @@ export default function Contratacoes() {
               <div className="space-y-4 pt-4">
                 {/* Linha 1: Descrição */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-descricao" className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Descrição do Objeto</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="edit-descricao" className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Descrição do Objeto</Label>
+                    <AIWriter 
+                      value={editingContratacao.descricao} 
+                      onUpdate={(val) => setEditingContratacao({...editingContratacao, descricao: val})} 
+                      fieldName="Descrição" 
+                    />
+                  </div>
                   <Textarea
                     id="edit-descricao"
                     value={editingContratacao.descricao}
@@ -1080,7 +1128,7 @@ export default function Contratacoes() {
 
                 {/* Bloco 1: Identificação Básica */}
                 <div className="grid gap-3 sm:grid-cols-12 bg-muted/30 p-3 rounded-md border border-border/50">
-                  <div className="space-y-1.5 sm:col-span-3">
+                  <div className="space-y-1.5 sm:col-span-4">
                     <Label htmlFor="edit-sei" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Número SEI</Label>
                     <Input
                       id="edit-sei"
@@ -1100,7 +1148,7 @@ export default function Contratacoes() {
                       className="h-8 text-xs focus-visible:ring-1"
                     />
                   </div>
-                  <div className="space-y-1.5 sm:col-span-3">
+                  <div className="space-y-1.5 sm:col-span-4">
                     <Label htmlFor="edit-setor" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Setor Requisitante</Label>
                     <Select
                       value={editingContratacao.setor_requisitante}
@@ -1162,10 +1210,20 @@ export default function Contratacoes() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <Label htmlFor="edit-data-prevista" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Data Prevista</Label>
+                  <div className="space-y-1.5 sm:col-span-3">
+                    <Label htmlFor="edit-data-inicio" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Prev. Início</Label>
                     <Input
-                      id="edit-data-prevista"
+                      id="edit-data-inicio"
+                      type="date"
+                      value={calculateStartDate((editingContratacao as any).tipo_contratacao, (editingContratacao as any).modalidade, (editingContratacao as any).data_prevista_contratacao) || ""}
+                      disabled
+                      className="h-8 text-xs focus-visible:ring-1 bg-muted"
+                    />
+                  </div>
+                  <div className="space-y-1.5 sm:col-span-3">
+                    <Label htmlFor="edit-data-conclusao" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Prev. Conclusão</Label>
+                    <Input
+                      id="edit-data-conclusao"
                       type="date"
                       value={(editingContratacao as any).data_prevista_contratacao || ""}
                       onChange={(e) =>
@@ -1215,6 +1273,7 @@ export default function Contratacoes() {
                         <SelectItem value="Dispensa">Dispensa</SelectItem>
                         <SelectItem value="Inexigibilidade">Inexigibilidade</SelectItem>
                         <SelectItem value="Concorrência">Concorrência</SelectItem>
+                        <SelectItem value="Concurso">Concurso</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1431,7 +1490,14 @@ export default function Contratacoes() {
 
                 {/* Justificativa */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-justificativa" className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Justificativa</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="edit-justificativa" className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Justificativa</Label>
+                    <AIWriter 
+                      value={editingContratacao.justificativa} 
+                      onUpdate={(val) => setEditingContratacao({...editingContratacao, justificativa: val})} 
+                      fieldName="Justificativa" 
+                    />
+                  </div>
                   <Textarea
                     id="edit-justificativa"
                     value={editingContratacao.justificativa}

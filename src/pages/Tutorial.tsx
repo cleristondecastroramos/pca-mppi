@@ -282,7 +282,7 @@ export default function Tutorial() {
         {/* 7. Contratações */}
         <Section id="sec7" title="7. Contratações">
           <H3>7.1. Listagem de Contratações</H3>
-          <P>Tabela com todas as contratações: Código (PCA-XXXX-2026), Descrição, Setor, UO, Classe, Valor Estimado, Valor Contratado, Status, Prioridade e Ações.</P>
+          <P>Tabela com todas as contratações: Código (4 dígitos), Descrição, Setor, UO, Classe, Valor Estimado, Valor Contratado, Status, Prioridade e Ações.</P>
 
           <H3>7.2. Busca e Filtros</H3>
           <P>Campo de busca textual em tempo real (debounce de 500ms) e os mesmos filtros avançados da Visão Geral. Botão "Limpar filtros" para restaurar a visualização completa.</P>
@@ -335,7 +335,7 @@ export default function Tutorial() {
           <P>Informe Quantidade, Unidade de Fornecimento, Tipo de Recurso e Valor Unitário. O <strong>Valor Estimado Total = Quantidade × Valor Unitário</strong> é calculado automaticamente.</P>
 
           <H3>8.3. Código PCA Automático</H3>
-          <P>Ao salvar uma nova contratação, o sistema gera automaticamente um código único no formato <strong>PCA-XXXX-2026</strong>. Este código é o identificador oficial de cada demanda aprovada no Plano de Contratações Anual e possui papel fundamental no processo de aquisição.</P>
+          <P>Ao salvar uma nova contratação, o sistema gera automaticamente um código único composto por 4 dígitos alfanuméricos. Este código é o identificador oficial de cada demanda aprovada no Plano de Contratações Anual e possui papel fundamental no processo de aquisição.</P>
           <P>O código PCA é utilizado para especificar o alinhamento da contratação com o planejamento institucional na etapa de formalização da demanda, por meio do <strong>Documento de Formalização de Demanda (DFD)</strong>.</P>
           <Note>
             O Documento de Formalização de Demanda (DFD) é o instrumento inicial previsto na Nova Lei de Licitações (Lei nº 14.133/2021) que formaliza a necessidade de compra ou contratação. O DFD garante que cada aquisição esteja devidamente alinhada com o Plano de Contratações Anual (PCA) e com os objetivos estratégicos da instituição, sendo obrigatório para o início de qualquer processo de contratação.
@@ -348,6 +348,17 @@ export default function Tutorial() {
             "Valor estimado deve ser maior que zero.",
             "Se a trava orçamentária estiver ativa, o sistema verifica se o valor total do setor não ultrapassa o limite.",
           ]} />
+
+          <H3>8.5. Cálculo Automático da Data Prevista de Início</H3>
+          <P>
+            O campo <strong>Data Prevista para Início da Contratação</strong> é calculado automaticamente pelo sistema e permanece bloqueado para edição manual. O cálculo baseia-se no <em>Tipo de Contratação</em>, na <em>Modalidade</em> e na <em>Data Prevista para Término</em>.
+          </P>
+          <UL items={[
+            <><strong>Regra 1:</strong> Se for uma <em>Nova Contratação</em> nas modalidades <em>Pregão Eletrônico</em> ou <em>Concorrência</em>, a data de início é definida como <strong>150 dias antes</strong> da data de término.</>,
+            <><strong>Regra 2:</strong> Se for uma <em>Nova Contratação</em> nas modalidades <em>Dispensa</em>, <em>Inexigibilidade</em> ou <em>Concurso</em>, a data de início é definida como <strong>90 dias antes</strong> da data de término.</>,
+            <><strong>Regra 3:</strong> Para os demais tipos de contratação (<em>Renovação, Aditivo, Repactuação, Apostilamento ou Indeterminado</em>), a data de início é definida como <strong>120 dias antes</strong> da data de término.</>,
+          ]} />
+          <Note>Este mecanismo garante um planejamento realista e padronizado, alertando os gestores sobre o momento ideal para iniciar cada processo administrativo.</Note>
         </Section>
 
         {/* 9. Setores Demandantes */}
@@ -368,7 +379,7 @@ export default function Tutorial() {
 
           <H3>9.3. Tabela de Demandas por Setor</H3>
           <P>
-            A tabela principal exibe as seguintes informações de cada contratação: <strong>Código PCA</strong> (no formato PCA-XXXX-2026), <strong>Descrição</strong> resumida do objeto, <strong>Classe</strong> (Material ou Serviço), <strong>Modalidade</strong> de contratação, <strong>Valor Estimado</strong>, <strong>Valor Contratado</strong>, <strong>Saldo Orçamentário</strong>, <strong>Empenhos</strong> e <strong>Etapa do Processo</strong>. Todos os valores monetários são formatados no padrão brasileiro (R$).
+            A tabela principal exibe as seguintes informações de cada contratação: <strong>Código PCA</strong> (4 dígitos alfanuméricos), <strong>Descrição</strong> resumida do objeto, <strong>Classe</strong> (Material ou Serviço), <strong>Modalidade</strong> de contratação, <strong>Valor Estimado</strong>, <strong>Valor Contratado</strong>, <strong>Saldo Orçamentário</strong>, <strong>Empenhos</strong> e <strong>Etapa do Processo</strong>. Todos os valores monetários são formatados no padrão brasileiro (R$).
           </P>
 
           <H3>9.4. Utilidade Estratégica</H3>
@@ -395,7 +406,7 @@ export default function Tutorial() {
           <H3>10.2. Classificação de Status de Prazo</H3>
           <P>Cada contratação é automaticamente classificada com base na data prevista de contratação em relação à data atual:</P>
           <UL items={[
-            <><strong className="text-destructive">Vencido:</strong> A data prevista já passou e a contratação ainda não foi concluída. Exibido com badge vermelho e ícone de alerta.</>,
+            <><strong className="text-destructive">Vencido:</strong> A data prevista já passou e a contratação ainda não foi concluída. Exibido com badge vermelho, ícone de alerta e o código identificador de 4 dígitos.</>,
             <><strong className="text-warning">Próximo ao vencimento:</strong> A data prevista está dentro dos próximos 30 dias. Exibido com badge amarelo e ícone de relógio.</>,
             <><strong className="text-success">No prazo:</strong> A data prevista ainda está a mais de 30 dias. Exibido com badge verde e ícone de confirmação.</>,
             <><strong>Concluído:</strong> A contratação já foi finalizada, independentemente do prazo original.</>,
@@ -436,7 +447,7 @@ export default function Tutorial() {
           <H3>11.2. Informações Exibidas</H3>
           <P>Para cada contratação destacada, o sistema exibe:</P>
           <UL items={[
-            <><strong>Código PCA:</strong> Identificador único no formato PCA-XXXX-2026.</>,
+            <><strong>Código PCA:</strong> Identificador único composto por 4 dígitos alfanuméricos.</>,
             <><strong>Descrição:</strong> Resumo do objeto da contratação.</>,
             <><strong>Setor Requisitante:</strong> Setor responsável pela demanda.</>,
             <><strong>Etapa do Processo:</strong> Fase atual da contratação (Planejamento, Em Licitação, Contratado, etc.).</>,
@@ -981,7 +992,7 @@ const FORM_FIELDS = [
   ["Setor Requisitante", "Sim", "Auto para perfil Setor Req."],
   ["Tipo de Contratação", "Sim", "Nova, Renovação, Aditivo, Repactuação, etc."],
   ["SRP", "Sim", "Sim / Não"],
-  ["Modalidade", "Sim", "Pregão, Dispensa, Inexigibilidade, Concorrência"],
+  ["Modalidade", "Sim", "Pregão, Dispensa, Inexigibilidade, Concorrência, Concurso"],
   ["Normativo", "Sim", "14.133/2021 ou 8.666/1993"],
   ["Grau de Prioridade", "Sim", "Alta, Média, Baixa"],
   ["Unidade Orçamentária", "Sim", "PGJ, FMMP, FEPDC"],
@@ -1036,7 +1047,8 @@ const TERMOS = [
   ["Valor Contratado", "Valor efetivamente acordado no contrato."],
   ["Valor Executado", "Quantia exata de recursos orçamentários que foi empenhada para cobrir uma despesa específica."],
   ["Código PCA", "Identificador único no formato PCA-XXXX-2026."],
-  ["Modalidade Licitatória", "Procedimento legal para seleção do fornecedor (ex: Pregão, Dispensa)."],
+  ["Data Prevista de Início", "Data calculada automaticamente pelo sistema (90, 120 ou 150 dias antes do término) para início do processo."],
+  ["Modalidade Licitatória", "Procedimento legal para seleção do fornecedor (ex: Pregão, Dispensa, Inexigibilidade, Concorrência, Concurso)."],
   ["Normativo", "Lei de licitações que rege o processo (Lei 14.133 ou 8.666)."],
   ["Termo de Referência", "Documento que detalha o objeto, especificações e obrigações da contratação."],
   ["DFD", "Documento de Formalização de Demanda que oficializa a necessidade de compra."],

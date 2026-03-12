@@ -204,8 +204,8 @@ const PrioridadesAtencao = () => {
                           const days = Math.abs(getDaysDiff(date));
                           return (
                             <TableRow key={item.id} className="hover:bg-destructive/5">
-                              <TableCell className="font-mono text-[10px] text-muted-foreground whitespace-nowrap">
-                                {item.codigo?.startsWith("PCA-") ? item.codigo : item.codigo ? `PCA-${item.codigo}-2026` : item.id.slice(-8)}
+                              <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                                {item.codigo?.replace(/^PCA-/, "").replace(/-2026$/, "") || item.id.slice(-4)}
                               </TableCell>
                               <TableCell className="font-medium max-w-[400px]">
                                 <div className="truncate" title={item.descricao}>
@@ -277,8 +277,8 @@ const PrioridadesAtencao = () => {
 
                           return (
                             <TableRow key={item.id} className="hover:bg-muted/30">
-                              <TableCell className="font-mono text-[10px] text-muted-foreground whitespace-nowrap">
-                                {item.codigo?.startsWith("PCA-") ? item.codigo : item.codigo ? `PCA-${item.codigo}-2026` : item.id.slice(-8)}
+                              <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                                {item.codigo?.replace(/^PCA-/, "").replace(/-2026$/, "") || item.id.slice(-4)}
                               </TableCell>
                               <TableCell className="font-medium max-w-[400px]">
                                 <div className="truncate" title={item.descricao}>

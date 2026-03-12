@@ -74,7 +74,7 @@ const Faq = () => {
               <AccordionItem value="codigo-id">
                 <AccordionTrigger>O que é o Código (ID) que aparece na lista?</AccordionTrigger>
                 <AccordionContent>
-                  Cada demanda recebe um identificador único abreviado para facilitar a comunicação e rastreio (ex: PCA-XXXX). 
+                  Cada demanda recebe um identificador único composto por 4 dígitos alfanuméricos para facilitar a comunicação e rastreio (ex: 8A2F). 
                   Esse código serve para identificar a demanda no preenchimento do Documento Formalizador da Demanda (DFD) 
                   quando for iniciado o processo de contratação.
                 </AccordionContent>

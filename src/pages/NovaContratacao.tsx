@@ -15,6 +15,7 @@ import { ArrowLeft, Save } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { translateError } from "@/lib/utils/error-translations";
+import { AIWriter } from "@/components/AIWriter";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
@@ -34,6 +35,7 @@ const contratacaoSchema = z.object({
   grau_prioridade: z.string().min(1, "Grau de prioridade é obrigatório"),
   valor_estimado: z.number().positive("Valor estimado deve ser maior que zero"),
   data_prevista_contratacao: z.string().min(1, "Data prevista é obrigatória"),
+  data_entrada_clc: z.string().optional(),
 });
 
 export default function NovaContratacao() {
@@ -64,6 +66,40 @@ export default function NovaContratacao() {
   };
 
   const [valorUnitarioDisplay, setValorUnitarioDisplay] = useState("0,00");
+  const [tipoContratacao, setTipoContratacao] = useState("");
+  const [modalidade, setModalidade] = useState("");
+  const [dataTermino, setDataTermino] = useState("");
+  const [descricao, setDescricao] = useState("");
+  const [justificativa, setJustificativa] = useState("");
+
+  const calculateStartDate = (tipo: string | null, mod: string | null, termino: string | null) => {
+    if (!termino) return "";
+    
+    let date: Date;
+    if (termino.includes("-") && termino.length === 10) {
+      const [year, month, day] = termino.split("-").map(Number);
+      date = new Date(year, month - 1, day);
+    } else {
+      date = new Date(termino);
+    }
+
+    let days = 120; // Regra 3: Renovação, Aditivo, etc.
+
+    if (tipo === "Nova Contratação") {
+      if (mod === "Pregão Eletrônico" || mod === "Concorrência") {
+        days = 150; // Regra 1
+      } else if (mod === "Dispensa" || mod === "Inexigibilidade" || mod === "Concurso" || mod === "Inexibilidade") {
+        days = 90; // Regra 2
+      }
+    }
+
+    date.setDate(date.getDate() - days);
+    
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
 
   const handleValorUnitarioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
@@ -74,6 +110,8 @@ export default function NovaContratacao() {
 
   const valorEstimadoTotal = quantidade * valorUnitario;
 
+  const dataInicioCalculada = calculateStartDate(tipoContratacao, modalidade, dataTermino);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -81,8 +119,8 @@ export default function NovaContratacao() {
 
     const formData = new FormData(e.currentTarget);
     const data = {
-      descricao: formData.get("descricao") as string,
-      justificativa: formData.get("justificativa") as string,
+      descricao: descricao,
+      justificativa: justificativa,
       classe: formData.get("classe") as string,
       setor_requisitante: formData.get("setor_requisitante") as string,
       tipo_contratacao: formData.get("tipo_contratacao") as string,
@@ -218,8 +256,22 @@ export default function NovaContratacao() {
             <CardContent className="space-y-3">
               <div className="grid gap-3 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="descricao">Descrição do Objeto *</Label>
-                  <Input name="descricao" id="descricao" placeholder="Ex: Aquisição de Computadores" required />
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="descricao">Descrição do Objeto *</Label>
+                    <AIWriter 
+                      value={descricao} 
+                      onUpdate={setDescricao} 
+                      fieldName="Descrição" 
+                    />
+                  </div>
+                  <Input 
+                    name="descricao" 
+                    id="descricao" 
+                    placeholder="Ex: Aquisição de Computadores" 
+                    required 
+                    value={descricao}
+                    onChange={(e) => setDescricao(e.target.value)}
+                  />
                   {errors.descricao && <p className="text-sm text-destructive">{errors.descricao}</p>}
                 </div>
 
@@ -283,7 +335,7 @@ export default function NovaContratacao() {
 
                 <div className="space-y-2">
                   <Label htmlFor="tipo-contratacao">Tipo de Contratação *</Label>
-                  <Select name="tipo_contratacao" required>
+                  <Select name="tipo_contratacao" required onValueChange={(val) => setTipoContratacao(val)} value={tipoContratacao}>
                     <SelectTrigger id="tipo-contratacao" className="h-9">
                       <SelectValue placeholder="Selecione o tipo" />
                     </SelectTrigger>
@@ -314,7 +366,7 @@ export default function NovaContratacao() {
 
                 <div className="space-y-2">
                   <Label htmlFor="modalidade">Modalidade *</Label>
-                  <Select name="modalidade" required>
+                  <Select name="modalidade" required onValueChange={(val) => setModalidade(val)} value={modalidade}>
                     <SelectTrigger id="modalidade" className="h-9">
                       <SelectValue placeholder="Selecione a modalidade" />
                     </SelectTrigger>
@@ -323,6 +375,7 @@ export default function NovaContratacao() {
                       <SelectItem value="Dispensa">Dispensa</SelectItem>
                       <SelectItem value="Inexigibilidade">Inexigibilidade</SelectItem>
                       <SelectItem value="Concorrência">Concorrência</SelectItem>
+                      <SelectItem value="Concurso">Concurso</SelectItem>
                     </SelectContent>
                   </Select>
                   {errors.modalidade && <p className="text-sm text-destructive">{errors.modalidade}</p>}
@@ -372,20 +425,48 @@ export default function NovaContratacao() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="data-prevista">Data Prevista para a Contratação *</Label>
-                  <Input name="data_prevista_contratacao" id="data-prevista" type="date" required />
+                  <Label htmlFor="data-inicio">Data Prevista para Início da Contratação</Label>
+                  <Input 
+                    name="data_entrada_clc_virtual" 
+                    id="data-inicio" 
+                    type="date" 
+                    value={dataInicioCalculada}
+                    disabled
+                    className="bg-muted text-muted-foreground"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="data-prevista">Data Prevista para Término da Contratação *</Label>
+                  <Input 
+                    name="data_prevista_contratacao" 
+                    id="data-prevista" 
+                    type="date" 
+                    required 
+                    onChange={(e) => setDataTermino(e.target.value)}
+                    value={dataTermino}
+                  />
                   {errors.data_prevista_contratacao && <p className="text-sm text-destructive">{errors.data_prevista_contratacao}</p>}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="justificativa">Justificativa *</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="justificativa">Justificativa *</Label>
+                  <AIWriter 
+                    value={justificativa} 
+                    onUpdate={setJustificativa} 
+                    fieldName="Justificativa" 
+                  />
+                </div>
                 <Textarea
                   name="justificativa"
                   id="justificativa"
                   placeholder="Descreva a justificativa para esta contratação"
                   rows={4}
                   required
+                  value={justificativa}
+                  onChange={(e) => setJustificativa(e.target.value)}
                 />
                 {errors.justificativa && <p className="text-sm text-destructive">{errors.justificativa}</p>}
               </div>
