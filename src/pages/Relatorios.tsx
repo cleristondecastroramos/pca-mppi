@@ -469,7 +469,7 @@ const Relatorios = () => {
     setLoading(true);
     toast.message("Gerando relatório...", { description: `Preparando ${tipo.toUpperCase()}...` });
     try {
-      console.log("Gerando relatório tipo:", rType); // Debug
+
       const def = REPORT_TYPES[rType];
       let sourceRows = applyFilters(rows.length ? rows : await fetchAllContratacoes());
 
@@ -534,7 +534,7 @@ const Relatorios = () => {
         URL.revokeObjectURL(url);
       } else if (rType === "pca_2_0") {
         const logo = `${location.origin}/logo-mppi.png`;
-        const mapaEstrategico = `${location.origin}/Mapa-Estrategico.jpeg`;
+        const mapaEstrategico = `${location.origin}/Mapa-Estrategico.jpg`;
         const today = new Date().toLocaleDateString('pt-BR');
 
         // Calcular métricas para o documento
@@ -711,12 +711,23 @@ const Relatorios = () => {
               .text-right { text-align: right; }
               .text-center { text-align: center; }
               
-              table { width: 100%; border-collapse: collapse; margin-top: 4mm; font-size: 9pt; }
-              th { background: #f3f4f6; color: #111827; font-weight: 700; border: 1.5px solid #1f2937; padding: 10px 8px; text-align: center; }
-              td { border: 1px solid #374151; padding: 8px; }
+              .toc-list { list-style: none; padding: 0; margin-top: 10mm; }
+              .toc-item { display: flex; align-items: baseline; margin-bottom: 4mm; text-decoration: none; color: #374151; font-size: 11pt; }
+              .toc-item:hover { color: #D9415D; }
+              .toc-text { font-weight: 600; }
+              .toc-dots { flex-grow: 1; border-bottom: 1px dotted #9ca3af; margin: 0 8px; position: relative; top: -4px; }
+              .toc-page { font-weight: 700; color: #D9415D; }
+              .toc-item a { text-decoration: none; color: inherit; display: flex; width: 100%; align-items: baseline; }
+              
+               table { width: 100%; border-collapse: collapse; margin-top: 4mm; font-size: 9pt; }
+               th { border: 1px solid #000; padding: 8px; text-align: center; vertical-align: middle; background: #f3f4f6; font-weight: 700; }
+               td { border: 1px solid #000; padding: 8px; }
+               .compact-table th, .compact-table td { padding: 4px 6px; }
               
               .report-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 0 !important; border: none !important; }
-              .report-table td { border: none !important; padding: 0 !important; }
+              .report-table > thead > tr > th, 
+              .report-table > tbody > tr > td, 
+              .report-table > tfoot > tr > td { border: none !important; padding: 0 !important; }
               .report-footer { display: table-footer-group; }
               .footer-spacer { height: 10mm; }
               .footer-content { 
@@ -821,10 +832,30 @@ const Relatorios = () => {
                   </div>
                 </div>
               </div>
+            <div class="page-break section">
+              <h2 id="sumario" style="margin-bottom: 10mm;">Sumário</h2>
+              <div class="toc-list">
+                <div class="toc-item"><a href="#siglas"><span class="toc-text">Lista de Termos e Siglas</span><span class="toc-dots"></span></a></div>
+                <div class="toc-item"><a href="#section-1"><span class="toc-text">1. Apresentação</span><span class="toc-dots"></span></a></div>
+                <div class="toc-item"><a href="#section-2"><span class="toc-text">2. Considerações Iniciais</span><span class="toc-dots"></span></a></div>
+                <div class="toc-item"><a href="#section-3"><span class="toc-text">3. Diretrizes da Política de Aquisições</span><span class="toc-dots"></span></a></div>
+                <div class="toc-item"><a href="#section-4"><span class="toc-text">4. Do Plano de Contratação Anual</span><span class="toc-dots"></span></a></div>
+                <div class="toc-item" style="padding-left: 20px;"><a href="#section-4-1"><span class="toc-text">4.1. Do Levantamento de Necessidades</span><span class="toc-dots"></span></a></div>
+                <div class="toc-item" style="padding-left: 20px;"><a href="#section-4-2"><span class="toc-text">4.2. Do Processamento e Tratamento dos Dados</span><span class="toc-dots"></span></a></div>
+                <div class="toc-item" style="padding-left: 20px;"><a href="#section-4-3"><span class="toc-text">4.3. Da Consolidação Estratégica</span><span class="toc-dots"></span></a></div>
+                <div class="toc-item"><a href="#section-5"><span class="toc-text">5. Perspectiva Orçamentária do PCA-2026</span><span class="toc-dots"></span></a></div>
+                <div class="toc-item"><a href="#section-6"><span class="toc-text">6. Alinhamento Estratégico</span><span class="toc-dots"></span></a></div>
+                <div class="toc-item"><a href="#section-7"><span class="toc-text">7. Alocação de Recursos para Novos Certames</span><span class="toc-dots"></span></a></div>
+                <div class="toc-item"><a href="#section-8"><span class="toc-text">8. Contratações de Serviços Públicos - Prazo Indeterminado</span><span class="toc-dots"></span></a></div>
+                <div class="toc-item"><a href="#section-9"><span class="toc-text">9. Metodologia de Monitoramento e Gestão de Riscos</span><span class="toc-dots"></span></a></div>
+                <div class="toc-item"><a href="#section-10"><span class="toc-text">10. Conclusão e Disposições Finais</span><span class="toc-dots"></span></a></div>
+                <div class="toc-item"><a href="#section-11"><span class="toc-text">11. Homologação</span><span class="toc-dots"></span></a></div>
+                <div class="toc-item"><a href="#anexo-1"><span class="toc-text">Anexo I: Relação Completa de Demandas</span><span class="toc-dots"></span></a></div>
+              </div>
             </div>
 
             <div class="page-break section">
-              <h2 style="margin-bottom: 10mm;">Lista de Termos e Siglas</h2>
+              <h2 id="siglas" style="margin-bottom: 10mm;">Lista de Termos e Siglas</h2>
               <div style="column-count: 1; font-size: 9pt;">
                 <table style="margin-top: 0;">
                   <thead>
@@ -893,7 +924,7 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section">
-              <h2>1. Apresentação</h2>
+              <h2 id="section-1">1. Apresentação</h2>
               <p>O Plano de Contratações Anual (PCA) do Ministério Público do Estado do Piauí, referente ao exercício de 2026, consolida-se como o instrumento central de governança estruturante e planejamento logístico institucional. Alinhado aos preceitos da Nova Lei de Licitações e Contratos (Lei nº 14.133/2021), o PCA transcende a mera formalidade administrativa para atuar como um guia estratégico, assegurando que as aquisições e contratações de serviços e obras guardem estrita consonância com o Planejamento Estratégico e as diretrizes orçamentárias deste Parquet.</p>
               
               <p>Esta Versão 2.0 reflete um processo de amadurecimento na gestão de insumos, fundamentado em análises de dados precisas e na interlocução direta entre as unidades requisitantes e a Administração Superior. Por meio da racionalização de demandas e da busca contínua pela economia de escala e padronização, o plano visa otimizar a alocação de recursos públicos, mitigando riscos de descontinuidade administrativa e elevando os padrões de transparência, eficácia e eficiência operacional.</p>
@@ -914,7 +945,7 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section">
-              <h2>2. Considerações Iniciais</h2>
+              <h2 id="section-2">2. Considerações Iniciais</h2>
               <p>O Plano de Contratações Anual (PCA), um dos principais instrumentos da governança em contratações, compreende as demandas a serem realizadas no exercício, sejam elas relacionadas a bens, serviços ou obras. Além das demandas novas, contempla também todas as renovações de contratos do Órgão (serviços e fornecimentos continuados). Sua relevância foi ampliada pela Nova Lei de Licitações (Lei 14.133/2021), consolidando-o como peça fundamental para o alcance de resultados mais sustentáveis e eficientes.</p>
               
               <p>Para o exercício de 2026, o PCA-MPPI evoluciona de um planejamento estático para uma ferramenta de gestão ativa e dinâmica. Uma das grandes inovações deste ano é a migração da gestão, outrora realizada exclusivamente por planilhas de Business Intelligence (Power BI), para um <strong>sistema web próprio dedicado</strong>. Essa transição tecnológica permite um controle mais rigoroso e transparente, minimizando inconsistências e agilizando a tomada de decisão estratégica.</p>
@@ -927,7 +958,7 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section">
-              <h2>3. Diretrizes da Política de Aquisições</h2>
+              <h2 id="section-3">3. Diretrizes da Política de Aquisições</h2>
               <p>A formulação do Plano de Contratações Anual para o exercício de 2026 fundamenta-se em diretrizes estratégicas que visam a excelência operacional e a integridade administrativa. Estas diretrizes orientam as unidades requisitantes na identificação de suas necessidades, assegurando que cada aquisição contribua para o interesse público e para o fortalecimento institucional do Ministério Público do Estado do Piauí:</p>
               <ul style="list-style-type: none; padding-left: 0; margin-top: 8mm;">
                 <li style="margin-bottom: 6mm; display: flex; align-items: flex-start; gap: 12px;">
@@ -976,12 +1007,12 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section">
-              <h2>4. Do Plano de Contratação Anual</h2>
+              <h2 id="section-4">4. Do Plano de Contratação Anual</h2>
               <p>O Plano de Contratações Anual (PCA) do Ministério Público do Estado do Piauí e de seus fundos institucionais representa o ápice do planejamento preventivo e da governança de recursos. Com o propósito de elevar a eficiência no aproveitamento do erário, este documento consolida a estratégia de aquisições para o exercício de 2026, assegurando que cada demanda esteja estritamente vinculada à missão constitucional e aos objetivos estratégicos do Órgão.</p>
               
               <p>Este planejamento é fruto de um esforço multifuncional, envolvendo unidades administrativas e técnicas em um diálogo construtivo para alinhar as propostas orçamentárias (LOA) às reais necessidades finalísticas. O PCA não apenas identifica o que será contratado, mas também como essas contratações otimizarão os processos de trabalho e garantirão a sustentabilidade operacional da instituição.</p>
 
-              <h3 style="font-size: 11pt; color: #111827; margin-top: 8mm; margin-bottom: 4mm;">4.1. Do Levantamento de Necessidades</h3>
+              <h3 id="section-4-1" style="font-size: 11pt; color: #111827; margin-top: 8mm; margin-bottom: 4mm;">4.1. Do Levantamento de Necessidades</h3>
               <p>A fase de levantamento de necessidades constitui o alicerce do PCA. Regulamentada pelo Ato PGJ nº 1381/2024, esta etapa envolveu a participação ativa de todas as unidades requisitantes, incluindo Promotorias, Procuradorias de Justiça e órgãos da Administração Superior. O processo iniciou-se com a abertura oficial por meio de expedientes técnicos (PGEA/SEI nº 19.21.0013.0025806/2025-68), orientando as unidades na formulação de suas propostas para o exercício vindouro.</p>
               
               <p>A metodologia adotada foi estruturada em ciclos de análise:</p>
@@ -1000,7 +1031,7 @@ const Relatorios = () => {
                 </li>
               </ul>
 
-              <h3 style="font-size: 11pt; color: #111827; margin-top: 8mm; margin-bottom: 4mm;">4.2. Do Processamento e Tratamento dos Dados</h3>
+              <h3 id="section-4-2" style="font-size: 11pt; color: #111827; margin-top: 8mm; margin-bottom: 4mm;">4.2. Do Processamento e Tratamento dos Dados</h3>
               <p>Após a coleta de informações por meio de ferramentas sistêmicas e formulários padronizados, os dados foram submetidos a um rigoroso processo de tratamento e validação. Para o ciclo de 2026, o MPPI implementou inovações significativas no processamento de dados, migrando para um ecossistema de dados mais íntegro e visual. Tendo em vista a eficiência operacional, foram aprimorados os seguintes procedimentos:</p>
               
               <ul style="list-style-type: none; padding-left: 0; margin-top: 5mm; margin-bottom: 8mm;">
@@ -1018,13 +1049,13 @@ const Relatorios = () => {
                 </li>
               </ul>
 
-              <h3 style="font-size: 11pt; color: #111827; margin-top: 8mm; margin-bottom: 4mm;">4.3. Da Consolidação Estratégica</h3>
+              <h3 id="section-4-3" style="font-size: 11pt; color: #111827; margin-top: 8mm; margin-bottom: 4mm;">4.3. Da Consolidação Estratégica</h3>
               <p>A consolidação final do PCA resultou de um ciclo de reuniões de alinhamento técnico e estratégico, unificando as metas de cada unidade gestora sob uma governança centralizada. Este processo assegurou a mitigação de riscos de fracionamento de despesas por meio da unificação de itens assemelhados, maximizando o ganho processual.</p>
               <p>Com base no orçamento aprovado, as demandas de unidades como CAA, CCF, CCS, CEAF, CLC, entre outras, foram tecnicamente apreciadas. O resultado é um documento robusto, devidamente revisado pela Chefia de Gabinete e homologado pela Procuradora-Geral de Justiça, pronto para guiar a execução administrativa com transparência e disciplina fiscal em 2026.</p>
             </div>
 
             <div class="page-break section">
-              <h2>5. Perspectiva Orçamentária do PCA-2026</h2>
+              <h2 id="section-5">5. Perspectiva Orçamentária do PCA-2026</h2>
               <p>A perspectiva orçamentária do Plano de Contratações Anual para 2026 reflete a aplicação rigorosa dos princípios de responsabilidade fiscal e planejamento estratégico. O montante global planejado foi meticulosamente calculado para garantir a manutenção dos serviços essenciais e o suporte às novas iniciativas institucionais, mantendo-se em estrita consonância com os limites orçamentários previstos para o exercício.</p>
 
               <div style="display: flex; align-items: center; justify-content: center; gap: 40px; margin: 10mm 0; background: #f9fafb; padding: 25px; border-radius: 12px; border: 1px solid #e5e7eb;">
@@ -1062,7 +1093,7 @@ const Relatorios = () => {
               
               <div style="margin-top: 5mm;">
                 <p style="font-size: 8pt; font-weight: 700; color: #111827; margin-bottom: 1mm; text-transform: uppercase; letter-spacing: 0.5px;">Tabela 01: Detalhamento por Unidade Requisitante e Tipo de Contratação</p>
-                <table style="font-size: 7.5pt; border: 1.5px solid #111827; border-collapse: collapse;">
+                <table class="compact-table" style="font-size: 7.5pt; border: 1.5px solid #000; border-collapse: collapse;">
                   <thead>
                     <tr>
                       <th rowspan="2">Unidade Requisitante</th>
@@ -1073,13 +1104,13 @@ const Relatorios = () => {
                       <th rowspan="2">% PCA</th>
                     </tr>
                     <tr>
-                      <th style="background: #fdf2f2; border: 1.5px solid #111827;">Qtd</th>
-                      <th style="background: #fdf2f2; border: 1.5px solid #111827;">Valor</th>
-                      <th style="background: #f0fdf4; border: 1.5px solid #111827;">Qtd</th>
-                      <th style="background: #f0fdf4; border: 1.5px solid #111827;">Valor</th>
+                      <th style="background: #fdf2f2; border: 1.5px solid #000;">Qtd</th>
+                      <th style="background: #fdf2f2; border: 1.5px solid #000;">Valor</th>
+                      <th style="background: #f0fdf4; border: 1.5px solid #000;">Qtd</th>
+                      <th style="background: #f0fdf4; border: 1.5px solid #000;">Valor</th>
                     </tr>
                   </thead>
-                  <tbody style="border: 1.5px solid #111827;">
+                  <tbody style="border: 1.5px solid #000;">
                     ${table01Html}
                   </tbody>
                   <tfoot>
@@ -1097,37 +1128,37 @@ const Relatorios = () => {
                 </table>
               </div>
 
-              <div style="margin-top: 5mm; page-break-inside: avoid;">
-                <p style="font-size: 8pt; font-weight: 700; color: #111827; margin-bottom: 1mm; text-transform: uppercase;">TABELA 2: Representatividade quanto ao tipo de recurso no PCA</p>
-                <table style="border: 1.5px solid #111827;">
+              <div style="margin-top: 22mm; page-break-inside: avoid;">
+                <p style="font-size: 8pt; font-weight: 700; color: #111827; margin-bottom: 2mm; text-transform: uppercase;">TABELA 2: Representatividade quanto ao tipo de recurso no PCA</p>
+                <table class="compact-table" style="border: 1.5px solid #000;">
                   <thead>
                     <tr>
-                      <th style="border: 1.5px solid #111827;">Tipo</th>
-                      <th style="border: 1.5px solid #111827;">Valor</th>
-                      <th style="border: 1.5px solid #111827;">Percentual</th>
+                      <th style="border: 1.5px solid #000;">Tipo</th>
+                      <th style="border: 1.5px solid #000;">Valor</th>
+                      <th style="border: 1.5px solid #000;">Percentual</th>
                     </tr>
                   </thead>
-                  <tbody style="border: 1.5px solid #111827;">
+                  <tbody style="border: 1.5px solid #000;">
                     ${table02Html}
                   </tbody>
                 </table>
               </div>
 
-              <div style="margin-top: 6mm; page-break-inside: avoid;">
-                <p style="font-size: 8pt; font-weight: 700; color: #111827; margin-bottom: 1mm; text-transform: uppercase;">TABELA 3: Representatividade dos valores totais do PCA por unidade orçamentária e Unidade Requisitante.</p>
-                <table style="border: 1.5px solid #111827;">
+              <div style="margin-top: 22mm; page-break-inside: avoid;">
+                <p style="font-size: 8pt; font-weight: 700; color: #111827; margin-bottom: 2mm; text-transform: uppercase;">TABELA 3: Representatividade dos valores totais do PCA por unidade orçamentária e Unidade Requisitante.</p>
+                <table class="compact-table" style="border: 1.5px solid #000;">
                   <thead>
                     <tr>
-                      <th style="border: 1.5px solid #111827;">Unidade Requisitante</th>
-                      <th style="border: 1.5px solid #111827;">PGJ</th>
-                      <th style="border: 1.5px solid #111827;">FMMP</th>
-                      <th style="border: 1.5px solid #111827;">FEPDC</th>
+                      <th style="border: 1.5px solid #000;">Unidade Requisitante</th>
+                      <th style="border: 1.5px solid #000;">PGJ</th>
+                      <th style="border: 1.5px solid #000;">FMMP</th>
+                      <th style="border: 1.5px solid #000;">FEPDC</th>
                     </tr>
                   </thead>
-                  <tbody style="border: 1.5px solid #111827;">
+                  <tbody style="border: 1.5px solid #000;">
                     ${table03Html}
                   </tbody>
-                  <tfoot style="border: 1.5px solid #111827;">
+                  <tfoot style="border: 1.5px solid #000;">
                     <tr style="font-weight: bold; background: #f9fafb;">
                       <td>VALORES TOTAIS</td>
                       <td class="text-right">${formatCurrency(uoTotalsMap["PGJ"] || 0)}</td>
@@ -1144,21 +1175,21 @@ const Relatorios = () => {
                 </table>
               </div>
 
-              <div style="margin-top: 6mm; page-break-inside: avoid;">
-                <p style="font-size: 8pt; font-weight: 700; color: #111827; margin-bottom: 1mm; text-transform: uppercase;">TABELA 4: Representatividade do PCA das renovações de contratos por unidade orçamentária</p>
-                <table style="border: 1.5px solid #111827;">
+              <div style="margin-top: 22mm; page-break-inside: avoid;">
+                <p style="font-size: 8pt; font-weight: 700; color: #111827; margin-bottom: 2mm; text-transform: uppercase;">TABELA 4: Representatividade do PCA das renovações de contratos por unidade orçamentária</p>
+                <table class="compact-table" style="border: 1.5px solid #000;">
                   <thead>
                     <tr>
-                      <th style="border: 1.5px solid #111827;">Unidade Requisitante</th>
-                      <th style="border: 1.5px solid #111827;">PGJ</th>
-                      <th style="border: 1.5px solid #111827;">FMMP</th>
-                      <th style="border: 1.5px solid #111827;">FEPDC</th>
+                      <th style="border: 1.5px solid #000;">Unidade Requisitante</th>
+                      <th style="border: 1.5px solid #000;">PGJ</th>
+                      <th style="border: 1.5px solid #000;">FMMP</th>
+                      <th style="border: 1.5px solid #000;">FEPDC</th>
                     </tr>
                   </thead>
-                  <tbody style="border: 1.5px solid #111827;">
+                  <tbody style="border: 1.5px solid #000;">
                     ${table04Html}
                   </tbody>
-                  <tfoot style="border: 1.5px solid #111827;">
+                  <tfoot style="border: 1.5px solid #000;">
                     <tr style="font-weight: bold; background: #f9fafb;">
                       <td>VALORES TOTAIS (Renov.)</td>
                       <td class="text-right">${formatCurrency(uoRenTotalsMap["PGJ"] || 0)}</td>
@@ -1174,13 +1205,14 @@ const Relatorios = () => {
                   </tfoot>
                 </table>
               </div>
+              <p style="margin-top: 8mm;">Em conclusão, o detalhamento orçamentário consolidado na presente seção demonstra o equilíbrio entre a expansão necessária para a modernização institucional e a prudência fiscal requerida para a continuidade dos serviços essenciais. A distribuição dos recursos entre as diversas Unidades Requisitantes e a correta classificação entre novas demandas e renovações contratuais asseguram ao Ministério Público do Estado do Piauí uma execução financeira previsível e eficiente. Este planejamento logístico-orçamentário, pautado pela transparência e pela otimização do erário, constitui-se como o alicerce fundamental para o cumprimento das metas estratégicas pactuadas para o exercício de 2026.</p>
             </div>
 
             <div class="page-break section">
-              <h2>6. Alinhamento Estratégico</h2>
-              <p>O Plano de Contratações Anual (PCA-2026) constitui-se como um instrumento fundamental de viabilização da estratégia institucional. Todas as demandas consolidadas neste documento foram criteriosamente analisadas sob a ótica de sua contribuição direta para os Objetivos Estratégicos definidos no Plano Estratégico 2020–2029 do Ministério Público do Estado do Piauí, em estrita observância à Estratégia Nacional do Ministério Público Brasileiro (Resolução CNMP nº 147/2016 e alterações).</p>
+              <h2 id="section-6">6. Alinhamento Estratégico</h2>
+              <p>O Plano de Contratações Anual (PCA-2026) funciona como o principal instrumento de viabilização tática da estratégia institucional do Ministério Público do Estado do Piauí. Cada demanda consolidada neste documento foi criteriosamente avaliada sob o prisma de sua contribuição para os Objetivos Estratégicos estabelecidos no Ciclo 2020–2029, garantindo que o dispêndio de recursos públicos esteja intrinsecamente vinculado à entrega de valor à sociedade piauiense.</p>
               
-              <p>Este alinhamento garante que a alocação de recursos em bens, serviços e obras esteja vinculada ao fortalecimento da atuação finalística, ao aprimoramento da governança corporativa e à promoção da eficiência administrativa. A integração entre o planejamento logístico e o Mapa Estratégico institucional assegura a aderência às diretrizes de sustentabilidade e transparência, reforçando o compromisso deste Parquet com a entrega de resultados efetivos à sociedade piauiense.</p>
+              <p>Em estrita observância à Resolução CNMP nº 147/2016, que institui a Estratégia Nacional do Ministério Público, o alinhamento aqui demonstrado assegura que as aquisições e contratações de serviços reforcem a atuação finalística e aprimorem a governança corporativa. A integração sistêmica entre o planejamento logístico e o Mapa Estratégico reflete o compromisso deste Parquet com a eficiência administrativa e a busca contínua por resultados institucionais de alto impacto.</p>
 
               <div style="margin-top: 10mm; text-align: center;">
                 <p style="font-size: 8pt; font-weight: 600; margin-bottom: 4mm; color: #374151;">MAPA ESTRATÉGICO INSTITUCIONAL (2020-2029)</p>
@@ -1189,11 +1221,11 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section">
-              <h2>7. Contratações que não permitem renovação em 2026</h2>
-              <p>Considerando o limite de prorrogações previsto em lei ou por decisão administrativa, as seguintes contratações deverão ter novos processos licitatórios iniciados, visto que não admitem novas renovações contratuais para o exercício de 2026.</p>
+              <h2 id="section-7">7. Alocação de Recursos para Novos Certames por Vencimento Improrrogável</h2>
+              <p>Em estrita observância aos limites temporais estabelecidos pela legislação vigente e pelas diretrizes normativas da Administração Superior, as contratações relacionadas abaixo atingirão o termo final de sua vigência máxima permitida ao longo do exercício de 2026. Ante a impossibilidade jurídica de novas prorrogações aditivas, torna-se imperativa a deflagração tempestiva de novos procedimentos licitatórios. Este planejamento preventivo visa assegurar a continuidade ininterrupta de serviços e fornecimentos essenciais à manutenção das atividades institucionais deste Parquet.</p>
               
               <div style="margin-top: 5mm;">
-                <p style="font-size: 8pt; font-weight: 600; margin-bottom: 2mm;">TABELA 5: Contratos não renováveis</p>
+                <p style="font-size: 8pt; font-weight: 700; color: #111827; margin-bottom: 2mm; text-transform: uppercase;">TABELA 5: Contratos que exigem novo certame em 2026</p>
                 <table>
                   <thead>
                     <tr>
@@ -1234,11 +1266,11 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section">
-              <h2>8. Contratos com prazo indeterminado</h2>
-              <p>Os contratos de serviços públicos essenciais (água, energia, correios) são celebrados com prazo indeterminado, conforme a natureza do serviço e a legislação vigente, garantindo a continuidade das atividades institucionais.</p>
+              <h2 id="section-8">8. Contratações de Serviços Públicos com Vigência por Prazo Indeterminado</h2>
+              <p>As contratações de serviços públicos essenciais, operados sob regime de monopólio ou caracterizados como utilidade pública de natureza contínua (tais como fornecimento de energia elétrica, saneamento básico e serviços postais), são regidas por marcos regulatórios específicos que facultam a vigência por prazo indeterminado. Tais instrumentos são fundamentais para a estabilidade da infraestrutura operacional do MPPI, e o seu monitoramento é focado na fidedignidade da prestação e na conformidade com as estruturas tarifárias vigentes fixadas pelas agências reguladoras.</p>
               
               <div style="margin-top: 5mm;">
-                <p style="font-size: 8pt; font-weight: 600; margin-bottom: 2mm;">TABELA 6: Contratos com prazo indeterminado</p>
+                <p style="font-size: 8pt; font-weight: 700; color: #111827; margin-bottom: 2mm; text-transform: uppercase;">TABELA 6: Relação de Contratos com Prazo Indeterminado</p>
                 <table style="font-size: 7.5pt;">
                   <thead>
                     <tr>
@@ -1305,12 +1337,19 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section">
-              <h2>9. Gestão de Risco do PCA</h2>
-              <p>A Gestão de Riscos do PCA-2026 será feita com base no art. 17º do Ato PGJ 1381/2024 que diz que, a partir de julho do ano de execução do plano de contratações anual, o setor de licitações e a Assessoria de Planejamento e Gestão elaborarão relatórios de riscos referentes à provável não efetivação da contratação dos itens constantes no plano de contratações até o término daquele exercício.</p>
-              <p>Portanto o relatório de gestão de riscos terá frequência mínima bimestral e sua apresentação deverá ocorrer, no mínimo, nos meses de julho, setembro e novembro de cada ano. O relatório em comento será encaminhado à autoridade competente para adoção das medidas de correção pertinentes.</p>
-              <p>Ao final do ano de vigência do plano de contratações anual, as contratações planejadas e não realizadas deverão ser objeto de justificativa quanto aos motivos de sua não consecução, e, se permanecerem necessárias, poderão ser incorporadas ao plano de contratações referente ao ano subsequente. A tabela a seguir fixa os prazos finais para envio das demandas de contratação e renovação de contratos:</p>
+              <h2 id="section-9">9. Metodologia de Monitoramento e Gestão de Riscos da Execução do PCA</h2>
+              <p>O modelo de governança do PCA-2026 fundamenta-se nas disposições do art. 17 do Ato PGJ nº 1381/2024, estabelecendo um ciclo de controle rigoroso e preventivo. O monitoramento sistemático objetiva antecipar eventuais óbices técnicos ou orçamentários que possam comprometer o cronograma de contratações. Por meio desta gestão de riscos, a Coordenadoria de Licitações e Contratos e a Assessoria de Planejamento mantêm a visibilidade total sobre o fluxo processual, garantindo a eficiência na aplicação dos recursos e o cumprimento das metas institucionais através das seguintes instâncias de controle:</p>
+              
+              <ul style="padding-left: 20px; list-style-type: square; margin-bottom: 6mm;">
+                <li style="margin-bottom: 3mm;"><strong>Relatórios de Acompanhamento:</strong> Elaboração bimestral de diagnósticos (julho, setembro e novembro) para avaliação do status das demandas;</li>
+                <li style="margin-bottom: 3mm;"><strong>Ações Corretivas:</strong> Reporte imediato à Administração Superior em casos de processos com risco de não execução tempestiva;</li>
+                <li style="margin-bottom: 3mm;"><strong>Justificativa de Inexecução:</strong> Ao final do exercício, todas as demandas não realizadas deverão ser justificadas e, se necessário, reprogramadas para o PCA subsequente.</li>
+              </ul>
+
+              <p>Para mitigar riscos de descontinuidade administrativa e garantir o cumprimento do cronograma, foram estabelecidos prazos fatais para a remessa de Documentos de Formalização de Demanda (DFD) e Instruções Processuais, conforme detalhado na tabela de limites temporais abaixo:</p>
               
               <div style="margin-top: 5mm;">
+                <p style="font-size: 8pt; font-weight: 700; color: #111827; margin-bottom: 2mm; text-transform: uppercase;">TABELA 7: Cronograma de Prazos Limites para Tramitação de Processos</p>
                 <table>
                   <thead>
                     <tr>
@@ -1357,13 +1396,16 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section">
-              <h2>10. Disposições Finais</h2>
-              <p>Desde sua implementação em 2021, o Plano de Contratações Anual (PCA) tem se consolidado como uma prática robusta no planejamento das contratações realizadas pelo MPPI. O esforço colaborativo na sua elaboração, a comunicação eficaz entre as diversas unidades envolvidas e a revisão constante dos procedimentos e normativos internos têm contribuído significativamente para aumentar a eficiência e a eficácia das contratações. Além disso, essas práticas têm promovido um ambiente mais íntegro e confiável, reduzindo a vulnerabilidade aos riscos associados às compras públicas.</p>
-              <p>No contexto orçamentário atual, o PCA se destaca como uma ferramenta essencial para garantir a alocação eficiente dos recursos públicos, alinhando-se à Lei Orçamentária Anual. A execução do Plano depende de um monitoramento contínuo e da apresentação de relatórios, que permitem ajustes proativos e um planejamento mais preciso, assegurando transparência e responsabilidade na gestão dos recursos. Ademais, o PCA, sendo uma ferramenta de gestão dinâmica, está sujeito a alterações e ajustes durante o exercício, possibilitando o remanejamento, a inclusão, bem como a exclusão de demandas conforme as necessidades da Administração.</p>
-              <p>Em suma, a execução do Plano de Contratações Anual-PCA, possui um monitoramento sistemático e flexível, fundamental para alcançar os objetivos orçamentários e para o aprimoramento contínuo da gestão pública.</p>
-              <p>Nele, estão apresentadas as demandas com quantidades e valores estimados, podendo, no decorrer da fase de planejamento da contratação, por meio dos estudos preliminares, sofrer alterações, por decisão do Procurador-Geral de Justiça.</p>
-              <p>O PCA-2026, está passível de ajustes ao longo do exercício, observadas as regras que disciplinam a sua elaboração e monitoramento. Há possibilidade de inclusão de novas aquisições e contratações que não foram apresentadas no período de levantamento das demandas, que deverão ser apresentadas ao Procurador-Geral de Justiça.</p>
-              <p>O Plano de Contratações Anual, instrumento que consolida demandas a serem contratadas no exercício seguinte, previsto na Nova Lei de Licitações, como essencial para o alcance de resultados mais sustentáveis para a Administração Pública, é prática consolidada no MPPI desde 2022. Sobre o PCA, importante tecer alguns comentários finais:</p>
+              <h2 id="section-10">10. Conclusão e Disposições Finais</h2>
+              <p>O Plano de Contratações Anual (PCA) do Ministério Público do Estado do Piauí, consolidado como prática de excelência desde 2021, atinge para o exercício de 2026 um novo patamar de maturidade institucional e robustez administrativa. A principal inovação deste ciclo reside na transição definitiva da governança baseada em ferramentas de visualização estática para um ecossistema tecnológico próprio e dedicado. Este avanço permite o rastreamento integral de cada etapa do planejamento, transformando dados em inteligência estratégica e assegurando uma sincronia sem precedentes entre o planejamento logístico e a execução orçamentária.</p>
+              
+              <p>O aprimoramento contínuo dos fluxos de trabalho e a interlocução sinérgica entre as unidades técnicas e requisitantes consolidaram o PCA como um instrumento de mitigação de riscos e promoção da integridade nas compras públicas. Para o exercício de 2026, o bom andamento do planejamento é garantido por mecanismos de controle proativos, incluindo travas sistêmicas por setor e o monitoramento rigoroso de limites de empenho, assegurando que cada contratação guarde estrita fidelidade aos parâmetros fiscais aprovados.</p>
+
+              <p>Ressalte-se que o PCA é um instrumento dinâmico e resiliente. Sua natureza flexível permite que a Administração Superior realize ajustes tempestivos, inclusões estratégicas ou remanejamentos de demandas ao longo do ano, sempre pautados pela supremacia do interesse público e pela mutabilidade das necessidades institucionais. Qualquer alteração relevante seguirá os ritos de validação técnica e homologação pela Procuradoria-Geral de Justiça, mantendo a conformidade com a Lei nº 14.133/2021 e com os objetivos estratégicos do Parquet.</p>
+
+              <p>Por fim, a concretização deste Plano reafirma o compromisso do MPPI com a transparência ativa e a eficiência na alocação dos recursos públicos. Mais do que um repositório de intenções de compra, o PCA-2026 consolida-se como um guia de gestão de alto desempenho, projetando o Ministério Público rumo a um modelo de logística pública moderna, sustentável e plenamente alinhada à excelência na entrega de resultados à sociedade piauiense.</p>
+
+              <p>Sobre as diretrizes finais de execução, destacam-se os seguintes pontos:</p>
               <ol style="padding-left: 20px;">
                 <li style="margin-bottom: 4mm;">Os pedidos de contratação não contemplados no Plano de Contratação Anual, previstos no ano de sua elaboração, devem ser enviados à Assessoria de Planejamento e Gestão para comprovação dos recursos orçamentários e após submeter à aprovação da PGJ;</li>
                 <li style="margin-bottom: 4mm;">Por fim, considerando tais apontamentos, segue o Plano de Contratações Anual de 2026, com vista à aprovação e homologação pelo PGJ-PI em exercício.</li>
@@ -1371,25 +1413,25 @@ const Relatorios = () => {
             </div>
 
             <div class="page-break section">
-              <h2>11. Aprovação</h2>
-              <div style="margin-top: 10mm; padding: 20px; border: 2px solid #D9415D; border-radius: 8px; background: #fffafb;">
-                <p style="font-size: 14pt; font-weight: 700; color: #D9415D; text-transform: uppercase; margin-bottom: 6mm; letter-spacing: 1px;">Aprovação</p>
-                <p style="font-size: 11pt; line-height: 1.6; text-align: justify; font-weight: 500;">
-                  APROVO O PCA-2026 E DETERMINO SUA PUBLICAÇÃO NOS SITES E PORTAIS EXIGIDOS PELA LEGISLAÇÃO E SUA EXECUÇÃO PELAS UNIDADES TÉCNICAS REQUISITANTES DESTA PROCURADORIA GERAL DE JUSTIÇA, CONFORME DIRETRIZES APRESENTADAS NESTE DOCUMENTO E NO ATO PGJ-1381/2024.
+              <h2 id="section-11">11. Homologação</h2>
+              <div style="margin-top: 10mm; padding: 25px; border: 1.5px solid #D9415D; border-radius: 8px; background: #fffafb;">
+                <p style="font-size: 14pt; font-weight: 700; color: #D9415D; margin-bottom: 6mm; letter-spacing: 1px;">Homologação Institucional</p>
+                <p style="font-size: 11pt; line-height: 1.7; text-align: justify; font-weight: 500; color: #1f2937;">
+                  Considerando a regularidade do processo de planejamento e a observância aos preceitos da Lei nº 14.133/2021, homologo o Plano de Contratações Anual (PCA) para o exercício de 2026. Determino sua imediata publicação nos veículos oficiais de transparência e a fiel execução por parte das unidades técnicas e requisitantes desta Procuradoria-Geral de Justiça, em estrita conformidade com as diretrizes estabelecidas neste documento e no Ato PGJ nº 1381/2024.
                 </p>
                 
-                <div style="margin-top: 20mm; text-align: center;">
-                  <p>Teresina, na data da assinatura eletrônica.</p>
-                  <div style="margin-top: 15mm; border-top: 1px solid #374151; display: inline-block; padding-top: 2mm; min-width: 300px;">
-                    <p style="font-weight: 700; margin: 0;">Dra. Cláudia Pessoa Marques da Rocha Seabra</p>
-                    <p style="margin: 0; color: #6b7280;">Procuradora-Geral de Justiça</p>
+                <div style="margin-top: 25mm; text-align: center;">
+                  <p style="font-size: 10pt; color: #4b5563;">Teresina, datado e assinado eletronicamente.</p>
+                  <div style="margin-top: 15mm; border-top: 1px solid #374151; display: inline-block; padding-top: 2mm; min-width: 350px;">
+                    <p style="font-weight: 700; margin: 0; font-size: 11pt; color: #111827;">Dra. Cláudia Pessoa Marques da Rocha Seabra</p>
+                    <p style="margin: 0; color: #4b5563; font-size: 10pt;">Procuradora-Geral de Justiça</p>
                   </div>
                 </div>
               </div>
             </div>
 
             <div class="page-break section landscape-section">
-              <h2>Anexo I: Relação Completa de Demandas</h2>
+              <h2 id="anexo-1">Anexo I: Relação Completa de Demandas</h2>
               <p>A tabela a seguir apresenta a listagem completa de todas as demandas de contratação registradas para o exercício de 2026.</p>
               <table>
                 <thead>
@@ -1403,12 +1445,15 @@ const Relatorios = () => {
                     <th style="width: 10%;">Valor Planejado</th>
                   </tr>
                 </thead>
-                <tbody>
-                    </div> <!-- End main-content -->
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                  <tbody>
+                    ${rowsHtml}
+                  </tbody>
+                </table>
+              </div> <!-- End main-content -->
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
           <div class="footer-global" style="display: none;"></div>
 
@@ -1765,7 +1810,11 @@ const Relatorios = () => {
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">{def.description}</div>
                   </div>
-                  <div className="mt-1">
+                  <div className="mt-1 flex gap-2">
+                    <Button size="xs" variant="outline" className="gap-1 border-primary text-primary hover:bg-primary/5" onClick={() => handleGenerate("csv", key)}>
+                      <FileSearch className="h-3 w-3" />
+                      Gerar CSV
+                    </Button>
                     <Button size="xs" className="gap-1 bg-primary text-white hover:bg-primary/90" onClick={() => handleGenerate("pdf", key)}>
                       <FileText className="h-3 w-3" />
                       Gerar PDF
