@@ -437,7 +437,7 @@ export default function NovaContratacao() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="data-prevista">Data Prevista para Término da Contratação *</Label>
+                  <Label htmlFor="data-prevista">Data Prevista para Conclusão da Contratação *</Label>
                   <Input 
                     name="data_prevista_contratacao" 
                     id="data-prevista" 

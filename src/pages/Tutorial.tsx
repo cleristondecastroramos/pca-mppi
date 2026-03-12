@@ -351,7 +351,7 @@ export default function Tutorial() {
 
           <H3>8.5. Cálculo Automático da Data Prevista de Início</H3>
           <P>
-            O campo <strong>Data Prevista para Início da Contratação</strong> é calculado automaticamente pelo sistema e permanece bloqueado para edição manual. O cálculo baseia-se no <em>Tipo de Contratação</em>, na <em>Modalidade</em> e na <em>Data Prevista para Término</em>.
+            O campo <strong>Data Prevista para Início da Contratação</strong> é calculado automaticamente pelo sistema e permanece bloqueado para edição manual. O cálculo baseia-se no <em>Tipo de Contratação</em>, na <em>Modalidade</em> e na <em>Data Prevista para Conclusão</em>.
           </P>
           <UL items={[
             <><strong>Regra 1:</strong> Se for uma <em>Nova Contratação</em> nas modalidades <em>Pregão Eletrônico</em> ou <em>Concorrência</em>, a data de início é definida como <strong>150 dias antes</strong> da data de término.</>,
