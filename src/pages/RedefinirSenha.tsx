@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { translateError } from "@/lib/utils/error-translations";
 import { Loader2 } from "lucide-react";
 
 const RedefinirSenha = () => {
@@ -45,7 +46,8 @@ const RedefinirSenha = () => {
       toast.success("Senha redefinida com sucesso. Faça login novamente.");
       navigate("/auth", { replace: true });
     } catch (err: any) {
-      toast.error("Falha ao redefinir senha", { description: err.message || String(err) });
+      const errorMessage = translateError(err.message || String(err));
+      toast.error("Falha ao redefinir senha", { description: errorMessage });
     } finally {
       setLoading(false);
     }

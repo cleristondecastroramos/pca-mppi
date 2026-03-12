@@ -14,6 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowLeft, Save } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { translateError } from "@/lib/utils/error-translations";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
@@ -159,9 +160,9 @@ export default function NovaContratacao() {
         console.error("Erro na inserção:", error);
         const msg = String(error.message || error);
         if (msg.includes("Saldo orçamentário insuficiente") || msg.includes("saldo orçamentário insuficiente")) {
-          toast.error("Saldo orçamentário insuficiente na UO selecionada. Solicite autorização do administrador para excedente.");
+          toast.error("Saldo orçamentário insuficiente na UO selecionada", { description: "Solicite autorização do administrador para excedente." });
         } else {
-          toast.error("Erro ao cadastrar contratação");
+          toast.error("Erro ao cadastrar contratação", { description: translateError(msg) });
         }
         throw error;
       }
@@ -182,9 +183,9 @@ export default function NovaContratacao() {
       } else {
         const msg = String(error as any);
         if (msg.includes("Saldo orçamentário insuficiente") || msg.includes("saldo orçamentário insuficiente")) {
-          toast.error("Saldo orçamentário insuficiente na UO selecionada. Solicite autorização do administrador para excedente.");
+          toast.error("Saldo orçamentário insuficiente na UO selecionada", { description: "Solicite autorização do administrador para excedente." });
         } else {
-          toast.error("Erro ao cadastrar contratação");
+          toast.error("Erro ao cadastrar contratação", { description: translateError(msg) });
           console.error(error);
         }
       }

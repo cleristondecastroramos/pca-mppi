@@ -9,6 +9,8 @@ import type { Tables } from "@/integrations/supabase/types";
 import { useEffect, useMemo, useState } from "react";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend } from "@/components/ui/chart";
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis, LabelList, PieChart, Pie, Cell, Legend, ResponsiveContainer } from "recharts";
+import { toast } from "sonner";
+import { translateError } from "@/lib/utils/error-translations";
 import { Loader2, FileText, CheckCircle, DollarSign } from "lucide-react";
 
 type Contratacao = Tables<"contratacoes">;
@@ -31,8 +33,8 @@ const ResultadosAlcancados = () => {
           .order("created_at", { ascending: false });
         if (error) throw error;
         if (mounted) setRows((data as any) || []);
-      } catch (e) {
-        // noop toast to keep minimal
+      } catch (e: any) {
+        toast.error("Erro ao carregar resultados", { description: translateError(e.message || String(e)) });
       } finally {
         if (mounted) setLoading(false);
       }

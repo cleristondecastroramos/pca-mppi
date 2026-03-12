@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { translateError } from "@/lib/utils/error-translations";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Camera, Image as ImageIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -126,7 +127,8 @@ const MinhaConta = () => {
       setConfirmPassword("");
     } catch (e: any) {
       console.error(e);
-      toast.error("Falha ao alterar senha", { description: e.message || e.toString() });
+      const errorMessage = translateError(e.message || e.toString());
+      toast.error("Falha ao alterar senha", { description: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -176,7 +178,7 @@ const MinhaConta = () => {
       try { window.dispatchEvent(new CustomEvent("app-avatar-update", { detail: publicUrl })); } catch { }
       toast.success("Foto atualizada.");
     } catch (e: any) {
-      toast.error("Falha ao enviar imagem", { description: e.message || String(e) });
+      toast.error("Falha ao enviar imagem", { description: translateError(e.message || String(e)) });
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -211,7 +213,7 @@ const MinhaConta = () => {
       supabase.auth.updateUser({ data: { avatar_url: url } }).catch(() => {});
     } catch (e: any) {
       console.error("Erro ao atualizar avatar:", e);
-      toast.error("Falha ao atualizar o avatar", { description: e.message || "Tente novamente." });
+      toast.error("Falha ao atualizar o avatar", { description: translateError(e.message || "Tente novamente.") });
     } finally {
       setUpdatingAvatar(false);
     }
@@ -239,7 +241,7 @@ const MinhaConta = () => {
       toast.success("Dados atualizados.");
       await supabase.auth.updateUser({ data: { nome_completo: nomeCompleto } });
     } catch (e: any) {
-      toast.error("Falha ao salvar dados", { description: e.message || String(e) });
+      toast.error("Falha ao salvar dados", { description: translateError(e.message || String(e)) });
     } finally {
       setSavingProfile(false);
     }

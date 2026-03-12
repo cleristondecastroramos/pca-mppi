@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { translateError } from "@/lib/utils/error-translations";
 import { Loader2, AlertTriangle, Circle, ArrowDownCircle } from "lucide-react";
 import { useAuthSession, useUserRoles, useUserProfile, hasAnyRole } from "@/lib/auth";
 
@@ -45,7 +46,7 @@ const PrioridadesContratacao = () => {
         if (error) throw error;
         if (mounted) setRows((data as any) || []);
       } catch (e: any) {
-        toast.error("Erro ao carregar prioridades", { description: e.message || String(e) });
+        toast.error("Erro ao carregar prioridades", { description: translateError(e.message || String(e)) });
       } finally {
         if (mounted) setLoading(false);
       }
@@ -111,7 +112,7 @@ const PrioridadesContratacao = () => {
       toast.success("Prioridade atualizada");
       setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, grau_prioridade: value } : r)));
     } catch (e: any) {
-      toast.error("Falha ao atualizar prioridade", { description: e.message || String(e) });
+      toast.error("Falha ao atualizar prioridade", { description: translateError(e.message || String(e)) });
     }
   };
 

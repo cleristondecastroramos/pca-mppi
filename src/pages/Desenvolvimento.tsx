@@ -16,6 +16,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { translateError } from "@/lib/utils/error-translations";
 import { importContratacoes, removeDuplicates } from "@/utils/importCsv";
 import { migrateExistingIds } from "@/utils/migrateCodigos";
 
@@ -58,7 +59,7 @@ export default function Desenvolvimento() {
       toast.success(`${count} registros importados com sucesso!`);
       fetchStats();
     } catch (error: any) {
-      toast.error("Erro na importação: " + error.message);
+      toast.error("Erro na importação", { description: translateError(error.message) });
     } finally {
       setLoading(false);
     }
@@ -81,7 +82,7 @@ export default function Desenvolvimento() {
         toast.info("Nenhuma duplicata encontrada.");
       }
     } catch (error: any) {
-      toast.error("Erro ao remover duplicatas: " + error.message);
+      toast.error("Erro ao remover duplicatas", { description: translateError(error.message) });
     } finally {
       setLoading(false);
     }
@@ -103,7 +104,7 @@ export default function Desenvolvimento() {
       toast.success("Sistema limpo com sucesso!");
       fetchStats();
     } catch (error: any) {
-      toast.error("Erro ao limpar sistema: " + error.message);
+      toast.error("Erro ao limpar sistema", { description: translateError(error.message) });
     } finally {
       setLoading(false);
     }
@@ -116,7 +117,7 @@ export default function Desenvolvimento() {
       toast.success("Migração de IDs concluída.");
       fetchStats();
     } catch (error: any) {
-      toast.error("Erro na migração: " + error.message);
+      toast.error("Erro na migração", { description: translateError(error.message) });
     } finally {
       setLoading(false);
     }

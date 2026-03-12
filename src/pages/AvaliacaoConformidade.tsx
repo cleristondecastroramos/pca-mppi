@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { translateError } from "@/lib/utils/error-translations";
 import { Loader2, Copy } from "lucide-react";
 
 type Contratacao = Tables<"contratacoes">;
@@ -86,14 +87,14 @@ const AvaliacaoConformidade = () => {
             });
             if (mounted) setConfMap(map);
           } catch (err: any) {
-            toast.error("Erro ao carregar conformidade agregada", { description: err?.message || String(err) });
+            toast.error("Erro ao carregar conformidade agregada", { description: translateError(err?.message || String(err)) });
             if (mounted) setConfMap({});
           }
         } else {
           if (mounted) setConfMap({});
         }
       } catch (e: any) {
-        toast.error("Erro ao carregar contratações", { description: e.message || String(e) });
+        toast.error("Erro ao carregar contratações", { description: translateError(e.message || String(e)) });
       } finally {
         if (mounted) setLoading(false);
       }
@@ -233,7 +234,7 @@ const AvaliacaoConformidade = () => {
       toast.success("Checklist salvo");
       setOpenAudit(null);
     } catch (e: any) {
-      toast.error("Falha ao salvar checklist", { description: e.message || String(e) });
+      toast.error("Falha ao salvar checklist", { description: translateError(e.message || String(e)) });
     }
   };
 

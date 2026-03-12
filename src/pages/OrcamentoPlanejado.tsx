@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { translateError } from "@/lib/utils/error-translations";
 import { Loader2, Save, History } from "lucide-react";
 import {
   Dialog,
@@ -87,7 +88,7 @@ export default function OrcamentoPlanejado() {
       setAuditLogs(result.data || []);
     } catch (err: any) {
       console.error(err);
-      toast.error("Erro ao carregar auditoria: " + (err.message || "Tente atualizar a página."));
+      toast.error("Erro ao carregar auditoria", { description: translateError(err.message || String(err)) });
     }
   };
 
@@ -127,9 +128,9 @@ export default function OrcamentoPlanejado() {
 
       setOrcamentos(loadedOrcamentos);
       setEditValues(localEdits);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error("Erro ao carregar orçamentos.");
+      toast.error("Erro ao carregar orçamentos", { description: translateError(err.message || String(err)) });
     } finally {
       setLoading(false);
     }
@@ -199,7 +200,7 @@ export default function OrcamentoPlanejado() {
       fetchOrcamentos();
     } catch (err: any) {
       console.error(err);
-      toast.error("Erro ao salvar orçamentos: " + err.message);
+      toast.error("Erro ao salvar orçamentos", { description: translateError(err.message || String(err)) });
     } finally {
       setSaving(false);
     }

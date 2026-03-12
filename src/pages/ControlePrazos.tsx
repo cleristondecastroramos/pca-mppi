@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { translateError } from "@/lib/utils/error-translations";
 import { CalendarDays, Loader2, Eraser, AlertCircle, CheckCircle2, Clock, Calendar as CalendarIcon, Filter } from "lucide-react";
 import { ptBR } from "date-fns/locale";
 import { useAuthSession, useUserRoles, useUserProfile, hasAnyRole } from "@/lib/auth";
@@ -74,7 +75,7 @@ const ControlePrazos = () => {
       if (error) throw error;
       setRows((data as any) || []);
     } catch (e: any) {
-      toast.error("Erro ao carregar prazos", { description: e.message || String(e) });
+      toast.error("Erro ao carregar prazos", { description: translateError(e.message || String(e)) });
     } finally {
       setLoading(false);
     }
@@ -223,7 +224,7 @@ const ControlePrazos = () => {
       setDateValue(undefined);
       fetchData();
     } catch (e: any) {
-      toast.error("Falha ao salvar data", { description: e.message || String(e) });
+      toast.error("Falha ao salvar data", { description: translateError(e.message || String(e)) });
     }
   };
 

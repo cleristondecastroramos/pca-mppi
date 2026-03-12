@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 // Removido alternador de abas e componentes de cadastro
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { translateError } from "@/lib/utils/error-translations";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -59,7 +60,8 @@ export default function Auth() {
       // Navega após sucesso para o dashboard, agora com sessão válida
     navigate("/home", { replace: true });
     } catch (error: any) {
-      toast.error(error.message || "Erro ao fazer login");
+      const errorMessage = translateError(error.message || "Erro ao fazer login");
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

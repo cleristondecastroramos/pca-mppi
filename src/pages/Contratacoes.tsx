@@ -44,6 +44,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { translateError } from "@/lib/utils/error-translations";
 import { Pencil, Play } from "lucide-react";
 import { useAuthSession, useUserRoles, useUserProfile, hasAnyRole } from "@/lib/auth";
 
@@ -152,7 +153,7 @@ export default function Contratacoes() {
       setContratacoes((data as any) || []);
     } catch (error: any) {
       console.error("Erro ao buscar contratações:", error);
-      toast.error("Erro ao carregar contratações", { description: error?.message || String(error) });
+      toast.error("Erro ao carregar contratações", { description: translateError(error?.message || String(error)) });
     } finally {
       setLoading(false);
     }
@@ -216,7 +217,7 @@ export default function Contratacoes() {
         console.error("[Exclusão] Erro do Supabase:", error);
         toast.error("Não foi possível excluir", {
           id: toastId,
-          description: error.message || "Erro de permissão ou restrição de integridade."
+          description: translateError(error.message || "Erro de permissão ou restrição de integridade.")
         });
         return;
       }
@@ -231,7 +232,7 @@ export default function Contratacoes() {
       console.error("[Exclusão] Erro inesperado:", err);
       toast.error("Erro inesperado", { 
         id: toastId,
-        description: err.message || "Ocorreu um erro ao processar a exclusão." 
+        description: translateError(err.message || "Ocorreu um erro ao processar a exclusão.") 
       });
     }
   };
@@ -407,7 +408,7 @@ export default function Contratacoes() {
       fetchContratacoes();
     } catch (error: any) {
       console.error("Erro ao salvar edição:", error);
-      toast.error("Erro ao salvar alterações", { description: error.message || String(error) });
+      toast.error("Erro ao salvar alterações", { description: translateError(error.message || String(error)) });
     }
   };
 

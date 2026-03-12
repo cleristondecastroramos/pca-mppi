@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { translateError } from "@/lib/utils/error-translations";
 import { Loader2, Send, Trash2, BellRing } from "lucide-react";
 import { useAuthSession } from "@/lib/auth";
 
@@ -45,7 +46,7 @@ export default function Notificacoes() {
       setNotificacoes(data || []);
     } catch (err: any) {
       console.error(err);
-      toast.error("Erro ao carregar notificações.");
+      toast.error("Erro ao carregar notificações", { description: translateError(err.message || String(err)) });
     } finally {
       setLoading(false);
     }
@@ -101,7 +102,7 @@ export default function Notificacoes() {
       await fetchNotificacoes();
     } catch (err: any) {
       console.error("Erro fatal ao criar notificação:", err);
-      toast.error("Erro ao disparar notificação: " + (err.message || "Erro de conexão com o banco de dados"));
+      toast.error("Erro ao disparar notificação", { description: translateError(err.message || "Erro de conexão com o banco de dados") });
     } finally {
       setSaving(false);
     }
@@ -131,7 +132,7 @@ export default function Notificacoes() {
       setNotificacoes((prev) => prev.filter((n) => n.id !== id));
     } catch (err: any) {
       console.error("Erro ao excluir notificação:", err);
-      toast.error("Erro ao excluir notificação: " + (err?.message || "Erro desconhecido"));
+      toast.error("Erro ao excluir notificação", { description: translateError(err?.message || "Erro desconhecido") });
     }
   };
 

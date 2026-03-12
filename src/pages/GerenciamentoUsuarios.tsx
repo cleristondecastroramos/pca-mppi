@@ -9,6 +9,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { translateError } from "@/lib/utils/error-translations";
 import type { PerfilAcesso } from "@/lib/auth";
 import { SETORES_REQUISITANTES } from "@/lib/auth";
 import { Shield, UserCog, ClipboardList, Eye, Info, Pencil, Trash2, Users } from "lucide-react";
@@ -144,7 +145,7 @@ const GerenciamentoUsuarios = () => {
       setTotalUsers(count || merged.length);
     } catch (e: any) {
       console.error(e);
-      toast.error("Erro ao carregar usuários", { description: e.message });
+      toast.error("Erro ao carregar usuários", { description: translateError(e.message) });
     }
   }
 
@@ -210,7 +211,7 @@ const GerenciamentoUsuarios = () => {
       loadUsers();
     } catch (e: any) {
       console.error("Erro ao atualizar:", e);
-      toast.error("Falha ao atualizar usuário", { description: e.message || "Erro desconhecido" });
+      toast.error("Falha ao atualizar usuário", { description: translateError(e.message || "Erro desconhecido") });
     } finally {
       setSaving(false);
     }
@@ -263,7 +264,7 @@ const GerenciamentoUsuarios = () => {
       loadUsers();
     } catch (e: any) {
       console.error("Erro ao cadastrar:", e);
-      toast.error("Falha ao cadastrar usuário", { description: e.message || "Erro desconhecido" });
+      toast.error("Falha ao cadastrar usuário", { description: translateError(e.message || "Erro desconhecido") });
     } finally {
       setCreating(false);
     }
@@ -285,7 +286,7 @@ const GerenciamentoUsuarios = () => {
       loadUsers();
     } catch (e: any) {
       console.error(e);
-      toast.error("Falha ao excluir usuário", { description: e.message || e.toString() });
+      toast.error("Falha ao excluir usuário", { description: translateError(e.message || e.toString()) });
     } finally {
       setDeleting(false);
     }

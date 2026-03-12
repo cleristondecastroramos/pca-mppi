@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { translateError } from "@/lib/utils/error-translations";
 import { Loader2 } from "lucide-react";
 
 const EsqueciSenha = () => {
@@ -31,11 +32,13 @@ const EsqueciSenha = () => {
     } catch (err: any) {
       const msg = (err?.message || String(err)) as string;
       const hint = msg.toLowerCase().includes("redirect")
-        ? "Adicione a URL de redirecionamento permitida nas configurações do Supabase Auth."
+        ? "Consulte o administrador sobre as URLs de redirecionamento do Supabase."
         : msg.toLowerCase().includes("failed to fetch")
-        ? "Verifique conexão e se o domínio atual consta nos Redirect URLs do Supabase."
+        ? "Verifique sua conexão com a internet."
         : undefined;
-      toast.error("Falha ao solicitar recuperação", { description: hint ? `${msg} — ${hint}` : msg });
+      
+      const translatedMsg = translateError(msg);
+      toast.error("Falha ao solicitar recuperação", { description: hint ? `${translatedMsg} — ${hint}` : translatedMsg });
     } finally {
       setLoading(false);
     }
