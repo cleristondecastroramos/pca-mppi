@@ -6,7 +6,7 @@ import type { Session } from "@supabase/supabase-js";
 export type PerfilAcesso = "administrador" | "gestor" | "setor_requisitante" | "consulta";
 
 export const SETORES_REQUISITANTES = [
-  "CAA", "CCF", "CCS", "CEAF", "CLC", "CONINT", "CPPT", "CRH", "CTI", "GAECO", "GSI", "PLANEJAMENTO", "PROCON",
+  "Administração Superior", "CAA", "CCF", "CCS", "CEAF", "CLC", "CONINT", "CPPT", "CRH", "CTI", "GAECO", "GSI", "PLANEJAMENTO", "PROCON",
 ] as const;
 
 export async function getSession() {
