@@ -346,14 +346,14 @@ const ControlePrazos = () => {
             ) : (
               <div className="rounded-md border border-border overflow-hidden">
                 <Table>
-                  <TableHeader className="bg-muted/50">
-                    <TableRow>
-                      <TableHead className="w-[8%]">Cod. PCA</TableHead>
-                      <TableHead className="w-[50%]">Objeto / Descrição</TableHead>
-                      <TableHead className="w-[10%]">Setor</TableHead>
-                      <TableHead className="w-[12%]">Status Processo</TableHead>
-                      <TableHead className="w-[12%] text-center">Data Prevista</TableHead>
-                      <TableHead className="w-[16%] text-center">Situação do Prazo</TableHead>
+                  <TableHeader>
+                    <TableRow className="bg-[#D9415D] hover:bg-[#D9415D]/90">
+                      <TableHead className="w-[8%] text-white font-bold text-center">Cod. PCA</TableHead>
+                      <TableHead className="w-[50%] text-white font-bold text-center">Objeto / Descrição</TableHead>
+                      <TableHead className="w-[10%] text-white font-bold text-center">Setor</TableHead>
+                      <TableHead className="w-[12%] text-white font-bold text-center">Status Processo</TableHead>
+                      <TableHead className="w-[12%] text-white font-bold text-center">Data Prevista</TableHead>
+                      <TableHead className="w-[16%] text-white font-bold text-center">Situação do Prazo</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
