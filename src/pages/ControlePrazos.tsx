@@ -92,6 +92,35 @@ const ControlePrazos = () => {
     };
   }, [roles, userSetor]);
 
+  const calculateStartDate = (tipo: string | null, mod: string | null, termino: string | null) => {
+    if (!termino) return null;
+    
+    let date: Date;
+    if (termino.includes("-") && termino.length === 10) {
+      const [year, month, day] = termino.split("-").map(Number);
+      date = new Date(year, month - 1, day);
+    } else {
+      date = new Date(termino);
+    }
+
+    let days = 120; // Regra 3: Renovação, Aditivo, etc.
+
+    if (tipo === "Nova Contratação") {
+      if (mod === "Pregão Eletrônico" || mod === "Concorrência") {
+        days = 150; // Regra 1
+      } else if (mod === "Dispensa" || mod === "Inexigibilidade" || mod === "Concurso") {
+        days = 90; // Regra 2
+      }
+    }
+
+    date.setDate(date.getDate() - days);
+    
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
   const getPrazoStatus = (contratacao: Contratacao) => {
     const dataPrevistaStr = contratacao.data_prevista_contratacao;
     if (!dataPrevistaStr) return { label: "Sem data prevista", variant: "secondary", color: "bg-gray-100 text-gray-700" };
@@ -349,10 +378,11 @@ const ControlePrazos = () => {
                   <TableHeader>
                     <TableRow className="bg-[#D9415D] hover:bg-[#D9415D]/90">
                       <TableHead className="w-[8%] text-white font-bold text-center">Cod. PCA</TableHead>
-                      <TableHead className="w-[50%] text-white font-bold text-center">Objeto / Descrição</TableHead>
+                      <TableHead className="w-[30%] text-white font-bold text-center">Objeto / Descrição</TableHead>
                       <TableHead className="w-[10%] text-white font-bold text-center">Setor</TableHead>
-                      <TableHead className="w-[12%] text-white font-bold text-center">Status Processo</TableHead>
-                      <TableHead className="w-[12%] text-white font-bold text-center">Data Prevista</TableHead>
+                      <TableHead className="w-[10%] text-white font-bold text-center">Status Processo</TableHead>
+                      <TableHead className="w-[13%] text-white font-bold text-center">Data Prevista de Início</TableHead>
+                      <TableHead className="w-[13%] text-white font-bold text-center">Data Prevista de Conclusão</TableHead>
                       <TableHead className="w-[16%] text-white font-bold text-center">Situação do Prazo</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -368,17 +398,22 @@ const ControlePrazos = () => {
                         const status = getPrazoStatus(r);
                         return (
                           <TableRow key={r.id} className="hover:bg-muted/30">
-                            <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                            <TableCell className="text-sm text-muted-foreground whitespace-nowrap text-center">
                               {r.codigo?.replace(/^PCA-/, "").replace(/-2026$/, "") || r.id.slice(-4)}
                             </TableCell>
-                        <TableCell>
-                          <div className="font-medium truncate max-w-[500px]" title={r.descricao}>{r.descricao}</div>
-                        </TableCell>
-                            <TableCell>{r.setor_requisitante}</TableCell>
                             <TableCell>
+                              <div className="font-medium truncate max-w-[300px]" title={r.descricao}>{r.descricao}</div>
+                            </TableCell>
+                            <TableCell className="text-center">{r.setor_requisitante}</TableCell>
+                            <TableCell className="text-center">
                               <Badge variant="outline" className="text-xs font-normal">
                                 {r.etapa_processo || "Não iniciado"}
                               </Badge>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <span className="font-medium text-xs">
+                                {formatDateBR(calculateStartDate(r.tipo_contratacao, r.modalidade, r.data_prevista_contratacao))}
+                              </span>
                             </TableCell>
                             <TableCell className="text-center">
                               <div className="flex items-center justify-center gap-2">
