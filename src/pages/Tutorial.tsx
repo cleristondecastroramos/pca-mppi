@@ -726,7 +726,7 @@ export default function Tutorial() {
           <P>Para criar e disparar uma nova notificação, o Administrador deve acessar a página <strong>"Notificações"</strong> no menu lateral e preencher o formulário disponível no card <strong>"Nova Notificação"</strong>:</P>
           <OL items={[
             <><strong>Título Curto (máx. 50 caracteres):</strong> Um resumo objetivo do assunto da notificação. Exemplo: "Prazo de encerramento prorrogado" ou "Novo normativo aplicável".</>,
-            <><strong>Mensagem Direta (máx. 150 caracteres):</strong> O conteúdo da notificação, que deve ser claro e direto. Este texto será exibido a todos os usuários.</>,
+            <><strong>Mensagem Direta (máx. 200 caracteres):</strong> O conteúdo da notificação, que deve ser claro e direto. Este texto será exibido a todos os usuários.</>,
             <>Clique em <strong>"Disparar para Usuários"</strong> para enviar a notificação imediatamente.</>,
           ]} />
           <Note>

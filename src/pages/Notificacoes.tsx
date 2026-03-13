@@ -164,7 +164,7 @@ export default function Notificacoes() {
             <CardHeader>
               <CardTitle>Nova Notificação</CardTitle>
               <CardDescription>
-                O texto será exibido instantaneamente no sino superior direito (máximo 150 caracteres).
+                O texto será exibido instantaneamente no sino superior direito (máximo 200 caracteres).
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -181,15 +181,15 @@ export default function Notificacoes() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Mensagem Direta (Máx: 150)</label>
+                  <label className="text-sm font-medium">Mensagem Direta (Máx: 200)</label>
                   <Textarea 
                     placeholder="Descreva a notificação ou alerta em poucas palavras..." 
                     value={mensagem}
                     onChange={(e) => setMensagem(e.target.value)}
-                    maxLength={150}
+                    maxLength={200}
                     className="resize-none h-24"
                   />
-                  <div className="text-xs text-right text-muted-foreground">{mensagem.length}/150</div>
+                  <div className="text-xs text-right text-muted-foreground">{mensagem.length}/200</div>
                 </div>
 
                 <Button type="submit" className="w-full" disabled={saving}>
