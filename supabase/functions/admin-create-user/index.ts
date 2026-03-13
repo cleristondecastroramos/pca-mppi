@@ -124,6 +124,8 @@ Deno.serve(async (req) => {
       .eq("id", newUser.id);
 
     // Atribui perfil de acesso escolhido
+    // Remove qualquer role atribuída automaticamente pelo trigger do banco
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", newUser.id);
     await supabaseAdmin.from("user_roles").insert({ user_id: newUser.id, role });
 
     return new Response(
