@@ -238,6 +238,23 @@ const Relatorios = () => {
       title: (count: number) => string;
     }
   > = {
+    pca_2_0: {
+      label: "Documento — PCA 2026 (Versão 2.0)",
+      description: "Versão oficial, moderna e profissional do Plano de Contratações Anual do MPPI.",
+      icon: FileText,
+      columns: ["Cod. PCA", "Descrição", "Setor Demandante", "UO", "Tipo de Contratação", "Grau de Prioridade", "Valor Planejado"],
+      csvColumns: ["Cod. PCA", "Descrição", "Setor Demandante", "UO", "Tipo de Contratação", "Grau de Prioridade", "Valor Planejado"],
+      mapRow: (r) => [
+        formatId(r.id, r.codigo),
+        r.descricao || "",
+        r.setor_requisitante || "",
+        r.unidade_orcamentaria || "",
+        r.tipo_contratacao || "",
+        r.grau_prioridade || "",
+        new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(r.valor_estimado || 0),
+      ],
+      title: (n) => `Plano de Contratações Anual — PCA 2026 (Lista de ${n} Itens)`,
+    },
     detalhado: {
       label: "Contratações — Detalhado",
       description: "Listagem completa com Cod. PCA, descrição, setor, prioridade e valores (estimado e executado).",
@@ -387,23 +404,6 @@ const Relatorios = () => {
         ];
       },
       title: (n) => `Relatório de Prazos Críticos (${n} registros)`,
-    },
-    pca_2_0: {
-      label: "Documento — PCA 2026 (Versão 2.0)",
-      description: "Versão oficial, moderna e profissional do Plano de Contratações Anual do MPPI.",
-      icon: FileText,
-      columns: ["Cod. PCA", "Descrição", "Setor Demandante", "UO", "Tipo de Contratação", "Grau de Prioridade", "Valor Planejado"],
-      csvColumns: ["Cod. PCA", "Descrição", "Setor Demandante", "UO", "Tipo de Contratação", "Grau de Prioridade", "Valor Planejado"],
-      mapRow: (r) => [
-        formatId(r.id, r.codigo),
-        r.descricao || "",
-        r.setor_requisitante || "",
-        r.unidade_orcamentaria || "",
-        r.tipo_contratacao || "",
-        r.grau_prioridade || "",
-        r.valor_estimado || 0,
-      ],
-      title: () => `Plano de Contratações Anual — MPPI — 2026`,
     },
   };
 
