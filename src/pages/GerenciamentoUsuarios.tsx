@@ -160,7 +160,7 @@ const GerenciamentoUsuarios = () => {
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return usuarios.filter((u) => {
-      const textMatch = [u.nome_completo || "", u.email || "", u.setor || "", u.cargo || ""].some((f) =>
+      const textMatch = [u.nome_completo || "", u.email || "", u.cargo || ""].some((f) =>
         f.toLowerCase().includes(q),
       );
       const roleMatch = roleFilter === "todos" ? true : u.roles.includes(roleFilter as PerfilAcesso);
@@ -421,7 +421,7 @@ const GerenciamentoUsuarios = () => {
           <CardContent className="space-y-4">
             <div className="flex flex-wrap gap-2 items-center">
               <Input
-                placeholder="Buscar por nome, e-mail, setor"
+                placeholder="Buscar por nome, e-mail ou cargo"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="min-w-[240px]"
