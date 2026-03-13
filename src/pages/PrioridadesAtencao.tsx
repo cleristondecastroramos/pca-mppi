@@ -16,6 +16,8 @@ type AttItem = {
   data_prevista_contratacao: string | null;
   etapa_processo: string | null;
   sobrestado?: boolean | null;
+  tipo_contratacao: string | null;
+  modalidade: string | null;
 };
 
 const parseDate = (dateStr: string) => {
@@ -36,6 +38,41 @@ const getDaysDiff = (targetDate: Date) => {
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
 
+const calculateStartDate = (tipo: string | null, mod: string | null, termino: string | null) => {
+  if (!termino) return null;
+  
+  let date: Date;
+  if (termino.includes("-") && termino.length === 10) {
+    const [year, month, day] = termino.split("-").map(Number);
+    date = new Date(year, month - 1, day);
+  } else {
+    date = new Date(termino);
+  }
+
+  let days = 120; // Regra 3: Renovação, Aditivo, etc.
+
+  if (tipo === "Nova Contratação") {
+    if (mod === "Pregão Eletrônico" || mod === "Concorrência") {
+      days = 150; // Regra 1
+    } else if (mod === "Dispensa" || mod === "Inexigibilidade" || mod === "Concurso") {
+      days = 90; // Regra 2
+    }
+  }
+
+  date.setDate(date.getDate() - days);
+  
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
+const formatDateBR = (s: string | null) => {
+  if (!s) return "—";
+  const [y, m, d] = s.split("-");
+  return `${String(d).padStart(2, "0")}/${String(m).padStart(2, "0")}/${y}`;
+};
+
 const PrioridadesAtencao = () => {
   const { data: session } = useAuthSession();
   const uid = session?.user?.id;
@@ -53,7 +90,7 @@ const PrioridadesAtencao = () => {
       try {
         let query = supabase
           .from("contratacoes")
-          .select("id, codigo, descricao, setor_requisitante, etapa_processo, sobrestado, data_prevista_contratacao")
+          .select("id, codigo, descricao, setor_requisitante, etapa_processo, sobrestado, data_prevista_contratacao, tipo_contratacao, modalidade")
           .order("data_prevista_contratacao", { ascending: true });
 
         if (isSetorRequisitante && userSetor) {
@@ -188,14 +225,15 @@ const PrioridadesAtencao = () => {
                 ) : (
                   <div className="rounded-md border">
                     <Table>
-                      <TableHeader className="bg-muted/50">
-                        <TableRow>
-                          <TableHead className="w-[80px]">Cod. PCA</TableHead>
-                          <TableHead>Objeto / Descrição</TableHead>
-                          <TableHead>Setor</TableHead>
-                          <TableHead>Etapa Atual</TableHead>
-                          <TableHead className="text-center">Data Prevista</TableHead>
-                          <TableHead className="text-right">Atraso</TableHead>
+                      <TableHeader>
+                        <TableRow className="bg-[#D9415D] hover:bg-[#D9415D]/90">
+                          <TableHead className="w-[80px] text-white font-bold text-center">Cod. PCA</TableHead>
+                          <TableHead className="text-white font-bold text-center">Objeto / Descrição</TableHead>
+                          <TableHead className="text-white font-bold text-center">Setor</TableHead>
+                          <TableHead className="text-white font-bold text-center">Etapa Atual</TableHead>
+                          <TableHead className="text-white font-bold text-center">Data Prevista de Início</TableHead>
+                          <TableHead className="text-white font-bold text-center">Data Prevista de Conclusão</TableHead>
+                          <TableHead className="text-right text-white font-bold">Atraso</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -204,7 +242,7 @@ const PrioridadesAtencao = () => {
                           const days = Math.abs(getDaysDiff(date));
                           return (
                             <TableRow key={item.id} className="hover:bg-destructive/5">
-                              <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                              <TableCell className="text-sm text-muted-foreground whitespace-nowrap text-center">
                                 {item.codigo?.replace(/^PCA-/, "").replace(/-2026$/, "") || item.id.slice(-4)}
                               </TableCell>
                               <TableCell className="font-medium max-w-[400px]">
@@ -212,14 +250,17 @@ const PrioridadesAtencao = () => {
                                   {item.descricao}
                                 </div>
                               </TableCell>
-                              <TableCell>{item.setor_requisitante || "-"}</TableCell>
-                              <TableCell>
+                              <TableCell className="text-center">{item.setor_requisitante || "-"}</TableCell>
+                              <TableCell className="text-center">
                                 <Badge variant="outline" className="bg-background">
                                   {item.etapa_processo || "Não iniciado"}
                                 </Badge>
                               </TableCell>
+                              <TableCell className="text-center font-medium">
+                                {formatDateBR(calculateStartDate(item.tipo_contratacao, item.modalidade, item.data_prevista_contratacao))}
+                              </TableCell>
                               <TableCell className="text-center font-medium text-destructive">
-                                {formatDate(date)}
+                                {formatDateBR(item.data_prevista_contratacao)}
                               </TableCell>
                               <TableCell className="text-right font-bold text-destructive">
                                 {days} dias
@@ -256,14 +297,15 @@ const PrioridadesAtencao = () => {
                 ) : (
                   <div className="rounded-md border">
                     <Table>
-                      <TableHeader className="bg-muted/50">
-                        <TableRow>
-                          <TableHead className="w-[80px]">Cod. PCA</TableHead>
-                          <TableHead>Objeto / Descrição</TableHead>
-                          <TableHead>Setor</TableHead>
-                          <TableHead>Etapa Atual</TableHead>
-                          <TableHead className="text-center">Data Prevista</TableHead>
-                          <TableHead className="text-right">Prazo Restante</TableHead>
+                      <TableHeader>
+                        <TableRow className="bg-[#D9415D] hover:bg-[#D9415D]/90">
+                          <TableHead className="w-[80px] text-white font-bold text-center">Cod. PCA</TableHead>
+                          <TableHead className="text-white font-bold text-center">Objeto / Descrição</TableHead>
+                          <TableHead className="text-white font-bold text-center">Setor</TableHead>
+                          <TableHead className="text-white font-bold text-center">Etapa Atual</TableHead>
+                          <TableHead className="text-white font-bold text-center">Data Prevista de Início</TableHead>
+                          <TableHead className="text-white font-bold text-center">Data Prevista de Conclusão</TableHead>
+                          <TableHead className="text-right text-white font-bold">Prazo Restante</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -277,7 +319,7 @@ const PrioridadesAtencao = () => {
 
                           return (
                             <TableRow key={item.id} className="hover:bg-muted/30">
-                              <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                              <TableCell className="text-sm text-muted-foreground whitespace-nowrap text-center">
                                 {item.codigo?.replace(/^PCA-/, "").replace(/-2026$/, "") || item.id.slice(-4)}
                               </TableCell>
                               <TableCell className="font-medium max-w-[400px]">
@@ -285,14 +327,17 @@ const PrioridadesAtencao = () => {
                                   {item.descricao}
                                 </div>
                               </TableCell>
-                              <TableCell>{item.setor_requisitante || "-"}</TableCell>
-                              <TableCell>
+                              <TableCell className="text-center">{item.setor_requisitante || "-"}</TableCell>
+                              <TableCell className="text-center">
                                 <Badge variant="outline" className="bg-background">
                                   {item.etapa_processo || "Não iniciado"}
                                 </Badge>
                               </TableCell>
-                              <TableCell className="text-center">
-                                {formatDate(date)}
+                              <TableCell className="text-center font-medium">
+                                {formatDateBR(calculateStartDate(item.tipo_contratacao, item.modalidade, item.data_prevista_contratacao))}
+                              </TableCell>
+                              <TableCell className="text-center font-medium">
+                                {formatDateBR(item.data_prevista_contratacao)}
                               </TableCell>
                               <TableCell className={`text-right ${urgencyColor}`}>
                                 {days} dias
