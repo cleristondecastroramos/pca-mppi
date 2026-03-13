@@ -353,7 +353,7 @@ const AvaliacaoConformidade = () => {
                           <TableCell className="text-center">
                             {(() => { const b = conformityBadge(confMap[r.id]); return <Badge variant={b.variant as any} className={b.className}>{b.text}</Badge>; })()}
                           </TableCell>
-                          <TableCell className="text-right">{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(r.valor_estimado || 0)}</TableCell>
+                          <TableCell className="text-right">{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(r.valor_estimado) || 0)}</TableCell>
                           <TableCell className="text-right">
                             <Button size="xs" onClick={() => openChecklist(r)}>Auditar</Button>
                           </TableCell>

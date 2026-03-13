@@ -636,9 +636,9 @@ export default function Contratacoes() {
     let days = 120; // Regra 3: Renovação, Aditivo, etc.
 
     if (tipo === "Nova Contratação") {
-      if (modalidade === "Pregão Eletrônico" || modalidade === "Concorrência") {
+      if (modalidade === "Pregão Eletrônico" || modalidade === "Concorrência" || modalidade === "Concurso") {
         days = 150; // Regra 1
-      } else if (modalidade === "Dispensa" || modalidade === "Inexigibilidade" || modalidade === "Concurso" || modalidade === "Inexibilidade") {
+      } else if (modalidade === "Dispensa" || modalidade === "Inexigibilidade" || modalidade === "Inexibilidade") {
         days = 90; // Regra 2
       }
     }

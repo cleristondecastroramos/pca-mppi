@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { translateError } from "@/lib/utils/error-translations";
-import { Loader2, Save, History } from "lucide-react";
+import { Loader2, Save, History, RefreshCw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -47,6 +47,7 @@ export default function OrcamentoPlanejado() {
   const [editValues, setEditValues] = useState<Record<string, { valor_pgj: string; valor_fmmp: string; valor_fepdc: string; trava_ativa: boolean }>>({});
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [auditOpen, setAuditOpen] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     fetchOrcamentos();
@@ -256,6 +257,59 @@ export default function OrcamentoPlanejado() {
 
   const totalGeralAll = totalGeralPgj + totalGeralFmmp + totalGeralFepdc;
 
+  const handleSyncFromPlanned = async () => {
+    setSyncing(true);
+    try {
+      const { data: contratacoes, error } = await supabase
+        .from("contratacoes")
+        .select("setor_requisitante, unidade_orcamentaria, valor_estimado")
+        .neq("etapa_processo", "Cancelada");
+
+      if (error) throw error;
+
+      const newEdits: Record<string, { valor_pgj: string; valor_fmmp: string; valor_fepdc: string; trava_ativa: boolean }> = {};
+      
+      // Inicializar com zeros
+      setoresObj.forEach(setor => {
+        const existing = editValues[setor];
+        newEdits[setor] = {
+          valor_pgj: "0,00",
+          valor_fmmp: "0,00",
+          valor_fepdc: "0,00",
+          trava_ativa: existing?.trava_ativa ?? false
+        };
+      });
+
+      // Acumular valores
+      (contratacoes || []).forEach(c => {
+        const s = c.setor_requisitante;
+        const uo = c.unidade_orcamentaria;
+        const val = Number(c.valor_estimado) || 0;
+        
+        if (s && newEdits[s]) {
+          if (uo === "PGJ") {
+            const current = parseFloat(newEdits[s].valor_pgj.replace(/\./g, "").replace(",", ".")) || 0;
+            newEdits[s].valor_pgj = parseValToCurrencyDisplay((current + val).toString());
+          } else if (uo === "FMMP") {
+            const current = parseFloat(newEdits[s].valor_fmmp.replace(/\./g, "").replace(",", ".")) || 0;
+            newEdits[s].valor_fmmp = parseValToCurrencyDisplay((current + val).toString());
+          } else if (uo === "FEPDC") {
+            const current = parseFloat(newEdits[s].valor_fepdc.replace(/\./g, "").replace(",", ".")) || 0;
+            newEdits[s].valor_fepdc = parseValToCurrencyDisplay((current + val).toString());
+          }
+        }
+      });
+
+      setEditValues(newEdits);
+      toast.success("Valores preenchidos com base no planejamento atual!");
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Erro ao sincronizar com planejado", { description: translateError(err.message || String(err)) });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -277,6 +331,15 @@ export default function OrcamentoPlanejado() {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={handleSyncFromPlanned} 
+              disabled={syncing || loading}
+              className="whitespace-nowrap"
+            >
+              {syncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+              Preencher do Planejado
+            </Button>
             <Dialog open={auditOpen} onOpenChange={(open) => {
               setAuditOpen(open);
               if (open) fetchAuditLogs();

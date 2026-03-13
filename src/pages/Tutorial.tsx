@@ -354,8 +354,8 @@ export default function Tutorial() {
             O campo <strong>Data Prevista para Início da Contratação</strong> é calculado automaticamente pelo sistema e permanece bloqueado para edição manual. O cálculo baseia-se no <em>Tipo de Contratação</em>, na <em>Modalidade</em> e na <em>Data Prevista para Conclusão</em>.
           </P>
           <UL items={[
-            <><strong>Regra 1:</strong> Se for uma <em>Nova Contratação</em> nas modalidades <em>Pregão Eletrônico</em> ou <em>Concorrência</em>, a data de início é definida como <strong>150 dias antes</strong> da data de término.</>,
-            <><strong>Regra 2:</strong> Se for uma <em>Nova Contratação</em> nas modalidades <em>Dispensa</em>, <em>Inexigibilidade</em> ou <em>Concurso</em>, a data de início é definida como <strong>90 dias antes</strong> da data de término.</>,
+            <><strong>Regra 1:</strong> Se for uma <em>Nova Contratação</em> nas modalidades <em>Pregão Eletrônico</em>, <em>Concorrência</em> ou <em>Concurso</em>, a data de início é definida como <strong>150 dias antes</strong> da data de término.</>,
+            <><strong>Regra 2:</strong> Se for uma <em>Nova Contratação</em> nas modalidades <em>Dispensa</em> ou <em>Inexigibilidade</em>, a data de início é definida como <strong>90 dias antes</strong> da data de término.</>,
             <><strong>Regra 3:</strong> Para os demais tipos de contratação (<em>Renovação, Aditivo, Repactuação, Apostilamento ou Indeterminado</em>), a data de início é definida como <strong>120 dias antes</strong> da data de término.</>,
           ]} />
           <Note>Este mecanismo garante um planejamento realista e padronizado, alertando os gestores sobre o momento ideal para iniciar cada processo administrativo.</Note>
@@ -693,7 +693,15 @@ export default function Tutorial() {
           <H3>16.2. Trava Orçamentária</H3>
           <P>Quando ativada, bloqueia novas contratações que ultrapassem o limite. O interruptor (switch) permite ativar/desativar por setor.</P>
 
-          <H3>16.3. Auditoria</H3>
+          <H3>16.3. Sincronização com o Planejamento</H3>
+          <P>
+            O botão <strong>"Preencher do Planejado"</strong> automatiza a definição dos limites orçamentários. Ao ser acionado, o sistema realiza a soma instantânea de todos os <em>Valores Estimados</em> de todas as contratações cadastradas (que não estejam canceladas), agrupando-as por Setor e por Unidade Orçamentária (PGJ, FMMP, FEPDC).
+          </P>
+          <P>
+            Esta funcionalidade garante que os limites informados na tabela correspondam exatamente ao que foi planejado detalhadamente no PCA, eliminando erros de digitação e facilitando o fechamento do planejamento anual.
+          </P>
+
+          <H3>16.4. Auditoria</H3>
           <P>Todas as alterações são registradas com data, usuário, valores anteriores e novos. Acessível pelo botão <strong>"Histórico"</strong>.</P>
         </Section>
 

@@ -252,7 +252,7 @@ const Relatorios = () => {
         r.unidade_orcamentaria || "",
         r.tipo_contratacao || "",
         r.grau_prioridade || "",
-        new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(r.valor_estimado || 0),
+        r.valor_estimado || 0,
       ],
       title: (n) => `Plano de Contratações Anual — PCA 2026 (Lista de ${n} Itens)`,
     },
@@ -540,14 +540,13 @@ const Relatorios = () => {
 
         // Calcular métricas para o documento
         const totalDemandas = sourceRows.length;
-        const totalEstimado = sourceRows.reduce((sum, r) => sum + (r.valor_estimado || 0), 0);
-        const formatCurrency = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
+        const totalEstimado = sourceRows.reduce((sum, r) => sum + (Number(r.valor_estimado) || 0), 0);
+        const formatCurrency = (v: any) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v) || 0);
 
         // -- Cálculos para as tabelas da seção 4 --
 
-        // Função auxiliar para normalizar nomes de setores (merging CAA/PROCON)
+        // Função auxiliar para normalizar nomes de setores
         const normalizeSector = (s: string) => {
-          if (s === "CAA" || s === "PROCON") return "CAA/PROCON";
           if (s === "PLANEJAMENTO") return "PLAN";
           return s;
         };

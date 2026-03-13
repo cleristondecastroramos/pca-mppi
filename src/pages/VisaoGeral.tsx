@@ -46,8 +46,8 @@ type Filtros = {
   srp?: string;
 };
 
-const formatCurrencyBRL = (value: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+const formatCurrencyBRL = (value: any) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value) || 0);
 
 // Ordem fixa das legendas dos gráficos de pizza
 const FIXED_ORDER_UO = ["PGJ", "FMMP", "FEPDC"];
