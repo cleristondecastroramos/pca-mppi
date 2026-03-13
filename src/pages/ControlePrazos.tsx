@@ -377,13 +377,13 @@ const ControlePrazos = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-[#D9415D] hover:bg-[#D9415D]/90">
-                      <TableHead className="w-[8%] text-white font-bold text-center">Cod. PCA</TableHead>
-                      <TableHead className="w-[30%] text-white font-bold text-center">Objeto / Descrição</TableHead>
-                      <TableHead className="w-[10%] text-white font-bold text-center">Setor</TableHead>
+                      <TableHead className="w-[6%] text-white font-bold text-center">Cod. PCA</TableHead>
+                      <TableHead className="w-[44%] text-white font-bold text-center">Objeto / Descrição</TableHead>
+                      <TableHead className="w-[7%] text-white font-bold text-center">Setor</TableHead>
                       <TableHead className="w-[10%] text-white font-bold text-center">Status Processo</TableHead>
-                      <TableHead className="w-[13%] text-white font-bold text-center">Data Prevista de Início</TableHead>
-                      <TableHead className="w-[13%] text-white font-bold text-center">Data Prevista de Conclusão</TableHead>
-                      <TableHead className="w-[16%] text-white font-bold text-center">Situação do Prazo</TableHead>
+                      <TableHead className="w-[10%] text-white font-bold text-center">Data Prevista de Início</TableHead>
+                      <TableHead className="w-[11%] text-white font-bold text-center">Data Prevista de Conclusão</TableHead>
+                      <TableHead className="w-[12%] text-white font-bold text-center">Situação do Prazo</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -402,7 +402,7 @@ const ControlePrazos = () => {
                               {r.codigo?.replace(/^PCA-/, "").replace(/-2026$/, "") || r.id.slice(-4)}
                             </TableCell>
                             <TableCell>
-                              <div className="font-medium truncate max-w-[300px]" title={r.descricao}>{r.descricao}</div>
+                              <div className="font-medium truncate max-w-[500px]" title={r.descricao}>{r.descricao}</div>
                             </TableCell>
                             <TableCell className="text-center">{r.setor_requisitante}</TableCell>
                             <TableCell className="text-center">
