@@ -14,6 +14,11 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -111,7 +116,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {visibleItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild tooltip={item.title}>
                       <NavLink
                         to={item.url}
                         className={({ isActive }) =>
@@ -140,16 +145,23 @@ export function AppSidebar() {
         </div>
       )}
       <SidebarFooter className="border-t border-sidebar-border px-4 py-2">
-        <Button
-          variant="ghost"
-          size={collapsed ? "icon" : "default"}
-          onClick={handleLogout}
-          disabled={isLoggingOut}
-          className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
-        >
-          <LogOut className="h-4 w-4" />
-          {!collapsed && <span className="ml-2">Sair</span>}
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size={collapsed ? "icon" : "default"}
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
+            >
+              <LogOut className="h-4 w-4" />
+              {!collapsed && <span className="ml-2">Sair</span>}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right" hidden={!collapsed}>
+            Sair
+          </TooltipContent>
+        </Tooltip>
       </SidebarFooter>
     </Sidebar>
   );

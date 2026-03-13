@@ -168,6 +168,8 @@ const VisaoGeral = () => {
       if (filtros.etapa_processo && filtros.etapa_processo !== ALL_VALUE) {
         const STATUS_CATEGORY_MAP: Record<string, { etapas: string[]; sobrestado?: boolean }> = {
           "não iniciado": { etapas: ["Planejamento"], sobrestado: false },
+          "iniciado": { etapas: ["Iniciado"], sobrestado: false },
+          "retornado para diligência": { etapas: ["Retornado para Diligência"], sobrestado: false },
           "em andamento": { etapas: ["Em Licitação", "Contratado"], sobrestado: false },
           "concluído": { etapas: ["Concluído"], sobrestado: false },
           "sobrestado": { etapas: [], sobrestado: true },
@@ -608,6 +610,8 @@ const VisaoGeral = () => {
                   <SelectContent>
                     <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
                     <SelectItem className="text-xs" value="não iniciado">não iniciado</SelectItem>
+                    <SelectItem className="text-xs" value="iniciado">iniciado</SelectItem>
+                    <SelectItem className="text-xs" value="retornado para diligência">retornado para diligência</SelectItem>
                     <SelectItem className="text-xs" value="em andamento">em andamento</SelectItem>
                     <SelectItem className="text-xs" value="concluído">concluído</SelectItem>
                     <SelectItem className="text-xs" value="sobrestado">sobrestado</SelectItem>

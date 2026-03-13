@@ -61,6 +61,9 @@ const PrioridadesContratacao = () => {
 
   function statusLabel(c: Contratacao) {
     if ((c as any).sobrestado === true) return "sobrestado";
+    const etapa = c.etapa_processo?.toLowerCase() || "";
+    if (etapa === "iniciado") return "iniciado";
+    if (etapa === "retornado para diligência") return "retornado para diligência";
     if (c.etapa_processo === "Concluído") return "concluído";
     if (c.etapa_processo === "Em Licitação" || c.etapa_processo === "Contratado") return "em andamento";
     return "não iniciado";
@@ -120,6 +123,8 @@ const PrioridadesContratacao = () => {
   const getStatusBadge = (label: string) => {
     const variants: Record<string, { variant: any; className: string }> = {
       "não iniciado": { variant: "secondary", className: "bg-info/10 text-info hover:bg-info/20" },
+      "iniciado": { variant: "secondary", className: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20" },
+      "retornado para diligência": { variant: "secondary", className: "bg-orange-500/10 text-orange-500 hover:bg-orange-500/20" },
       "em andamento": { variant: "secondary", className: "bg-warning/10 text-warning hover:bg-warning/20" },
       "concluído": { variant: "secondary", className: "bg-success/10 text-success hover:bg-success/20" },
       "sobrestado": { variant: "secondary", className: "bg-muted/10 text-muted-foreground hover:bg-muted/20" },
@@ -151,6 +156,8 @@ const PrioridadesContratacao = () => {
                   <SelectContent>
                     <SelectItem value="todos">Todos</SelectItem>
                     <SelectItem value="não iniciado">Não iniciado</SelectItem>
+                    <SelectItem value="iniciado">Iniciado</SelectItem>
+                    <SelectItem value="retornado para diligência">Retornado para diligência</SelectItem>
                     <SelectItem value="em andamento">Em andamento</SelectItem>
                     <SelectItem value="concluído">Concluído</SelectItem>
                     <SelectItem value="sobrestado">Sobrestado</SelectItem>

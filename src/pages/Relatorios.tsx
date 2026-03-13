@@ -123,6 +123,9 @@ const Relatorios = () => {
 
   const statusLabel = (r: any) => {
     if (r.sobrestado === true) return "sobrestado";
+    const etapa = r.etapa_processo?.toLowerCase() || "";
+    if (etapa === "iniciado") return "iniciado";
+    if (etapa === "retornado para diligência") return "retornado para diligência";
     if (r.etapa_processo === "Concluído") return "concluído";
     if (r.etapa_processo === "Em Licitação" || r.etapa_processo === "Contratado") return "em andamento";
     return "não iniciado";
@@ -301,13 +304,7 @@ const Relatorios = () => {
         formatId(r.id, r.codigo),
         String(r.descricao || ""),
         r.setor_requisitante || "",
-        r.sobrestado === true
-          ? "sobrestado"
-          : r.etapa_processo === "Concluído"
-            ? "concluído"
-            : r.etapa_processo === "Em Licitação" || r.etapa_processo === "Contratado"
-              ? "em andamento"
-              : "não iniciado",
+        statusLabel(r),
         r.valor_estimado || 0,
         (r as any).valor_executado ?? r.valor_contratado ?? 0,
       ],
@@ -324,13 +321,7 @@ const Relatorios = () => {
         String(r.descricao || ""),
         r.grau_prioridade || "",
         r.setor_requisitante || "",
-        r.sobrestado === true
-          ? "sobrestado"
-          : r.etapa_processo === "Concluído"
-            ? "concluído"
-            : r.etapa_processo === "Em Licitação" || r.etapa_processo === "Contratado"
-              ? "em andamento"
-              : "não iniciado",
+        statusLabel(r),
         r.valor_estimado || 0,
       ],
       title: (n) => `Relatório por Prioridade (${n} registros)`,
@@ -360,13 +351,7 @@ const Relatorios = () => {
         formatId(r.id, r.codigo),
         String(r.descricao || ""),
         r.numero_sei_contratacao || "",
-        r.sobrestado === true
-          ? "sobrestado"
-          : r.etapa_processo === "Concluído"
-            ? "concluído"
-            : r.etapa_processo === "Em Licitação" || r.etapa_processo === "Contratado"
-              ? "em andamento"
-              : "não iniciado",
+        statusLabel(r),
       ],
       title: (n) => `Relatório SEI (${n} registros)`,
     },
@@ -1757,6 +1742,8 @@ const Relatorios = () => {
                   <SelectContent>
                     <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
                     <SelectItem className="text-xs" value="não iniciado">não iniciado</SelectItem>
+                    <SelectItem className="text-xs" value="iniciado">iniciado</SelectItem>
+                    <SelectItem className="text-xs" value="retornado para diligência">retornado para diligência</SelectItem>
                     <SelectItem className="text-xs" value="em andamento">em andamento</SelectItem>
                     <SelectItem className="text-xs" value="concluído">concluído</SelectItem>
                     <SelectItem className="text-xs" value="sobrestado">sobrestado</SelectItem>

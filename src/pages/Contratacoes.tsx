@@ -264,12 +264,15 @@ export default function Contratacoes() {
             return { etapa: currentEtapa || "Planejamento", sobrestado: true };
           case "não iniciado":
             return { etapa: "Planejamento", sobrestado: false };
+          case "iniciado":
+            return { etapa: "Iniciado", sobrestado: false };
+          case "retornado para diligência":
+            return { etapa: "Retornado para Diligência", sobrestado: false };
           case "em andamento":
             return { etapa: currentEtapa === "Contratado" ? "Contratado" : "Em Licitação", sobrestado: false };
           case "concluído":
             return { etapa: "Concluído", sobrestado: false };
           default:
-            // Etapas específicas (não utilizadas quando apenas categorias)
             return { etapa: selected, sobrestado: false };
         }
       };
@@ -423,6 +426,8 @@ export default function Contratacoes() {
   const getStatusBadge = (status: string | null) => {
     const variants: Record<string, { variant: any; className: string }> = {
       "não iniciado": { variant: "secondary", className: "bg-info/10 text-info hover:bg-info/20" },
+      "iniciado": { variant: "secondary", className: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20" },
+      "retornado para diligência": { variant: "secondary", className: "bg-orange-500/10 text-orange-500 hover:bg-orange-500/20" },
       "em andamento": { variant: "secondary", className: "bg-warning/10 text-warning hover:bg-warning/20" },
       "concluído": { variant: "secondary", className: "bg-success/10 text-success hover:bg-success/20" },
       "sobrestado": { variant: "secondary", className: "bg-muted/10 text-muted-foreground hover:bg-muted/20" },
@@ -526,6 +531,10 @@ export default function Contratacoes() {
         result = result.filter((item) => (item as any).sobrestado === true);
       } else if (status === "não iniciado") {
         result = result.filter((item) => !item.etapa_processo || item.etapa_processo === "Planejamento");
+      } else if (status === "iniciado") {
+        result = result.filter((item) => item.etapa_processo === "Iniciado");
+      } else if (status === "retornado para diligência") {
+        result = result.filter((item) => item.etapa_processo === "Retornado para Diligência");
       } else if (status === "em andamento") {
         result = result.filter((item) => ["Em Licitação", "Contratado"].includes(item.etapa_processo || ""));
       } else if (status === "concluído") {
@@ -904,6 +913,8 @@ export default function Contratacoes() {
                   <SelectContent>
                     <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
                     <SelectItem className="text-xs" value="não iniciado">não iniciado</SelectItem>
+                    <SelectItem className="text-xs" value="iniciado">iniciado</SelectItem>
+                    <SelectItem className="text-xs" value="retornado para diligência">retornado para diligência</SelectItem>
                     <SelectItem className="text-xs" value="em andamento">em andamento</SelectItem>
                     <SelectItem className="text-xs" value="concluído">concluído</SelectItem>
                     <SelectItem className="text-xs" value="sobrestado">sobrestado</SelectItem>
@@ -994,6 +1005,8 @@ export default function Contratacoes() {
                           const getCategory = (c: Contratacao) => {
                             if ((c as any).sobrestado === true) return "sobrestado";
                             const etapa = c.etapa_processo?.toLowerCase() || "";
+                            if (etapa === "iniciado") return "iniciado";
+                            if (etapa === "retornado para diligência") return "retornado para diligência";
                             if (etapa === "em andamento" || etapa === "em licitação" || etapa === "contratado") return "em andamento";
                             if (etapa === "concluído") return "concluído";
                             return "não iniciado";
@@ -1376,16 +1389,27 @@ export default function Contratacoes() {
                         : ((() => {
                           const etapa = editingContratacao.etapa_processo?.toLowerCase() || "";
                           if (etapa === "concluído") return "concluído";
+                          if (etapa === "iniciado") return "iniciado";
+                          if (etapa === "retornado para diligência") return "retornado para diligência";
                           if (etapa === "em andamento" || etapa === "em licitação" || etapa === "contratado") return "em andamento";
                           return "não iniciado";
                         })())}
                       onValueChange={(value) => {
                         const next: any = { ...editingContratacao };
+                        
+                        // Regra: somente usuarios com setor de lotação 'CLC' podem colocar no status 'Retornado para Diligência' e 'Em Andamento'
+                        if ((value === "retornado para diligência" || value === "em andamento") && userSetor !== "CLC") {
+                          toast.error("Acesso negado", { description: "Somente usuários do setor CLC podem alterar para este status." });
+                          return;
+                        }
+
                         if (value === "sobrestado") {
                           next.sobrestado = true;
                         } else {
                           next.sobrestado = false;
                           if (value === "não iniciado") next.etapa_processo = "Planejamento";
+                          else if (value === "iniciado") next.etapa_processo = "Iniciado";
+                          else if (value === "retornado para diligência") next.etapa_processo = "Retornado para Diligência";
                           else if (value === "em andamento") next.etapa_processo = "Em Licitação";
                           else if (value === "concluído") next.etapa_processo = "Concluído";
                           else next.etapa_processo = value;
@@ -1398,6 +1422,8 @@ export default function Contratacoes() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="não iniciado">não iniciado</SelectItem>
+                        <SelectItem value="iniciado">iniciado</SelectItem>
+                        <SelectItem value="retornado para diligência">retornado para diligência</SelectItem>
                         <SelectItem value="em andamento">em andamento</SelectItem>
                         <SelectItem value="concluído">concluído</SelectItem>
                         <SelectItem value="sobrestado">sobrestado</SelectItem>
