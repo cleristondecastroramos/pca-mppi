@@ -47,7 +47,7 @@ function HeaderBase() {
       // Prefer profiles.avatar_url when available
       const { data: profile } = await (supabase as any)
         .from("profiles")
-        .select("avatar_url, nome_completo, email")
+        .select("avatar_url, nome_completo, email, setor")
         .eq("id", user.id)
         .single();
       const url = (profile?.avatar_url as string) || (meta.avatar_url as string) || null;
@@ -73,17 +73,26 @@ function HeaderBase() {
         setRoleDisplayName(displayName);
       }
 
-      await fetchNotifications(user.id);
+      await fetchNotifications(user.id, profile?.setor);
     };
 
-    const fetchNotifications = async (userId: string) => {
+    const fetchNotifications = async (userId: string, userSector?: string | null) => {
       if (!mounted) return;
 
       // Fetch Notifications System
-      const { data: notifs } = await (supabase as any)
+      let query = (supabase as any)
         .from("notificacoes")
         .select("*")
-        .eq("ativa", true)
+        .eq("ativa", true);
+
+      // Filter by sector: null (everyone) or specific user sector
+      if (userSector) {
+        query = query.or(`setor_destino.is.null,setor_destino.eq."${userSector}"`);
+      } else {
+        query = query.is("setor_destino", null);
+      }
+
+      const { data: notifs } = await query
         .order("data_criacao", { ascending: false })
         .limit(10);
 
@@ -118,7 +127,11 @@ function HeaderBase() {
         async () => {
           const { data } = await supabase.auth.getSession();
           if (data.session?.user) {
-            fetchNotifications(data.session.user.id);
+            const { data: prof } = await supabase.from("profiles")
+              .select("setor")
+              .eq("id", data.session.user.id)
+              .single();
+            fetchNotifications(data.session.user.id, prof?.setor);
           }
         }
       )

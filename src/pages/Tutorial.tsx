@@ -738,14 +738,15 @@ export default function Tutorial() {
         {/* 18. Notificações */}
         <Section id="sec18" title="18. Notificações">
           <P>
-            O módulo <strong>Central de Notificações</strong> é o canal oficial de comunicação rápida do sistema PCA 2026, permitindo que a administração envie alertas, avisos e mensagens importantes a todos os usuários da plataforma de forma instantânea. A criação e o gerenciamento de notificações são exclusivos do perfil <strong>Administrador</strong>, enquanto todos os demais perfis (<strong>Gestor</strong>, <strong>Setor Requisitante</strong> e <strong>Consulta</strong>) podem visualizar as notificações recebidas.
+            O módulo <strong>Central de Notificações</strong> é o canal oficial de comunicação rápida do sistema PCA 2026, permitindo que a administração envie alertas, avisos e mensagens importantes para todos os usuários ou para <strong>setores específicos</strong> da plataforma de forma instantânea.
           </P>
 
           <H3>18.1. Como Criar uma Notificação</H3>
           <P>Para criar e disparar uma nova notificação, o Administrador deve acessar a página <strong>"Notificações"</strong> no menu lateral e preencher o formulário disponível no card <strong>"Nova Notificação"</strong>:</P>
           <OL items={[
             <><strong>Título Curto (máx. 50 caracteres):</strong> Um resumo objetivo do assunto.</>,
-            <><strong>Mensagem Direta (até 200 caracteres):</strong> O limite foi expandido para permitir comunicados mais detalhados e claros.</>,
+            <><strong>Mensagem Direta (até 200 caracteres):</strong> O limite foi expandido para permitir comunicados mais detalhados.</>,
+            <><strong>Setor de Destino:</strong> O administrador pode selecionar um setor específico para receber a mensagem (ex: CLC, GSI, Administração Superior) ou a opção <strong>"Todos os setores"</strong> para um comunicado geral.</>,
             <>Clique em <strong>"Disparar para Usuários"</strong> para enviar a notificação imediatamente.</>,
           ]} />
           <Note>

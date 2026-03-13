@@ -9,7 +9,14 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { translateError } from "@/lib/utils/error-translations";
 import { Loader2, Send, Trash2, BellRing } from "lucide-react";
-import { useAuthSession } from "@/lib/auth";
+import { useAuthSession, SETORES_REQUISITANTES } from "@/lib/auth";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Notificacao = {
   id: string;
@@ -18,6 +25,8 @@ type Notificacao = {
   tipo: string;
   data_criacao: string;
   ativa: boolean;
+  setor_destino?: string | null;
+  autor_id?: string;
 };
 
 export default function Notificacoes() {
@@ -28,6 +37,7 @@ export default function Notificacoes() {
 
   const [titulo, setTitulo] = useState("");
   const [mensagem, setMensagem] = useState("");
+  const [setorDestino, setSetorDestino] = useState("TODOS");
 
   useEffect(() => {
     fetchNotificacoes();
@@ -82,7 +92,8 @@ export default function Notificacoes() {
             mensagem: trimMensagem,
             autor_id: session.user.id,
             tipo: "info",
-            ativa: true
+            ativa: true,
+            setor_destino: setorDestino === "TODOS" ? null : setorDestino
           },
         ])
         .select();
@@ -97,6 +108,7 @@ export default function Notificacoes() {
       
       setTitulo("");
       setMensagem("");
+      setSetorDestino("TODOS");
       
       console.log("Atualizando lista de notificações...");
       await fetchNotificacoes();
@@ -192,6 +204,26 @@ export default function Notificacoes() {
                   <div className="text-xs text-right text-muted-foreground">{mensagem.length}/200</div>
                 </div>
 
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Setor de Destino</label>
+                  <Select value={setorDestino} onValueChange={setSetorDestino}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione o setor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="TODOS">Todos os setores</SelectItem>
+                      {SETORES_REQUISITANTES.map((s) => (
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[10px] text-muted-foreground italic">
+                    {setorDestino === "TODOS" 
+                      ? "A notificação será enviada para todos os usuários do sistema." 
+                      : `A notificação será enviada apenas para os usuários do setor: ${setorDestino}.`}
+                  </p>
+                </div>
+
                 <Button type="submit" className="w-full" disabled={saving}>
                   {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                   Disparar para Usuários
@@ -220,6 +252,7 @@ export default function Notificacoes() {
                         <TableHead className="w-[120px]">Data e Hora</TableHead>
                         <TableHead>Título</TableHead>
                         <TableHead>Mensagem</TableHead>
+                        <TableHead className="w-[120px]">Destino</TableHead>
                         <TableHead className="w-[70px] text-center">Excluir</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -240,6 +273,17 @@ export default function Notificacoes() {
                           </TableCell>
                           <TableCell className="text-xs align-top">
                             {notif.mensagem}
+                          </TableCell>
+                          <TableCell className="text-[10px] font-medium align-top">
+                            {notif.setor_destino ? (
+                              <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase">
+                                {notif.setor_destino}
+                              </span>
+                            ) : (
+                              <span className="bg-muted text-muted-foreground px-1.5 py-0.5 rounded uppercase">
+                                Todos
+                              </span>
+                            )}
                           </TableCell>
                           <TableCell className="text-center align-middle">
                             <Button 
