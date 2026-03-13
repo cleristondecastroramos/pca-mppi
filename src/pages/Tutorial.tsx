@@ -699,21 +699,40 @@ export default function Tutorial() {
 
         {/* 17. Gerenciamento */}
         <Section id="sec17" title="17. Gerenciamento de Usuários">
-          <P>Exclusivo do <strong>Administrador</strong>.</P>
+          <P>Módulo exclusivo do perfil <strong>Administrador</strong>, destinado ao controle total das contas de acesso e permissões dentro da plataforma PCA 2026.</P>
 
-          <H3>17.1. Criar Usuário</H3>
+          <H3>17.1. Cadastro de Novo Usuário</H3>
           <OL items={[
-            <>Clique em <strong>"Novo Usuário"</strong>.</>,
-            "Preencha: Nome, E-mail, Setor, Cargo, Perfil de Acesso e Senha Temporária.",
-            <>Clique em <strong>"Criar"</strong>.</>,
+            <>Clique no botão <strong>"Cadastrar usuário"</strong> localizado no canto superior direito.</>,
+            "Preencha o Nome Completo e o E-mail Institucional (@mppi.mp.br).",
+            <><strong>Seleção de Setor:</strong> O campo Setor agora utiliza obrigatoriamente um dropdown de seleção para garantir a padronização. Inclui a nova opção para a <strong>Administração Superior</strong>.</>,
+            "Informe o Cargo e selecione o Perfil de Acesso adequado (Administrador, Gestor, Setor Requisitante ou Consulta).",
+            "Defina uma senha provisória de pelo menos 8 caracteres.",
+            <>Clique em <strong>"Cadastrar"</strong>.</>,
           ]} />
-          <Note>O sistema NÃO envia e-mails automáticos. Comunique as credenciais diretamente ao novo servidor.</Note>
+          <Note>A regra de cadastro foi aprimorada: ao atribuir um perfil específico, o sistema garante a exclusividade daquele papel, evitando sobreposições automáticas de perfis.</Note>
 
-          <H3>17.2. Editar e Excluir</H3>
-          <P>Use os ícones de lápis (editar) e lixeira (excluir) na tabela. A exclusão é permanente e irreversível.</P>
+          <H3>17.2. Tabela de Gerenciamento e Interface</H3>
+          <P>A interface de gerenciamento foi reformulada para oferecer uma experiência mais moderna e eficiente:</P>
+          <UL items={[
+            <><strong>Identidade Visual:</strong> O cabeçalho da tabela apresenta agora uma cor de fundo vermelha vibrante e textos em branco, facilitando a identificação das colunas.</>,
+            <><strong>Alinhamento de Dados:</strong> Para melhor legibilidade, os dados das colunas (Nome, E-mail, Setor, Cargo e Perfil) são alinhados à esquerda, enquanto os títulos das colunas e as ações permanecem centralizados.</>,
+            <><strong>Botão "Atualizar":</strong> Localizado no topo, permite sincronizar a lista com o servidor sem recarregar a página.</>,
+          ]} />
 
-          <H3>17.3. Política de Acessos</H3>
-          <P>O botão <strong>"Política de Acessos"</strong> abre um modal com a descrição de cada perfil e a Matriz de Acesso completa.</P>
+          <H3>17.3. Busca e Filtros Inteligentes</H3>
+          <P>Localizar usuários tornou-se mais preciso com as novas ferramentas de filtragem:</P>
+          <UL items={[
+            <><strong>Busca por Texto:</strong> O campo de busca permite agora pesquisar simultaneamente por <strong>Nome</strong>, <strong>E-mail</strong> ou <strong>Cargo</strong>.</>,
+            <><strong>Filtro por Perfil:</strong> Filtre a lista para visualizar apenas usuários de um determinado nível de acesso.</>,
+            <><strong>Filtro por Setor:</strong> Um novo dropdown exclusivo permite visualizar apenas usuários vinculados a um setor específico, incluindo a <strong>Administração Superior</strong>.</>,
+          ]} />
+
+          <H3>17.4. Edição e Segurança</H3>
+          <P>
+            As ações de edição (ícone de lápis) e exclusão (ícone de lixeira) permitem a manutenção contínua da base de usuários. A política de criação de usuários e atribuição de perfis segue os mais rigorosos padrões de segurança da informação do MPPI.
+          </P>
+          <Note>O sistema impede a duplicação de papéis durante a edição ou criação, garantindo que "Gestores" não recebam perfis de "Consulta" acidentalmente.</Note>
         </Section>
 
         {/* 18. Notificações */}
@@ -725,12 +744,12 @@ export default function Tutorial() {
           <H3>18.1. Como Criar uma Notificação</H3>
           <P>Para criar e disparar uma nova notificação, o Administrador deve acessar a página <strong>"Notificações"</strong> no menu lateral e preencher o formulário disponível no card <strong>"Nova Notificação"</strong>:</P>
           <OL items={[
-            <><strong>Título Curto (máx. 50 caracteres):</strong> Um resumo objetivo do assunto da notificação. Exemplo: "Prazo de encerramento prorrogado" ou "Novo normativo aplicável".</>,
-            <><strong>Mensagem Direta (máx. 200 caracteres):</strong> O conteúdo da notificação, que deve ser claro e direto. Este texto será exibido a todos os usuários.</>,
+            <><strong>Título Curto (máx. 50 caracteres):</strong> Um resumo objetivo do assunto.</>,
+            <><strong>Mensagem Direta (até 200 caracteres):</strong> O limite foi expandido para permitir comunicados mais detalhados e claros.</>,
             <>Clique em <strong>"Disparar para Usuários"</strong> para enviar a notificação imediatamente.</>,
           ]} />
           <Note>
-            As notificações são enviadas instantaneamente e ficam visíveis para todos os usuários do sistema. Certifique-se de que o conteúdo está correto antes de disparar.
+            O layout das notificações foi aprimorado para um estilo <strong>minimalista</strong>. O cabeçalho da caixa de notificações agora utiliza a mesma cor vermelha padrão do menu principal, garantindo unidade visual em todo o sistema.
           </Note>
 
           <H3>18.2. Como os Usuários Recebem as Notificações</H3>
@@ -738,10 +757,10 @@ export default function Tutorial() {
             Todas as notificações ativas são exibidas no <strong>ícone de sino (🔔)</strong> localizado no canto superior direito do cabeçalho do sistema, visível em todas as páginas. O funcionamento é o seguinte:
           </P>
           <UL items={[
-            <><strong>Indicador de não lida:</strong> Quando há notificações que o usuário ainda não visualizou, um <strong>ponto vermelho</strong> aparece sobre o ícone do sino, sinalizando que existem mensagens pendentes.</>,
-            <><strong>Dropdown de notificações:</strong> Ao clicar no sino, um menu suspenso exibe a lista de notificações ativas, mostrando o título, a mensagem e a data/hora de criação de cada uma.</>,
-            <><strong>Marcação automática como lida:</strong> Ao abrir o dropdown, todas as notificações são automaticamente marcadas como lidas para aquele usuário. O ponto vermelho desaparece, indicando que não há novas mensagens.</>,
-            <><strong>Controle individual de leitura:</strong> Cada usuário possui seu próprio registro de leitura. Ou seja, o fato de um usuário ter lido uma notificação não afeta o status de leitura dos demais usuários.</>,
+            <><strong>Indicador de não lida:</strong> Quando há notificações novas, um <strong>ponto vermelho</strong> aparece sobre o ícone do sino.</>,
+            <><strong>Dropdown de notificações:</strong> Ao clicar no sino, um menu suspenso exibe as notificações com <strong>texto justificado</strong> para uma leitura mais confortável e organizada.</>,
+            <><strong>Marcação automática como lida:</strong> Ao abrir o dropdown, as notificações são marcadas como lidas e o ponto vermelho desaparece.</>,
+            <><strong>Controle individual:</strong> O status de leitura é único para cada usuário.</>,
           ]} />
 
           <H3>18.3. Gerenciamento de Notificações</H3>
@@ -1020,6 +1039,7 @@ const SIGLAS = [
 ];
 
 const SETORES = [
+  ["ADM", "Administração Superior (MPPI)"],
   ["CAA", "Coordenadoria de Apoio Administrativo"],
   ["CCF", "Coordenadoria de Contabilidade e Finanças"],
   ["CCS", "Coordenadoria de Comunicação Social"],
@@ -1031,7 +1051,7 @@ const SETORES = [
   ["CTI", "Coordenadoria de Tecnologia da Informação"],
   ["GAECO", "Grupo de Atuação Especial de Combate ao Crime Organizado"],
   ["GSI", "Gabinete de Segurança Institucional"],
-  ["PLAN", "Assessoria de Planejamento e Gestão (ASSESPPLAGES)"],
+  ["PLANEJAMENTO", "Assessoria de Planejamento e Gestão (ASSESPPLAGES)"],
   ["PROCON", "Programa de Proteção e Defesa do Consumidor"],
 ];
 
