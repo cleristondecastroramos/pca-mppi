@@ -444,24 +444,24 @@ const GerenciamentoUsuarios = () => {
             </div>
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>E-mail</TableHead>
-                  <TableHead>Setor</TableHead>
-                  <TableHead>Cargo</TableHead>
-                  <TableHead>Perfil</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+                <TableRow className="bg-[#D9415D] hover:bg-[#D9415D]/90">
+                  <TableHead className="text-white font-bold text-center">Nome</TableHead>
+                  <TableHead className="text-white font-bold text-center">E-mail</TableHead>
+                  <TableHead className="text-white font-bold text-center">Setor</TableHead>
+                  <TableHead className="text-white font-bold text-center">Cargo</TableHead>
+                  <TableHead className="text-white font-bold text-center">Perfil</TableHead>
+                  <TableHead className="text-white font-bold text-center">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((u) => (
                   <TableRow key={u.id}>
-                    <TableCell className="font-medium">{u.nome_completo || "—"}</TableCell>
-                    <TableCell>{u.email || "—"}</TableCell>
-                    <TableCell>{u.setor || "—"}</TableCell>
-                    <TableCell>{u.cargo || "—"}</TableCell>
-                    <TableCell>{u.roles.length ? u.roles.map(roleLabel).join(", ") : "—"}</TableCell>
-                    <TableCell className="text-right space-x-1">
+                    <TableCell className="font-medium text-center">{u.nome_completo || "—"}</TableCell>
+                    <TableCell className="text-center">{u.email || "—"}</TableCell>
+                    <TableCell className="text-center">{u.setor || "—"}</TableCell>
+                    <TableCell className="text-center">{u.cargo || "—"}</TableCell>
+                    <TableCell className="text-center">{u.roles.length ? u.roles.map(roleLabel).join(", ") : "—"}</TableCell>
+                    <TableCell className="text-center space-x-1">
                       <Button size="xs" variant="outline" onClick={() => openEdit(u)} title="Editar usuário">
                         <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
                       </Button>
