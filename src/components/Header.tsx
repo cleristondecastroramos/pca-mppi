@@ -226,38 +226,43 @@ function HeaderBase() {
               )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80 max-h-[85vh] overflow-y-auto">
-            <DropdownMenuLabel>Notificações</DropdownMenuLabel>
+          <DropdownMenuContent align="end" className="w-96 max-h-[85vh] overflow-y-auto p-0 border border-border/50 shadow-xl">
+            <DropdownMenuLabel className="bg-[#D9415D] text-white px-4 py-3.5 font-bold text-sm flex items-center gap-2 rounded-t-md sticky top-0 z-10">
+              <Bell className="h-4 w-4" />
+              Notificações
+            </DropdownMenuLabel>
 
             {notificacoes.length === 0 ? (
-              <div className="p-4 text-center text-xs text-muted-foreground">
+              <div className="p-8 text-center text-xs text-muted-foreground bg-muted/10">
                 Nenhuma notificação no momento.
               </div>
             ) : (
-              notificacoes.map((notif: any) => {
-                const isUnread = !lidasIds.has(notif.id);
-                const dt = new Date(notif.data_criacao).toLocaleString("pt-BR", {
-                  day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit"
-                });
+              <div className="divide-y divide-border/50">
+                {notificacoes.map((notif: any) => {
+                  const isUnread = !lidasIds.has(notif.id);
+                  const dt = new Date(notif.data_criacao).toLocaleString("pt-BR", {
+                    day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit"
+                  });
 
-                return (
-                  <React.Fragment key={notif.id}>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="flex flex-col items-start gap-1 p-3 cursor-default focus:bg-transparent">
-                      <div className="flex w-full justify-between items-start gap-2">
-                        <span className={`font-semibold text-sm ${isUnread ? "text-foreground" : "text-muted-foreground"}`}>
+                  return (
+                    <DropdownMenuItem key={notif.id} className="flex flex-col items-start gap-2 p-4 cursor-default focus:bg-muted/30 transition-colors">
+                      <div className="flex w-full justify-between items-start gap-3">
+                        <span className={`font-bold text-sm tracking-tight leading-tight ${isUnread ? "text-foreground" : "text-muted-foreground"}`}>
                           {notif.titulo}
                         </span>
-                        {isUnread && <span className="h-2 w-2 rounded-full bg-primary flex-shrink-0 mt-1.5"></span>}
+                        {isUnread && <span className="h-2 w-2 rounded-full bg-[#D9415D] flex-shrink-0 mt-1 shadow-[0_0_8px_rgba(217,65,93,0.5)]"></span>}
                       </div>
-                      <span className={`text-xs ${isUnread ? "text-muted-foreground" : "text-muted-foreground/60"}`}>
+                      <span className={`text-xs text-justify leading-relaxed ${isUnread ? "text-muted-foreground" : "text-muted-foreground/70"}`}>
                         {notif.mensagem}
                       </span>
-                      <span className="text-[10px] text-muted-foreground mt-1">{dt}</span>
+                      <div className="flex w-full justify-between items-center mt-1">
+                         <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-tighter">{dt}</span>
+                         {isUnread && <span className="text-[9px] font-bold text-[#D9415D] uppercase tracking-widest">Nova</span>}
+                      </div>
                     </DropdownMenuItem>
-                  </React.Fragment>
-                );
-              })
+                  );
+                })}
+              </div>
             )}
 
             {hasUnread && (
