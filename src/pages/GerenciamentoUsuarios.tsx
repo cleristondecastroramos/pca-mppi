@@ -78,6 +78,7 @@ const GerenciamentoUsuarios = () => {
   const [usuarios, setUsuarios] = useState<UserWithRoles[]>([]);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<PerfilAcesso | "todos">("todos");
+  const [sectorFilter, setSectorFilter] = useState<string>("todos");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -163,9 +164,10 @@ const GerenciamentoUsuarios = () => {
         f.toLowerCase().includes(q),
       );
       const roleMatch = roleFilter === "todos" ? true : u.roles.includes(roleFilter as PerfilAcesso);
-      return textMatch && roleMatch;
+      const sectorMatch = sectorFilter === "todos" ? true : u.setor === sectorFilter;
+      return textMatch && roleMatch && sectorMatch;
     });
-  }, [usuarios, search, roleFilter]);
+  }, [usuarios, search, roleFilter, sectorFilter]);
 
   function openEdit(u: UserWithRoles) {
     setEditTarget(u);
@@ -437,6 +439,17 @@ const GerenciamentoUsuarios = () => {
                         {def.label}
                       </div>
                     </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={sectorFilter} onValueChange={setSectorFilter}>
+                <SelectTrigger className="w-[220px] h-9">
+                  <SelectValue placeholder="Filtrar por setor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os setores</SelectItem>
+                  {SETORES_REQUISITANTES.map((s) => (
+                    <SelectItem key={s} value={s}>{s === "PLANEJAMENTO" ? "PLAN" : s}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
