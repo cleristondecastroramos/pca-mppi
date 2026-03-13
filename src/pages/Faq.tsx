@@ -120,7 +120,7 @@ const Faq = () => {
                   <div className="p-2 bg-muted rounded-full text-muted-foreground">
                     <Mail className="h-4 w-4" />
                   </div>
-                  <span>suporte.pca@mppi.mp.br</span>
+                  <span>licitacao@mppi.mp.br</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-muted rounded-full text-muted-foreground">
