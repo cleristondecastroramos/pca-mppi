@@ -686,11 +686,11 @@ const Relatorios = () => {
             <style>
               @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
               * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
-              body { margin: 0; color: #1f2937; background: #fff; line-height: 1.5; text-align: justify; }
+              body { margin: 0; color: #1f2937; background: #fff; line-height: 1.5; text-align: justify; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
               
-              .cover { position: relative; height: 297mm; display: flex; flex-direction: column; justify-content: center; padding: 20mm 20mm 20mm 35mm; text-align: center; background: white; z-index: 100; overflow: hidden; page: cover; }
-              .cover-bar { position: absolute; top: 0; left: 0; bottom: 0; width: 15mm; background: #D9415D; z-index: 110; }
-              .logo { margin-bottom: 20mm; }
+              .cover { position: relative; height: 297mm; display: flex; flex-direction: column; justify-content: flex-start; padding: 10mm 20mm 20mm 35mm; text-align: center; background: white; z-index: 100; overflow: hidden; page: cover; }
+              .cover-bar { position: absolute; top: 0; left: 0; bottom: 0; width: 15mm; background: #D9415D !important; z-index: 110; -webkit-print-color-adjust: exact; }
+              .logo { margin-top: 10mm; margin-bottom: 30mm; }
               .logo img { height: 80px; }
               .title-box { margin-top: 20mm; }
               .main-title { font-size: 32pt; font-weight: 700; color: #111827; margin: 0; text-transform: uppercase; letter-spacing: 2px; }
@@ -703,17 +703,17 @@ const Relatorios = () => {
               .section { padding: 0 0 10mm; }
               p { text-align: justify; }
               h2 { color: #D9415D; border-bottom: 2px solid #D9415D; padding-bottom: 8px; font-size: 20pt; margin-top: 0; text-align: left; }
-              .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10mm; }
-              .summary-card { padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background: #f9fafb; }
-              .summary-label { font-size: 10pt; color: #6b7280; font-weight: 600; text-transform: uppercase; }
-              .summary-value { font-size: 24pt; font-weight: 700; color: #111827; margin-top: 4px; }
+              .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 5mm; }
+              .summary-card { padding: 12px 20px; border: 1px solid #e5e7eb; border-radius: 12px; background: #f9fafb; text-align: center; }
+              .summary-label { font-size: 8pt; color: #6b7280; font-weight: 600; text-transform: uppercase; }
+              .summary-value { font-size: 18pt; font-weight: 700; color: #111827; margin-top: 2px; }
               
               .text-left { text-align: left; }
               .text-right { text-align: right; }
               .text-center { text-align: center; }
               
                table { width: 100%; border-collapse: collapse; margin-top: 4mm; font-size: 9pt; }
-               th { border: 1px solid #000; padding: 8px; text-align: center; vertical-align: middle; background: #f3f4f6; font-weight: 700; }
+               th { border: 1px solid #000; padding: 8px; text-align: center; vertical-align: middle; background: #f8fafc; font-weight: 700; }
                td { border: 1px solid #000; padding: 8px; }
                .compact-table th, .compact-table td { padding: 4px 6px; }
               
@@ -1037,7 +1037,7 @@ const Relatorios = () => {
                   #dc2626 ${pPGJ}% ${pPGJ + pFMMP}%, 
                   #16a34a ${pPGJ + pFMMP}% ${pPGJ + pFMMP + pFEPDC}%, 
                   #6b7280 ${pPGJ + pFMMP + pFEPDC}% 100%
-                );"></div>
+                ); -webkit-print-color-adjust: exact;"></div>
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                   <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="width: 14px; height: 14px; background: #2563eb; border-radius: 3px;"></div>
@@ -1065,22 +1065,22 @@ const Relatorios = () => {
               <p>O PCA-2026 compreende um total de <strong>${totalDemandas}</strong> demandas, distribuídas entre investimentos em modernização e o custeio necessário para a continuidade das atividades ministeriais. A tabela abaixo detalha a representatividade de cada unidade requisitante, evidenciando o equilíbrio entre as renovações contratuais e as novas necessidades de contratação.</p>
               
               <div style="margin-top: 5mm;">
-                <p style="font-size: 8pt; font-weight: 700; color: #111827; margin-bottom: 1mm; text-transform: uppercase; letter-spacing: 0.5px;">Tabela 01: Detalhamento por Unidade Requisitante e Tipo de Contratação</p>
+                <p style="font-size: 8pt; font-weight: 700; color: #111827; margin-bottom: 1mm; text-transform: uppercase; letter-spacing: 0.5px;">Tabela 1: Detalhamento por Unidade Requisitante e Tipo de Contratação</p>
                 <table class="compact-table" style="font-size: 7.5pt; border: 1.5px solid #000; border-collapse: collapse;">
                   <thead>
                     <tr>
-                      <th rowspan="2">Unidade Requisitante</th>
-                      <th rowspan="2">Qtd Itens</th>
-                      <th colspan="2" style="background: #fef2f2;">Nova Contratação</th>
-                      <th colspan="2" style="background: #f0fdf4;">Renovação de Contrato</th>
-                      <th rowspan="2">Valor Total</th>
-                      <th rowspan="2">% PCA</th>
+                      <th rowspan="2" style="background: #f8fafc;">Unidade Requisitante</th>
+                      <th rowspan="2" style="background: #f8fafc;">Qtd Itens</th>
+                      <th colspan="2" style="background: #f8fafc;">Nova Contratação</th>
+                      <th colspan="2" style="background: #f8fafc;">Renovação de Contrato</th>
+                      <th rowspan="2" style="background: #f8fafc;">Valor Total</th>
+                      <th rowspan="2" style="background: #f8fafc;">% PCA</th>
                     </tr>
                     <tr>
-                      <th style="background: #fdf2f2; border: 1.5px solid #000;">Qtd</th>
-                      <th style="background: #fdf2f2; border: 1.5px solid #000;">Valor</th>
-                      <th style="background: #f0fdf4; border: 1.5px solid #000;">Qtd</th>
-                      <th style="background: #f0fdf4; border: 1.5px solid #000;">Valor</th>
+                      <th style="background: #f8fafc; border: 1.5px solid #000;">Qtd</th>
+                      <th style="background: #f8fafc; border: 1.5px solid #000;">Valor</th>
+                      <th style="background: #f8fafc; border: 1.5px solid #000;">Qtd</th>
+                      <th style="background: #f8fafc; border: 1.5px solid #000;">Valor</th>
                     </tr>
                   </thead>
                   <tbody style="border: 1.5px solid #000;">
@@ -1106,9 +1106,9 @@ const Relatorios = () => {
                 <table class="compact-table" style="border: 1.5px solid #000;">
                   <thead>
                     <tr>
-                      <th style="border: 1.5px solid #000;">Tipo</th>
-                      <th style="border: 1.5px solid #000;">Valor</th>
-                      <th style="border: 1.5px solid #000;">Percentual</th>
+                      <th style="border: 1.5px solid #000; background: #f8fafc;">Tipo</th>
+                      <th style="border: 1.5px solid #000; background: #f8fafc;">Valor</th>
+                      <th style="border: 1.5px solid #000; background: #f8fafc;">Percentual</th>
                     </tr>
                   </thead>
                   <tbody style="border: 1.5px solid #000;">
@@ -1122,10 +1122,10 @@ const Relatorios = () => {
                 <table class="compact-table" style="border: 1.5px solid #000;">
                   <thead>
                     <tr>
-                      <th style="border: 1.5px solid #000;">Unidade Requisitante</th>
-                      <th style="border: 1.5px solid #000;">PGJ</th>
-                      <th style="border: 1.5px solid #000;">FMMP</th>
-                      <th style="border: 1.5px solid #000;">FEPDC</th>
+                      <th style="border: 1.5px solid #000; background: #f8fafc;">Unidade Requisitante</th>
+                      <th style="border: 1.5px solid #000; background: #f8fafc;">PGJ</th>
+                      <th style="border: 1.5px solid #000; background: #f8fafc;">FMMP</th>
+                      <th style="border: 1.5px solid #000; background: #f8fafc;">FEPDC</th>
                     </tr>
                   </thead>
                   <tbody style="border: 1.5px solid #000;">
@@ -1153,10 +1153,10 @@ const Relatorios = () => {
                 <table class="compact-table" style="border: 1.5px solid #000;">
                   <thead>
                     <tr>
-                      <th style="border: 1.5px solid #000;">Unidade Requisitante</th>
-                      <th style="border: 1.5px solid #000;">PGJ</th>
-                      <th style="border: 1.5px solid #000;">FMMP</th>
-                      <th style="border: 1.5px solid #000;">FEPDC</th>
+                      <th style="border: 1.5px solid #000; background: #f8fafc;">Unidade Requisitante</th>
+                      <th style="border: 1.5px solid #000; background: #f8fafc;">PGJ</th>
+                      <th style="border: 1.5px solid #000; background: #f8fafc;">FMMP</th>
+                      <th style="border: 1.5px solid #000; background: #f8fafc;">FEPDC</th>
                     </tr>
                   </thead>
                   <tbody style="border: 1.5px solid #000;">
@@ -1202,10 +1202,10 @@ const Relatorios = () => {
                 <table>
                   <thead>
                     <tr>
-                      <th>Objeto</th>
-                      <th>Unidade Orçamentária</th>
-                      <th>Unidade Requisitante</th>
-                      <th>Número do Contrato</th>
+                      <th style="background: #f8fafc;">Objeto</th>
+                      <th style="background: #f8fafc;">Unidade Orçamentária</th>
+                      <th style="background: #f8fafc;">Unidade Requisitante</th>
+                      <th style="background: #f8fafc;">Número do Contrato</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1247,12 +1247,12 @@ const Relatorios = () => {
                 <table style="font-size: 7.5pt;">
                   <thead>
                     <tr>
-                      <th>Objeto</th>
-                      <th>UO</th>
-                      <th>Unidade Requisitante</th>
-                      <th>Contrato</th>
-                      <th>Valor Anual Previsto</th>
-                      <th>Término</th>
+                      <th style="background: #f8fafc;">Objeto</th>
+                      <th style="background: #f8fafc;">UO</th>
+                      <th style="background: #f8fafc;">Unidade Requisitante</th>
+                      <th style="background: #f8fafc;">Contrato</th>
+                      <th style="background: #f8fafc;">Valor Anual Previsto</th>
+                      <th style="background: #f8fafc;">Término</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1326,9 +1326,9 @@ const Relatorios = () => {
                 <table>
                   <thead>
                     <tr>
-                      <th>Modalidades</th>
-                      <th>Prazo final para envio</th>
-                      <th>Observação</th>
+                      <th style="background: #f8fafc;">Modalidades</th>
+                      <th style="background: #f8fafc;">Prazo final para envio</th>
+                      <th style="background: #f8fafc;">Observação</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1374,23 +1374,23 @@ const Relatorios = () => {
               
               <p>O aprimoramento contínuo dos fluxos de trabalho e a interlocução sinérgica entre as unidades técnicas e requisitantes consolidaram o PCA como um instrumento de mitigação de riscos e promoção da integridade nas compras públicas. Para o exercício de 2026, o bom andamento do planejamento é garantido por mecanismos de controle proativos, incluindo travas sistêmicas por setor e o monitoramento rigoroso de limites de empenho, assegurando que cada contratação guarde estrita fidelidade aos parâmetros fiscais aprovados.</p>
 
-              <p>Ressalte-se que o PCA é um instrumento dinâmico e resiliente. Sua natureza flexível permite que a Administração Superior realize ajustes tempestivos, inclusões estratégicas ou remanejamentos de demandas ao longo do ano, sempre pautados pela supremacia do interesse público e pela mutabilidade das necessidades institucionais. Qualquer alteração relevante seguirá os ritos de validação técnica e homologação pela Procuradoria-Geral de Justiça, mantendo a conformidade com a Lei nº 14.133/2021 e com os objetivos estratégicos do Parquet.</p>
+              <p>Ressalte-se que o PCA é um instrumento dinâmico e resiliente. Sua natureza flexível permite que a Administração Superior realize ajustes tempestivos, inclusões estratégicas ou remanejamentos de demandas ao longo do ano, sempre pautados pela supremacia do interesse público e pela mutabilidade das necessidades institucionais. Qualquer alteração relevante seguirá os ritos de validação técnica e aprovação pela Procuradoria-Geral de Justiça, mantendo a conformidade com a Lei nº 14.133/2021 e com os objetivos estratégicos do Parquet.</p>
 
               <p>Por fim, a concretização deste Plano reafirma o compromisso do MPPI com a transparência ativa e a eficiência na alocação dos recursos públicos. Mais do que um repositório de intenções de compra, o PCA-2026 consolida-se como um guia de gestão de alto desempenho, projetando o Ministério Público rumo a um modelo de logística pública moderna, sustentável e plenamente alinhada à excelência na entrega de resultados à sociedade piauiense.</p>
 
               <p>Sobre as diretrizes finais de execução, destacam-se os seguintes pontos:</p>
               <ol style="padding-left: 20px;">
                 <li style="margin-bottom: 4mm;">Os pedidos de contratação não contemplados no Plano de Contratação Anual, previstos no ano de sua elaboração, devem ser enviados à Assessoria de Planejamento e Gestão para comprovação dos recursos orçamentários e após submeter à aprovação da PGJ;</li>
-                <li style="margin-bottom: 4mm;">Por fim, considerando tais apontamentos, segue o Plano de Contratações Anual de 2026, com vista à aprovação e homologação pelo PGJ-PI em exercício.</li>
+                <li style="margin-bottom: 4mm;">Por fim, considerando tais apontamentos, segue o Plano de Contratações Anual de 2026, com vista à aprovação pelo PGJ-PI em exercício.</li>
               </ol>
             </div>
 
             <div class="page-break section">
-              <h2>11. Homologação</h2>
+              <h2>11. Aprovação</h2>
               <div style="margin-top: 10mm; padding: 25px; border: 1.5px solid #D9415D; border-radius: 8px; background: #fffafb;">
-                <p style="font-size: 14pt; font-weight: 700; color: #D9415D; margin-bottom: 6mm; letter-spacing: 1px;">Homologação Institucional</p>
+                <p style="font-size: 14pt; font-weight: 700; color: #D9415D; margin-bottom: 6mm; letter-spacing: 1px;">Aprovação Institucional</p>
                 <p style="font-size: 11pt; line-height: 1.7; text-align: justify; font-weight: 500; color: #1f2937;">
-                  Considerando a regularidade do processo de planejamento e a observância aos preceitos da Lei nº 14.133/2021, homologo o Plano de Contratações Anual (PCA) para o exercício de 2026. Determino sua imediata publicação nos veículos oficiais de transparência e a fiel execução por parte das unidades técnicas e requisitantes desta Procuradoria-Geral de Justiça, em estrita conformidade com as diretrizes estabelecidas neste documento e no Ato PGJ nº 1381/2024.
+                  Considerando a regularidade do processo de planejamento e a observância aos preceitos da Lei nº 14.133/2021, aprovo o Plano de Contratações Anual (PCA) para o exercício de 2026. Determino sua imediata publicação nos veículos oficiais de transparência e a fiel execução por parte das unidades técnicas e requisitantes desta Procuradoria-Geral de Justiça, em estrita conformidade com as diretrizes estabelecidas neste documento e no Ato PGJ nº 1381/2024.
                 </p>
                 
                 <div style="margin-top: 25mm; text-align: center;">
