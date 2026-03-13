@@ -286,6 +286,7 @@ export type Database = {
           data_criacao: string
           id: string
           mensagem: string
+          setor_destino: string | null
           tipo: string | null
           titulo: string
         }
@@ -295,6 +296,7 @@ export type Database = {
           data_criacao?: string
           id?: string
           mensagem: string
+          setor_destino?: string | null
           tipo?: string | null
           titulo: string
         }
@@ -304,6 +306,7 @@ export type Database = {
           data_criacao?: string
           id?: string
           mensagem?: string
+          setor_destino?: string | null
           tipo?: string | null
           titulo?: string
         }
