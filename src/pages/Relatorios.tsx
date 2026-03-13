@@ -1645,11 +1645,19 @@ const Relatorios = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-foreground">Relatórios</h1>
-            <p className="text-sm text-muted-foreground">Geração e exportação de relatórios.</p>
+        <div className="flex items-center justify-between pb-2 border-b">
+          <div className="flex items-center gap-4">
+            <div className="bg-primary/10 p-3 rounded-2xl text-primary">
+              <BarChart3 className="h-8 w-8" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground tracking-tight">Inteligência de Dados</h1>
+              <p className="text-sm text-muted-foreground">Central de Relatórios e Exportação Estratégica</p>
+            </div>
           </div>
+          <Badge variant="outline" className="px-3 py-1 border-primary/20 text-primary bg-primary/5 font-semibold">
+            Exercício 2026
+          </Badge>
         </div>
 
         <Card>
@@ -1657,114 +1665,115 @@ const Relatorios = () => {
             <CardTitle>Filtros</CardTitle>
           </CardHeader>
           <CardContent className="p-2">
-            <div className="flex flex-wrap md:flex-nowrap gap-2 items-center">
-              <div className="w-28 shrink-0">
-                <div className="text-[10px] font-medium text-muted-foreground px-1">UO:</div>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-3 p-2">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-1">Unidade</label>
                 <Select value={filtros.unidade_orcamentaria} onValueChange={(v) => setFiltros((f: any) => ({ ...f, unidade_orcamentaria: v }))}>
-                  <SelectTrigger className="h-9 w-[110px] truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
+                  <SelectTrigger className="h-10 transition-colors hover:border-primary/50"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
+                    <SelectItem className="text-xs" value="__all__">Todas as UOs</SelectItem>
                     {distinctOptions.unidade_orcamentaria.map((opt) => <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-[130px] shrink-0">
-                <div className="text-[10px] font-medium text-muted-foreground px-1">Setor Requisitante:</div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-1">Setor</label>
                 <Select value={filtros.setor_requisitante} onValueChange={(v) => setFiltros((f: any) => ({ ...f, setor_requisitante: v }))}>
-                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
+                  <SelectTrigger className="h-10 transition-colors hover:border-primary/50"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
+                    <SelectItem className="text-xs" value="__all__">Todos os Setores</SelectItem>
                     {distinctOptions.setor_requisitante.map((opt) => <SelectItem className="text-xs" key={opt} value={opt}>{mapSetorName(opt)}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-[160px] shrink-0 -ml-1">
-                <div className="text-[10px] font-medium text-muted-foreground px-1">Tipo de Contratação:</div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-1">Tipo Contratação</label>
                 <Select value={filtros.tipo_contratacao} onValueChange={(v) => setFiltros((f: any) => ({ ...f, tipo_contratacao: v }))}>
-                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
+                  <SelectTrigger className="h-10 transition-colors hover:border-primary/50"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
+                    <SelectItem className="text-xs" value="__all__">Todos os Tipos</SelectItem>
                     {distinctOptions.tipo_contratacao.map((opt) => <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-[130px] shrink-0">
-                <div className="text-[10px] font-medium text-muted-foreground px-1">Tipo de Recurso:</div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-1">Recurso</label>
                 <Select value={filtros.tipo_recurso} onValueChange={(v) => setFiltros((f: any) => ({ ...f, tipo_recurso: v }))}>
-                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
+                  <SelectTrigger className="h-10 transition-colors hover:border-primary/50"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
+                    <SelectItem className="text-xs" value="__all__">Todos Recursos</SelectItem>
                     {distinctOptions.tipo_recurso.map((opt) => <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-[170px] shrink-0 -ml-1">
-                <div className="text-[10px] font-medium text-muted-foreground px-1">Classe de Material:</div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-1">Classe</label>
                 <Select value={filtros.classe} onValueChange={(v) => setFiltros((f: any) => ({ ...f, classe: v }))}>
-                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
+                  <SelectTrigger className="h-10 transition-colors hover:border-primary/50"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
+                    <SelectItem className="text-xs" value="__all__">Todas Classes</SelectItem>
                     {distinctOptions.classe.map((opt) => <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-[130px] shrink-0">
-                <div className="text-[10px] font-medium text-muted-foreground px-1">Grau de Prioridade:</div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-1">Prioridade</label>
                 <Select value={filtros.grau_prioridade} onValueChange={(v) => setFiltros((f: any) => ({ ...f, grau_prioridade: v }))}>
-                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
+                  <SelectTrigger className="h-10 transition-colors hover:border-primary/50"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
+                    <SelectItem className="text-xs" value="__all__">Todas as Prioridades</SelectItem>
                     {distinctOptions.grau_prioridade.map((opt) => <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-[130px] shrink-0 -ml-1">
-                <div className="text-[10px] font-medium text-muted-foreground px-1">Normativo:</div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-1">Normativo</label>
                 <Select value={filtros.normativo} onValueChange={(v) => setFiltros((f: any) => ({ ...f, normativo: v }))}>
-                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
+                  <SelectTrigger className="h-10 transition-colors hover:border-primary/50"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
+                    <SelectItem className="text-xs" value="__all__">Todos Normativos</SelectItem>
                     <SelectItem className="text-xs" value="14.133/2021">14.133/2021</SelectItem>
                     <SelectItem className="text-xs" value="8.666/1993">8.666/1993</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-[160px] shrink-0 -ml-1">
-                <div className="text-[10px] font-medium text-muted-foreground px-1">Modalidade de Contratação:</div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-1">Modalidade</label>
                 <Select value={filtros.modalidade} onValueChange={(v) => setFiltros((f: any) => ({ ...f, modalidade: v }))}>
-                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
+                  <SelectTrigger className="h-10 transition-colors hover:border-primary/50"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
+                    <SelectItem className="text-xs" value="__all__">Todas Modalidades</SelectItem>
                     {distinctOptions.modalidade.map((opt) => <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-[100px] shrink-0 -ml-1">
-                <div className="text-[10px] font-medium text-muted-foreground px-1">SRP:</div>
-                <Select value={filtros.srp} onValueChange={(v) => setFiltros((f: any) => ({ ...f, srp: v }))}>
-                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
-                    <SelectItem className="text-xs" value="Sim">Sim</SelectItem>
-                    <SelectItem className="text-xs" value="Não">Não</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="w-[130px] shrink-0">
-                <div className="text-[10px] font-medium text-muted-foreground px-1">Status Atual:</div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-1">Status</label>
                 <Select value={filtros.etapa_processo} onValueChange={(v) => setFiltros((f: any) => ({ ...f, etapa_processo: v }))}>
-                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
+                  <SelectTrigger className="h-10 transition-colors hover:border-primary/50"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
-                    <SelectItem className="text-xs" value="não iniciado">não iniciado</SelectItem>
-                    <SelectItem className="text-xs" value="em andamento">em andamento</SelectItem>
-                    <SelectItem className="text-xs" value="concluído">concluído</SelectItem>
-                    <SelectItem className="text-xs" value="sobrestado">sobrestado</SelectItem>
+                    <SelectItem className="text-xs" value="__all__">Todos os Status</SelectItem>
+                    <SelectItem className="text-xs" value="não iniciado">Não Iniciado</SelectItem>
+                    <SelectItem className="text-xs" value="em andamento">Em Andamento</SelectItem>
+                    <SelectItem className="text-xs" value="concluído">Concluído</SelectItem>
+                    <SelectItem className="text-xs" value="sobrestado">Sobrestado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="ml-auto shrink-0">
-                <Button size="xs" variant="outline" onClick={clearFiltros} className="h-9">Limpar filtros</Button>
+
+              <div className="flex items-end pb-0.5 gap-2 col-span-1">
+                <Button size="sm" variant="outline" onClick={clearFiltros} className="h-10 flex-1 border-primary/20 text-primary hover:bg-primary/5 font-semibold">
+                  <ClipboardList className="h-4 w-4 mr-2" />
+                  Resetar
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -1772,28 +1781,60 @@ const Relatorios = () => {
             <CardTitle>Catálogo de Relatórios</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {Object.entries(REPORT_TYPES).map(([key, def]) => (
-                <div key={key} className="border rounded p-3 flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 font-medium">
-                      <def.icon className="h-4 w-4 text-muted-foreground" />
-                      {def.label}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Object.entries(REPORT_TYPES).map(([key, def]) => {
+                const isPca20 = key === "pca_2_0";
+                return (
+                  <div 
+                    key={key} 
+                    className={`group relative overflow-hidden border rounded-xl p-5 flex flex-col justify-between transition-all duration-300 hover:shadow-xl hover:border-primary/40 hover:-translate-y-1 bg-card ${isPca20 ? 'md:col-span-2 border-primary/30 bg-gradient-to-br from-primary/5 to-transparent' : ''}`}
+                  >
+                    {isPca20 && (
+                      <div className="absolute top-0 right-0">
+                        <div className="bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
+                          Oficial & Premium
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex gap-4">
+                      <div className={`shrink-0 rounded-2xl p-3 flex items-center justify-center transition-colors ${isPca20 ? 'bg-primary text-white' : 'bg-muted group-hover:bg-primary/10 group-hover:text-primary text-muted-foreground'}`}>
+                        <def.icon className="h-8 w-8" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className={`font-bold truncate ${isPca20 ? 'text-lg text-primary' : 'text-base text-foreground'}`}>
+                            {def.label}
+                          </h3>
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                          {def.description}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">{def.description}</div>
+
+                    <div className="mt-6 flex items-center gap-3 justify-end pt-4 border-t border-border/50">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="gap-2 text-primary hover:text-primary hover:bg-primary/5 font-semibold" 
+                        onClick={() => handleGenerate("csv", key)}
+                      >
+                        <FileSearch className="h-4 w-4" />
+                        Exportar CSV
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        className={`gap-2 font-bold shadow-sm transition-all ${isPca20 ? 'bg-primary hover:bg-primary/90 px-6' : 'bg-sidebar hover:bg-sidebar/90'}`} 
+                        onClick={() => handleGenerate("pdf", key)}
+                      >
+                        <FileText className="h-4 w-4" />
+                        Gerar Documento PDF
+                      </Button>
+                    </div>
                   </div>
-                  <div className="mt-1 flex gap-2">
-                    <Button size="xs" variant="outline" className="gap-1 border-primary text-primary hover:bg-primary/5" onClick={() => handleGenerate("csv", key)}>
-                      <FileSearch className="h-3 w-3" />
-                      Gerar CSV
-                    </Button>
-                    <Button size="xs" className="gap-1 bg-primary text-white hover:bg-primary/90" onClick={() => handleGenerate("pdf", key)}>
-                      <FileText className="h-3 w-3" />
-                      Gerar PDF
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
