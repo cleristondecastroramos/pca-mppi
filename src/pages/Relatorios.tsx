@@ -1789,9 +1789,6 @@ const Relatorios = () => {
                         <div className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
                           {def.label}
                         </div>
-                        {key === 'pca_2_0' && (
-                          <Badge className="bg-primary text-[10px] py-0 px-2 h-5 font-bold animate-pulse">DESTAQUE</Badge>
-                        )}
                       </div>
                       <div className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
                         {def.description}
