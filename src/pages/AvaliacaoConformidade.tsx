@@ -326,14 +326,14 @@ const AvaliacaoConformidade = () => {
               <div className="rounded-lg border border-border bg-card overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[110px]">Cod. PCA</TableHead>
-                      <TableHead className="min-w-[280px]">Descrição</TableHead>
-                      <TableHead className="w-[160px]">Setor</TableHead>
-                      <TableHead className="w-[120px]">Status</TableHead>
-                      <TableHead className="w-[120px]">Conformidade</TableHead>
-                      <TableHead className="w-[140px]">Valor Estimado</TableHead>
-                      <TableHead className="w-[140px]">Ações</TableHead>
+                    <TableRow className="bg-[#D9415D] hover:bg-[#D9415D]/90">
+                      <TableHead className="w-[110px] text-white font-bold text-center">Cod. PCA</TableHead>
+                      <TableHead className="min-w-[280px] text-white font-bold text-center">Descrição</TableHead>
+                      <TableHead className="w-[160px] text-white font-bold text-center">Setor</TableHead>
+                      <TableHead className="w-[120px] text-white font-bold text-center">Status</TableHead>
+                      <TableHead className="w-[120px] text-white font-bold text-center">Conformidade</TableHead>
+                      <TableHead className="w-[140px] text-white font-bold text-center">Valor Estimado</TableHead>
+                      <TableHead className="w-[140px] text-white font-bold text-center">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -342,15 +342,15 @@ const AvaliacaoConformidade = () => {
                     ) : (
                       paginated.map((r) => (
                         <TableRow key={r.id} className="hover:bg-muted/40">
-                          <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                          <TableCell className="text-sm text-muted-foreground whitespace-nowrap text-center">
                             {(r as any).codigo?.replace(/^PCA-/, "").replace(/-2026$/, "") || String(r.id).slice(-4)}
                           </TableCell>
                           <TableCell><div className="truncate" title={r.descricao}>{r.descricao}</div></TableCell>
-                          <TableCell>{r.setor_requisitante || "-"}</TableCell>
-                          <TableCell>
+                          <TableCell className="text-center">{r.setor_requisitante || "-"}</TableCell>
+                          <TableCell className="text-center">
                             {(() => { const s = statusLabel(r); const b = getStatusBadge(s); return <Badge variant={b.variant as any} className={b.className}>{s}</Badge>; })()}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="text-center">
                             {(() => { const b = conformityBadge(confMap[r.id]); return <Badge variant={b.variant as any} className={b.className}>{b.text}</Badge>; })()}
                           </TableCell>
                           <TableCell className="text-right">{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(r.valor_estimado || 0)}</TableCell>
