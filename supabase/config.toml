@@ -1,1 +1,19 @@
 project_id = "kphxvzkjtginqojnqjfu"
+
+[functions.admin-create-user]
+verify_jwt = false
+
+[functions.admin-update-user]
+verify_jwt = false
+
+[functions.admin-delete-user]
+verify_jwt = false
+
+[functions.admin-seed]
+verify_jwt = false
+
+[functions.ai-rewrite]
+verify_jwt = false
+
+[functions.ensure-storage-bucket]
+verify_jwt = false
