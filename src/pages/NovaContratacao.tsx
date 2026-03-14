@@ -86,9 +86,9 @@ export default function NovaContratacao() {
     let days = 120; // Regra 3: Renovação, Aditivo, etc.
 
     if (tipo === "Nova Contratação") {
-      if (mod === "Pregão Eletrônico" || mod === "Concorrência" || mod === "Concurso") {
+      if (mod === "Pregão Eletrônico" || mod === "Concorrência") {
         days = 150; // Regra 1
-      } else if (mod === "Dispensa" || mod === "Inexigibilidade" || mod === "Inexibilidade") {
+      } else if (mod === "Dispensa" || mod === "Inexigibilidade" || mod === "Inexibilidade" || mod === "ARP (própria)" || mod === "ARP (carona)") {
         days = 90; // Regra 2
       }
     }
@@ -371,11 +371,12 @@ export default function NovaContratacao() {
                       <SelectValue placeholder="Selecione a modalidade" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="Concorrência">Concorrência</SelectItem>
                       <SelectItem value="Pregão Eletrônico">Pregão Eletrônico</SelectItem>
                       <SelectItem value="Dispensa">Dispensa</SelectItem>
                       <SelectItem value="Inexigibilidade">Inexigibilidade</SelectItem>
-                      <SelectItem value="Concorrência">Concorrência</SelectItem>
-                      <SelectItem value="Concurso">Concurso</SelectItem>
+                      <SelectItem value="ARP (própria)">ARP (própria)</SelectItem>
+                      <SelectItem value="ARP (carona)">ARP (carona)</SelectItem>
                     </SelectContent>
                   </Select>
                   {errors.modalidade && <p className="text-sm text-destructive">{errors.modalidade}</p>}

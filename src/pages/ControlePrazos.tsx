@@ -106,9 +106,9 @@ const ControlePrazos = () => {
     let days = 120; // Regra 3: Renovação, Aditivo, etc.
 
     if (tipo === "Nova Contratação") {
-      if (mod === "Pregão Eletrônico" || mod === "Concorrência" || mod === "Concurso") {
+      if (mod === "Pregão Eletrônico" || mod === "Concorrência") {
         days = 150; // Regra 1
-      } else if (mod === "Dispensa" || mod === "Inexigibilidade") {
+      } else if (mod === "Dispensa" || mod === "Inexigibilidade" || mod === "ARP (própria)" || mod === "ARP (carona)") {
         days = 90; // Regra 2
       }
     }

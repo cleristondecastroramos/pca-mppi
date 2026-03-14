@@ -354,8 +354,8 @@ export default function Tutorial() {
             O campo <strong>Data Prevista para Início da Contratação</strong> é calculado automaticamente pelo sistema e permanece bloqueado para edição manual. O cálculo baseia-se no <em>Tipo de Contratação</em>, na <em>Modalidade</em> e na <em>Data Prevista para Conclusão</em>.
           </P>
           <UL items={[
-            <><strong>Regra 1:</strong> Se for uma <em>Nova Contratação</em> nas modalidades <em>Pregão Eletrônico</em>, <em>Concorrência</em> ou <em>Concurso</em>, a data de início é definida como <strong>150 dias antes</strong> da data de término.</>,
-            <><strong>Regra 2:</strong> Se for uma <em>Nova Contratação</em> nas modalidades <em>Dispensa</em> ou <em>Inexigibilidade</em>, a data de início é definida como <strong>90 dias antes</strong> da data de término.</>,
+            <><strong>Regra 1:</strong> Se for uma <em>Nova Contratação</em> nas modalidades <em>Pregão Eletrônico</em> ou <em>Concorrência</em>, a data de início é definida como <strong>150 dias antes</strong> da data de término.</>,
+            <><strong>Regra 2:</strong> Se for uma <em>Nova Contratação</em> nas modalidades <em>Dispensa</em>, <em>Inexigibilidade</em>, <em>ARP (própria)</em> ou <em>ARP (carona)</em>, a data de início é definida como <strong>90 dias antes</strong> da data de término.</>,
             <><strong>Regra 3:</strong> Para os demais tipos de contratação (<em>Renovação, Aditivo, Repactuação, Apostilamento ou Indeterminado</em>), a data de início é definida como <strong>120 dias antes</strong> da data de término.</>,
           ]} />
           <Note>Este mecanismo garante um planejamento realista e padronizado, alertando os gestores sobre o momento ideal para iniciar cada processo administrativo.</Note>
@@ -650,7 +650,7 @@ export default function Tutorial() {
             <><strong>Classe:</strong> Material ou Serviço.</>,
             <><strong>Grau de Prioridade:</strong> Alta, Média ou Baixa.</>,
             <><strong>Normativo:</strong> Lei 8.666/1993 ou Lei 14.133/2021.</>,
-            <><strong>Modalidade:</strong> Pregão, Concorrência, Dispensa, etc.</>,
+            <><strong>Modalidade:</strong> Pregão Eletrônico, Concorrência, Dispensa, Inexigibilidade, ARP (própria), ARP (carona).</>,
             <><strong>Etapa do Processo:</strong> Não iniciado, em andamento, concluído ou sobrestado.</>,
           ]} />
 
@@ -1020,7 +1020,7 @@ const FORM_FIELDS = [
   ["Setor Requisitante", "Sim", "Auto para perfil Setor Req."],
   ["Tipo de Contratação", "Sim", "Nova, Renovação, Aditivo, Repactuação, etc."],
   ["SRP", "Sim", "Sim / Não"],
-  ["Modalidade", "Sim", "Pregão, Dispensa, Inexigibilidade, Concorrência, Concurso"],
+  ["Modalidade", "Sim", "Pregão Eletrônico, Concorrência, Dispensa, Inexigibilidade, ARP (própria), ARP (carona)"],
   ["Normativo", "Sim", "14.133/2021 ou 8.666/1993"],
   ["Grau de Prioridade", "Sim", "Alta, Média, Baixa"],
   ["Unidade Orçamentária", "Sim", "PGJ, FMMP, FEPDC"],
@@ -1077,7 +1077,7 @@ const TERMOS = [
   ["Valor Executado", "Quantia exata de recursos orçamentários que foi empenhada para cobrir uma despesa específica."],
   ["Código PCA", "Identificador único no formato PCA-XXXX-2026."],
   ["Data Prevista de Início", "Data calculada automaticamente pelo sistema (90, 120 ou 150 dias antes do término) para início do processo."],
-  ["Modalidade Licitatória", "Procedimento legal para seleção do fornecedor (ex: Pregão, Dispensa, Inexigibilidade, Concorrência, Concurso)."],
+  ["Modalidade Licitatória", "Procedimento legal para seleção do fornecedor (ex: Pregão Eletrônico, Dispensa, etc)."],
   ["Normativo", "Lei de licitações que rege o processo (Lei 14.133 ou 8.666)."],
   ["Termo de Referência", "Documento que detalha o objeto, especificações e obrigações da contratação."],
   ["DFD", "Documento de Formalização de Demanda que oficializa a necessidade de compra."],
@@ -1088,6 +1088,8 @@ const TERMOS = [
   ["Adjudicação", "Atribuição formal do objeto da licitação ao vencedor."],
   ["Aditivo", "Instrumento para alteração de valor ou prazo de contratos vigentes."],
   ["Apostilamento", "Anotação administrativa de ajustes contratuais que não exigem aditivo."],
+  ["ARP (carona)", "Adesão a Ata de Registro de Preços de outros órgãos."],
+  ["ARP (própria)", "Adesão a Ata de Registro de Preços gerenciada pelo próprio MPPI."],
   ["Repactuação", "Reajuste de preços para contratos de serviços contínuos com mão de obra."],
   ["Dispensa de Licitação", "Contratação direta por baixo valor ou situações específicas em lei."],
   ["Inexigibilidade", "Contratação direta quando não há possibilidade de competição."],

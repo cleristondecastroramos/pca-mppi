@@ -825,6 +825,8 @@ const Relatorios = () => {
                     <tr><td><strong>Adjudicação</strong></td><td>Atribuição formal do objeto da licitação ao vencedor.</td></tr>
                     <tr><td><strong>Aditivo</strong></td><td>Instrumento para alteração de valor ou prazo de contratos vigentes.</td></tr>
                     <tr><td><strong>Apostilamento</strong></td><td>Anotação administrativa de ajustes contratuais que não exigem aditivo.</td></tr>
+                    <tr><td><strong>ARP (carona)</strong></td><td>Adesão a Ata de Registro de Preços de outros órgãos.</td></tr>
+                    <tr><td><strong>ARP (própria)</strong></td><td>Adesão a Ata de Registro de Preços gerenciada pelo próprio MPPI.</td></tr>
                     <tr><td><strong>ASSESPPLAGES</strong></td><td>Assessoria de Planejamento e Gestão</td></tr>
                     <tr><td><strong>CAA</strong></td><td>Coordenadoria de Apoio Administrativo</td></tr>
                     <tr><td><strong>CATSER</strong></td><td>Catálogo de Serviços</td></tr>
