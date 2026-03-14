@@ -263,7 +263,8 @@ export default function OrcamentoPlanejado() {
       const { data: contratacoes, error } = await supabase
         .from("contratacoes")
         .select("setor_requisitante, unidade_orcamentaria, valor_estimado")
-        .neq("etapa_processo", "Cancelada");
+        .neq("etapa_processo", "Cancelada")
+        .neq("srp", true);
 
       if (error) throw error;
 

@@ -32,7 +32,6 @@ const Relatorios = () => {
     normativo: "__all__",
     modalidade: "__all__",
     etapa_processo: "__all__",
-    srp: "__all__",
   });
 
   const formatId = (id: any, codigo?: any) => {
@@ -43,9 +42,9 @@ const Relatorios = () => {
     "id, codigo, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, srp, numero_sei_contratacao, etapa_processo, sobrestado, created_at, data_finalizacao_licitacao, valor_estimado, valor_contratado, data_prevista_contratacao";
   const selectWithExecutado = `${selectBase}, valor_executado`;
   const fetchAllContratacoes = async () => {
-    const q1 = await supabase.from("contratacoes").select(selectWithExecutado);
+    const q1 = await supabase.from("contratacoes").select(selectWithExecutado).neq("srp", true);
     if (q1.error) {
-      const q2 = await supabase.from("contratacoes").select(selectBase);
+      const q2 = await supabase.from("contratacoes").select(selectBase).neq("srp", true);
       if (q2.error) throw q2.error;
       return q2.data || [];
     }
@@ -145,10 +144,6 @@ const Relatorios = () => {
         const s = statusLabel(r);
         if (s !== filtros.etapa_processo) return false;
       }
-      if (filtros.srp !== "__all__") {
-        const isSrp = r.srp === true || r.srp === "true" || r.srp === "Sim";
-        if ((isSrp ? "Sim" : "Não") !== filtros.srp) return false;
-      }
       return true;
     });
   };
@@ -163,7 +158,6 @@ const Relatorios = () => {
       normativo: "__all__",
       modalidade: "__all__",
       etapa_processo: "__all__",
-      srp: "__all__",
     });
 
   const CHECKLIST_ITEMS = [
@@ -1723,17 +1717,6 @@ const Relatorios = () => {
                   <SelectContent>
                     <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
                     {distinctOptions.modalidade.map((opt) => <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="w-[100px] shrink-0 -ml-1">
-                <div className="text-[10px] font-medium text-muted-foreground px-1">SRP:</div>
-                <Select value={filtros.srp} onValueChange={(v) => setFiltros((f: any) => ({ ...f, srp: v }))}>
-                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
-                    <SelectItem className="text-xs" value="Sim">Sim</SelectItem>
-                    <SelectItem className="text-xs" value="Não">Não</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

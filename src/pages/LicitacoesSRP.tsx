@@ -2,7 +2,7 @@ import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Filter, Edit, History, Trash2, FileUp, Eraser } from "lucide-react";
+import { Plus, Search, Filter, Edit, History, Trash2, FileUp, Eraser, Info, Activity, FileText, Gavel, CalendarCheck, DollarSign, CheckCircle2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Table,
@@ -54,7 +54,7 @@ type HistoricoItem = Tables<"contratacoes_historico"> & {
   profiles?: { nome_completo: string | null } | null;
 };
 
-export default function Contratacoes() {
+export default function LicitacoesSRP() {
   const [contratacoes, setContratacoes] = useState<Contratacao[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -116,6 +116,35 @@ export default function Contratacoes() {
     };
   }, [searchTerm]);
 
+  // Efeito para cálculo automático de status na edição de SRP
+  useEffect(() => {
+    if (!editingContratacao) return;
+    const c = editingContratacao as any;
+    
+    // Se estiver sobrestado ou retornado para diligência, não altera automaticamente
+    if (c.sobrestado || c.etapa_processo === "retornado para diligência") return;
+
+    let newStatus = "Planejada";
+    if (c.numero_contrato) newStatus = "Ata Registrada";
+    else if (c.data_prevista_contratacao) newStatus = "Licitação Concluída";
+    else if (c.numero_sei_licitacao && c.numero_edital) newStatus = "Fase Externa da Licitação";
+    else if (c.numero_sei_contratacao) newStatus = "Processo Administrativo Iniciado";
+
+    if (newStatus !== c.etapa_processo) {
+      setEditingContratacao({
+        ...editingContratacao,
+        etapa_processo: newStatus,
+      });
+    }
+  }, [
+    (editingContratacao as any)?.numero_sei_contratacao,
+    (editingContratacao as any)?.numero_sei_licitacao,
+    (editingContratacao as any)?.numero_edital,
+    (editingContratacao as any)?.data_prevista_contratacao,
+    (editingContratacao as any)?.numero_contrato,
+    (editingContratacao as any)?.sobrestado
+  ]);
+
   useEffect(() => {
     // Only fetch once role/profile are resolved
     if (roles === undefined || (isSetorRequisitante && !userSetor)) return;
@@ -138,8 +167,8 @@ export default function Contratacoes() {
     try {
       let query = supabase
         .from("contratacoes")
-        .select("id, codigo, descricao, setor_requisitante, unidade_orcamentaria, classe, valor_estimado, valor_contratado, etapa_processo, sobrestado, grau_prioridade, justificativa, data_prevista_contratacao, data_entrada_clc, numero_sei_contratacao, pdm_catser, created_at, quantidade_itens, valor_unitario, unidade_fornecimento, tipo_recurso, tipo_contratacao, modalidade, normativo, srp")
-        .neq("srp", true)
+        .select("id, codigo, descricao, setor_requisitante, unidade_orcamentaria, classe, valor_estimado, valor_contratado, etapa_processo, sobrestado, grau_prioridade, justificativa, data_prevista_contratacao, data_entrada_clc, numero_sei_contratacao, pdm_catser, created_at, quantidade_itens, valor_unitario, unidade_fornecimento, tipo_recurso, tipo_contratacao, modalidade, normativo, srp, numero_sei_licitacao, numero_contrato")
+        .eq("srp", true)
         .order("created_at", { ascending: false });
 
       // Setor requisitante users only see their own setor
@@ -252,41 +281,26 @@ export default function Contratacoes() {
         .eq("id", editingContratacao.id)
         .single();
 
-      // Mapear seleção de status para persistência em etapa_processo e sobrestado
-      const mapStatusToPersistence = (
-        selected: string | null,
-        currentEtapa: string | null
-      ): { etapa: string | null; sobrestado: boolean } => {
-        if (!selected) return { etapa: currentEtapa, sobrestado: false };
-        switch (selected) {
-          case "sobrestado":
-            return { etapa: currentEtapa || "Planejamento", sobrestado: true };
-          case "não iniciado":
-            return { etapa: "Planejamento", sobrestado: false };
-          case "iniciado":
-            return { etapa: "Iniciado", sobrestado: false };
-          case "retornado para diligência":
-            return { etapa: "Retornado para Diligência", sobrestado: false };
-          case "em andamento":
-            return { etapa: currentEtapa === "Contratado" ? "Contratado" : "Em Licitação", sobrestado: false };
-          case "concluído":
-            return { etapa: "Concluído", sobrestado: false };
-          default:
-            return { etapa: selected, sobrestado: false };
+      // Lógica de Status Automático para SRP
+      const calculateSrpStatus = (c: any): { etapa: string; sobrestado: boolean } => {
+        // Se estiver sobrestado, preserva o status atual mas marca como sobrestado
+        if (c.sobrestado === true) {
+          return { 
+            etapa: c.etapa_processo || "Planejada", 
+            sobrestado: true 
+          };
         }
+        
+        // Regras de progressão automática
+        if (c.numero_contrato) return { etapa: "Ata Registrada", sobrestado: false };
+        if (c.data_prevista_contratacao) return { etapa: "Licitação Concluída", sobrestado: false };
+        if (c.numero_sei_licitacao && c.numero_edital) return { etapa: "Fase Externa da Licitação", sobrestado: false };
+        if (c.numero_sei_contratacao) return { etapa: "Processo Administrativo Iniciado", sobrestado: false };
+        
+        return { etapa: "Planejada", sobrestado: false };
       };
 
-      // Se o usuário marcou "Sobrestado" no estado local, prioriza persistência desse flag
-      const isSobrestadoLocal = (editingContratacao as any)?.sobrestado === true;
-      const mapped = isSobrestadoLocal
-        ? {
-          etapa: editingContratacao.etapa_processo || dadosAnteriores?.etapa_processo || "Planejamento",
-          sobrestado: true,
-        }
-        : mapStatusToPersistence(
-          editingContratacao.etapa_processo || null,
-          dadosAnteriores?.etapa_processo || null
-        );
+      const mapped = calculateSrpStatus(editingContratacao);
 
       // Atualizar contratação
       let payload: any = {
@@ -300,99 +314,60 @@ export default function Contratacoes() {
         sobrestado: mapped.sobrestado,
         grau_prioridade: editingContratacao.grau_prioridade,
         justificativa: editingContratacao.justificativa,
+        numero_contrato: (editingContratacao as any).numero_contrato || null,
+        numero_sei_licitacao: (editingContratacao as any).numero_sei_licitacao || null,
+        numero_edital: (editingContratacao as any).numero_edital || null,
+        quantidade_itens: (editingContratacao as any).quantidade_itens,
+        valor_unitario: (editingContratacao as any).valor_unitario,
+        unidade_fornecimento: (editingContratacao as any).unidade_fornecimento,
+        tipo_recurso: (editingContratacao as any).tipo_recurso,
+        tipo_contratacao: (editingContratacao as any).tipo_contratacao,
+        modalidade: (editingContratacao as any).modalidade,
+        normativo: (editingContratacao as any).normativo,
+        pdm_catser: (editingContratacao as any).pdm_catser || null,
+        numero_sei_contratacao: (editingContratacao as any).numero_sei_contratacao || null,
+        data_prevista_contratacao: (editingContratacao as any).data_prevista_contratacao || null,
+        srp: (editingContratacao as any).srp,
         updated_at: new Date().toISOString(),
       };
-
-      // Add missing fields
-      if ((editingContratacao as any).quantidade_itens !== undefined) {
-        payload.quantidade_itens = (editingContratacao as any).quantidade_itens;
-      }
-      if ((editingContratacao as any).valor_unitario !== undefined) {
-        payload.valor_unitario = (editingContratacao as any).valor_unitario;
-      }
-      if ((editingContratacao as any).unidade_fornecimento !== undefined) {
-        payload.unidade_fornecimento = (editingContratacao as any).unidade_fornecimento;
-      }
-      if ((editingContratacao as any).tipo_recurso !== undefined) {
-        payload.tipo_recurso = (editingContratacao as any).tipo_recurso;
-      }
-      if ((editingContratacao as any).tipo_contratacao !== undefined) {
-        payload.tipo_contratacao = (editingContratacao as any).tipo_contratacao;
-      }
-      if ((editingContratacao as any).modalidade !== undefined) {
-        payload.modalidade = (editingContratacao as any).modalidade;
-      }
-      if ((editingContratacao as any).normativo !== undefined) {
-        payload.normativo = (editingContratacao as any).normativo;
-      }
-
-      if ((editingContratacao as any).pdm_catser !== undefined) {
-        payload.pdm_catser = (editingContratacao as any).pdm_catser || null;
-      }
-      if ((editingContratacao as any).numero_sei_contratacao !== undefined) {
-        payload.numero_sei_contratacao = (editingContratacao as any).numero_sei_contratacao || null;
-      }
-      if ((editingContratacao as any).data_prevista_contratacao !== undefined) {
-        payload.data_prevista_contratacao = (editingContratacao as any).data_prevista_contratacao || null;
-      }
-      // data_entrada_clc removed from payload as per requirement (start date is now calculated)
-      if ((editingContratacao as any).srp !== undefined) {
-        payload.srp = (editingContratacao as any).srp;
-      }
 
       let { error: updateError } = await supabase
         .from("contratacoes")
         .update(payload)
         .eq("id", editingContratacao.id);
 
-      if (updateError) {
-        const msg = String(updateError.message || updateError);
-        if (msg.includes("column \"data_prevista_contratacao\" does not exist")) {
-          delete payload.data_prevista_contratacao;
-          ({ error: updateError } = await supabase.from("contratacoes").update(payload).eq("id", editingContratacao.id));
-        }
-        if (!updateError && msg.includes("column \"numero_sei_contratacao\" does not exist")) {
-          delete payload.numero_sei_contratacao;
-          ({ error: updateError } = await supabase.from("contratacoes").update(payload).eq("id", editingContratacao.id));
-        }
-      }
 
       if (updateError) {
         const msg = String(updateError.message || updateError);
         if (msg.includes("Saldo orçamentário insuficiente") || msg.includes("saldo orçamentário insuficiente")) {
           toast.error("Saldo orçamentário insuficiente na UO selecionada. Solicite autorização do administrador para excedente.");
         } else {
-          // Tenta corrigir erro de schema cache/coluna inexistente removendo campos opcionais e reenviando
-          const mentionsDataPrevista = msg.includes("data_prevista_contratacao");
-          const mentionsNumeroSei = msg.includes("numero_sei_contratacao");
-          if (mentionsDataPrevista && payload.data_prevista_contratacao !== undefined) {
-            delete payload.data_prevista_contratacao;
+          // Tenta corrigir erro de colunas que podem não existir no banco
+          const potentialMissingColumns = ["numero_sei_licitacao", "numero_edital", "data_prevista_contratacao", "numero_sei_contratacao"];
+          let retryNeeded = false;
+          for (const col of potentialMissingColumns) {
+            if (msg.includes(`column "${col}" does not exist`)) {
+              delete payload[col];
+              retryNeeded = true;
+            }
+          }
+
+          if (retryNeeded) {
             const retry = await supabase.from("contratacoes").update(payload).eq("id", editingContratacao.id);
             if (!retry.error) {
               updateError = undefined as any;
             } else {
-              // Ainda erro: mostra descrição detalhada
-              toast.error("Erro ao salvar alterações", {
-                description: `${retry.error.message}${retry.error.hint ? ' - ' + retry.error.hint : ''} (${retry.error.code})`
-              });
+              updateError = retry.error as any;
             }
-          } else if (mentionsNumeroSei && payload.numero_sei_contratacao !== undefined) {
-            delete payload.numero_sei_contratacao;
-            const retry = await supabase.from("contratacoes").update(payload).eq("id", editingContratacao.id);
-            if (!retry.error) {
-              updateError = undefined as any;
-            } else {
-              toast.error("Erro ao salvar alterações", {
-                description: `${retry.error.message}${retry.error.hint ? ' - ' + retry.error.hint : ''} (${retry.error.code})`
-              });
-            }
-          } else {
+          }
+          
+          if (updateError) {
             toast.error("Erro ao salvar alterações no banco de dados", {
               description: `${updateError.message}${updateError.hint ? ' - ' + updateError.hint : ''} (Código: ${updateError.code})`
             });
           }
         }
-        throw updateError;
+        if (updateError) throw updateError;
       }
 
       // Registrar no histórico
@@ -425,13 +400,19 @@ export default function Contratacoes() {
   const getStatusBadge = (status: string | null) => {
     const variants: Record<string, { variant: any; className: string }> = {
       "não iniciado": { variant: "secondary", className: "bg-info/10 text-info hover:bg-info/20" },
+      "Planejada": { variant: "secondary", className: "bg-info/10 text-info hover:bg-info/20" },
       "iniciado": { variant: "secondary", className: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20" },
+      "Processo Administrativo Iniciado": { variant: "secondary", className: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20" },
       "retornado para diligência": { variant: "secondary", className: "bg-orange-500/10 text-orange-500 hover:bg-orange-500/20" },
       "em andamento": { variant: "secondary", className: "bg-warning/10 text-warning hover:bg-warning/20" },
+      "Fase Externa da Licitação": { variant: "secondary", className: "bg-warning/10 text-warning hover:bg-warning/20" },
       "concluído": { variant: "secondary", className: "bg-success/10 text-success hover:bg-success/20" },
+      "Licitação Concluída": { variant: "secondary", className: "bg-success/10 text-success hover:bg-success/20" },
+      "Ata Registrada": { variant: "secondary", className: "bg-green-600/10 text-green-600 hover:bg-green-600/20 shadow-sm" },
       "sobrestado": { variant: "secondary", className: "bg-muted/10 text-muted-foreground hover:bg-muted/20" },
     };
-    return variants[status || "não iniciado"] || variants["não iniciado"];
+    const s = status || "Planejada";
+    return variants[s] || variants["Planejada"];
   };
 
   const getPrioridadeBadge = (prioridade: string) => {
@@ -523,18 +504,22 @@ export default function Contratacoes() {
     if (status && status !== ALL_VALUE) {
       if (status === "sobrestado") {
         result = result.filter((item) => (item as any).sobrestado === true);
-      } else if (status === "não iniciado") {
-        result = result.filter((item) => !item.etapa_processo || item.etapa_processo === "Planejamento");
-      } else if (status === "iniciado") {
-        result = result.filter((item) => item.etapa_processo === "Iniciado");
       } else if (status === "retornado para diligência") {
-        result = result.filter((item) => item.etapa_processo === "Retornado para Diligência");
-      } else if (status === "em andamento") {
-        result = result.filter((item) => ["Em Licitação", "Contratado"].includes(item.etapa_processo || ""));
-      } else if (status === "concluído") {
-        result = result.filter((item) => item.etapa_processo === "Concluído");
+        result = result.filter((item) => item.etapa_processo === "Retornado para Diligência" || item.etapa_processo === "retornado para diligência");
       } else {
-        result = result.filter((item) => item.etapa_processo === status);
+        // Para SRP, a etapa_processo agora usa os labels específicos
+        result = result.filter((item) => {
+          // Lógica de cálculo idêntica à do badge para garantir consistência no filtro
+          const getComputedStatus = (c: Contratacao) => {
+            if ((c as any).sobrestado === true) return "sobrestado";
+            if (c.numero_contrato) return "Ata Registrada";
+            if ((c as any).data_prevista_contratacao) return "Licitação Concluída";
+            if ((c as any).numero_sei_licitacao && (c as any).numero_edital) return "Fase Externa da Licitação";
+            if ((c as any).numero_sei_contratacao) return "Processo Administrativo Iniciado";
+            return "Planejada";
+          };
+          return getComputedStatus(item) === status;
+        });
       }
     }
 
@@ -752,9 +737,9 @@ export default function Contratacoes() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-foreground">Contratações</h1>
+            <h1 className="text-xl font-bold text-foreground">Licitações SRP</h1>
             <p className="text-sm text-muted-foreground">
-              Gerencie todas as contratações do PCA 2026 ({totalCount} registros)
+              Monitore as demandas que são Sistema de Registro de Preços ({totalCount} registros)
             </p>
           </div>
           {!isConsulta && (
@@ -762,7 +747,7 @@ export default function Contratacoes() {
               <Link to="/nova-contratacao">
                 <Button size="xs">
                   <Plus className="h-4 w-4 mr-1" />
-                  Nova Contratação
+                  Nova Licitação SRP
                 </Button>
               </Link>
             </div>
@@ -893,11 +878,12 @@ export default function Contratacoes() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
-                    <SelectItem className="text-xs" value="não iniciado">não iniciado</SelectItem>
-                    <SelectItem className="text-xs" value="iniciado">iniciado</SelectItem>
+                    <SelectItem className="text-xs" value="Planejada">Planejada</SelectItem>
+                    <SelectItem className="text-xs" value="Processo Administrativo Iniciado">Processo Administrativo Iniciado</SelectItem>
+                    <SelectItem className="text-xs" value="Fase Externa da Licitação">Fase Externa da Licitação</SelectItem>
+                    <SelectItem className="text-xs" value="Licitação Concluída">Licitação Concluída</SelectItem>
+                    <SelectItem className="text-xs" value="Ata Registrada">Ata Registrada</SelectItem>
                     <SelectItem className="text-xs" value="retornado para diligência">retornado para diligência</SelectItem>
-                    <SelectItem className="text-xs" value="em andamento">em andamento</SelectItem>
-                    <SelectItem className="text-xs" value="concluído">concluído</SelectItem>
                     <SelectItem className="text-xs" value="sobrestado">sobrestado</SelectItem>
                   </SelectContent>
                 </Select>
@@ -930,17 +916,14 @@ export default function Contratacoes() {
             <TableHeader className="bg-primary hover:bg-primary">
               <TableRow>
                 <TableHead className="text-center w-[80px] text-white font-bold">Cod. PCA</TableHead>
-                <TableHead className="text-center min-w-[180px] text-white font-bold">Descrição</TableHead>
-                <TableHead className="text-center w-[90px] text-white font-bold">Setor</TableHead>
-                <TableHead className="text-center w-[110px] text-white font-bold">Classe</TableHead>
-                <TableHead className="text-center w-[80px] text-white font-bold">Quantidade</TableHead>
-                <TableHead className="text-center w-[120px] text-white font-bold">Valor Unitário</TableHead>
-                <TableHead className="text-center w-[120px] text-white font-bold">Valor Estimado</TableHead>
-                <TableHead className="text-center w-[120px] text-white font-bold">Valor Executado</TableHead>
-                <TableHead className="text-center w-[130px] text-white font-bold">Data Prevista de Início</TableHead>
-                <TableHead className="text-center w-[130px] text-white font-bold">Data Prevista de Conclusão</TableHead>
-                <TableHead className="text-center w-[110px] text-white font-bold">Status</TableHead>
-                <TableHead className="text-center w-[90px] text-white font-bold">Prioridade</TableHead>
+                <TableHead className="text-center min-w-[180px] text-white font-bold">Objeto / Descrição</TableHead>
+                <TableHead className="text-center w-[90px] text-white font-bold">Órgão Demandante</TableHead>
+                <TableHead className="text-center w-[110px] text-white font-bold">Modalidade</TableHead>
+                <TableHead className="text-center w-[110px] text-white font-bold">Número do Processo</TableHead>
+                <TableHead className="text-center w-[120px] text-white font-bold">Valor Est. p/ Registro</TableHead>
+                <TableHead className="text-center w-[120px] text-white font-bold">Valor Homologado</TableHead>
+                <TableHead className="text-center w-[130px] text-white font-bold">Data de Homologação</TableHead>
+                <TableHead className="text-center w-[110px] text-white font-bold">Status do Processo</TableHead>
                 <TableHead className="text-center w-[90px] text-white font-bold">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -964,19 +947,13 @@ export default function Contratacoes() {
                         </div>
                       </TableCell>
                       <TableCell className="max-w-xs text-center">{formatSetor(contratacao.setor_requisitante)}</TableCell>
-                      <TableCell className="text-sm text-center">{contratacao.classe || "-"}</TableCell>
-                      <TableCell className="text-center">{contratacao.quantidade_itens || "-"}</TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(contratacao.valor_unitario)}
-                      </TableCell>
+                      <TableCell className="text-sm text-center">{contratacao.modalidade || "-"}</TableCell>
+                      <TableCell className="text-sm text-center">{formatNumeroSeiInput((contratacao as any).numero_sei_contratacao || "") || "-"}</TableCell>
                       <TableCell className="text-right">
                         {formatCurrency(contratacao.valor_estimado)}
                       </TableCell>
                       <TableCell className="text-right">
                         {formatCurrency(contratacao.valor_contratado)}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {formatDate(calculateStartDate(contratacao.tipo_contratacao, contratacao.modalidade, (contratacao as any).data_prevista_contratacao))}
                       </TableCell>
                       <TableCell className="text-center">
                         {formatDate((contratacao as any).data_prevista_contratacao)}
@@ -985,12 +962,12 @@ export default function Contratacoes() {
                         {(() => {
                           const getCategory = (c: Contratacao) => {
                             if ((c as any).sobrestado === true) return "sobrestado";
-                            const etapa = c.etapa_processo?.toLowerCase() || "";
-                            if (etapa === "iniciado") return "iniciado";
-                            if (etapa === "retornado para diligência") return "retornado para diligência";
-                            if (etapa === "em andamento" || etapa === "em licitação" || etapa === "contratado") return "em andamento";
-                            if (etapa === "concluído") return "concluído";
-                            return "não iniciado";
+                            // Lógica de Transição Automática para SRP
+                            if (c.numero_contrato) return "Ata Registrada";
+                            if ((c as any).data_prevista_contratacao) return "Licitação Concluída";
+                            if ((c as any).numero_sei_licitacao && (c as any).numero_edital) return "Fase Externa da Licitação";
+                            if ((c as any).numero_sei_contratacao) return "Processo Administrativo Iniciado";
+                            return "Planejada";
                           };
                           const label = getCategory(contratacao);
                           const badge = getStatusBadge(label);
@@ -1003,14 +980,6 @@ export default function Contratacoes() {
                             </Badge>
                           );
                         })()}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={getPrioridadeBadge(contratacao.grau_prioridade).variant}
-                          className={getPrioridadeBadge(contratacao.grau_prioridade).className}
-                        >
-                          {contratacao.grau_prioridade}
-                        </Badge>
                       </TableCell>
 
                       <TableCell className="text-right">
@@ -1084,449 +1053,393 @@ export default function Contratacoes() {
           </div>
         </div>
 
-        {/* Dialog de Edição */}
+        {/* Dialog de Edição/Criação */}
         <Dialog open={!!editingContratacao} onOpenChange={() => setEditingContratacao(null)}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader className="bg-[#D9415D] text-destructive-foreground -mx-6 -mt-6 px-6 py-4 rounded-t-md">
-              <div className="flex items-center gap-2">
-                <div className="h-7 w-7 rounded bg-[#D9415D]/20 flex items-center justify-center text-destructive-foreground">
-                  <Pencil className="h-4 w-4" />
+          <DialogContent className="max-w-4xl max-h-[92vh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
+            <DialogHeader className="bg-gradient-to-r from-[#D9415D] to-[#b9344d] text-white p-5 space-y-1">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-inner">
+                  <Gavel className="h-5 w-5 text-white" />
                 </div>
-                <DialogTitle className="text-lg">Editar Contratação</DialogTitle>
+                <div>
+                  <DialogTitle className="text-xl font-bold tracking-tight">Gestão de Licitação SRP</DialogTitle>
+                  <DialogDescription className="text-white/80 text-xs font-medium">
+                    Acompanhamento do workflow e registro de informações da Ata de Registro de Preços
+                  </DialogDescription>
+                </div>
               </div>
-              <DialogDescription className="text-xs text-destructive-foreground/80">
-                Faça as alterações necessárias na contratação. Todas as mudanças serão registradas no histórico.
-              </DialogDescription>
             </DialogHeader>
+
             {editingContratacao && (
-              <div className="space-y-4 pt-4">
-                {/* Linha 1: Descrição */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="edit-descricao" className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Descrição do Objeto</Label>
-                    <AIWriter 
-                      value={editingContratacao.descricao} 
-                      onUpdate={(val) => setEditingContratacao({...editingContratacao, descricao: val})} 
-                      fieldName="Descrição" 
-                    />
-                  </div>
-                  <Textarea
-                    id="edit-descricao"
-                    value={editingContratacao.descricao}
-                    onChange={(e) =>
-                      setEditingContratacao({ ...editingContratacao, descricao: e.target.value })
-                    }
-                    className="min-h-[60px] text-sm resize-none focus-visible:ring-1"
-                  />
-                </div>
+              <div className="flex-1 overflow-y-auto bg-slate-50/50 p-6 pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                  
+                  {/* Coluna Esquerda: Workflow e Identificação */}
+                  <div className="md:col-span-12 lg:col-span-8 space-y-6">
+                    
+                    {/* Seção: Descrição do Objeto */}
+                    <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
+                      <div className="bg-muted/30 px-4 py-2 border-b border-border flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-primary" />
+                          <span className="text-xs font-bold uppercase tracking-wider text-foreground">Objeto da Demanda</span>
+                        </div>
+                        <AIWriter 
+                          value={editingContratacao.descricao} 
+                          onUpdate={(val) => setEditingContratacao({...editingContratacao, descricao: val})} 
+                          fieldName="Descrição" 
+                        />
+                      </div>
+                      <div className="p-4">
+                        <Textarea
+                          id="edit-descricao"
+                          placeholder="Descreva detalhadamente o objeto da contratação..."
+                          value={editingContratacao.descricao}
+                          onChange={(e) => setEditingContratacao({ ...editingContratacao, descricao: e.target.value })}
+                          className="min-h-[80px] text-sm border-none focus-visible:ring-0 p-0 shadow-none resize-none"
+                        />
+                      </div>
+                    </div>
 
-                {/* Bloco 1: Identificação Básica */}
-                <div className="grid gap-3 sm:grid-cols-12 bg-muted/30 p-3 rounded-md border border-border/50">
-                  <div className="space-y-1.5 sm:col-span-4">
-                    <Label htmlFor="edit-sei" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Número SEI</Label>
-                    <Input
-                      id="edit-sei"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="__.__.____._______/____-__"
-                      maxLength={26}
-                      value={(editingContratacao as any).numero_sei_contratacao || ""}
-                      onChange={(e) => {
-                        const formatted = formatNumeroSeiInput(e.target.value);
-                        e.currentTarget.value = formatted;
-                        setEditingContratacao({
-                          ...editingContratacao,
-                          numero_sei_contratacao: formatted || null,
-                        } as any);
-                      }}
-                      className="h-8 text-xs focus-visible:ring-1"
-                    />
-                  </div>
-                  <div className="space-y-1.5 sm:col-span-4">
-                    <Label htmlFor="edit-setor" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Setor Requisitante</Label>
-                    <Select
-                      value={editingContratacao.setor_requisitante}
-                      onValueChange={(value) =>
-                        setEditingContratacao({ ...editingContratacao, setor_requisitante: value })
-                      }
-                    >
-                      <SelectTrigger className="h-8 px-3 text-xs focus:ring-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="CAA">CAA</SelectItem>
-                        <SelectItem value="CCF">CCF</SelectItem>
-                        <SelectItem value="CCS">CCS</SelectItem>
-                        <SelectItem value="CLC">CLC</SelectItem>
-                        <SelectItem value="CPPT">CPPT</SelectItem>
-                        <SelectItem value="CTI">CTI</SelectItem>
-                        <SelectItem value="CRH">CRH</SelectItem>
-                        <SelectItem value="CEAF">CEAF</SelectItem>
-                        <SelectItem value="GAECO">GAECO</SelectItem>
-                        <SelectItem value="GSI">GSI</SelectItem>
-                        <SelectItem value="CONINT">CONINT</SelectItem>
-                        <SelectItem value="PLANEJAMENTO">PLANEJAMENTO</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <Label htmlFor="edit-uo" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">UO</Label>
-                    <Select
-                      value={editingContratacao.unidade_orcamentaria || undefined}
-                      onValueChange={(value) =>
-                        setEditingContratacao({ ...editingContratacao, unidade_orcamentaria: value })
-                      }
-                    >
-                      <SelectTrigger className="h-8 px-3 text-xs focus:ring-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="PGJ">PGJ</SelectItem>
-                        <SelectItem value="FMMP">FMMP</SelectItem>
-                        <SelectItem value="FEPDC">FEPDC</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <Label htmlFor="edit-srp" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">SRP?</Label>
-                    <Select
-                      value={(editingContratacao as any).srp ? "Sim" : "Não"}
-                      onValueChange={(value) =>
-                        setEditingContratacao({ ...editingContratacao, srp: value === "Sim" } as any)
-                      }
-                    >
-                      <SelectTrigger className="h-8 px-3 text-xs focus:ring-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Sim">Sim</SelectItem>
-                        <SelectItem value="Não">Não</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5 sm:col-span-3">
-                    <Label htmlFor="edit-data-inicio" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Prev. Início</Label>
-                    <Input
-                      id="edit-data-inicio"
-                      type="date"
-                      value={calculateStartDate((editingContratacao as any).tipo_contratacao, (editingContratacao as any).modalidade, (editingContratacao as any).data_prevista_contratacao) || ""}
-                      disabled
-                      className="h-8 text-xs focus-visible:ring-1 bg-muted"
-                    />
-                  </div>
-                  <div className="space-y-1.5 sm:col-span-3">
-                    <Label htmlFor="edit-data-conclusao" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Prev. Conclusão</Label>
-                    <Input
-                      id="edit-data-conclusao"
-                      type="date"
-                      value={(editingContratacao as any).data_prevista_contratacao || ""}
-                      onChange={(e) =>
-                        setEditingContratacao({ ...editingContratacao, data_prevista_contratacao: e.target.value } as any)
-                      }
-                      className="h-8 text-xs focus-visible:ring-1"
-                    />
-                  </div>
-                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Fase Administrativa */}
+                      <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
+                        <div className="bg-muted/30 px-4 py-2 border-b border-border flex items-center gap-2">
+                          <Activity className="h-4 w-4 text-blue-500" />
+                          <span className="text-xs font-bold uppercase tracking-wider text-foreground">Fases Administrativas</span>
+                        </div>
+                        <div className="p-4 space-y-4">
+                          <div className="space-y-1.5">
+                            <Label htmlFor="edit-sei-adm" className="text-[10px] font-bold text-muted-foreground uppercase">Nº SEI Administrativo</Label>
+                            <Input
+                              id="edit-sei-adm"
+                              placeholder="00.00.0000.0000000/0000-00"
+                              value={(editingContratacao as any).numero_sei_contratacao || ""}
+                              onChange={(e) => setEditingContratacao({ ...editingContratacao, numero_sei_contratacao: formatNumeroSeiInput(e.target.value) } as any)}
+                              className="h-9 text-xs focus-visible:ring-1"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="edit-sei-lic" className="text-[10px] font-bold text-muted-foreground uppercase">Processo SEI Licitação</Label>
+                            <Input
+                              id="edit-sei-lic"
+                              placeholder="00.00.0000.0000000/0000-00"
+                              value={(editingContratacao as any).numero_sei_licitacao || ""}
+                              onChange={(e) => setEditingContratacao({ ...editingContratacao, numero_sei_licitacao: formatNumeroSeiInput(e.target.value) } as any)}
+                              className="h-9 text-xs focus-visible:ring-1"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="edit-edital-num" className="text-[10px] font-bold text-muted-foreground uppercase">Nº do Edital</Label>
+                            <Input
+                              id="edit-edital-num"
+                              placeholder="Ex: 001/2026"
+                              value={(editingContratacao as any).numero_edital || ""}
+                              onChange={(e) => setEditingContratacao({ ...editingContratacao, numero_edital: e.target.value } as any)}
+                              className="h-9 text-xs focus-visible:ring-1"
+                            />
+                          </div>
+                        </div>
+                      </div>
 
-                {/* Bloco 2: Classificação */}
-                <div className="grid gap-3 sm:grid-cols-12 bg-muted/30 p-3 rounded-md border border-border/50">
-                  <div className="space-y-1.5 sm:col-span-3">
-                    <Label htmlFor="edit-tipo-contratacao" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Tipo de Contratação</Label>
-                    <Select
-                      value={(editingContratacao as any).tipo_contratacao || undefined}
-                      onValueChange={(value) =>
-                        setEditingContratacao({ ...editingContratacao, tipo_contratacao: value } as any)
-                      }
-                    >
-                      <SelectTrigger className="h-8 px-3 text-xs focus:ring-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Nova Contratação">Nova Contratação</SelectItem>
-                        <SelectItem value="Renovação">Renovação</SelectItem>
-                        <SelectItem value="Aditivo Quantitativo">Aditivo Quantitativo</SelectItem>
-                        <SelectItem value="Repactuação">Repactuação</SelectItem>
-                        <SelectItem value="Apostilamento">Apostilamento</SelectItem>
-                        <SelectItem value="Indeterminado">Indeterminado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5 sm:col-span-3">
-                    <Label htmlFor="edit-modalidade" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Modalidade</Label>
-                    <Select
-                      value={(editingContratacao as any).modalidade || undefined}
-                      onValueChange={(value) =>
-                        setEditingContratacao({ ...editingContratacao, modalidade: value } as any)
-                      }
-                    >
-                      <SelectTrigger className="h-8 px-3 text-xs focus:ring-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Concorrência">Concorrência</SelectItem>
-                        <SelectItem value="Pregão Eletrônico">Pregão Eletrônico</SelectItem>
-                        <SelectItem value="Dispensa">Dispensa</SelectItem>
-                        <SelectItem value="Inexigibilidade">Inexigibilidade</SelectItem>
-                        <SelectItem value="ARP (própria)">ARP (própria)</SelectItem>
-                        <SelectItem value="ARP (carona)">ARP (carona)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5 sm:col-span-3">
-                    <Label htmlFor="edit-classe" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Classe de Material</Label>
-                    <Select
-                      value={editingContratacao.classe || undefined}
-                      onValueChange={(value) =>
-                        setEditingContratacao({ ...editingContratacao, classe: value })
-                      }
-                    >
-                      <SelectTrigger className="h-8 px-3 text-xs focus:ring-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Material de Consumo">Material de Consumo</SelectItem>
-                        <SelectItem value="Material Permanente">Material Permanente</SelectItem>
-                        <SelectItem value="Serviço">Serviço</SelectItem>
-                        <SelectItem value="Serviço de TI">Serviço de TI</SelectItem>
-                        <SelectItem value="Serviço de Engenharia">Serviço de Engenharia</SelectItem>
-                        <SelectItem value="Serviço de Terceirizado">Serviço de Terceirizado</SelectItem>
-                        <SelectItem value="Obra">Obra</SelectItem>
-                        <SelectItem value="Software">Software</SelectItem>
-                        <SelectItem value="Treinamento">Treinamento</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5 sm:col-span-3">
-                    <Label htmlFor="edit-pdm-catser" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">PDM/CATSER</Label>
-                    <Input
-                      id="edit-pdm-catser"
-                      type="text"
-                      placeholder="Código PDM ou CATSER"
-                      value={(editingContratacao as any).pdm_catser || ""}
-                      onChange={(e) =>
-                        setEditingContratacao({ ...editingContratacao, pdm_catser: e.target.value } as any)
-                      }
-                      className="h-8 text-xs focus-visible:ring-1"
-                    />
+                      {/* Configurações do Processo */}
+                      <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
+                        <div className="bg-muted/30 px-4 py-2 border-b border-border flex items-center gap-2">
+                          <Info className="h-4 w-4 text-orange-500" />
+                          <span className="text-xs font-bold uppercase tracking-wider text-foreground">Configurações e Origem</span>
+                        </div>
+                        <div className="p-4 space-y-4">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] font-bold text-muted-foreground uppercase">Setor</Label>
+                              <Select value={editingContratacao.setor_requisitante} onValueChange={(v) => setEditingContratacao({ ...editingContratacao, setor_requisitante: v })}>
+                                <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {["CAA", "CCF", "CCS", "CLC", "CPPT", "CTI", "CRH", "CEAF", "GAECO", "GSI", "CONINT", "PLANEJAMENTO"].map(s => (
+                                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] font-bold text-muted-foreground uppercase">UO</Label>
+                              <Select value={editingContratacao.unidade_orcamentaria || ""} onValueChange={(v) => setEditingContratacao({ ...editingContratacao, unidade_orcamentaria: v })}>
+                                <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {["PGJ", "FMMP", "FEPDC"].map(u => (
+                                    <SelectItem key={u} value={u}>{u}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-[10px] font-bold text-muted-foreground uppercase">Modalidade</Label>
+                            <Select value={(editingContratacao as any).modalidade || ""} onValueChange={(v) => setEditingContratacao({ ...editingContratacao, modalidade: v } as any)}>
+                              <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {["Concorrência", "Pregão Eletrônico", "Dispensa", "Inexigibilidade", "ARP (própria)", "ARP (carona)"].map(m => (
+                                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] font-bold text-muted-foreground uppercase">Normativo</Label>
+                              <Select value={(editingContratacao as any).normativo || ""} onValueChange={(v) => setEditingContratacao({ ...editingContratacao, normativo: v } as any)}>
+                                <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Lei 14.133/2021">14.133/2021</SelectItem>
+                                  <SelectItem value="Lei 8.666/1993">8.666/1993</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] font-bold text-muted-foreground uppercase">Prioridade</Label>
+                              <Select value={editingContratacao.grau_prioridade} onValueChange={(v) => setEditingContratacao({ ...editingContratacao, grau_prioridade: v })}>
+                                <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {["Alta", "Média", "Baixa"].map(p => (
+                                    <SelectItem key={p} value={p}>{p}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Resultados da Licitacao / Registro da Ata */}
+                    <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
+                      <div className="bg-muted/30 px-4 py-2 border-b border-border flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        <span className="text-xs font-bold uppercase tracking-wider text-foreground">Finalização (Resultados e Ata)</span>
+                      </div>
+                      <div className="p-4 pt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div className="space-y-1.5">
+                            <Label htmlFor="edit-data-homolog" className="text-[10px] font-bold text-muted-foreground uppercase">Data de Homologação</Label>
+                            <div className="relative">
+                              <CalendarCheck className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                id="edit-data-homolog"
+                                type="date"
+                                value={(editingContratacao as any).data_prevista_contratacao || ""}
+                                onChange={(e) => setEditingContratacao({ ...editingContratacao, data_prevista_contratacao: e.target.value } as any)}
+                                className="h-9 pl-9 text-xs focus-visible:ring-1"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="edit-valor-homolog" className="text-[10px] font-bold text-muted-foreground uppercase">Valor Homologado (R$)</Label>
+                            <div className="relative">
+                              <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-green-600" />
+                              <Input
+                                id="edit-valor-homolog"
+                                inputMode="numeric"
+                                value={formatCurrencyNumber(editingContratacao.valor_contratado ?? 0)}
+                                onChange={(e) => setEditingContratacao({ ...editingContratacao, valor_contratado: parseCurrencyInput(formatCurrencyInput(e.target.value)) })}
+                                className="h-9 pl-9 text-xs font-bold focus-visible:ring-1 border-green-100 bg-green-50/20"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="edit-ata-num" className="text-[10px] font-bold text-primary uppercase">Número da Ata / ARP</Label>
+                            <div className="relative">
+                              <FileText className="absolute left-2.5 top-2.5 h-4 w-4 text-primary" />
+                              <Input
+                                id="edit-ata-num"
+                                placeholder="Ex: 005/2026"
+                                value={(editingContratacao as any).numero_contrato || ""}
+                                onChange={(e) => setEditingContratacao({ ...editingContratacao, numero_contrato: e.target.value } as any)}
+                                className="h-9 pl-9 text-xs font-bold border-primary/40 bg-primary/5 focus-visible:ring-primary"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Justificativa */}
+                    <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
+                      <div className="bg-muted/30 px-4 py-2 border-b border-border flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-xs font-bold uppercase tracking-wider text-foreground">Justificativa da Demanda</span>
+                        </div>
+                        <AIWriter 
+                          value={editingContratacao.justificativa} 
+                          onUpdate={(val) => setEditingContratacao({...editingContratacao, justificativa: val})} 
+                          fieldName="Justificativa" 
+                        />
+                      </div>
+                      <div className="p-4">
+                        <Textarea
+                          id="edit-justificativa"
+                          placeholder="Justifique a necessidade desta contratação para o MPPI..."
+                          value={editingContratacao.justificativa}
+                          onChange={(e) => setEditingContratacao({ ...editingContratacao, justificativa: e.target.value })}
+                          className="min-h-[60px] text-xs border-none focus-visible:ring-0 p-0 shadow-none resize-none"
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Linha 2 do Bloco 2 */}
-                  <div className="space-y-1.5 sm:col-span-3 pt-1">
-                    <Label htmlFor="edit-normativo" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Normativo</Label>
-                    <Select
-                      value={(editingContratacao as any).normativo || undefined}
-                      onValueChange={(value) =>
-                        setEditingContratacao({ ...editingContratacao, normativo: value } as any)
-                      }
-                    >
-                      <SelectTrigger className="h-8 px-3 text-xs focus:ring-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Lei 14.133/2021">14.133/2021</SelectItem>
-                        <SelectItem value="Lei 8.666/1993">8.666/1993</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5 sm:col-span-3 pt-1">
-                    <Label htmlFor="edit-tipo-recurso" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Tipo de Recurso</Label>
-                    <Select
-                      value={(editingContratacao as any).tipo_recurso || "Custeio"}
-                      onValueChange={(value) =>
-                        setEditingContratacao({ ...editingContratacao, tipo_recurso: value } as any)
-                      }
-                    >
-                      <SelectTrigger className="h-8 px-3 text-xs focus:ring-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Custeio">Custeio</SelectItem>
-                        <SelectItem value="Investimento">Investimento</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5 sm:col-span-3 pt-1">
-                    <Label htmlFor="edit-prioridade" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Prioridade</Label>
-                    <Select
-                      value={editingContratacao.grau_prioridade}
-                      onValueChange={(value) =>
-                        setEditingContratacao({ ...editingContratacao, grau_prioridade: value })
-                      }
-                    >
-                      <SelectTrigger className="h-8 px-3 text-xs focus:ring-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Alta">Alta</SelectItem>
-                        <SelectItem value="Média">Média</SelectItem>
-                        <SelectItem value="Baixa">Baixa</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5 sm:col-span-3 pt-1">
-                    <Label htmlFor="edit-status" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Status Atual</Label>
-                    <Select
-                      value={(editingContratacao as any).sobrestado
-                        ? "sobrestado"
-                        : ((() => {
-                          const etapa = editingContratacao.etapa_processo?.toLowerCase() || "";
-                          if (etapa === "concluído") return "concluído";
-                          if (etapa === "iniciado") return "iniciado";
-                          if (etapa === "retornado para diligência") return "retornado para diligência";
-                          if (etapa === "em andamento" || etapa === "em licitação" || etapa === "contratado") return "em andamento";
-                          return "não iniciado";
-                        })())}
-                      onValueChange={(value) => {
-                        const next: any = { ...editingContratacao };
+                  {/* Coluna Direita: Status e Financeiro */}
+                  <div className="md:col-span-12 lg:col-span-4 space-y-6">
+                    
+                    {/* Card de Status Atual */}
+                    <div className="bg-white rounded-xl border border-primary/20 shadow-md overflow-hidden relative">
+                      <div className="absolute top-0 right-0 p-2">
+                        <div className="px-2 py-0.5 rounded-full bg-primary/10 text-[9px] font-bold text-primary uppercase border border-primary/10">Automático</div>
+                      </div>
+                      <div className="p-5 flex flex-col items-center text-center space-y-3">
+                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.1em]">Status Atual do Workflow</div>
+                        {(() => {
+                          const status = (editingContratacao as any).sobrestado ? "sobrestado" : editingContratacao.etapa_processo;
+                          const b = getStatusBadge(status);
+                          return (
+                            <div className={`px-4 py-2 rounded-lg ${b.className} font-bold text-sm shadow-sm border border-current/10 animate-in fade-in zoom-in duration-300`}>
+                              {status || "Planejada"}
+                            </div>
+                          );
+                        })()}
+                        <div className="pt-2 w-full">
+                          <Label className="text-[10px] font-bold text-muted-foreground uppercase mb-2 block text-left text-center">Intervir manualmente?</Label>
+                          <Select 
+                            value={(editingContratacao as any).sobrestado ? "sobrestado" : (editingContratacao.etapa_processo || "Planejada")} 
+                            onValueChange={(v) => {
+                              const next = { ...editingContratacao } as any;
+                              if (v === "sobrestado") {
+                                next.sobrestado = true;
+                              } else {
+                                next.sobrestado = false;
+                                next.etapa_processo = v;
+                              }
+                              setEditingContratacao(next);
+                            }}
+                          >
+                            <SelectTrigger className="h-8 text-[10px] font-semibold"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {["Planejada", "Processo Administrativo Iniciado", "Fase Externa da Licitação", "Licitação Concluída", "Ata Registrada", "retornado para diligência", "sobrestado"].map(opt => (
+                                <SelectItem key={opt} value={opt} className="text-[10px]">{opt}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Especificações do Item */}
+                    <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
+                      <div className="bg-muted/30 px-4 py-2 border-b border-border flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-blue-600" />
+                        <span className="text-xs font-bold uppercase tracking-wider text-foreground">Especificação e Valores</span>
+                      </div>
+                      <div className="p-4 space-y-5">
+                        <div className="space-y-1.5">
+                          <Label className="text-[10px] font-bold text-muted-foreground uppercase">Classe do Material</Label>
+                          <Select value={editingContratacao.classe} onValueChange={(v) => setEditingContratacao({ ...editingContratacao, classe: v })}>
+                            <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {["Material de Consumo", "Material Permanente", "Serviço", "Serviço de TI", "Serviço de Engenharia", "Serviço de Terceirizado", "Obra", "Software", "Treinamento"].map(c => (
+                                <SelectItem key={c} value={c}>{c}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                         
-                        // Regra: somente usuarios com setor de lotação 'CLC' podem colocar no status 'Retornado para Diligência' e 'Em Andamento'
-                        if ((value === "retornado para diligência" || value === "em andamento") && userSetor !== "CLC") {
-                          toast.error("Acesso negado", { description: "Somente usuários do setor CLC podem alterar para este status." });
-                          return;
-                        }
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1.5">
+                            <Label className="text-[10px] font-bold text-muted-foreground uppercase">Quantidade</Label>
+                            <Input
+                              type="number"
+                              min="1"
+                              value={(editingContratacao as any).quantidade_itens || 1}
+                              onChange={(e) => {
+                                const q = parseInt(e.target.value) || 0;
+                                const u = (editingContratacao as any).valor_unitario || 0;
+                                setEditingContratacao({ ...editingContratacao, quantidade_itens: q, valor_estimado: q * u } as any);
+                              }}
+                              className="h-9 text-xs focus-visible:ring-1"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-[10px] font-bold text-muted-foreground uppercase">Unidade</Label>
+                            <Input
+                              placeholder="Unidade"
+                              value={(editingContratacao as any).unidade_fornecimento || ""}
+                              onChange={(e) => setEditingContratacao({ ...editingContratacao, unidade_fornecimento: e.target.value } as any)}
+                              className="h-9 text-xs focus-visible:ring-1"
+                            />
+                          </div>
+                        </div>
 
-                        if (value === "sobrestado") {
-                          next.sobrestado = true;
-                        } else {
-                          next.sobrestado = false;
-                          if (value === "não iniciado") next.etapa_processo = "Planejamento";
-                          else if (value === "iniciado") next.etapa_processo = "Iniciado";
-                          else if (value === "retornado para diligência") next.etapa_processo = "Retornado para Diligência";
-                          else if (value === "em andamento") next.etapa_processo = "Em Licitação";
-                          else if (value === "concluído") next.etapa_processo = "Concluído";
-                          else next.etapa_processo = value;
-                        }
-                        setEditingContratacao(next);
-                      }}
-                    >
-                      <SelectTrigger className="h-8 px-3 text-xs font-semibold focus:ring-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="não iniciado">não iniciado</SelectItem>
-                        <SelectItem value="iniciado">iniciado</SelectItem>
-                        <SelectItem value="retornado para diligência">retornado para diligência</SelectItem>
-                        <SelectItem value="em andamento">em andamento</SelectItem>
-                        <SelectItem value="concluído">concluído</SelectItem>
-                        <SelectItem value="sobrestado">sobrestado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-[10px] font-bold text-muted-foreground uppercase text-blue-600">Valor Unitário Est. (R$)</Label>
+                          <Input
+                            inputMode="numeric"
+                            value={formatCurrencyNumber((editingContratacao as any).valor_unitario || 0)}
+                            onChange={(e) => {
+                              const val = parseCurrencyInput(formatCurrencyInput(e.target.value));
+                              const q = (editingContratacao as any).quantidade_itens || 1;
+                              setEditingContratacao({ ...editingContratacao, valor_unitario: val, valor_estimado: q * val } as any);
+                            }}
+                            className="h-9 text-xs font-semibold focus-visible:ring-1"
+                          />
+                        </div>
 
-                {/* Bloco 3: Dados Financeiros e de Quantidade */}
-                <div className="grid gap-3 sm:grid-cols-12 bg-muted/30 p-3 rounded-md border border-border/50">
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <Label htmlFor="edit-quantidade" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Qtd.</Label>
-                    <Input
-                      id="edit-quantidade"
-                      type="number"
-                      min="1"
-                      value={(editingContratacao as any).quantidade_itens || 1}
-                      onChange={(e) => {
-                        const qtd = parseInt(e.target.value) || 0;
-                        const unitario = (editingContratacao as any).valor_unitario || 0;
-                        setEditingContratacao({
-                          ...editingContratacao,
-                          quantidade_itens: qtd,
-                          valor_estimado: qtd * unitario,
-                        } as any);
-                      }}
-                      className="h-8 text-xs focus-visible:ring-1"
-                    />
-                  </div>
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <Label htmlFor="edit-unidade" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Unidade</Label>
-                    <Input
-                      id="edit-unidade"
-                      value={(editingContratacao as any).unidade_fornecimento || "Unidade"}
-                      onChange={(e) =>
-                        setEditingContratacao({ ...editingContratacao, unidade_fornecimento: e.target.value } as any)
-                      }
-                      className="h-8 text-xs focus-visible:ring-1"
-                    />
-                  </div>
-                  <div className="space-y-1.5 sm:col-span-3">
-                    <Label htmlFor="edit-valor-unitario" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Valor Unitário (R$)</Label>
-                    <Input
-                      id="edit-valor-unitario"
-                      inputMode="numeric"
-                      value={formatCurrencyNumber((editingContratacao as any).valor_unitario || 0)}
-                      onChange={(e) => {
-                        const formatted = formatCurrencyInput(e.target.value);
-                        e.currentTarget.value = formatted;
-                        const parsed = parseCurrencyInput(formatted);
-                        const qtd = (editingContratacao as any).quantidade_itens || 1;
-                        setEditingContratacao({
-                          ...editingContratacao,
-                          valor_unitario: parsed,
-                          valor_estimado: qtd * parsed,
-                        } as any);
-                      }}
-                      className="h-8 text-xs focus-visible:ring-1"
-                    />
-                  </div>
-                  <div className="space-y-1.5 sm:col-span-3">
-                    <Label htmlFor="edit-valor-estimado" className="text-[10px] font-semibold text-primary uppercase tracking-wider">Valor Estimado (R$)</Label>
-                    <Input
-                      id="edit-valor-estimado"
-                      inputMode="numeric"
-                      value={formatCurrencyNumber(editingContratacao.valor_estimado)}
-                      readOnly
-                      className="h-8 text-xs font-bold bg-primary/5 text-primary focus-visible:ring-1"
-                    />
-                  </div>
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <Label htmlFor="edit-valor-executado" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">V. Executado (R$)</Label>
-                    <Input
-                      id="edit-valor-executado"
-                      inputMode="numeric"
-                      value={formatCurrencyNumber(editingContratacao.valor_contratado ?? 0)}
-                      onChange={(e) => {
-                        const formatted = formatCurrencyInput(e.target.value);
-                        e.currentTarget.value = formatted;
-                        const parsed = parseCurrencyInput(formatted);
-                        setEditingContratacao({
-                          ...editingContratacao,
-                          valor_contratado: parsed,
-                        });
-                      }}
-                      className="h-8 text-xs focus-visible:ring-1"
-                    />
-                  </div>
-                </div>
+                        <div className="p-3 bg-slate-100 rounded-lg border border-slate-200">
+                          <Label className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Valor Total Estimado (PCA)</Label>
+                          <div className="text-lg font-black text-slate-800 tracking-tight">
+                            {formatCurrencyNumber(editingContratacao.valor_estimado)}
+                          </div>
+                        </div>
 
-                {/* Justificativa */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="edit-justificativa" className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Justificativa</Label>
-                    <AIWriter 
-                      value={editingContratacao.justificativa} 
-                      onUpdate={(val) => setEditingContratacao({...editingContratacao, justificativa: val})} 
-                      fieldName="Justificativa" 
-                    />
+                        <div className="space-y-1.5">
+                          <Label className="text-[10px] font-bold text-muted-foreground uppercase">PDM / CATSER</Label>
+                          <Input
+                            placeholder="Código PDM ou CATSER"
+                            value={(editingContratacao as any).pdm_catser || ""}
+                            onChange={(e) => setEditingContratacao({ ...editingContratacao, pdm_catser: e.target.value } as any)}
+                            className="h-9 text-xs focus-visible:ring-1"
+                          />
+                        </div>
+                        
+                        <div className="space-y-1.5">
+                          <Label className="text-[10px] font-bold text-muted-foreground uppercase">Recurso</Label>
+                          <Select value={(editingContratacao as any).tipo_recurso || ""} onValueChange={(v) => setEditingContratacao({ ...editingContratacao, tipo_recurso: v } as any)}>
+                            <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Custeio">Custeio</SelectItem>
+                              <SelectItem value="Investimento">Investimento</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <Textarea
-                    id="edit-justificativa"
-                    value={editingContratacao.justificativa}
-                    onChange={(e) =>
-                      setEditingContratacao({ ...editingContratacao, justificativa: e.target.value })
-                    }
-                    className="min-h-[50px] text-xs resize-none focus-visible:ring-1"
-                  />
-                </div>
-
-                {/* Botões de Ação */}
-                <div className="flex justify-end gap-2 pt-4 border-t border-border/50">
-                  <Button variant="ghost" size="sm" onClick={() => setEditingContratacao(null)} className="h-8 text-xs tracking-wide">
-                    Cancelar
-                  </Button>
-                  <Button size="sm" onClick={handleSaveEdit} className="h-8 text-xs px-6 tracking-wide shadow-sm">
-                    Salvar Alterações
-                  </Button>
                 </div>
               </div>
             )}
+
+            {/* Footer Fixo */}
+            <div className="bg-white border-t border-border p-4 flex items-center justify-between shadow-[0_-4px_10px_rgba(0,0,0,0.03)]">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Modo de edição ativo</span>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setEditingContratacao(null)} className="h-9 text-xs px-4 border-slate-200 hover:bg-slate-50 transition-colors">
+                  Descartar
+                </Button>
+                <Button size="sm" onClick={handleSaveEdit} className="h-9 text-xs px-8 bg-[#D9415D] hover:bg-[#b9344d] shadow-lg shadow-destructive/20 transition-all font-bold">
+                  Salvar Licitação
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
 

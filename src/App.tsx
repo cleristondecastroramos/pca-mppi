@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 const Auth = lazy(() => import("./pages/Auth"));
 const Home = lazy(() => import("./pages/Home"));
 const Contratacoes = lazy(() => import("./pages/Contratacoes"));
+const LicitacoesSRP = lazy(() => import("./pages/LicitacoesSRP"));
 const NovaContratacao = lazy(() => import("./pages/NovaContratacao"));
 const VisaoGeral = lazy(() => import("./pages/VisaoGeral"));
 const SetoresDemandantes = lazy(() => import("./pages/SetoresDemandantes"));
@@ -111,6 +112,11 @@ const App = () => {
                 <Route path="/contratacoes" element={
                   <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
                     <Contratacoes />
+                  </ProtectedRoute>
+                } />
+                <Route path="/licitacoes-srp" element={
+                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
+                    <LicitacoesSRP />
                   </ProtectedRoute>
                 } />
                 <Route path="/nova-contratacao" element={

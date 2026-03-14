@@ -30,6 +30,7 @@ const ResultadosAlcancados = () => {
         const { data, error } = await supabase
           .from("contratacoes")
           .select("id, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, classe, etapa_processo, valor_contratado")
+          .neq("srp", true)
           .order("created_at", { ascending: false });
         if (error) throw error;
         if (mounted) setRows((data as any) || []);

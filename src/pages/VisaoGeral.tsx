@@ -43,7 +43,6 @@ type Filtros = {
   normativo?: string;
   modalidade?: string;
   etapa_processo?: string; // "Status Atual"
-  srp?: string;
 };
 
 const formatCurrencyBRL = (value: any) =>
@@ -115,7 +114,6 @@ const VisaoGeral = () => {
     normativo: ALL_VALUE,
     modalidade: ALL_VALUE,
     etapa_processo: ALL_VALUE,
-    srp: ALL_VALUE,
   };
   const [filtros, setFiltros] = useState<Filtros>(defaultFiltros);
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -148,7 +146,6 @@ const VisaoGeral = () => {
             "grau_prioridade",
             "normativo",
             "etapa_processo",
-            "srp",
           ].join(","),
            { count: "exact" }
         );
@@ -156,6 +153,10 @@ const VisaoGeral = () => {
       if (isSetorRequisitante && userSetor) {
         query = query.eq("setor_requisitante", userSetor);
       }
+      
+      // IsolarSRP: never sum SRP in standard dashboards
+      query = query.neq("srp", true);
+
       if (filtros.unidade_orcamentaria && filtros.unidade_orcamentaria !== ALL_VALUE) query = query.eq("unidade_orcamentaria", filtros.unidade_orcamentaria);
       if (filtros.setor_requisitante && filtros.setor_requisitante !== ALL_VALUE) query = query.eq("setor_requisitante", filtros.setor_requisitante);
       if (filtros.tipo_contratacao && filtros.tipo_contratacao !== ALL_VALUE) query = query.eq("tipo_contratacao", filtros.tipo_contratacao);
@@ -164,7 +165,6 @@ const VisaoGeral = () => {
       if (filtros.grau_prioridade && filtros.grau_prioridade !== ALL_VALUE) query = query.eq("grau_prioridade", filtros.grau_prioridade);
       if (filtros.normativo && filtros.normativo !== ALL_VALUE) query = query.eq("normativo", filtros.normativo);
       if (filtros.modalidade && filtros.modalidade !== ALL_VALUE) query = query.eq("modalidade", filtros.modalidade);
-      if (filtros.srp && filtros.srp !== ALL_VALUE) query = query.eq("srp", filtros.srp === "Sim");
       if (filtros.etapa_processo && filtros.etapa_processo !== ALL_VALUE) {
         const STATUS_CATEGORY_MAP: Record<string, { etapas: string[]; sobrestado?: boolean }> = {
           "não iniciado": { etapas: ["Planejamento"], sobrestado: false },
@@ -207,7 +207,8 @@ const VisaoGeral = () => {
     const fetchDistinct = async () => {
       let query = supabase
         .from("contratacoes")
-        .select("unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, etapa_processo");
+        .select("unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, etapa_processo")
+        .neq("srp", true);
       
       if (isSetorRequisitante && userSetor) {
         query = query.eq("setor_requisitante", userSetor);
@@ -585,19 +586,6 @@ const VisaoGeral = () => {
                     {distinctOptions.modalidade.map((opt) => (
                       <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>
                     ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="w-[100px] shrink-0 -ml-1">
-                <div className="text-[10px] font-medium text-muted-foreground px-1">SRP:</div>
-                <Select onValueChange={(v) => setFiltro("srp", v)} value={filtros.srp}>
-                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm">
-                    <SelectValue placeholder="" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
-                    <SelectItem className="text-xs" value="Sim">Sim</SelectItem>
-                    <SelectItem className="text-xs" value="Não">Não</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

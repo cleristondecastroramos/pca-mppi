@@ -130,7 +130,8 @@ const SetoresDemandantes = () => {
           "saldo_orcamentario",
           "modalidade",
           "etapa_processo",
-        ].join(","), { count: "exact" });
+        ].join(","), { count: "exact" })
+        .neq("srp", true);
 
       if (filtros.setor_requisitante) query = query.eq("setor_requisitante", filtros.setor_requisitante);
       if (filtros.tipo_contratacao) query = query.eq("tipo_contratacao", filtros.tipo_contratacao);
@@ -158,7 +159,8 @@ const SetoresDemandantes = () => {
         // Fetch all data for KPI calculation (without pagination)
         let kpiQuery = supabase
           .from("contratacoes")
-          .select("valor_estimado, valor_contratado, empenho_1, empenho_2, empenho_3, etapa_processo, sobrestado");
+          .select("valor_estimado, valor_contratado, empenho_1, empenho_2, empenho_3, etapa_processo, sobrestado")
+          .neq("srp", true);
         
         if (filtros.setor_requisitante) kpiQuery = kpiQuery.eq("setor_requisitante", filtros.setor_requisitante);
         if (filtros.tipo_contratacao) kpiQuery = kpiQuery.eq("tipo_contratacao", filtros.tipo_contratacao);

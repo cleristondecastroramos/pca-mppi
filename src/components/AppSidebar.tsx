@@ -37,6 +37,7 @@ type MenuItem = {
 const menuItems: MenuItem[] = [
   { title: "Visão Geral", url: "/visao-geral", icon: Gauge, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
   { title: "Contratações", url: "/contratacoes", icon: FileText, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
+  { title: "Licitações SRP", url: "/licitacoes-srp", icon: FileText, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
   { title: "Setores Demandantes", url: "/setores-demandantes", icon: ClipboardList, allowedRoles: ["administrador", "gestor"] },
   { title: "Controle de Prazos", url: "/controle-prazos", icon: Clock, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
   { title: "Pontos de Atenção", url: "/pontos-atencao", icon: AlertTriangle, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
