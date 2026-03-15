@@ -832,7 +832,7 @@ const Relatorios = () => {
                   <td>
                     <div class="main-content">
 
-            <div class="page-break section">
+            <div class="page-break section ficha-page">
               <div style="text-align: left; max-width: 140mm; margin: 0 auto; padding-top: 10mm;">
                 <h3 style="color: #D9415D; font-size: 14pt; margin-bottom: 8mm; text-transform: uppercase; border-bottom: 2px solid #D9415D; padding-bottom: 4px;">Ficha Técnica</h3>
                 
