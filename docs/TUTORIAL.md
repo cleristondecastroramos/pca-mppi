@@ -3,8 +3,8 @@
 ## Sistema de Gerenciamento do Plano de Contratações Anual  
 ### Ministério Público do Estado do Piauí (MPPI)
 
-**Versão do documento:** 1.0  
-**Data de elaboração:** Março de 2026  
+**Versão do documento:** 2.1.0  
+**Data de atualização:** Março de 2026  
 **Elaborado por:** Assessoria de Planejamento e Gestão (ASSESPPLAGES)
 
 ---
@@ -18,20 +18,21 @@
 5. [Home — Página Inicial](#5-home--página-inicial)
 6. [Visão Geral — Dashboard](#6-visão-geral--dashboard)
 7. [Contratações](#7-contratações)
-8. [Nova Contratação](#8-nova-contratação)
-9. [Setores Demandantes](#9-setores-demandantes)
-10. [Controle de Prazos](#10-controle-de-prazos)
-11. [Pontos de Atenção](#11-pontos-de-atenção)
-12. [Prioridades de Contratação](#12-prioridades-de-contratação)
-13. [Avaliação e Conformidade](#13-avaliação-e-conformidade)
-14. [Resultados Alcançados](#14-resultados-alcançados)
-15. [Relatórios](#15-relatórios)
-16. [Orçamento Planejado](#16-orçamento-planejado)
-17. [Gerenciamento de Usuários](#17-gerenciamento-de-usuários)
-18. [Notificações](#18-notificações)
-19. [Minha Conta](#19-minha-conta)
-20. [FAQ / Dúvidas](#20-faq--dúvidas)
-21. [Glossário de Termos e Siglas](#21-glossário-de-termos-e-siglas)
+8. [Licitações SRP (Sistema de Registro de Preços)](#8-licitações-srp-sistema-de-registro-de-preços)
+9. [Nova Contratação](#9-nova-contratação)
+10. [Setores Demandantes](#10-setores-demandantes)
+11. [Controle de Prazos](#11-controle-de-prazos)
+12. [Pontos de Atenção](#12-pontos-de-atenção)
+13. [Prioridades de Contratação](#13-prioridades-de-contratação)
+14. [Avaliação e Conformidade](#14-avaliação-e-conformidade)
+15. [Resultados Alcançados](#15-resultados-alcançados)
+16. [Relatórios](#16-relatórios)
+17. [Orçamento Planejado](#17-orçamento-planejado)
+18. [Gerenciamento de Usuários](#18-gerenciamento-de-usuários)
+19. [Notificações](#19-notificações)
+20. [Minha Conta](#20-minha-conta)
+21. [FAQ / Dúvidas](#21-faq--dúvidas)
+22. [Glossário de Termos e Siglas](#22-glossário-de-termos-e-siglas)
 
 ---
 
@@ -183,6 +184,7 @@ A tabela abaixo resume de forma clara quais funcionalidades cada perfil pode ace
 |---|---|---|---|---|
 | Home / Visão Geral | Completo | Completo | Apenas seu setor | Somente leitura |
 | Contratações | CRUD completo | Visualizar e editar | Edita rascunhos do setor | Somente leitura |
+| Licitações SRP | ✓ | ✓ | Apenas seu setor | Somente leitura |
 | Nova Contratação | ✓ | ✓ | ✓ (setor fixo) | ✗ |
 | Setores Demandantes | ✓ | ✓ | ✗ | ✗ |
 | Controle de Prazos | ✓ | ✓ | Apenas seu setor | ✗ |
@@ -210,7 +212,7 @@ O menu lateral é o principal elemento de navegação do sistema. Ele está posi
 - **Retrátil**: O menu pode ser expandido (mostrando ícone e nome do módulo) ou colapsado (mostrando apenas o ícone). Para alternar, utilize o botão de alternância localizado no topo do menu.
 - **Adaptativo por perfil**: Apenas os módulos permitidos para o seu perfil de acesso serão exibidos. Por exemplo, um usuário com perfil "Consulta" não verá as opções "Nova Contratação" ou "Gerenciamento de Usuários".
 - **Destaque visual**: O módulo atualmente ativo é destacado visualmente com uma cor de fundo diferenciada, facilitando a identificação de onde você se encontra no sistema.
-- **Indicação de versão**: Na parte inferior do menu, é exibido o número da versão atual do sistema (ex: v1.0.49).
+- **Indicação de versão**: Na parte inferior do menu, é exibido o número da versão atual do sistema (ex: v2.1.0).
 - **Botão "Sair"**: Na parte inferior do menu, o botão de logout permite encerrar sua sessão de forma segura.
 
 **Módulos disponíveis no menu (podem variar conforme o perfil):**
@@ -290,8 +292,8 @@ A seção de filtros permite refinar os dados exibidos no dashboard. Os filtros 
 - **Classe**: Material de Consumo, Material Permanente, Serviço, Serviço de TI, Engenharia, Obra, etc.
 - **Grau de Prioridade**: Alta, Média ou Baixa.
 - **Normativo**: Lei 14.133/2021 ou Lei 8.666/1993.
-- **Modalidade**: Pregão Eletrônico, Dispensa, Inexigibilidade, Concorrência.
-- **Status Atual**: Não Iniciado, Em Andamento, Concluído, Sobrestado.
+- **Modalidade**: Pregão Eletrônico, Dispensa, Inexigibilidade, Concorrência, ARP (própria), ARP (carona).
+- **Status Atual**: Não Iniciado, Iniciado, Em Andamento, Retornado para Diligência, Concluído, Sobrestado.
 
 Ao selecionar um ou mais filtros, todos os indicadores, gráficos e tabelas da página são atualizados automaticamente para refletir apenas os dados correspondentes. O botão **"Limpar filtros"** permite restaurar a visualização completa.
 
@@ -330,7 +332,7 @@ Ao acessar a página, você verá uma tabela com todas as contratações cadastr
 - **Classe**: Classificação do material ou serviço.
 - **Valor Estimado**: Valor estimado da contratação em R$.
 - **Valor Contratado**: Valor efetivamente contratado (se disponível).
-- **Status**: Situação atual da contratação (Não iniciado, Em andamento, Concluído, Sobrestado).
+- **Status**: Situação atual da contratação (Não iniciado, Iniciado, Em andamento, Retornado para diligência, Concluído, Sobrestado).
 - **Prioridade**: Grau de prioridade (Alta, Média, Baixa).
 - **Ações**: Botões para editar, ver histórico e excluir (conforme permissões do perfil).
 
@@ -387,11 +389,41 @@ O sistema oferece a funcionalidade de importação em massa de contratações a 
 
 ---
 
-## 8. Nova Contratação
+## 8. Licitações SRP (Sistema de Registro de Preços)
+
+A página **Licitações SRP** é um módulo especializado para o gerenciamento de demandas que utilizam o Sistema de Registro de Preços. Ela oferece uma interface otimizada para o fluxo específico de atas e registros de preços, permitindo um acompanhamento mais detalhado das etapas administrativas e progresso automático.
+
+### 8.1. Diferenciais do Módulo SRP
+
+Diferente do módulo geral de Contratações, o módulo SRP apresenta:
+
+- **Filtro Automático**: Exibe apenas as demandas onde o campo "SRP" foi marcado como "Sim" no cadastro.
+- **Status Automático**: O sistema calcula e atualiza o status da demanda automaticamente com base no preenchimento dos campos técnicos (Nº SEI, Edital, Data da Licitação, Nº do Contrato/Ata).
+- **Interface por Seções**: O modal de edição é organizado em abas ou seções lógicas:
+  - **Workflow (Fluxo de Trabalho)**: Visão rápida da etapa atual do processo.
+  - **Fases Administrativas**: Campos para preenchimento dos números SEI (Contratação e Licitação) e número do Edital.
+  - **Resultado**: Campo para informar o número da Ata ou Contrato após a licitação.
+  - **Especificações e Justificativa**: Dados técnicos e motivos da demanda.
+
+### 8.2. Progressão de Status em SRP
+
+No módulo SRP, o status evolui conforme os dados são registrados:
+
+1. **Planejada**: Status inicial quando a demanda é cadastrada.
+2. **Processo Administrativo Iniciado**: Quando o campo "Nº SEI de Contratação" é preenchido.
+3. **Fase Externa da Licitação**: Quando os campos "Nº SEI de Licitação" e "Nº do Edital" são preenchidos.
+4. **Licitação Concluída**: Quando a "Data Prevista para Contratação" (data da licitação) é preenchida.
+5. **Ata Registrada**: Quando o campo "Nº do Contrato/Ata" é preenchido.
+
+> **Dica**: O preenchimento correto desses campos garante que os dashboards e relatórios reflitam a real situação das atas de registro de preços do órgão.
+
+---
+
+## 9. Nova Contratação
 
 A página **Nova Contratação** permite cadastrar uma nova demanda de contratação no PCA 2026.
 
-### 8.1. Formulário de Cadastro
+### 9.1. Formulário de Cadastro
 
 O formulário é dividido em duas seções principais:
 
@@ -429,6 +461,9 @@ Nesta seção, preencha os dados principais da contratação:
   - Lei 14.133/2021 (Nova Lei de Licitações)
   - Lei 8.666/1993 (Lei anterior)
 - **Grau de Prioridade** *(obrigatório)*: Nível de urgência. Opções: Alta, Média, Baixa.
+- **Modalidades ARP**:
+  - **ARP (própria)**: Quando o MPPI é o órgão gerenciador da ata de registro de preços.
+  - **ARP (carona)**: Quando o MPPI adere a uma ata de registro de preços de outro órgão.
 - **Unidade Orçamentária** *(obrigatório)*: Fonte de recursos. Opções: PGJ, FMMP, FEPDC.
 - **Data Prevista para a Contratação** *(obrigatório)*: Data estimada para a conclusão do processo licitatório.
 - **Justificativa** *(obrigatório)*: Descrição detalhada da necessidade da contratação. Mínimo de 20 caracteres, máximo de 1000.
@@ -443,11 +478,11 @@ Nesta seção, informe os dados orçamentários:
 - **Valor Unitário**: Valor estimado por unidade do item.
 - **Valor Estimado Total**: Calculado automaticamente como **Quantidade × Valor Unitário**. Este campo não é editável diretamente.
 
-### 8.2. Código PCA Automático
+### 9.2. Código PCA Automático
 
 Ao salvar uma nova contratação, o sistema gera automaticamente um **código único** no formato `PCA-XXXX-2026`, onde `XXXX` é um número sequencial. Este código é utilizado como identificador principal da contratação em todo o sistema.
 
-### 8.3. Validações e Trava Orçamentária
+### 9.3. Validações e Trava Orçamentária
 
 Antes de salvar a contratação, o sistema realiza as seguintes validações:
 
@@ -456,7 +491,7 @@ Antes de salvar a contratação, o sistema realiza as seguintes validações:
 3. **Valor estimado positivo**: O valor estimado total deve ser maior que zero.
 4. **Trava orçamentária**: Se a trava orçamentária estiver ativada para o setor requisitante, o sistema verifica se a soma do valor estimado da nova contratação com o total das contratações existentes do setor não ultrapassa o limite orçamentário planejado (PGJ + FMMP + FEPDC). Se ultrapassar, a gravação é bloqueada e uma mensagem de erro é exibida.
 
-### 8.4. Após o Cadastro
+### 9.4. Após o Cadastro
 
 Após o cadastro bem-sucedido:
 
@@ -465,15 +500,15 @@ Após o cadastro bem-sucedido:
 
 ---
 
-## 9. Setores Demandantes
+## 10. Setores Demandantes
 
 A página **Setores Demandantes** apresenta uma visão consolidada das contratações organizadas por setor requisitante. Esta funcionalidade está disponível apenas para perfis **Administrador** e **Gestor**.
 
-### 9.1. Visão por Setor
+### 10.1. Visão por Setor
 
 A página exibe indicadores e dados agrupados por cada setor do MPPI que possui demandas de contratação cadastradas, permitindo uma análise comparativa entre setores.
 
-### 9.2. Indicadores por Setor
+### 10.2. Indicadores por Setor
 
 Para cada setor, são apresentados:
 
@@ -484,11 +519,11 @@ Para cada setor, são apresentados:
 
 ---
 
-## 10. Controle de Prazos
+## 11. Controle de Prazos
 
 A página **Controle de Prazos** permite acompanhar os prazos de execução das contratações cadastradas no sistema. Está disponível para perfis **Administrador**, **Gestor** e **Setor Requisitante** (este último visualiza apenas as contratações do seu setor).
 
-### 10.1. Prazos das Contratações
+### 11.1. Prazos das Contratações
 
 A página exibe uma visão consolidada dos prazos de cada contratação, considerando:
 
@@ -497,21 +532,26 @@ A página exibe uma visão consolidada dos prazos de cada contratação, conside
 - **Data de finalização da licitação**: Data efetiva de conclusão do certame licitatório.
 - **Data de conclusão**: Data efetiva de conclusão de todo o processo.
 
-### 10.2. Alertas de Vencimento
+### 11.2. Alertas de Vencimento
 
 O sistema identifica e destaca contratações com prazos próximos ao vencimento ou já vencidos, facilitando a ação preventiva dos gestores.
 
-### 10.3. Filtros por Status e Período
+### 11.3. Filtros por Status e Período (Datas)
 
-A página oferece filtros para refinar a visualização por status atual da contratação e por período de datas, permitindo análises mais direcionadas.
+A página oferece filtros para refinar a visualização por:
+- **Status do Prazo**: Atrasados, Atenção (120 dias), No Prazo, Concluídos.
+- **Mês de Início**: Filtra contratações pelo mês previsto de início.
+- **Mês de Conclusão**: Filtra contratações pelo mês previsto de encerramento.
+
+O botão **"Limpar Filtros"** restaura a visualização original de todos os prazos monitorados.
 
 ---
 
-## 11. Pontos de Atenção
+## 12. Pontos de Atenção
 
 A página **Pontos de Atenção** destaca contratações que exigem atenção especial por parte dos gestores e setores requisitantes. Está disponível para perfis **Administrador**, **Gestor** e **Setor Requisitante**.
 
-### 11.1. Contratações com Alertas
+### 12.1. Contratações com Alertas
 
 São destacadas contratações que apresentam:
 
@@ -520,7 +560,7 @@ São destacadas contratações que apresentam:
 - Sobrestamento (processos paralisados).
 - Valores estimados elevados sem evolução de status.
 
-### 11.2. Devoluções e Sobrestamentos
+### 12.2. Devoluções e Sobrestamentos
 
 A seção de devoluções exibe contratações que foram devolvidas durante o processo, incluindo:
 
@@ -531,17 +571,17 @@ A seção de devoluções exibe contratações que foram devolvidas durante o pr
 
 Contratações sobrestadas são aquelas cujo processo foi temporariamente paralisado, e também são destacadas nesta página.
 
-### 11.3. Critérios de Priorização
+### 12.3. Critérios de Priorização
 
 Os pontos de atenção são classificados por critérios de urgência e impacto, permitindo que gestores priorizem as ações necessárias.
 
 ---
 
-## 12. Prioridades de Contratação
+## 13. Prioridades de Contratação
 
 A página **Prioridades de Contratação** organiza e exibe as contratações classificadas por seu grau de prioridade. Está disponível para perfis **Administrador**, **Gestor** e **Setor Requisitante**.
 
-### 12.1. Classificação por Grau de Prioridade
+### 13.1. Classificação por Grau de Prioridade
 
 As contratações são organizadas em três níveis de prioridade:
 
@@ -549,17 +589,17 @@ As contratações são organizadas em três níveis de prioridade:
 - **Média**: Demandas importantes que devem ser acompanhadas dentro do planejamento normal.
 - **Baixa**: Demandas que podem ser executadas com menor urgência.
 
-### 12.2. Alinhamento Estratégico
+### 13.2. Alinhamento Estratégico
 
 A página também considera o campo de **Alinhamento Estratégico**, indicando se a contratação está alinhada com os objetivos estratégicos do MPPI.
 
 ---
 
-## 13. Avaliação e Conformidade
+## 14. Avaliação e Conformidade
 
 A página **Avaliação e Conformidade** permite verificar e registrar o cumprimento dos requisitos documentais e legais de cada processo de contratação. Está disponível apenas para perfis **Administrador** e **Gestor**.
 
-### 13.1. Checklist de Conformidade Documental
+### 14.1. Checklist de Conformidade Documental
 
 Para cada contratação, é disponibilizado um checklist com os seguintes itens de verificação:
 
@@ -575,17 +615,17 @@ Para cada contratação, é disponibilizado um checklist com os seguintes itens 
 10. **Assinatura do Contrato**: Verifica se o contrato foi devidamente assinado pelas partes.
 11. **Publicação do Contrato**: Verifica se o contrato foi publicado no Diário Oficial.
 
-### 13.2. Registro de Observações
+### 14.2. Registro de Observações
 
 Além do checklist, é possível registrar observações textuais sobre cada contratação, documentando particularidades ou pendências identificadas durante a análise de conformidade.
 
 ---
 
-## 14. Resultados Alcançados
+## 15. Resultados Alcançados
 
 A página **Resultados Alcançados** apresenta indicadores de desempenho e métricas de resultado das contratações concluídas ou em andamento. Está disponível para perfis **Administrador** e **Gestor**.
 
-### 14.1. Indicadores de Desempenho
+### 15.1. Indicadores de Desempenho
 
 A página exibe métricas como:
 
@@ -594,17 +634,17 @@ A página exibe métricas como:
 - Taxa de sucesso dos processos licitatórios.
 - Evolução temporal dos resultados.
 
-### 14.2. Comparativos e Metas
+### 15.2. Comparativos e Metas
 
 São apresentados comparativos entre o planejado e o realizado, permitindo avaliar a efetividade do PCA 2026 e identificar áreas de melhoria.
 
 ---
 
-## 15. Relatórios
+## 16. Relatórios
 
 A página **Relatórios** permite a geração de relatórios gerenciais a partir dos dados do sistema. Está disponível para perfis **Administrador** e **Gestor**.
 
-### 15.1. Tipos de Relatórios
+### 16.1. Tipos de Relatórios
 
 O sistema oferece diferentes tipos de relatórios, incluindo:
 
@@ -614,17 +654,17 @@ O sistema oferece diferentes tipos de relatórios, incluindo:
 - Relatório de prazos e acompanhamento.
 - Relatório de conformidade documental.
 
-### 15.2. Exportação de Dados
+### 16.2. Exportação de Dados
 
 Os relatórios podem ser exportados em diferentes formatos para uso externo, facilitando a apresentação de dados em reuniões e prestação de contas.
 
 ---
 
-## 16. Orçamento Planejado
+## 17. Orçamento Planejado
 
 A página **Orçamento Planejado** permite ao administrador definir e gerenciar os limites orçamentários anuais de cada setor requisitante. Está disponível **exclusivamente** para o perfil **Administrador**.
 
-### 16.1. Cadastro de Orçamento por Setor
+### 17.1. Cadastro de Orçamento por Setor
 
 A página apresenta uma tabela com todos os 13 setores requisitantes do MPPI, permitindo configurar individualmente os valores orçamentários para cada um:
 
@@ -634,7 +674,7 @@ A página apresenta uma tabela com todos os 13 setores requisitantes do MPPI, pe
 | CCF | Editável | Editável | Editável | Calculado | Sim/Não |
 | ... | ... | ... | ... | ... | ... |
 
-### 16.2. Fontes de Recurso (PGJ, FMMP, FEPDC)
+### 17.2. Fontes de Recurso (PGJ, FMMP, FEPDC)
 
 Os limites orçamentários são distribuídos entre três fontes de recurso (Unidades Orçamentárias):
 
@@ -644,7 +684,7 @@ Os limites orçamentários são distribuídos entre três fontes de recurso (Uni
 
 Para cada setor, é possível definir o valor orçamentário planejado em cada uma dessas fontes. O valor total do setor é calculado automaticamente como a soma dos três valores.
 
-### 16.3. Trava Orçamentária
+### 17.3. Trava Orçamentária
 
 A **trava orçamentária** é um mecanismo de controle que, quando ativado para um setor:
 
@@ -656,7 +696,7 @@ Para ativar ou desativar a trava, utilize o interruptor (switch) na coluna "Trav
 
 > **Importante**: A trava orçamentária atua como uma camada de proteção adicional. Quando desativada, os setores podem cadastrar contratações sem verificação de limite, ficando a cargo do administrador monitorar manualmente os valores.
 
-### 16.4. Auditoria de Alterações
+### 17.4. Auditoria de Alterações
 
 Todas as alterações realizadas nos valores orçamentários são registradas em uma trilha de auditoria, que pode ser consultada clicando no botão **"Histórico"**. O registro de auditoria inclui:
 
@@ -669,11 +709,11 @@ Todas as alterações realizadas nos valores orçamentários são registradas em
 
 ---
 
-## 17. Gerenciamento de Usuários
+## 18. Gerenciamento de Usuários
 
 A página **Gerenciamento de Usuários** é exclusiva do perfil **Administrador** e permite a gestão completa das contas de acesso ao sistema.
 
-### 17.1. Listagem de Usuários
+### 18.1. Listagem de Usuários
 
 A página apresenta uma tabela com todos os usuários cadastrados no sistema, exibindo:
 
@@ -684,7 +724,7 @@ A página apresenta uma tabela com todos os usuários cadastrados no sistema, ex
 - **Perfil de acesso** (Administrador, Gestor, Setor Requisitante, Consulta).
 - **Ações** disponíveis (Editar, Excluir).
 
-### 17.2. Criação de Novo Usuário
+### 18.2. Criação de Novo Usuário
 
 Para criar um novo usuário:
 
@@ -701,7 +741,7 @@ Para criar um novo usuário:
 
 > **Importante**: O sistema NÃO envia e-mails automáticos de boas-vindas. Portanto, o administrador deve comunicar as credenciais de acesso diretamente ao novo servidor, orientando-o a alterar sua senha no primeiro acesso.
 
-### 17.3. Edição de Perfil e Permissões
+### 18.3. Edição de Perfil e Permissões
 
 Para editar um usuário existente:
 
@@ -709,7 +749,7 @@ Para editar um usuário existente:
 2. Altere os campos desejados (Nome, E-mail, Setor, Cargo, Perfil).
 3. Clique em **"Salvar"** para confirmar as alterações.
 
-### 17.4. Exclusão de Usuário
+### 18.4. Exclusão de Usuário
 
 Para excluir um usuário:
 
@@ -719,7 +759,7 @@ Para excluir um usuário:
 
 > **Atenção**: A exclusão de um usuário remove permanentemente sua conta, perfis de acesso e dados relacionados. Esta ação é irreversível.
 
-### 17.5. Política de Acessos e Atribuições
+### 18.5. Política de Acessos e Atribuições
 
 No topo da página, o botão **"Política de Acessos"** abre um modal detalhado contendo:
 
@@ -730,11 +770,11 @@ Este recurso é útil para que o administrador consulte rapidamente as permissõ
 
 ---
 
-## 18. Notificações
+## 19. Notificações
 
 A página **Notificações** permite ao administrador gerenciar e publicar notificações e avisos para os usuários do sistema. Atualmente, esta funcionalidade é acessível exclusivamente para o perfil **Administrador**.
 
-### 18.1. Gerenciamento de Notificações
+### 19.1. Gerenciamento de Notificações
 
 O administrador pode:
 
@@ -746,11 +786,11 @@ O administrador pode:
 
 ---
 
-## 19. Minha Conta
+## 20. Minha Conta
 
 A página **Minha Conta** permite que cada usuário visualize e edite suas informações pessoais. Está disponível para **todos os perfis** de acesso.
 
-### 19.1. Dados Pessoais
+### 20.1. Dados Pessoais
 
 A página exibe e permite a edição dos seguintes dados:
 
@@ -760,7 +800,7 @@ A página exibe e permite a edição dos seguintes dados:
 - **Cargo**: Cargo exercido (informativo).
 - **Ramal**: Número de ramal telefônico para contato interno.
 
-### 19.2. Alteração de Avatar
+### 20.2. Alteração de Avatar
 
 O sistema oferece duas opções para personalizar sua foto de perfil (avatar):
 
@@ -773,17 +813,17 @@ Para alterar o avatar:
 2. Escolha entre selecionar um avatar da galeria ou fazer upload de uma foto.
 3. A alteração é salva automaticamente.
 
-### 19.3. Salvando Alterações
+### 20.3. Salvando Alterações
 
 Após editar qualquer campo (nome, ramal, avatar), clique no botão **"Salvar Alterações"** para confirmar as modificações. Uma mensagem de confirmação será exibida ao concluir.
 
 ---
 
-## 20. FAQ / Dúvidas
+## 21. FAQ / Dúvidas
 
 A página **FAQ / Dúvidas** reúne as perguntas mais frequentes sobre o funcionamento do sistema e informações de contato para suporte. Está disponível para **todos os perfis** de acesso.
 
-### 20.1. Perguntas Frequentes
+### 21.1. Perguntas Frequentes
 
 As perguntas são organizadas em formato de acordeão (expansível), incluindo temas como:
 
@@ -794,7 +834,7 @@ As perguntas são organizadas em formato de acordeão (expansível), incluindo t
 - Como alterar minha senha?
 - E outras dúvidas comuns.
 
-### 20.2. Suporte e Contato
+### 21.2. Suporte e Contato
 
 A página inclui informações de contato para suporte técnico e funcional:
 
@@ -804,9 +844,9 @@ A página inclui informações de contato para suporte técnico e funcional:
 
 ---
 
-## 21. Glossário de Termos e Siglas
+## 22. Glossário de Termos e Siglas
 
-### 21.1. Siglas e Abreviações
+### 22.1. Siglas e Abreviações
 
 | Sigla | Significado |
 |---|---|
@@ -826,7 +866,7 @@ A página inclui informações de contato para suporte técnico e funcional:
 | **RLS** | Row-Level Security (Segurança em Nível de Linha) |
 | **ASSESPPLAGES** | Assessoria de Planejamento e Gestão |
 
-### 21.2. Setores Requisitantes
+### 22.2. Setores Requisitantes
 
 | Sigla | Setor |
 |---|---|

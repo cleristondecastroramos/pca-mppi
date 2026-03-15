@@ -383,6 +383,7 @@ const GerenciamentoUsuarios = () => {
                             {[
                               { page: "Home / Visão Geral", admin: "Completo", gestor: "Completo", setor: "Apenas seu setor", consulta: "Somente leitura" },
                               { page: "Contratações", admin: "CRUD completo", gestor: "Visualizar e editar", setor: "Visualiza e edita o setor", consulta: "Somente leitura" },
+                              { page: "Licitações SRP", admin: "✓", gestor: "✓", setor: "Apenas seu setor", consulta: "Somente leitura" },
                               { page: "Nova Contratação", admin: "✓", gestor: "✓", setor: "✓ (setor fixo)", consulta: "✗" },
                               { page: "Setores Demandantes", admin: "✓", gestor: "✓", setor: "✗", consulta: "✗" },
                               { page: "Controle de Prazos", admin: "✓", gestor: "✓", setor: "Apenas seu setor", consulta: "✗" },

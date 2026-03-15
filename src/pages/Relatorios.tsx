@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { translateError } from "@/lib/utils/error-translations";
 import { DateRange } from "react-day-picker";
-import { Calendar as CalendarIcon, FileText, BarChart3, ClipboardList, BadgeCheck, DollarSign, FileSearch, CalendarDays, AlertCircle } from "lucide-react";
+import { Calendar as CalendarIcon, FileText, BarChart3, ClipboardList, BadgeCheck, DollarSign, FileSearch, CalendarDays, AlertCircle, LayoutList, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -39,7 +39,7 @@ const Relatorios = () => {
     return String(codigo).toUpperCase().replace(/^PCA-/, "").replace(/-2026$/, "");
   };
   const selectBase =
-    "id, codigo, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, srp, numero_sei_contratacao, etapa_processo, sobrestado, created_at, data_finalizacao_licitacao, valor_estimado, valor_contratado, data_prevista_contratacao";
+    "id, codigo, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, srp, numero_sei_contratacao, etapa_processo, sobrestado, created_at, data_finalizacao_licitacao, valor_estimado, valor_contratado, data_prevista_contratacao, quantidade_itens, valor_unitario, data_conclusao";
   const selectWithExecutado = `${selectBase}, valor_executado`;
   const fetchAllContratacoes = async () => {
     const q1 = await supabase.from("contratacoes").select(selectWithExecutado).neq("srp", true);
@@ -240,23 +240,46 @@ const Relatorios = () => {
       label: "Documento — PCA 2026 (Versão 2.0)",
       description: "Versão oficial, moderna e profissional do Plano de Contratações Anual do MPPI.",
       icon: FileText,
-      columns: ["Cod. PCA", "Descrição", "Setor Demandante", "UO", "Tipo de Contratação", "Grau de Prioridade", "Valor Planejado"],
-      csvColumns: ["Cod. PCA", "Descrição", "Setor Demandante", "UO", "Tipo de Contratação", "Grau de Prioridade", "Valor Planejado"],
-      mapRow: (r) => [
-        formatId(r.id, r.codigo),
-        r.descricao || "",
-        r.setor_requisitante || "",
-        r.unidade_orcamentaria || "",
-        r.tipo_contratacao || "",
-        r.grau_prioridade || "",
-        r.valor_estimado || 0,
-      ],
+      columns: ["Cod. PCA", "Objeto", "UO", "Qtd", "V. Unit", "Valor Total", "Tipo", "Mod.", "Prior.", "Início", "Concl."],
+      csvColumns: ["Cod. PCA", "Descrição", "Unidade Requisitante", "UO", "Quantidade", "Valor Unitário", "Valor Planejado", "Tipo de Contratação", "Modalidade", "Grau de Prioridade", "Data Prevista Inicio", "Data Prevista Conclusão"],
+      mapRow: (r) => {
+        const calculateStart = (tipo: string, mod: string, termino: string) => {
+          if (!termino) return "-";
+          const [y, m, d] = termino.split("-").map(Number);
+          const date = new Date(y, m - 1, d);
+          let days = 120;
+          if (tipo === "Nova Contratação") {
+            if (mod === "Pregão Eletrônico" || mod === "Concorrência") days = 150;
+            else if (mod === "Dispensa" || mod === "Inexigibilidade" || mod === "ARP (própria)" || mod === "ARP (carona)") days = 90;
+          }
+          date.setDate(date.getDate() - days);
+          return date.toLocaleDateString("pt-BR");
+        };
+        const formatDateStr = (dtStr: string) => {
+          if (!dtStr) return "-";
+          const [y, m, d] = dtStr.split("-").map(Number);
+          return new Date(y, m - 1, d).toLocaleDateString("pt-BR");
+        };
+        return [
+          formatId(r.id, r.codigo),
+          r.descricao || "",
+          r.unidade_orcamentaria || "",
+          r.quantidade_itens || 0,
+          r.valor_unitario || 0,
+          r.valor_estimado || 0,
+          r.tipo_contratacao || "",
+          r.modalidade || "",
+          r.grau_prioridade || "",
+          calculateStart(r.tipo_contratacao, r.modalidade, r.data_prevista_contratacao),
+          formatDateStr(r.data_prevista_contratacao),
+        ];
+      },
       title: (n) => `Plano de Contratações Anual — PCA 2026 (Lista de ${n} Itens)`,
     },
     detalhado: {
       label: "Contratações — Detalhado",
       description: "Listagem completa com Cod. PCA, descrição, setor, prioridade e valores (estimado e executado).",
-      icon: FileText,
+      icon: LayoutList,
       columns: ["Cod. PCA", "Descrição", "Setor", "Prioridade", "Valor Estimado", "Valor Executado", "Data Prevista"],
       csvColumns: ["Cod. PCA", "Descrição", "Setor", "Prioridade", "Valor Estimado", "Valor Executado", "Data Prevista"],
       mapRow: (r) => [
@@ -352,7 +375,7 @@ const Relatorios = () => {
     auditoria: {
       label: "Auditoria — Conformidade",
       description: "Relatório de conformidade com itens de checklist de auditoria.",
-      icon: BadgeCheck,
+      icon: ShieldCheck,
       columns: ["Cod. PCA", "Descrição", "Setor", "Conformidade", "Status"],
       csvColumns: ["Cod. PCA", "Descrição", "Setor", "Conformidade", "Status"],
       mapRow: (r) => [
@@ -641,18 +664,61 @@ const Relatorios = () => {
             </tr>`;
         }).join("");
 
-        const rowsHtml = sourceRows.map(r => {
-          const data = def.mapRow(r);
+        // Agrupar sourceRows por setor para o Anexo I
+        const rowsBySector: Record<string, any[]> = {};
+        sourceRows.forEach(r => {
+          const sector = r.setor_requisitante || "Não Informado";
+          if (!rowsBySector[sector]) rowsBySector[sector] = [];
+          rowsBySector[sector].push(r);
+        });
+
+        const sortedSectorsForAnexo = Object.keys(rowsBySector).sort((a, b) => a.localeCompare(b, "pt-BR"));
+        
+        const anexoIHtml = sortedSectorsForAnexo.map(sector => {
+          const sectorRows = rowsBySector[sector];
+          const sectorRowsHtml = sectorRows.map(r => {
+            const data = def.mapRow(r);
+            return `
+              <tr>
+                <td class="text-center" style="width: 7%; font-size: 7.5pt;">${data[0]}</td>
+                <td class="text-left" style="width: 23%; font-size: 7.5pt;">${data[1]}</td>
+                <td class="text-center" style="width: 4%; font-size: 7.5pt;">${data[2]}</td>
+                <td class="text-center" style="width: 4%; font-size: 7.5pt;">${data[3]}</td>
+                <td class="text-right" style="width: 8%; font-size: 7.5pt;">${formatCurrency(data[4])}</td>
+                <td class="text-right" style="width: 10%; font-size: 7.5pt; font-weight: 600;">${formatCurrency(data[5])}</td>
+                <td class="text-center" style="width: 8%; font-size: 7.5pt;">${data[6] === 'Nova Contratação' ? 'Nova' : data[6]}</td>
+                <td class="text-center" style="width: 10%; font-size: 7.5pt;">${data[7]}</td>
+                <td class="text-center" style="width: 6%; font-size: 7.5pt;">${data[8]}</td>
+                <td class="text-center" style="width: 10%; font-size: 7.5pt;">${data[9]}</td>
+                <td class="text-center" style="width: 10%; font-size: 7.5pt;">${data[10]}</td>
+              </tr>
+            `;
+          }).join("");
+
           return `
-            <tr>
-              <td class="text-center" style="width: 12%;">${data[0]}</td>
-              <td class="text-left" style="width: 35%;">${data[1]}</td>
-              <td class="text-left" style="width: 15%;">${data[2]}</td>
-              <td class="text-center" style="width: 10%;">${data[3]}</td>
-              <td class="text-center" style="width: 10%;">${data[4]}</td>
-              <td class="text-center" style="width: 8%;">${data[5]}</td>
-              <td class="text-right" style="width: 10%;">${formatCurrency(Number(data[6]))}</td>
-            </tr>
+            <div style="margin-top: 8mm; page-break-inside: avoid;">
+              <h3 style="font-size: 10pt; color: #D9415D; border-bottom: 2.5px solid #D9415D; padding-bottom: 2px; margin-bottom: 3mm; text-transform: uppercase;">Setor: ${sector === "PLANEJAMENTO" ? "ASSESPPLAGES (PLAN)" : sector}</h3>
+              <table class="compact-table" style="width: 100%; border-collapse: collapse; font-size: 7.5pt; border: 1.5px solid #000;">
+                <thead>
+                  <tr style="background: #f1f5f9;">
+                    <th style="width: 7%; border: 1.5px solid #000;">Cod.PCA</th>
+                    <th style="width: 23%; border: 1.5px solid #000;">Objeto</th>
+                    <th style="width: 4%; border: 1.5px solid #000;">UO</th>
+                    <th style="width: 4%; border: 1.5px solid #000;">Qtd</th>
+                    <th style="width: 8%; border: 1.5px solid #000;">V. Unit</th>
+                    <th style="width: 10%; border: 1.5px solid #000;">Valor Total</th>
+                    <th style="width: 8%; border: 1.5px solid #000;">Tipo</th>
+                    <th style="width: 10%; border: 1.5px solid #000;">Modalidade</th>
+                    <th style="width: 6%; border: 1.5px solid #000;">Prior.</th>
+                    <th style="width: 10%; border: 1.5px solid #000;">Início</th>
+                    <th style="width: 10%; border: 1.5px solid #000;">Concl.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${sectorRowsHtml}
+                </tbody>
+              </table>
+            </div>
           `;
         }).join("");
 
@@ -686,6 +752,21 @@ const Relatorios = () => {
               .summary-label { font-size: 8pt; color: #6b7280; font-weight: 600; text-transform: uppercase; }
               .summary-value { font-size: 18pt; font-weight: 700; color: #111827; margin-top: 2px; }
               
+              .toc-list { list-style: none; padding: 0; margin-top: 10mm; }
+              .toc-item { 
+                display: flex; 
+                justify-content: space-between; 
+                align-items: baseline; 
+                margin-bottom: 4mm;
+                text-decoration: none;
+                color: #1f2937;
+                font-size: 11pt;
+              }
+              .toc-item:hover { color: #D9415D; }
+              .toc-name { font-weight: 500; position: relative; background: white; padding-right: 5px; z-index: 2; }
+              .toc-dots { flex-grow: 1; border-bottom: 1px dotted #9ca3af; margin: 0 5px; position: relative; top: -4px; z-index: 1; }
+              .toc-page { font-weight: 600; color: #D9415D; background: white; padding-left: 5px; z-index: 2; }
+              
               .text-left { text-align: left; }
               .text-right { text-align: right; }
               .text-center { text-align: center; }
@@ -699,18 +780,6 @@ const Relatorios = () => {
               .report-table > thead > tr > th, 
               .report-table > tbody > tr > td, 
               .report-table > tfoot > tr > td { border: none !important; padding: 0 !important; }
-              .report-footer { display: table-footer-group; }
-              .footer-spacer { height: 10mm; }
-              .footer-content { 
-                border-top: 0.5px solid #D9415D; 
-                padding-top: 2mm; 
-                font-size: 8pt; 
-                color: #6b7280; 
-                display: flex; 
-                justify-content: space-between; 
-                width: 100%;
-              }
-              .page-number::after { content: counter(page); }
               
               @page { size: A4; margin: 20mm 20mm 15mm 20mm; }
               @page cover { size: A4; margin: 0; }
@@ -734,18 +803,8 @@ const Relatorios = () => {
               </div>
             </div> <!-- End cover -->
             
+
             <table class="report-table">
-              <tfoot class="report-footer">
-                <tr>
-                  <td>
-                    <div class="footer-spacer"></div>
-                    <div class="footer-content">
-                      <span>MPPI - Plano de Contratação Anual 2026 - Versão 2.0</span>
-                      <span>Página <span class="page-number"></span></span>
-                    </div>
-                  </td>
-                </tr>
-              </tfoot>
               <tbody>
                 <tr>
                   <td>
@@ -805,7 +864,73 @@ const Relatorios = () => {
               </div>
             </div>
 
-            <div class="page-break section">
+            <div class="page-break section" id="sumario">
+              <h2 style="margin-bottom: 10mm;">Sumário</h2>
+              <div class="toc-list">
+                <a href="#apresentacao" class="toc-item">
+                  <span class="toc-name">1. Apresentação</span>
+                  <span class="toc-dots"></span>
+                  <span class="toc-page">01</span>
+                </a>
+                <a href="#consideracoes" class="toc-item">
+                  <span class="toc-name">2. Considerações Iniciais</span>
+                  <span class="toc-dots"></span>
+                  <span class="toc-page">02</span>
+                </a>
+                <a href="#diretrizes" class="toc-item">
+                  <span class="toc-name">3. Diretrizes da Política de Aquisições</span>
+                  <span class="toc-dots"></span>
+                  <span class="toc-page">03</span>
+                </a>
+                <a href="#do-plan" class="toc-item">
+                  <span class="toc-name">4. Do Plano de Contratação Anual</span>
+                  <span class="toc-dots"></span>
+                  <span class="toc-page">04</span>
+                </a>
+                <a href="#perspectiva" class="toc-item">
+                  <span class="toc-name">5. Perspectiva Orçamentária do PCA-2026</span>
+                  <span class="toc-dots"></span>
+                  <span class="toc-page">05</span>
+                </a>
+                <a href="#alinhamento" class="toc-item">
+                  <span class="toc-name">6. Alinhamento Estratégico</span>
+                  <span class="toc-dots"></span>
+                  <span class="toc-page">07</span>
+                </a>
+                <a href="#novos-certames" class="toc-item">
+                  <span class="toc-name">7. Alocação de Recursos para Novos Certames</span>
+                  <span class="toc-dots"></span>
+                  <span class="toc-page">08</span>
+                </a>
+                <a href="#servicos-publicos" class="toc-item">
+                  <span class="toc-name">8. Contratações de Serviços Públicos</span>
+                  <span class="toc-dots"></span>
+                  <span class="toc-page">09</span>
+                </a>
+                <a href="#metodologia" class="toc-item">
+                  <span class="toc-name">9. Metodologia de Monitoramento e Riscos</span>
+                  <span class="toc-dots"></span>
+                  <span class="toc-page">10</span>
+                </a>
+                <a href="#conclusao" class="toc-item">
+                  <span class="toc-name">10. Conclusão e Disposições Finais</span>
+                  <span class="toc-dots"></span>
+                  <span class="toc-page">11</span>
+                </a>
+                <a href="#aprovacao" class="toc-item">
+                  <span class="toc-name">11. Aprovação</span>
+                  <span class="toc-dots"></span>
+                  <span class="toc-page">12</span>
+                </a>
+                <a href="#anexo-i" class="toc-item">
+                  <span class="toc-name">Anexo I: Relação Completa de Demandas</span>
+                  <span class="toc-dots"></span>
+                  <span class="toc-page">13</span>
+                </a>
+              </div>
+            </div>
+
+            <div class="page-break section" id="termos-siglas">
               <h2 style="margin-bottom: 10mm;">Lista de Termos e Siglas</h2>
               <div style="column-count: 1; font-size: 9pt;">
                 <table style="margin-top: 0;">
@@ -876,7 +1001,7 @@ const Relatorios = () => {
               </div>
             </div>
 
-            <div class="page-break section">
+            <div class="page-break section" id="apresentacao">
               <h2>1. Apresentação</h2>
               <p>O Plano de Contratações Anual (PCA) do Ministério Público do Estado do Piauí, referente ao exercício de 2026, consolida-se como o instrumento central de governança estruturante e planejamento logístico institucional. Alinhado aos preceitos da Nova Lei de Licitações e Contratos (Lei nº 14.133/2021), o PCA transcende a mera formalidade administrativa para atuar como um guia estratégico, assegurando que as aquisições e contratações de serviços e obras guardem estrita consonância com o Planejamento Estratégico e as diretrizes orçamentárias deste Parquet.</p>
               
@@ -897,7 +1022,7 @@ const Relatorios = () => {
               <p style="margin-top: 8mm;">Este panorama consolidado serve de base para as estratégias de contratação que serão detalhadas ao longo deste documento, assegurando que cada recurso empenhado esteja diretamente vinculado ao fortalecimento da atuação institucional e à excelência na gestão pública.</p>
             </div>
 
-            <div class="page-break section">
+            <div class="page-break section" id="consideracoes">
               <h2>2. Considerações Iniciais</h2>
               <p>O Plano de Contratações Anual (PCA), um dos principais instrumentos da governança em contratações, compreende as demandas a serem realizadas no exercício, sejam elas relacionadas a bens, serviços ou obras. Além das demandas novas, contempla também todas as renovações de contratos do Órgão (serviços e fornecimentos continuados). Sua relevância foi ampliada pela Nova Lei de Licitações (Lei 14.133/2021), consolidando-o como peça fundamental para o alcance de resultados mais sustentáveis e eficientes.</p>
               
@@ -910,7 +1035,7 @@ const Relatorios = () => {
               <p>Com a consolidação do PCA devidamente realizada nos termos do art. 11 do Ato PGJ nº 1381/2024, a Coordenadoria de Licitações e Contratos e a Assessoria de Planejamento e Gestão estabeleceram o Calendário de Contratações e Renovações de Contratos, cujas diretrizes e cronogramas encontram-se detalhados neste documento. Cada demanda possui agora uma data prevista para sua execução, permitindo um monitoramento rigoroso e sistêmico de todos os prazos. O cumprimento estrito deste cronograma é vital para a efetividade das ações institucionais planejadas, assegurando que as necessidades do MPPI sejam atendidas com tempestividade. Ressalte-se que todo este planejamento foi submetido e homologado pela Procuradora-Geral de Justiça, conferindo a segurança jurídica e administrativa necessária para sua plena execução.</p>
             </div>
 
-            <div class="page-break section">
+            <div class="page-break section" id="diretrizes">
               <h2>3. Diretrizes da Política de Aquisições</h2>
               <p>A formulação do Plano de Contratações Anual para o exercício de 2026 fundamenta-se em diretrizes estratégicas que visam a excelência operacional e a integridade administrativa. Estas diretrizes orientam as unidades requisitantes na identificação de suas necessidades, assegurando que cada aquisição contribua para o interesse público e para o fortalecimento institucional do Ministério Público do Estado do Piauí:</p>
               <ul style="list-style-type: none; padding-left: 0; margin-top: 8mm;">
@@ -959,7 +1084,7 @@ const Relatorios = () => {
               </ul>
             </div>
 
-            <div class="page-break section">
+            <div class="page-break section" id="do-plan">
               <h2>4. Do Plano de Contratação Anual</h2>
               <p>O Plano de Contratações Anual (PCA) do Ministério Público do Estado do Piauí e de seus fundos institucionais representa o ápice do planejamento preventivo e da governança de recursos. Com o propósito de elevar a eficiência no aproveitamento do erário, este documento consolida a estratégia de aquisições para o exercício de 2026, assegurando que cada demanda esteja estritamente vinculada à missão constitucional e aos objetivos estratégicos do Órgão.</p>
               
@@ -1007,7 +1132,7 @@ const Relatorios = () => {
               <p>Com base no orçamento aprovado, as demandas de unidades como CAA, CCF, CCS, CEAF, CLC, entre outras, foram tecnicamente apreciadas. O resultado é um documento robusto, devidamente revisado pela Chefia de Gabinete e homologado pela Procuradora-Geral de Justiça, pronto para guiar a execução administrativa com transparência e disciplina fiscal em 2026.</p>
             </div>
 
-            <div class="page-break section">
+            <div class="page-break section" id="perspectiva">
               <h2>5. Perspectiva Orçamentária do PCA-2026</h2>
               <p>A perspectiva orçamentária do Plano de Contratações Anual para 2026 reflete a aplicação rigorosa dos princípios de responsabilidade fiscal e planejamento estratégico. O montante global planejado foi meticulosamente calculado para garantir a manutenção dos serviços essenciais e o suporte às novas iniciativas institucionais, mantendo-se em estrita consonância com os limites orçamentários previstos para o exercício.</p>
 
@@ -1161,7 +1286,7 @@ const Relatorios = () => {
               <p style="margin-top: 8mm;">Em conclusão, o detalhamento orçamentário consolidado na presente seção demonstra o equilíbrio entre a expansão necessária para a modernização institucional e a prudência fiscal requerida para a continuidade dos serviços essenciais. A distribuição dos recursos entre as diversas Unidades Requisitantes e a correta classificação entre novas demandas e renovações contratuais asseguram ao Ministério Público do Estado do Piauí uma execução financeira previsível e eficiente. Este planejamento logístico-orçamentário, pautado pela transparência e pela otimização do erário, constitui-se como o alicerce fundamental para o cumprimento das metas estratégicas pactuadas para o exercício de 2026.</p>
             </div>
 
-            <div class="page-break section">
+            <div class="page-break section" id="alinhamento">
               <h2>6. Alinhamento Estratégico</h2>
               <p>O Plano de Contratações Anual (PCA-2026) funciona como o principal instrumento de viabilização tática da estratégia institucional do Ministério Público do Estado do Piauí. Cada demanda consolidada neste documento foi criteriosamente avaliada sob o prisma de sua contribuição para os Objetivos Estratégicos estabelecidos no Ciclo 2020–2029, garantindo que o dispêndio de recursos públicos esteja intrinsecamente vinculado à entrega de valor à sociedade piauiense.</p>
               
@@ -1173,7 +1298,7 @@ const Relatorios = () => {
               </div>
             </div>
 
-            <div class="page-break section">
+            <div class="page-break section" id="novos-certames">
               <h2>7. Alocação de Recursos para Novos Certames por Vencimento Improrrogável</h2>
               <p>Em estrita observância aos limites temporais estabelecidos pela legislação vigente e pelas diretrizes normativas da Administração Superior, as contratações relacionadas abaixo atingirão o termo final de sua vigência máxima permitida ao longo do exercício de 2026. Ante a impossibilidade jurídica de novas prorrogações aditivas, torna-se imperativa a deflagração tempestiva de novos procedimentos licitatórios. Este planejamento preventivo visa assegurar a continuidade ininterrupta de serviços e fornecimentos essenciais à manutenção das atividades institucionais deste Parquet.</p>
               
@@ -1218,7 +1343,7 @@ const Relatorios = () => {
               </div>
             </div>
 
-            <div class="page-break section">
+            <div class="page-break section" id="servicos-publicos">
               <h2>8. Contratações de Serviços Públicos com Vigência por Prazo Indeterminado</h2>
               <p>As contratações de serviços públicos essenciais, operados sob regime de monopólio ou caracterizados como utilidade pública de natureza contínua (tais como fornecimento de energia elétrica, saneamento básico e serviços postais), são regidas por marcos regulatórios específicos que facultam a vigência por prazo indeterminado. Tais instrumentos são fundamentais para a estabilidade da infraestrutura operacional do MPPI, e o seu monitoramento é focado na fidedignidade da prestação e na conformidade com as estruturas tarifárias vigentes fixadas pelas agências reguladoras.</p>
               
@@ -1289,7 +1414,7 @@ const Relatorios = () => {
               </div>
             </div>
 
-            <div class="page-break section">
+            <div class="page-break section" id="metodologia">
               <h2>9. Metodologia de Monitoramento e Gestão de Riscos da Execução do PCA</h2>
               <p>O modelo de governança do PCA-2026 fundamenta-se nas disposições do art. 17 do Ato PGJ nº 1381/2024, estabelecendo um ciclo de controle rigoroso e preventivo. O monitoramento sistemático objetiva antecipar eventuais óbices técnicos ou orçamentários que possam comprometer o cronograma de contratações. Por meio desta gestão de riscos, a Coordenadoria de Licitações e Contratos e a Assessoria de Planejamento mantêm a visibilidade total sobre o fluxo processual, garantindo a eficiência na aplicação dos recursos e o cumprimento das metas institucionais através das seguintes instâncias de controle:</p>
               
@@ -1348,7 +1473,7 @@ const Relatorios = () => {
               <p style="margin-top: 5mm; font-style: italic;">Os casos omissos e as situações excepcionais serão decididos pela Procuradora-Geral de Justiça-PI.</p>
             </div>
 
-            <div class="page-break section">
+            <div class="page-break section" id="conclusao">
               <h2>10. Conclusão e Disposições Finais</h2>
               <p>O Plano de Contratações Anual (PCA) do Ministério Público do Estado do Piauí, consolidado como prática de excelência desde 2021, atinge para o exercício de 2026 um novo patamar de maturidade institucional e robustez administrativa. A principal inovação deste ciclo reside na transição definitiva da governança baseada em ferramentas de visualização estática para um ecossistema tecnológico próprio e dedicado. Este avanço permite o rastreamento integral de cada etapa do planejamento, transformando dados em inteligência estratégica e assegurando uma sincronia sem precedentes entre o planejamento logístico e a execução orçamentária.</p>
               
@@ -1365,7 +1490,7 @@ const Relatorios = () => {
               </ol>
             </div>
 
-            <div class="page-break section">
+            <div class="page-break section" id="aprovacao">
               <h2>11. Aprovação</h2>
               <div style="margin-top: 10mm; padding: 25px; border: 1.5px solid #D9415D; border-radius: 8px; background: #fffafb;">
                 <p style="font-size: 14pt; font-weight: 700; color: #D9415D; margin-bottom: 6mm; letter-spacing: 1px;">Aprovação Institucional</p>
@@ -1383,32 +1508,25 @@ const Relatorios = () => {
               </div>
             </div>
 
-            <div class="page-break section landscape-section">
-              <h2>Anexo I: Relação Completa de Demandas</h2>
-              <p>A tabela a seguir apresenta a listagem completa de todas as demandas de contratação registradas para o exercício de 2026.</p>
-              <table>
-                <thead>
-                  <tr>
-                    <th style="width: 12%;">Cod.PCA</th>
-                    <th style="width: 35%;">Descrição</th>
-                    <th style="width: 15%;">Setor Demandante</th>
-                    <th style="width: 10%;">UO</th>
-                    <th style="width: 10%;">Tipo</th>
-                    <th style="width: 8%;">Prioridade</th>
-                    <th style="width: 10%;">Valor Planejado</th>
-                  </tr>
-                </thead>
-                  <tbody>
-                    ${rowsHtml}
-                  </tbody>
-                </table>
-              </div> <!-- End main-content -->
-            </td>
-          </tr>
-        </tbody>
-      </table>
+                </div> <!-- End main-content -->
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-          <div class="footer-global" style="display: none;"></div>
+          <table class="report-table landscape-section">
+            <tbody>
+              <tr>
+                <td>
+                  <div class="section" id="anexo-i">
+                    <h2 style="border-bottom: 2.5px solid #D9415D;">Anexo I: Relação Completa de Demandas</h2>
+                    <p>A tabela a seguir apresenta a listagem completa de todas as demandas de contratação registradas para o exercício de 2026, agrupadas por setor demandante.</p>
+                    ${anexoIHtml}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
             <script>
               window.onload = () => { setTimeout(() => { window.print(); }, 1000); };

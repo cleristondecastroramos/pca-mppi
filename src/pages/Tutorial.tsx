@@ -307,9 +307,34 @@ export default function Tutorial() {
           <P>Importação em massa de contratações a partir de arquivos CSV para migração ou atualização em lote.</P>
         </Section>
 
-        {/* 8. Nova Contratação */}
-        <Section id="sec8" title="8. Nova Contratação">
-          <H3>8.1. Informações Básicas (campos obrigatórios marcados com *)</H3>
+        {/* 8. Licitações SRP */}
+        <Section id="sec8" title="8. Licitações SRP (Sistema de Registro de Preços)">
+          <P>
+            A página <strong>Licitações SRP</strong> é um módulo especializado para o gerenciamento de demandas que utilizam o Sistema de Registro de Preços. Ela oferece uma interface otimizada para o fluxo específico de atas e registros de preços, permitindo um acompanhamento mais detalhado da fase de licitação até o registro da ata.
+          </P>
+
+          <H3>8.1. Diferenciais do Módulo SRP</H3>
+          <UL items={[
+            <><strong>Filtro Automático:</strong> Esta página exibe exclusivamente as demandas que foram marcadas com "SRP: Sim" no momento do cadastro.</>,
+            <><strong>Status Automático:</strong> Diferente de outros módulos, o status da demanda em SRP é calculado automaticamente pelo sistema com base no preenchimento de campos técnicos específicos.</>,
+            <><strong>Edição por Seções:</strong> O modal de edição é organizado em abas (Workflow, Fases Administrativas, Resultado e Especificações) para facilitar a inserção de dados.</>,
+          ]} />
+
+          <H3>8.2. Progressão Automática de Status</H3>
+          <P>O status da demanda evolui conforme os dados são inseridos no sistema:</P>
+          <UL items={[
+            <><strong>Planejada:</strong> Status inicial ao cadastrar a demanda.</>,
+            <><strong>Processo Administrativo Iniciado:</strong> Quando o campo "Nº SEI de Contratação" é preenchido.</>,
+            <><strong>Fase Externa da Licitação:</strong> Quando os campos "Nº SEI de Licitação" e "Nº do Edital" são preenchidos.</>,
+            <><strong>Licitação Concluída:</strong> Quando a "Data Prevista para Contratação" (que no SRP representa a data do certame) é preenchida.</>,
+            <><strong>Ata Registrada:</strong> Quando o campo "Nº do Contrato/Ata" é preenchido.</>,
+          ]} />
+          <Note>Para que o status evolua corretamente, é fundamental manter os campos de controle administrativo atualizados.</Note>
+        </Section>
+
+        {/* 9. Nova Contratação */}
+        <Section id="sec9" title="9. Nova Contratação">
+          <H3>9.1. Informações Básicas (campos obrigatórios marcados com *)</H3>
           <div className="overflow-x-auto rounded-lg border">
             <table className="w-full text-xs">
               <thead>
@@ -350,6 +375,7 @@ export default function Tutorial() {
           ]} />
 
           <H3>8.5. Cálculo Automático da Data Prevista de Início</H3>
+          <H3>9.5. Cálculo Automático da Data Prevista de Início</H3>
           <P>
             O campo <strong>Data Prevista para Início da Contratação</strong> é calculado automaticamente pelo sistema e permanece bloqueado para edição manual. O cálculo baseia-se no <em>Tipo de Contratação</em>, na <em>Modalidade</em> e na <em>Data Prevista para Conclusão</em>.
           </P>
@@ -361,40 +387,40 @@ export default function Tutorial() {
           <Note>Este mecanismo garante um planejamento realista e padronizado, alertando os gestores sobre o momento ideal para iniciar cada processo administrativo.</Note>
         </Section>
 
-        {/* 9. Setores Demandantes */}
-        <Section id="sec9" title="9. Setores Demandantes">
+        {/* 10. Setores Demandantes */}
+        <Section id="sec10" title="10. Setores Demandantes">
           <P>
             O módulo <strong>Setores Demandantes</strong> oferece uma visão consolidada e analítica de todas as contratações organizadas por setor requisitante. Trata-se de uma ferramenta estratégica voltada para <strong>Administradores</strong> e <strong>Gestores</strong>, que permite compreender o panorama geral das demandas de cada um dos 13 setores cadastrados no sistema: CAA, CCF, CCS, CEAF, CLC, CONINT, CPPT, CRH, CTI, GAECO, GSI, PLANEJAMENTO e PROCON.
           </P>
 
-          <H3>9.1. Visão Geral e KPIs</H3>
+          <H3>10.1. Visão Geral e KPIs</H3>
           <P>
             Na parte superior da página são exibidos indicadores consolidados (KPIs) que sintetizam o total de demandas cadastradas e o valor estimado acumulado de todas as contratações. Esses indicadores são atualizados automaticamente conforme o setor selecionado, permitindo ao usuário visualizar rapidamente a dimensão e o impacto financeiro das demandas de cada área.
           </P>
 
-          <H3>9.2. Filtro por Setor</H3>
+          <H3>10.2. Filtro por Setor</H3>
           <P>
             Por meio de botões de seleção rápida, o usuário pode escolher um setor específico para visualizar apenas suas demandas, ou selecionar <strong>"Todos"</strong> para exibir a visão consolidada de todos os setores simultaneamente. Ao selecionar um setor, a tabela abaixo é filtrada automaticamente, exibindo somente as contratações pertencentes àquele setor.
           </P>
 
-          <H3>9.3. Tabela de Demandas por Setor</H3>
+          <H3>10.3. Tabela de Demandas por Setor</H3>
           <P>
             A tabela principal exibe as seguintes informações de cada contratação: <strong>Código PCA</strong> (4 dígitos alfanuméricos), <strong>Descrição</strong> resumida do objeto, <strong>Classe</strong> (Material ou Serviço), <strong>Modalidade</strong> de contratação, <strong>Valor Estimado</strong>, <strong>Valor Contratado</strong>, <strong>Saldo Orçamentário</strong>, <strong>Empenhos</strong> e <strong>Etapa do Processo</strong>. Todos os valores monetários são formatados no padrão brasileiro (R$).
           </P>
 
-          <H3>9.4. Utilidade Estratégica</H3>
+          <H3>10.4. Utilidade Estratégica</H3>
           <P>
             Este módulo é especialmente útil para reuniões de planejamento e acompanhamento gerencial, pois permite identificar setores com maior volume de demandas, comparar valores estimados versus contratados, verificar saldos orçamentários remanescentes e acompanhar a evolução dos empenhos. Administradores podem utilizar essas informações para redistribuir recursos, ajustar prioridades e garantir o equilíbrio orçamentário entre os setores.
           </P>
         </Section>
 
-        {/* 10. Controle de Prazos */}
-        <Section id="sec10" title="10. Controle de Prazos">
+        {/* 11. Controle de Prazos */}
+        <Section id="sec11" title="11. Controle de Prazos">
           <P>
             O módulo <strong>Controle de Prazos</strong> é responsável pelo acompanhamento temporal de todas as contratações cadastradas no sistema. Seu objetivo principal é garantir que nenhuma demanda ultrapasse seus prazos sem que os responsáveis sejam alertados, contribuindo para o cumprimento do calendário do Plano de Contratações Anual. Disponível para <strong>Administradores</strong>, <strong>Gestores</strong> e <strong>Setores Requisitantes</strong> (neste caso, limitado às contratações do próprio setor).
           </P>
 
-          <H3>10.1. Datas Monitoradas</H3>
+          <H3>11.1. Datas Monitoradas</H3>
           <P>O sistema monitora quatro datas-chave de cada contratação, que representam os marcos temporais do ciclo de vida processual:</P>
           <UL items={[
             <><strong>Data Prevista de Contratação:</strong> Prazo estimado para a conclusão do processo de contratação, definido no momento do cadastro da demanda.</>,
@@ -403,7 +429,7 @@ export default function Tutorial() {
             <><strong>Data de Conclusão:</strong> Data em que todo o processo de contratação foi finalizado, incluindo a assinatura do contrato e publicação.</>,
           ]} />
 
-          <H3>10.2. Classificação de Status de Prazo</H3>
+          <H3>11.2. Classificação de Status de Prazo</H3>
           <P>Cada contratação é automaticamente classificada com base na data prevista de contratação em relação à data atual:</P>
           <UL items={[
             <><strong className="text-destructive">Vencido:</strong> A data prevista já passou e a contratação ainda não foi concluída. Exibido com badge vermelho, ícone de alerta e o código identificador de 4 dígitos.</>,
@@ -412,7 +438,7 @@ export default function Tutorial() {
             <><strong>Concluído:</strong> A contratação já foi finalizada, independentemente do prazo original.</>,
           ]} />
 
-          <H3>10.3. Filtros Disponíveis</H3>
+          <H3>11.3. Filtros Disponíveis</H3>
           <P>A página oferece múltiplos filtros para facilitar a localização e análise das contratações:</P>
           <UL items={[
             <><strong>Busca textual:</strong> Pesquisa por descrição, setor requisitante ou código PCA.</>,
@@ -420,31 +446,31 @@ export default function Tutorial() {
             <><strong>Filtros por mês:</strong> Dois filtros que permitem selecionar meses específicos para a <strong>data de início</strong> e para a <strong>data de conclusão</strong> da contratação.</>,
           ]} />
 
-          <H3>10.4. Edição de Datas</H3>
+          <H3>11.4. Edição de Datas</H3>
           <P>
             Usuários com perfil de <strong>Administrador</strong> ou <strong>Gestor</strong> podem editar as datas diretamente na tabela, clicando sobre a célula correspondente. Um calendário (datepicker) é exibido para seleção da nova data. Todas as alterações são salvas automaticamente no banco de dados e registradas no histórico de auditoria. O perfil <strong>Setor Requisitante</strong> possui acesso apenas para visualização, sem possibilidade de edição.
           </P>
 
-          <H3>10.5. Indicadores Resumidos</H3>
+          <H3>11.5. Indicadores Resumidos</H3>
           <P>
             Na parte superior da página, KPIs exibem o total de contratações monitoradas, a quantidade de contratações com prazo vencido e a quantidade com prazo próximo ao vencimento, proporcionando uma visão rápida da situação geral dos prazos.
           </P>
         </Section>
 
-        {/* 11. Pontos de Atenção */}
-        <Section id="sec11" title="11. Pontos de Atenção">
+        {/* 12. Pontos de Atenção */}
+        <Section id="sec12" title="12. Pontos de Atenção">
           <P>
             O módulo <strong>Pontos de Atenção</strong> (também chamado de <strong>Prioridades de Atenção</strong>) funciona como um painel de alerta inteligente do sistema, destacando automaticamente as contratações que exigem intervenção imediata ou acompanhamento prioritário. Disponível para <strong>Administradores</strong>, <strong>Gestores</strong> e <strong>Setores Requisitantes</strong> (limitado ao próprio setor).
           </P>
 
-          <H3>11.1. Critérios de Classificação</H3>
+          <H3>12.1. Critérios de Classificação</H3>
           <P>O sistema analisa automaticamente todas as contratações e as classifica em duas categorias principais de atenção:</P>
           <UL items={[
             <><strong className="text-destructive">Atrasados (Prazos Vencidos):</strong> Contratações cuja data prevista de contratação já ultrapassou a data atual e que ainda não foram concluídas nem sobrestadas. Representam situações críticas que demandam ação imediata por parte do setor responsável e da gestão.</>,
             <><strong className="text-warning">Atenção — Prazo nos Próximos 120 dias:</strong> Contratações cuja data prevista de contratação está dentro dos próximos 120 dias (aproximadamente 4 meses). Funcionam como um alerta preventivo, permitindo que os responsáveis se antecipem e garantam o andamento tempestivo do processo.</>,
           ]} />
 
-          <H3>11.2. Informações Exibidas</H3>
+          <H3>12.2. Informações Exibidas</H3>
           <P>Para cada contratação destacada, o sistema exibe:</P>
           <UL items={[
             <><strong>Código PCA:</strong> Identificador único composto por 4 dígitos alfanuméricos.</>,
@@ -455,24 +481,24 @@ export default function Tutorial() {
             <><strong>Dias de atraso ou dias restantes:</strong> Cálculo automático mostrando há quantos dias o prazo está vencido (para atrasados) ou quantos dias faltam para o vencimento (para os que exigem atenção).</>,
           ]} />
 
-          <H3>11.3. Navegação por Abas</H3>
+          <H3>12.3. Navegação por Abas</H3>
           <P>
             A interface é organizada em duas abas (tabs): <strong>"Atrasados"</strong> e <strong>"Atenção (120 dias)"</strong>. Cada aba apresenta uma tabela dedicada com suas respectivas contratações, KPIs de resumo (quantidade de itens na categoria) e badges coloridos para rápida identificação visual. A aba de atrasados é exibida por padrão ao acessar a página.
           </P>
 
-          <H3>11.4. Finalidade Estratégica</H3>
+          <H3>12.4. Finalidade Estratégica</H3>
           <P>
             Este módulo é essencial para a gestão proativa das contratações. Ao concentrar em uma única tela todas as situações que requerem atenção, ele permite que gestores identifiquem gargalos, cobrem providências dos setores responsáveis e tomem decisões tempestivas para evitar prejuízos ao planejamento anual. É recomendável que administradores e gestores consultem este módulo diariamente como parte de sua rotina de acompanhamento.
           </P>
         </Section>
 
-        {/* 12. Prioridades de Contratação */}
-        <Section id="sec12" title="12. Prioridades de Contratação">
+        {/* 13. Prioridades de Contratação */}
+        <Section id="sec13" title="13. Prioridades de Contratação">
           <P>
             O módulo <strong>Prioridades de Contratação</strong> organiza todas as demandas cadastradas no sistema de acordo com seu <strong>grau de prioridade</strong>, oferecendo uma visão estratégica que facilita a tomada de decisão sobre quais contratações devem receber atenção prioritária. Disponível para <strong>Administradores</strong>, <strong>Gestores</strong> e <strong>Setores Requisitantes</strong> (limitado ao próprio setor).
           </P>
 
-          <H3>12.1. Níveis de Prioridade</H3>
+          <H3>13.1. Níveis de Prioridade</H3>
           <P>O sistema classifica cada contratação em três níveis de prioridade, cada um representado por uma coluna visual distinta:</P>
           <UL items={[
             <><strong className="text-destructive">Alta:</strong> Contratações de caráter urgente ou imprescindível para a continuidade dos serviços do MPPI. São demandas que, caso não sejam realizadas no prazo, podem comprometer o funcionamento de setores essenciais, acarretar prejuízos financeiros ou descumprir obrigações legais. Identificadas com ícone de alerta vermelho (⚠️).</>,
@@ -480,19 +506,19 @@ export default function Tutorial() {
             <><strong>Baixa:</strong> Contratações que, embora necessárias, podem ser postergadas sem impacto significativo nas operações do MPPI. Geralmente envolvem melhorias incrementais, aquisições de menor valor ou demandas que podem aguardar janelas orçamentárias mais favoráveis. Identificadas com ícone de seta para baixo (↓).</>,
           ]} />
 
-          <H3>12.2. Layout em Colunas (Kanban)</H3>
+          <H3>13.2. Layout em Colunas (Kanban)</H3>
           <P>
             A interface apresenta as contratações em um layout de três colunas lado a lado, no estilo kanban, onde cada coluna corresponde a um nível de prioridade (Alta, Média, Baixa). Cada coluna exibe no topo o número de demandas e o valor estimado total daquela categoria. Dentro de cada coluna, cada contratação é apresentada como um card contendo: descrição do objeto, setor requisitante, status atual (não iniciado, em andamento, concluído ou sobrestado) e valor estimado.
           </P>
 
-          <H3>12.3. Filtros</H3>
+          <H3>13.3. Filtros</H3>
           <P>A página oferece dois filtros para refinamento da visualização:</P>
           <UL items={[
             <><strong>Busca textual:</strong> Permite pesquisar por descrição ou setor requisitante, atualizando instantaneamente as três colunas conforme o termo digitado.</>,
             <><strong>Filtro por status:</strong> Permite exibir apenas contratações com determinado status (não iniciado, em andamento, concluído ou sobrestado), facilitando análises focadas em um estágio específico do processo.</>,
           ]} />
 
-          <H3>12.4. Status das Contratações</H3>
+          <H3>13.4. Status das Contratações</H3>
           <P>Cada contratação dentro dos cards de prioridade exibe seu status atual, determinado automaticamente pelo sistema:</P>
           <UL items={[
             <><strong>Não iniciado:</strong> Contratação ainda na fase de planejamento, sem movimentação processual. Badge azul.</>,
@@ -501,19 +527,19 @@ export default function Tutorial() {
             <><strong>Sobrestado:</strong> Contratação temporariamente suspensa por determinação administrativa ou técnica. Badge cinza.</>,
           ]} />
 
-          <H3>12.5. Alteração de Prioridade</H3>
+          <H3>13.5. Alteração de Prioridade</H3>
           <P>
             Usuários com perfil de <strong>Administrador</strong> ou <strong>Gestor</strong> podem alterar o grau de prioridade de qualquer contratação diretamente pela página de detalhes ou pela lista de contratações. Toda alteração é registrada no histórico de auditoria do sistema, incluindo o valor anterior, o novo valor e a identificação do usuário que realizou a mudança. Setores Requisitantes visualizam as prioridades de suas demandas, mas não podem alterá-las.
           </P>
 
-          <H3>12.6. Importância para a Gestão</H3>
+          <H3>13.6. Importância para a Gestão</H3>
           <P>
             A correta classificação das prioridades é fundamental para o sucesso do Plano de Contratações Anual. Ela permite que a equipe de gestão aloque recursos, organize cronogramas e direcione esforços para as demandas mais críticas. Recomenda-se que a revisão das prioridades seja realizada periodicamente, especialmente diante de mudanças orçamentárias, alterações legislativas ou surgimento de novas necessidades institucionais.
           </P>
         </Section>
 
-        {/* 13. Conformidade */}
-        <Section id="sec13" title="13. Avaliação e Conformidade">
+        {/* 14. Conformidade */}
+        <Section id="sec14" title="14. Avaliação e Conformidade">
           <P>
             O módulo <strong>Avaliação e Conformidade</strong> é responsável por verificar e registrar o cumprimento dos requisitos documentais e legais de cada processo de contratação. Ele funciona como um checklist estruturado que acompanha todas as etapas obrigatórias, garantindo que nenhum documento ou procedimento seja omitido ao longo do processo licitatório e contratual. Este módulo está disponível exclusivamente para usuários com perfil de <strong>Administrador</strong> e <strong>Gestor</strong>.
           </P>
@@ -548,12 +574,12 @@ export default function Tutorial() {
             <><strong>Publicação do Extrato do Contrato:</strong> Verificação de que o extrato do contrato foi publicado no Diário Oficial, conforme exigido pela legislação para garantir transparência e eficácia do ato.</>,
           ]} />
 
-          <H3>13.2. Regra Especial para Contratações via SRP</H3>
+          <H3>14.2. Regra Especial para Contratações via SRP</H3>
           <Note>
             <strong>Importante:</strong> Quando uma contratação é cadastrada como <strong>SRP (Sistema de Registro de Preços)</strong>, o checklist exibe <strong>apenas a Fase de Licitação</strong> (7 itens). A Fase de Contratação <strong>não é aplicável</strong> neste caso, pois no regime de SRP o resultado da licitação gera uma <strong>Ata de Registro de Preços</strong>, e não um contrato imediato. A contratação efetiva ocorre posteriormente, por meio de adesão à ata, em processo próprio. Portanto, o percentual de conformidade para demandas SRP é calculado com base apenas nos 7 itens da Fase de Licitação, enquanto para as demais demandas o cálculo considera todos os 11 itens (7 da licitação + 4 da contratação).
           </Note>
 
-          <H3>13.3. Percentual de Conformidade</H3>
+          <H3>14.3. Percentual de Conformidade</H3>
           <P>
             Para cada contratação, o sistema calcula automaticamente um <strong>percentual de conformidade</strong> baseado na proporção de itens marcados como cumpridos em relação ao total aplicável. O percentual é exibido na tabela principal por meio de badges coloridos:
           </P>
@@ -563,7 +589,7 @@ export default function Tutorial() {
             <><strong className="text-muted-foreground">Abaixo de 30%:</strong> Badge cinza — conformidade baixa, indicando que o processo ainda está em estágio inicial de documentação.</>,
           ]} />
 
-          <H3>13.4. Como Auditar uma Contratação</H3>
+          <H3>14.4. Como Auditar uma Contratação</H3>
           <P>Para realizar a avaliação de conformidade de uma contratação, siga os passos:</P>
           <OL items={[
             "Na tabela principal, localize a contratação desejada utilizando os filtros de busca, setor ou status.",
@@ -574,24 +600,24 @@ export default function Tutorial() {
             <>Clique em <strong>"Salvar"</strong> para registrar a avaliação. O percentual de conformidade será atualizado automaticamente na tabela.</>,
           ]} />
 
-          <H3>13.5. Filtros e Exportação</H3>
+          <H3>14.5. Filtros e Exportação</H3>
           <P>
             A página oferece filtros por <strong>busca textual</strong> (descrição ou código PCA), <strong>setor requisitante</strong> e <strong>status da contratação</strong>. Além disso, é possível exportar os dados filtrados em formato <strong>CSV</strong> para análise externa, clicando no botão <strong>"Exportar CSV"</strong> no canto superior direito.
           </P>
 
-          <H3>13.6. Importância para o Processo</H3>
+          <H3>14.6. Importância para o Processo</H3>
           <P>
             A avaliação de conformidade é fundamental para garantir que todos os processos de contratação do MPPI estejam em conformidade com a legislação vigente, reduzindo riscos de irregularidades, impugnações e questionamentos por parte dos órgãos de controle. Recomenda-se que a auditoria de conformidade seja realizada de forma contínua, à medida que os documentos de cada fase são produzidos e validados.
           </P>
         </Section>
 
-        {/* 14. Resultados Alcançados */}
-        <Section id="sec14" title="14. Resultados Alcançados">
+        {/* 15. Resultados Alcançados */}
+        <Section id="sec15" title="15. Resultados Alcançados">
           <P>
             O módulo <strong>Resultados Alcançados</strong> é o painel de desempenho do sistema PCA 2026, responsável por consolidar e apresentar de forma visual os resultados efetivos das contratações concluídas pelo MPPI. Disponível exclusivamente para <strong>Administradores</strong> e <strong>Gestores</strong>, este módulo transforma dados brutos em indicadores estratégicos que permitem avaliar o desempenho institucional no cumprimento do Plano de Contratações Anual.
           </P>
 
-          <H3>14.1. KPIs (Indicadores-Chave de Desempenho)</H3>
+          <H3>15.1. KPIs (Indicadores-Chave de Desempenho)</H3>
           <P>Na parte superior da página, três indicadores principais sintetizam o panorama das contratações concluídas:</P>
           <UL items={[
             <><strong>Demandas Concluídas:</strong> Quantidade total de contratações que atingiram a etapa "Concluído", representando os processos que foram integralmente finalizados.</>,
@@ -599,7 +625,7 @@ export default function Tutorial() {
             <><strong>Taxa de Conclusão:</strong> Percentual de demandas concluídas em relação ao total de demandas cadastradas no sistema. Indica o grau de execução do Plano de Contratações Anual.</>,
           ]} />
 
-          <H3>14.2. Gráficos Analíticos</H3>
+          <H3>15.2. Gráficos Analíticos</H3>
           <P>O módulo apresenta três gráficos interativos que permitem análises sob diferentes perspectivas. Cada gráfico possui botões de alternância para visualizar os dados por <strong>número de processos</strong> ou por <strong>valores contratados</strong>:</P>
           <UL items={[
             <><strong>Distribuição por Unidade Orçamentária (UO):</strong> Gráfico de pizza que mostra como as contratações concluídas estão distribuídas entre as unidades orçamentárias (PGJ, FMMP, FEPDC). Permite identificar qual fonte de recurso foi mais utilizada.</>,
@@ -607,12 +633,12 @@ export default function Tutorial() {
             <><strong>Distribuição por Classe:</strong> Gráfico de pizza que segmenta as contratações entre Material e Serviço, oferecendo uma visão clara da natureza predominante das aquisições do MPPI.</>,
           ]} />
 
-          <H3>14.3. Tabela de Valor Contratado por Setor</H3>
+          <H3>15.3. Tabela de Valor Contratado por Setor</H3>
           <P>
             Na parte inferior da página, uma tabela detalhada apresenta o valor total contratado por cada setor requisitante. Esta informação é essencial para avaliar quais setores estão mais avançados na execução de suas demandas e quais ainda possuem margem significativa entre o planejado e o realizado.
           </P>
 
-          <H3>14.4. Finalidade Estratégica</H3>
+          <H3>15.4. Finalidade Estratégica</H3>
           <P>
             O módulo Resultados Alcançados desempenha um papel central na <strong>prestação de contas</strong> e na <strong>avaliação de desempenho institucional</strong>. Seus dados permitem que a alta gestão do MPPI:
           </P>
@@ -624,13 +650,13 @@ export default function Tutorial() {
           ]} />
         </Section>
 
-        {/* 15. Relatórios */}
-        <Section id="sec15" title="15. Relatórios">
+        {/* 16. Relatórios */}
+        <Section id="sec16" title="16. Relatórios">
           <P>
             O módulo <strong>Relatórios</strong> é a ferramenta de geração e exportação de relatórios gerenciais do sistema PCA 2026. Ele permite que <strong>Administradores</strong> e <strong>Gestores</strong> produzam documentos estruturados a partir dos dados das contratações, aplicando filtros avançados e escolhendo entre diferentes tipos de relatório conforme a necessidade da análise.
           </P>
 
-          <H3>15.1. Tipos de Relatório Disponíveis</H3>
+          <H3>16.1. Tipos de Relatório Disponíveis</H3>
           <P>O sistema oferece cinco tipos de relatório, cada um com foco em uma dimensão específica do processo de contratação:</P>
           <UL items={[
             <><strong>Contratações — Detalhado:</strong> Listagem completa de todas as contratações com código PCA, descrição, setor requisitante, unidade orçamentária, prioridade, valores estimado e contratado, normativo aplicável e data prevista. É o relatório mais abrangente e indicado para análises gerais.</>,
@@ -640,7 +666,7 @@ export default function Tutorial() {
             <><strong>Prazos — Críticos e Alertas:</strong> Relatório focado exclusivamente em contratações com prazos vencidos ou próximos ao vencimento. Filtra automaticamente apenas os processos que demandam atenção imediata, ordenando-os por criticidade.</>,
           ]} />
 
-          <H3>15.2. Filtros Avançados</H3>
+          <H3>16.2. Filtros Avançados</H3>
           <P>Todos os relatórios podem ser refinados por meio de um painel completo de filtros, que inclui:</P>
           <UL items={[
             <><strong>Unidade Orçamentária:</strong> PGJ, FMMP, FEPDC ou todas.</>,
@@ -654,19 +680,19 @@ export default function Tutorial() {
             <><strong>Etapa do Processo:</strong> Não iniciado, em andamento, concluído ou sobrestado.</>,
           ]} />
 
-          <H3>15.3. Formatos de Exportação</H3>
+          <H3>16.3. Formatos de Exportação</H3>
           <P>Cada relatório pode ser exportado em dois formatos:</P>
           <UL items={[
             <><strong>PDF:</strong> Documento formatado para impressão e compartilhamento, com cabeçalho institucional do MPPI, data de geração, filtros aplicados e tabela estilizada. Abre em uma nova aba do navegador para visualização e impressão.</>,
             <><strong>CSV:</strong> Arquivo de dados separados por vírgula, compatível com Microsoft Excel, Google Sheets e outros softwares de planilha. Ideal para análises adicionais, cruzamentos de dados e elaboração de gráficos personalizados.</>,
           ]} />
 
-          <H3>15.4. Visualização Prévia</H3>
+          <H3>16.4. Visualização Prévia</H3>
           <P>
             Antes de exportar, o usuário pode visualizar o relatório diretamente na tela do sistema. A tabela de prévia exibe os mesmos dados que serão incluídos no documento exportado, permitindo verificar se os filtros aplicados estão corretos e se o relatório contém as informações desejadas.
           </P>
 
-          <H3>15.5. Finalidade Estratégica</H3>
+          <H3>16.5. Finalidade Estratégica</H3>
           <P>
             O módulo de Relatórios é a principal ferramenta de <strong>comunicação institucional</strong> e <strong>prestação de contas</strong> do sistema PCA 2026. Seus documentos atendem a diversas finalidades:
           </P>
@@ -679,21 +705,21 @@ export default function Tutorial() {
           ]} />
         </Section>
 
-        {/* 16. Orçamento */}
-        <Section id="sec16" title="16. Orçamento Planejado">
+        {/* 17. Orçamento */}
+        <Section id="sec17" title="17. Orçamento Planejado">
           <P>Exclusivo do <strong>Administrador</strong>. Define limites orçamentários anuais para os 13 setores.</P>
 
-          <H3>16.1. Fontes de Recurso</H3>
+          <H3>17.1. Fontes de Recurso</H3>
           <UL items={[
             <><strong>PGJ:</strong> Orçamento principal do MPPI.</>,
             <><strong>FMMP:</strong> Fundo de Modernização do Ministério Público.</>,
             <><strong>FEPDC:</strong> Fundo Estadual de Proteção e Defesa do Consumidor.</>,
           ]} />
 
-          <H3>16.2. Trava Orçamentária</H3>
+          <H3>17.2. Trava Orçamentária</H3>
           <P>Quando ativada, bloqueia novas contratações que ultrapassem o limite. O interruptor (switch) permite ativar/desativar por setor.</P>
 
-          <H3>16.3. Sincronização com o Planejamento</H3>
+          <H3>17.3. Sincronização com o Planejamento</H3>
           <P>
             O botão <strong>"Preencher do Planejado"</strong> automatiza a definição dos limites orçamentários. Ao ser acionado, o sistema realiza a soma instantânea de todos os <em>Valores Estimados</em> de todas as contratações cadastradas (que não estejam canceladas), agrupando-as por Setor e por Unidade Orçamentária (PGJ, FMMP, FEPDC).
           </P>
@@ -701,15 +727,15 @@ export default function Tutorial() {
             Esta funcionalidade garante que os limites informados na tabela correspondam exatamente ao que foi planejado detalhadamente no PCA, eliminando erros de digitação e facilitando o fechamento do planejamento anual.
           </P>
 
-          <H3>16.4. Auditoria</H3>
+          <H3>17.4. Auditoria</H3>
           <P>Todas as alterações são registradas com data, usuário, valores anteriores e novos. Acessível pelo botão <strong>"Histórico"</strong>.</P>
         </Section>
 
-        {/* 17. Gerenciamento */}
-        <Section id="sec17" title="17. Gerenciamento de Usuários">
+        {/* 18. Gerenciamento */}
+        <Section id="sec18" title="18. Gerenciamento de Usuários">
           <P>Módulo exclusivo do perfil <strong>Administrador</strong>, destinado ao controle total das contas de acesso e permissões dentro da plataforma PCA 2026.</P>
 
-          <H3>17.1. Cadastro de Novo Usuário</H3>
+          <H3>18.1. Cadastro de Novo Usuário</H3>
           <OL items={[
             <>Clique no botão <strong>"Cadastrar usuário"</strong> localizado no canto superior direito.</>,
             "Preencha o Nome Completo e o E-mail Institucional (@mppi.mp.br).",
@@ -720,7 +746,7 @@ export default function Tutorial() {
           ]} />
           <Note>A regra de cadastro foi aprimorada: ao atribuir um perfil específico, o sistema garante a exclusividade daquele papel, evitando sobreposições automáticas de perfis.</Note>
 
-          <H3>17.2. Tabela de Gerenciamento e Interface</H3>
+          <H3>18.2. Tabela de Gerenciamento e Interface</H3>
           <P>A interface de gerenciamento foi reformulada para oferecer uma experiência mais moderna e eficiente:</P>
           <UL items={[
             <><strong>Identidade Visual:</strong> O cabeçalho da tabela apresenta agora uma cor de fundo vermelha vibrante e textos em branco, facilitando a identificação das colunas.</>,
@@ -728,7 +754,7 @@ export default function Tutorial() {
             <><strong>Botão "Atualizar":</strong> Localizado no topo, permite sincronizar a lista com o servidor sem recarregar a página.</>,
           ]} />
 
-          <H3>17.3. Busca e Filtros Inteligentes</H3>
+          <H3>18.3. Busca e Filtros Inteligentes</H3>
           <P>Localizar usuários tornou-se mais preciso com as novas ferramentas de filtragem:</P>
           <UL items={[
             <><strong>Busca por Texto:</strong> O campo de busca permite agora pesquisar simultaneamente por <strong>Nome</strong>, <strong>E-mail</strong> ou <strong>Cargo</strong>.</>,
@@ -736,20 +762,20 @@ export default function Tutorial() {
             <><strong>Filtro por Setor:</strong> Um novo dropdown exclusivo permite visualizar apenas usuários vinculados a um setor específico, incluindo a <strong>Administração Superior</strong>.</>,
           ]} />
 
-          <H3>17.4. Edição e Segurança</H3>
+          <H3>18.4. Edição e Segurança</H3>
           <P>
             As ações de edição (ícone de lápis) e exclusão (ícone de lixeira) permitem a manutenção contínua da base de usuários. A política de criação de usuários e atribuição de perfis segue os mais rigorosos padrões de segurança da informação do MPPI.
           </P>
           <Note>O sistema impede a duplicação de papéis durante a edição ou criação, garantindo que "Gestores" não recebam perfis de "Consulta" acidentalmente.</Note>
         </Section>
 
-        {/* 18. Notificações */}
-        <Section id="sec18" title="18. Notificações">
+        {/* 19. Notificações */}
+        <Section id="sec19" title="19. Notificações">
           <P>
             O módulo <strong>Central de Notificações</strong> é o canal oficial de comunicação rápida do sistema PCA 2026, permitindo que a administração envie alertas, avisos e mensagens importantes para todos os usuários ou para <strong>setores específicos</strong> da plataforma de forma instantânea.
           </P>
 
-          <H3>18.1. Como Criar uma Notificação</H3>
+          <H3>19.1. Como Criar uma Notificação</H3>
           <P>Para criar e disparar uma nova notificação, o Administrador deve acessar a página <strong>"Notificações"</strong> no menu lateral e preencher o formulário disponível no card <strong>"Nova Notificação"</strong>:</P>
           <OL items={[
             <><strong>Título Curto (máx. 50 caracteres):</strong> Um resumo objetivo do assunto.</>,
@@ -761,7 +787,7 @@ export default function Tutorial() {
             O layout das notificações foi aprimorado para um estilo <strong>minimalista</strong>. O cabeçalho da caixa de notificações agora utiliza a mesma cor vermelha padrão do menu principal, garantindo unidade visual em todo o sistema.
           </Note>
 
-          <H3>18.2. Como os Usuários Recebem as Notificações</H3>
+          <H3>19.2. Como os Usuários Recebem as Notificações</H3>
           <P>
             Todas as notificações ativas são exibidas no <strong>ícone de sino (🔔)</strong> localizado no canto superior direito do cabeçalho do sistema, visível em todas as páginas. O funcionamento é o seguinte:
           </P>
@@ -797,7 +823,7 @@ export default function Tutorial() {
           </P>
         </Section>
 
-        <Section id="sec19" title="19. Minha Conta">
+        <Section id="sec20" title="20. Minha Conta">
           <P>A página <strong>Minha Conta</strong> está disponível para <strong>todos os perfis de acesso</strong> e permite que cada usuário gerencie suas informações pessoais dentro do sistema. Manter esses dados atualizados é fundamental para garantir a correta identificação do responsável em cada ação registrada, facilitar a comunicação entre os setores e assegurar a rastreabilidade das operações realizadas.</P>
 
           <H3>Informações Editáveis</H3>
@@ -814,7 +840,7 @@ export default function Tutorial() {
           <P>A página também oferece a funcionalidade de <strong>troca de senha</strong>, permitindo que o usuário atualize sua credencial de acesso a qualquer momento. Recomenda-se alterar a senha periodicamente para manter a segurança da conta, especialmente após o primeiro acesso ao sistema.</P>
         </Section>
 
-        <Section id="sec20" title="20. FAQ / Dúvidas">
+        <Section id="sec21" title="21. FAQ / Dúvidas">
           <P>A seção de <strong>FAQ (Perguntas Frequentes)</strong> reúne as dúvidas mais comuns sobre o funcionamento do sistema em formato de acordeão expansível, permitindo consulta rápida e objetiva.</P>
 
           <H3>Conteúdo da Seção</H3>
@@ -834,8 +860,8 @@ export default function Tutorial() {
           <P>Os contatos incluem <strong>e-mail</strong> e <strong>ramal telefônico</strong> de cada setor, facilitando o acesso direto à equipe responsável conforme a natureza da dúvida.</P>
         </Section>
 
-        {/* 21. Glossário */}
-        <Section id="sec21" title="21. Glossário de Termos e Siglas">
+        {/* 22. Glossário */}
+        <Section id="sec22" title="22. Glossário de Termos e Siglas">
           <H3>Siglas</H3>
           <div className="overflow-x-auto rounded-lg border">
             <table className="w-full text-xs table-fixed">
@@ -979,6 +1005,7 @@ const TOC = [
   "Home — Página Inicial",
   "Visão Geral — Dashboard",
   "Contratações",
+  "Licitações SRP (Sistema de Registro de Preços)",
   "Nova Contratação",
   "Setores Demandantes",
   "Controle de Prazos",
@@ -998,6 +1025,7 @@ const TOC = [
 const MATRIX = [
   ["Home / Visão Geral", "Completo", "Completo", "Apenas seu setor", "Somente leitura"],
   ["Contratações", "CRUD completo", "Visualizar e editar", "Visualiza e edita o setor", "Somente leitura"],
+  ["Licitações SRP", "✓", "✓", "Apenas seu setor", "Somente leitura"],
   ["Nova Contratação", "✓", "✓", "✓ (setor fixo)", "✗"],
   ["Setores Demandantes", "✓", "✓", "✗", "✗"],
   ["Controle de Prazos", "✓", "✓", "Apenas seu setor", "✗"],
@@ -1067,7 +1095,7 @@ const SETORES = [
 const TERMOS = [
   ["Contratação", "Processo formal de aquisição de bens ou serviços pelo MPPI."],
   ["Trava Orçamentária", "Mecanismo que bloqueia novas contratações quando o limite é atingido."],
-  ["Etapa do Processo", "Fase atual (Planejamento, Em Licitação, Contratado, Concluído)."],
+  ["Etapa do Processo", "Fase atual (Planejamento, Iniciado, Em Licitação, Retornado para Diligência, Contratado, Concluído)."],
   ["Sobrestamento", "Paralisação temporária de um processo de contratação."],
   ["Devolução", "Retorno do processo ao setor para correções."],
   ["Empenho", "Ato administrativo que reserva recursos orçamentários."],

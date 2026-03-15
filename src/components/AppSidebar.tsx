@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, Plus, Settings, LogOut, BarChart3, Users, CheckSquare, ClipboardList, Gauge, BadgeCheck, Clock, TrendingUp, AlertTriangle, HelpCircle, Terminal, BellRing, BookOpen } from "lucide-react";
+import { LayoutDashboard, FileText, Plus, Settings, LogOut, BarChart3, Users, CheckSquare, ClipboardList, Gauge, BadgeCheck, Clock, TrendingUp, AlertTriangle, HelpCircle, Terminal, BellRing, BookOpen, Gavel, Calculator, ListTodo } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useUserRoles, useAuthSession, type PerfilAcesso } from "@/lib/auth";
 import {
@@ -36,8 +36,8 @@ type MenuItem = {
 
 const menuItems: MenuItem[] = [
   { title: "Visão Geral", url: "/visao-geral", icon: Gauge, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
-  { title: "Contratações", url: "/contratacoes", icon: FileText, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
-  { title: "Licitações SRP", url: "/licitacoes-srp", icon: FileText, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
+  { title: "Contratações", url: "/contratacoes", icon: ListTodo, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
+  { title: "Licitações SRP", url: "/licitacoes-srp", icon: Gavel, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
   { title: "Setores Demandantes", url: "/setores-demandantes", icon: ClipboardList, allowedRoles: ["administrador", "gestor"] },
   { title: "Controle de Prazos", url: "/controle-prazos", icon: Clock, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
   { title: "Pontos de Atenção", url: "/pontos-atencao", icon: AlertTriangle, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
@@ -45,7 +45,7 @@ const menuItems: MenuItem[] = [
   { title: "Avaliação e Conformidade", url: "/avaliacao-conformidade", icon: CheckSquare, allowedRoles: ["administrador", "gestor"] },
   { title: "Resultados Alcançados", url: "/resultados-alcancados", icon: TrendingUp, allowedRoles: ["administrador", "gestor"] },
   { title: "Relatórios", url: "/relatorios", icon: BarChart3, allowedRoles: ["administrador", "gestor"] },
-  { title: "Orçamento Planejado", url: "/orcamento-planejado", icon: FileText, allowedRoles: ["administrador"] },
+  { title: "Orçamento Planejado", url: "/orcamento-planejado", icon: Calculator, allowedRoles: ["administrador"] },
   { title: "Gerenciamento de Usuários", url: "/gerenciamento-usuarios", icon: Users, allowedRoles: ["administrador"] },
   { title: "Notificações", url: "/notificacoes", icon: BellRing, allowedRoles: ["administrador"] },
   { title: "Desenvolvimento", url: "/desenvolvimento", icon: Terminal, allowedRoles: ["administrador"] },
