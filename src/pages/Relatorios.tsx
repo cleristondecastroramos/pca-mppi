@@ -781,9 +781,31 @@ const Relatorios = () => {
               .report-table > tbody > tr > td, 
               .report-table > tfoot > tr > td { border: none !important; padding: 0 !important; }
               
-              @page { size: A4; margin: 20mm 20mm 15mm 20mm; }
-              @page cover { size: A4; margin: 0; }
-              @page landscape { size: A4 landscape; margin: 20mm 20mm 15mm 20mm; }
+              @page { 
+                size: A4; 
+                margin: 20mm 20mm 20mm 20mm;
+                @bottom-right {
+                  content: "Página " counter(page) " de " counter(pages);
+                  font-size: 8pt;
+                  font-family: 'Inter', sans-serif;
+                  color: #6b7280;
+                }
+              }
+              @page cover { size: A4; margin: 0; @bottom-right { content: none; } }
+              @page ficha { size: A4; margin: 20mm 20mm 15mm 20mm; @bottom-right { content: none; } }
+              @page sumario { size: A4; margin: 20mm 20mm 15mm 20mm; @bottom-right { content: none; } }
+              @page landscape { 
+                size: A4 landscape; 
+                margin: 20mm 20mm 20mm 20mm;
+                @bottom-right {
+                  content: "Página " counter(page) " de " counter(pages);
+                  font-size: 8pt;
+                  font-family: 'Inter', sans-serif;
+                  color: #6b7280;
+                }
+              }
+              .ficha-page { page: ficha; }
+              .sumario-page { page: sumario; }
               .landscape-section { page: landscape; }
               @media print {
                 .no-print { display: none; }
