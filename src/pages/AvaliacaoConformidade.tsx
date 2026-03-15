@@ -343,7 +343,7 @@ const AvaliacaoConformidade = () => {
                       paginated.map((r) => (
                         <TableRow key={r.id} className="hover:bg-muted/40">
                           <TableCell className="text-sm text-muted-foreground whitespace-nowrap text-center">
-                            {(r as any).codigo?.replace(/^PCA-/, "").replace(/-2026$/, "") || String(r.id).slice(-4)}
+                            {(r as any).codigo?.toUpperCase().replace(/^PCA-/, "").replace(/-2026$/, "") || String(r.id).slice(-4).toUpperCase()}
                           </TableCell>
                           <TableCell><div className="truncate" title={r.descricao}>{r.descricao}</div></TableCell>
                           <TableCell className="text-center">{r.setor_requisitante || "-"}</TableCell>

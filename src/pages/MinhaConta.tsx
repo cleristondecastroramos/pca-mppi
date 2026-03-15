@@ -9,6 +9,8 @@ import { translateError } from "@/lib/utils/error-translations";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Camera, Image as ImageIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useAuthSession, useUserRoles, hasAnyRole, SETORES_REQUISITANTES } from "@/lib/auth";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const avatarOptions = [
   "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=e2e8f0",
@@ -67,6 +69,9 @@ const MinhaConta = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [openAvatarDialog, setOpenAvatarDialog] = useState(false);
   const [updatingAvatar, setUpdatingAvatar] = useState(false);
+  const { data: session } = useAuthSession();
+  const { data: roles } = useUserRoles(session?.user?.id);
+  const isAdmin = hasAnyRole(roles, ["administrador"]);
 
   useEffect(() => {
     const load = async () => {
@@ -329,7 +334,20 @@ const MinhaConta = () => {
                 <div className="grid grid-cols-2 gap-2">
                   <div className="grid gap-2">
                     <label className="text-sm">Setor</label>
-                    <Input value={setor} onChange={(e) => setSetor(e.target.value)} placeholder="Setor de lotação" />
+                    <Select 
+                      value={setor} 
+                      onValueChange={setSetor}
+                      disabled={!isAdmin}
+                    >
+                      <SelectTrigger className={!isAdmin ? "bg-muted cursor-not-allowed opacity-70" : ""}>
+                        <SelectValue placeholder="Selecione o setor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SETORES_REQUISITANTES.map((s) => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="grid gap-2">
                     <label className="text-sm">Ramal</label>

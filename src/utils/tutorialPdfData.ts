@@ -452,7 +452,7 @@ export function getTutorialSections(): PdfSection[] {
         { type: "ul", items: [
           "Busca textual: Pesquisa por descrição, setor requisitante ou código PCA.",
           "Filtro por status de prazo: Permite exibir apenas contratações vencidas, próximas ao vencimento, no prazo ou concluídas.",
-          "Filtro por mês: Permite visualizar apenas contratações cuja data prevista está em um mês específico do ano.",
+          "Filtros por mês: Dois filtros que permitem selecionar meses específicos para a data de início e para a data de conclusão da contratação.",
         ] },
         { type: "h3", text: "10.4. Edição de Datas" },
         { type: "p", text: "Usuários com perfil de Administrador ou Gestor podem editar as datas diretamente na tabela, clicando sobre a célula correspondente. Um calendário (datepicker) é exibido para seleção da nova data. Todas as alterações são salvas automaticamente no banco de dados e registradas no histórico de auditoria. O perfil Setor Requisitante possui acesso apenas para visualização, sem possibilidade de edição." },

@@ -417,7 +417,7 @@ export default function Tutorial() {
           <UL items={[
             <><strong>Busca textual:</strong> Pesquisa por descrição, setor requisitante ou código PCA.</>,
             <><strong>Filtro por status de prazo:</strong> Permite exibir apenas contratações vencidas, próximas ao vencimento, no prazo ou concluídas.</>,
-            <><strong>Filtro por mês:</strong> Permite visualizar apenas contratações cuja data prevista está em um mês específico do ano.</>,
+            <><strong>Filtros por mês:</strong> Dois filtros que permitem selecionar meses específicos para a <strong>data de início</strong> e para a <strong>data de conclusão</strong> da contratação.</>,
           ]} />
 
           <H3>10.4. Edição de Datas</H3>

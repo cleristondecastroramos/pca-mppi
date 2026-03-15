@@ -33,4 +33,7 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
+  optimizeDeps: {
+    include: ["jspdf", "jspdf-autotable", "dompurify", "html2canvas"],
+  },
 }));

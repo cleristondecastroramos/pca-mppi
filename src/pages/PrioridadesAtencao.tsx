@@ -243,7 +243,7 @@ const PrioridadesAtencao = () => {
                           return (
                             <TableRow key={item.id} className="hover:bg-destructive/5">
                               <TableCell className="text-sm text-muted-foreground whitespace-nowrap text-center">
-                                {item.codigo?.replace(/^PCA-/, "").replace(/-2026$/, "") || item.id.slice(-4)}
+                                {item.codigo?.toUpperCase().replace(/^PCA-/, "").replace(/-2026$/, "") || item.id.slice(-4).toUpperCase()}
                               </TableCell>
                               <TableCell className="font-medium max-w-[400px]">
                                 <div className="truncate" title={item.descricao}>
@@ -320,7 +320,7 @@ const PrioridadesAtencao = () => {
                           return (
                             <TableRow key={item.id} className="hover:bg-muted/30">
                               <TableCell className="text-sm text-muted-foreground whitespace-nowrap text-center">
-                                {item.codigo?.replace(/^PCA-/, "").replace(/-2026$/, "") || item.id.slice(-4)}
+                                {item.codigo?.toUpperCase().replace(/^PCA-/, "").replace(/-2026$/, "") || item.id.slice(-4).toUpperCase()}
                               </TableCell>
                               <TableCell className="font-medium max-w-[400px]">
                                 <div className="truncate" title={item.descricao}>

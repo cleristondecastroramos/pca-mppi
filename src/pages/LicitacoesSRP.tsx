@@ -939,7 +939,7 @@ export default function LicitacoesSRP() {
                   {displayedContratacoes.map((contratacao) => (
                     <TableRow key={contratacao.id} className="hover:bg-muted/50">
                       <TableCell className="text-center text-sm text-muted-foreground">
-                        {contratacao.codigo?.replace(/^PCA-/, "").replace(/-2026$/, "") || contratacao.id.slice(-4)}
+                        {contratacao.codigo?.toUpperCase().replace(/^PCA-/, "").replace(/-2026$/, "") || contratacao.id.slice(-4).toUpperCase()}
                       </TableCell>
                       <TableCell className="max-w-xs">
                         <div className="truncate" title={contratacao.descricao}>

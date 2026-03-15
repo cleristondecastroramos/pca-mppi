@@ -35,8 +35,8 @@ const Relatorios = () => {
   });
 
   const formatId = (id: any, codigo?: any) => {
-    if (!codigo) return String(id).slice(-4);
-    return String(codigo).replace(/^PCA-/, "").replace(/-2026$/, "");
+    if (!codigo) return String(id).slice(-4).toUpperCase();
+    return String(codigo).toUpperCase().replace(/^PCA-/, "").replace(/-2026$/, "");
   };
   const selectBase =
     "id, codigo, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, srp, numero_sei_contratacao, etapa_processo, sobrestado, created_at, data_finalizacao_licitacao, valor_estimado, valor_contratado, data_prevista_contratacao";

@@ -33,7 +33,8 @@ const ControlePrazos = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
-  const [monthFilter, setMonthFilter] = useState<string>("todos");
+  const [monthStartFilter, setMonthStartFilter] = useState<string>("todos");
+  const [monthEndFilter, setMonthEndFilter] = useState<string>("todos");
   const [editing, setEditing] = useState<{ id: string; field: keyof Contratacao } | null>(null);
   const [dateValue, setDateValue] = useState<Date | undefined>(undefined);
 
@@ -206,22 +207,37 @@ const ControlePrazos = () => {
         if (statusFilter === "no_prazo" && status.variant !== "outline") return false;
       }
 
-      if (monthFilter !== "todos") {
+      if (monthStartFilter !== "todos") {
+        const startDate = calculateStartDate(r.tipo_contratacao, r.modalidade, r.data_prevista_contratacao);
+        if (!startDate) return false;
+        const [y, m] = startDate.split("-");
+        const monthYear = `${m}/${y}`;
+        if (monthYear !== monthStartFilter) return false;
+      }
+      
+      if (monthEndFilter !== "todos") {
         if (!r.data_prevista_contratacao) return false;
         const [y, m] = r.data_prevista_contratacao.split("-");
         const monthYear = `${m}/${y}`;
-        if (monthYear !== monthFilter) return false;
+        if (monthYear !== monthEndFilter) return false;
       }
 
       return true;
     });
-  }, [rows, search, statusFilter, monthFilter]);
+  }, [rows, search, statusFilter, monthStartFilter, monthEndFilter]);
 
   const availableMonths = useMemo(() => {
     const months = new Set<string>();
     rows.forEach(r => {
+      // Check End Date
       if (r.data_prevista_contratacao) {
         const [y, m] = r.data_prevista_contratacao.split("-");
+        months.add(`${y}-${m}`);
+      }
+      // Check Start Date
+      const startDate = calculateStartDate(r.tipo_contratacao, r.modalidade, r.data_prevista_contratacao);
+      if (startDate) {
+        const [y, m] = startDate.split("-");
         months.add(`${y}-${m}`);
       }
     });
@@ -257,6 +273,13 @@ const ControlePrazos = () => {
     }
   };
 
+  const clearFilters = () => {
+    setSearch("");
+    setStatusFilter("todos");
+    setMonthStartFilter("todos");
+    setMonthEndFilter("todos");
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -271,6 +294,10 @@ const ControlePrazos = () => {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={clearFilters} disabled={search === "" && statusFilter === "todos" && monthStartFilter === "todos" && monthEndFilter === "todos"}>
+              <Eraser className="mr-2 h-4 w-4" />
+              Limpar Filtros
+            </Button>
             <Button variant="outline" size="sm" onClick={fetchData}>
               <Loader2 className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               Atualizar
@@ -345,12 +372,24 @@ const ControlePrazos = () => {
                   </SelectContent>
                 </Select>
 
-                <Select value={monthFilter} onValueChange={setMonthFilter}>
+                <Select value={monthStartFilter} onValueChange={setMonthStartFilter}>
                   <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Mês Previsto" />
+                    <SelectValue placeholder="Mês de Início" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="todos">Todos os Meses</SelectItem>
+                    <SelectItem value="todos">Todos os Meses (Início)</SelectItem>
+                    {availableMonths.map(m => (
+                      <SelectItem key={m} value={m}>{m}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={monthEndFilter} onValueChange={setMonthEndFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Mês de Conclusão" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos os Meses (Conclusão)</SelectItem>
                     {availableMonths.map(m => (
                       <SelectItem key={m} value={m}>{m}</SelectItem>
                     ))}
@@ -399,7 +438,7 @@ const ControlePrazos = () => {
                         return (
                           <TableRow key={r.id} className="hover:bg-muted/30">
                             <TableCell className="text-sm text-muted-foreground whitespace-nowrap text-center">
-                              {r.codigo?.replace(/^PCA-/, "").replace(/-2026$/, "") || r.id.slice(-4)}
+                              {r.codigo?.toUpperCase().replace(/^PCA-/, "").replace(/-2026$/, "") || r.id.slice(-4).toUpperCase()}
                             </TableCell>
                             <TableCell>
                               <div className="font-medium truncate max-w-[500px]" title={r.descricao}>{r.descricao}</div>
@@ -457,6 +496,11 @@ const ControlePrazos = () => {
                     )}
                   </TableBody>
                 </Table>
+              </div>
+            )}
+            {!loading && filtered.length > 0 && (
+              <div className="mt-4 text-sm text-muted-foreground text-right border-t pt-4">
+                Exibindo <strong>{filtered.length}</strong> {filtered.length === 1 ? 'registro' : 'registros'} {filtered.length === rows.length ? 'ao todo' : 'conforme os filtros aplicados'}.
               </div>
             )}
           </CardContent>
