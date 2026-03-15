@@ -673,8 +673,7 @@ const Relatorios = () => {
         });
 
         const sortedSectorsForAnexo = Object.keys(rowsBySector).sort((a, b) => a.localeCompare(b, "pt-BR"));
-        
-        const anexoIHtml = sortedSectorsForAnexo.map(sector => {
+        const anexoIHtml = sortedSectorsForAnexo.map((sector, index) => {
           const sectorRows = rowsBySector[sector];
           const sectorRowsHtml = sectorRows.map(r => {
             const data = def.mapRow(r);
@@ -696,7 +695,7 @@ const Relatorios = () => {
           }).join("");
 
           return `
-            <div style="margin-top: 8mm; page-break-inside: avoid;">
+            <div style="${index === 0 ? 'margin-top: 2mm;' : 'margin-top: 8mm;'}">
               <h3 style="font-size: 10pt; color: #D9415D; border-bottom: 2.5px solid #D9415D; padding-bottom: 2px; margin-bottom: 3mm; text-transform: uppercase;">Setor: ${sector === "PLANEJAMENTO" ? "ASSESPPLAGES (PLAN)" : sector}</h3>
               <table class="compact-table" style="width: 100%; border-collapse: collapse; font-size: 7.5pt; border: 1.5px solid #000;">
                 <thead>
@@ -732,14 +731,89 @@ const Relatorios = () => {
               * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
               body { margin: 0; color: #1f2937; background: #fff; line-height: 1.5; text-align: justify; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
               
-              .cover { position: relative; height: 297mm; display: flex; flex-direction: column; justify-content: flex-start; padding: 10mm 20mm 20mm 35mm; text-align: center; background: white; z-index: 100; overflow: hidden; page: cover; }
-              .cover-bar { position: absolute; top: 0; left: 0; bottom: 0; width: 15mm; background: #D9415D !important; z-index: 110; -webkit-print-color-adjust: exact; }
-              .logo { margin-top: 10mm; margin-bottom: 30mm; }
-              .logo img { height: 80px; }
-              .title-box { margin-top: 20mm; }
-              .main-title { font-size: 32pt; font-weight: 700; color: #111827; margin: 0; text-transform: uppercase; letter-spacing: 2px; }
-              .sub-title { font-size: 18pt; font-weight: 500; color: #D9415D; margin-top: 10mm; }
-              .version-badge { display: inline-block; background: #D9415D; color: #fff; padding: 4px 16px; border-radius: 99px; font-size: 14pt; margin-top: 5mm; }
+              .cover { 
+                position: relative; 
+                height: 297mm; 
+                display: flex; 
+                flex-direction: column; 
+                justify-content: flex-end; 
+                padding: 40mm 25mm 45mm 35mm; 
+                text-align: left; 
+                background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); 
+                z-index: 100; 
+                overflow: hidden; 
+                page: cover; 
+              }
+              .cover-accent-1 { 
+                position: absolute; 
+                top: -100px; 
+                right: -100px; 
+                width: 500px; 
+                height: 500px; 
+                background: radial-gradient(circle, rgba(217, 65, 93, 0.08) 0%, rgba(217, 65, 93, 0) 70%); 
+                border-radius: 50%; 
+              }
+              .cover-accent-2 { 
+                position: absolute; 
+                bottom: -50px; 
+                left: -50px; 
+                width: 300px; 
+                height: 300px; 
+                background: radial-gradient(circle, rgba(15, 23, 42, 0.05) 0%, rgba(15, 23, 42, 0) 70%); 
+                border-radius: 50%; 
+              }
+              .cover-bar { 
+                position: absolute; 
+                top: 0; 
+                left: 0; 
+                bottom: 0; 
+                width: 5mm; 
+                background: #D9415D !important; 
+                z-index: 110; 
+                -webkit-print-color-adjust: exact; 
+              }
+              .logo { 
+                position: absolute; 
+                top: 25mm; 
+                left: 35mm; 
+                margin: 0; 
+              }
+              .logo img { height: 75px; filter: grayscale(0.2) contrast(1.1); }
+              .title-box { 
+                z-index: 120; 
+                max-width: 150mm; 
+              }
+              .main-title { 
+                font-size: 44pt; 
+                font-weight: 800; 
+                color: #0f172a; 
+                margin: 0; 
+                text-transform: uppercase; 
+                letter-spacing: -2px; 
+                line-height: 1; 
+              }
+              .main-title span { color: #D9415D; }
+              .sub-title { 
+                font-size: 16pt; 
+                font-weight: 500; 
+                color: #475569; 
+                margin-top: 8mm; 
+                text-transform: uppercase; 
+                letter-spacing: 4px; 
+              }
+              .version-badge { 
+                display: inline-block; 
+                background: #0f172a; 
+                color: #fff; 
+                padding: 10px 24px; 
+                border-radius: 4px; 
+                font-size: 11pt; 
+                font-weight: 600; 
+                margin-top: 15mm; 
+                letter-spacing: 2px; 
+                text-transform: uppercase; 
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); 
+              }
               .footer-cover { font-size: 12pt; color: #6b7280; }
               
               .page-break { page-break-before: always; }
@@ -815,13 +889,15 @@ const Relatorios = () => {
           <body>
             <div class="cover">
               <div class="cover-bar"></div>
+              <div class="cover-accent-1"></div>
+              <div class="cover-accent-2"></div>
               <div class="logo">
                 <img src="${logo}" alt="MPPI Logo">
               </div>
               <div class="title-box">
-                <h1 class="main-title">Plano de Contratações Anual</h1>
+                <h1 class="main-title">Plano de<br>Contratações<br><span>Anual</span></h1>
                 <div class="sub-title">Ministério Público do Estado do Piauí</div>
-                <div class="version-badge">Exercício 2026 - Versão 2.0</div>
+                <div class="version-badge">Exercício 2026 • Versão 2.0</div>
               </div>
             </div> <!-- End cover -->
             
@@ -897,62 +973,62 @@ const Relatorios = () => {
                 <a href="#apresentacao" class="toc-item">
                   <span class="toc-name">1. Apresentação</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">5</span>
+                  <span class="toc-page">7</span>
                 </a>
                 <a href="#consideracoes" class="toc-item">
                   <span class="toc-name">2. Considerações Iniciais</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">6</span>
+                  <span class="toc-page">8</span>
                 </a>
                 <a href="#diretrizes" class="toc-item">
                   <span class="toc-name">3. Diretrizes da Política de Aquisições</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">7</span>
+                  <span class="toc-page">9</span>
                 </a>
                 <a href="#do-plan" class="toc-item">
                   <span class="toc-name">4. Do Plano de Contratação Anual</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">8</span>
+                  <span class="toc-page">10</span>
                 </a>
                 <a href="#perspectiva" class="toc-item">
                   <span class="toc-name">5. Perspectiva Orçamentária do PCA-2026</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">9</span>
+                  <span class="toc-page">12</span>
                 </a>
                 <a href="#alinhamento" class="toc-item">
                   <span class="toc-name">6. Alinhamento Estratégico</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">11</span>
+                  <span class="toc-page">15</span>
                 </a>
                 <a href="#novos-certames" class="toc-item">
                   <span class="toc-name">7. Alocação de Recursos para Novos Certames</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">12</span>
+                  <span class="toc-page">16</span>
                 </a>
                 <a href="#servicos-publicos" class="toc-item">
                   <span class="toc-name">8. Contratações de Serviços Públicos</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">13</span>
+                  <span class="toc-page">17</span>
                 </a>
                 <a href="#metodologia" class="toc-item">
                   <span class="toc-name">9. Metodologia de Monitoramento e Riscos</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">14</span>
+                  <span class="toc-page">18</span>
                 </a>
                 <a href="#conclusao" class="toc-item">
                   <span class="toc-name">10. Conclusão e Disposições Finais</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">16</span>
+                  <span class="toc-page">19</span>
                 </a>
                 <a href="#aprovacao" class="toc-item">
                   <span class="toc-name">11. Aprovação</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">17</span>
+                  <span class="toc-page">20</span>
                 </a>
                 <a href="#anexo-i" class="toc-item">
                   <span class="toc-name">Anexo I: Relação Completa de Demandas</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">18</span>
+                  <span class="toc-page">21</span>
                 </a>
               </div>
             </div>
@@ -1154,7 +1230,7 @@ const Relatorios = () => {
                 </li>
               </ul>
 
-              <h3 style="font-size: 11pt; color: #111827; margin-top: 8mm; margin-bottom: 4mm;">4.3. Da Consolidação Estratégica</h3>
+              <h3 style="font-size: 11pt; color: #111827; margin-top: 20mm; margin-bottom: 4mm;">4.3. Da Consolidação Estratégica</h3>
               <p>A consolidação final do PCA resultou de um ciclo de reuniões de alinhamento técnico e estratégico, unificando as metas de cada unidade gestora sob uma governança centralizada. Este processo assegurou a mitigação de riscos de fracionamento de despesas por meio da unificação de itens assemelhados, maximizando o ganho processual.</p>
               <p>Com base no orçamento aprovado, as demandas de unidades como CAA, CCF, CCS, CEAF, CLC, entre outras, foram tecnicamente apreciadas. O resultado é um documento robusto, devidamente revisado pela Chefia de Gabinete e homologado pela Procuradora-Geral de Justiça, pronto para guiar a execução administrativa com transparência e disciplina fiscal em 2026.</p>
             </div>
@@ -1525,9 +1601,9 @@ const Relatorios = () => {
                   Considerando a regularidade do processo de planejamento e a observância aos preceitos da Lei nº 14.133/2021, aprovo o Plano de Contratações Anual (PCA) para o exercício de 2026. Determino sua imediata publicação nos veículos oficiais de transparência e a fiel execução por parte das unidades técnicas e requisitantes desta Procuradoria-Geral de Justiça, em estrita conformidade com as diretrizes estabelecidas neste documento e no Ato PGJ nº 1381/2024.
                 </p>
                 
-                <div style="margin-top: 25mm; text-align: center;">
+                <div style="margin-top: 10mm; text-align: center;">
                   <p style="font-size: 10pt; color: #4b5563;">Teresina, datado e assinado eletronicamente.</p>
-                  <div style="margin-top: 15mm; border-top: 1px solid #374151; display: inline-block; padding-top: 2mm; min-width: 350px;">
+                  <div style="margin-top: 30mm; border-top: 1px solid #374151; display: inline-block; padding-top: 2mm; min-width: 350px;">
                     <p style="font-weight: 700; margin: 0; font-size: 11pt; color: #111827;">Dra. Cláudia Pessoa Marques da Rocha Seabra</p>
                     <p style="margin: 0; color: #4b5563; font-size: 10pt;">Procuradora-Geral de Justiça</p>
                   </div>
