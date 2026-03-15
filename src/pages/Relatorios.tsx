@@ -781,9 +781,31 @@ const Relatorios = () => {
               .report-table > tbody > tr > td, 
               .report-table > tfoot > tr > td { border: none !important; padding: 0 !important; }
               
-              @page { size: A4; margin: 20mm 20mm 15mm 20mm; }
-              @page cover { size: A4; margin: 0; }
-              @page landscape { size: A4 landscape; margin: 20mm 20mm 15mm 20mm; }
+              @page { 
+                size: A4; 
+                margin: 20mm 20mm 20mm 20mm;
+                @bottom-right {
+                  content: "Página " counter(page) " de " counter(pages);
+                  font-size: 8pt;
+                  font-family: 'Inter', sans-serif;
+                  color: #6b7280;
+                }
+              }
+              @page cover { size: A4; margin: 0; @bottom-right { content: none; } }
+              @page ficha { size: A4; margin: 20mm 20mm 15mm 20mm; @bottom-right { content: none; } }
+              @page sumario { size: A4; margin: 20mm 20mm 15mm 20mm; @bottom-right { content: none; } }
+              @page landscape { 
+                size: A4 landscape; 
+                margin: 20mm 20mm 20mm 20mm;
+                @bottom-right {
+                  content: "Página " counter(page) " de " counter(pages);
+                  font-size: 8pt;
+                  font-family: 'Inter', sans-serif;
+                  color: #6b7280;
+                }
+              }
+              .ficha-page { page: ficha; }
+              .sumario-page { page: sumario; }
               .landscape-section { page: landscape; }
               @media print {
                 .no-print { display: none; }
@@ -810,7 +832,7 @@ const Relatorios = () => {
                   <td>
                     <div class="main-content">
 
-            <div class="page-break section">
+            <div class="page-break section ficha-page">
               <div style="text-align: left; max-width: 140mm; margin: 0 auto; padding-top: 10mm;">
                 <h3 style="color: #D9415D; font-size: 14pt; margin-bottom: 8mm; text-transform: uppercase; border-bottom: 2px solid #D9415D; padding-bottom: 4px;">Ficha Técnica</h3>
                 
@@ -864,68 +886,73 @@ const Relatorios = () => {
               </div>
             </div>
 
-            <div class="page-break section" id="sumario">
+            <div class="page-break section sumario-page" id="sumario">
               <h2 style="margin-bottom: 10mm;">Sumário</h2>
               <div class="toc-list">
+                <a href="#termos-siglas" class="toc-item">
+                  <span class="toc-name">Lista de Termos e Siglas</span>
+                  <span class="toc-dots"></span>
+                  <span class="toc-page">4</span>
+                </a>
                 <a href="#apresentacao" class="toc-item">
                   <span class="toc-name">1. Apresentação</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">01</span>
+                  <span class="toc-page">5</span>
                 </a>
                 <a href="#consideracoes" class="toc-item">
                   <span class="toc-name">2. Considerações Iniciais</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">02</span>
+                  <span class="toc-page">6</span>
                 </a>
                 <a href="#diretrizes" class="toc-item">
                   <span class="toc-name">3. Diretrizes da Política de Aquisições</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">03</span>
+                  <span class="toc-page">7</span>
                 </a>
                 <a href="#do-plan" class="toc-item">
                   <span class="toc-name">4. Do Plano de Contratação Anual</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">04</span>
+                  <span class="toc-page">8</span>
                 </a>
                 <a href="#perspectiva" class="toc-item">
                   <span class="toc-name">5. Perspectiva Orçamentária do PCA-2026</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">05</span>
+                  <span class="toc-page">9</span>
                 </a>
                 <a href="#alinhamento" class="toc-item">
                   <span class="toc-name">6. Alinhamento Estratégico</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">07</span>
+                  <span class="toc-page">11</span>
                 </a>
                 <a href="#novos-certames" class="toc-item">
                   <span class="toc-name">7. Alocação de Recursos para Novos Certames</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">08</span>
+                  <span class="toc-page">12</span>
                 </a>
                 <a href="#servicos-publicos" class="toc-item">
                   <span class="toc-name">8. Contratações de Serviços Públicos</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">09</span>
+                  <span class="toc-page">13</span>
                 </a>
                 <a href="#metodologia" class="toc-item">
                   <span class="toc-name">9. Metodologia de Monitoramento e Riscos</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">10</span>
+                  <span class="toc-page">14</span>
                 </a>
                 <a href="#conclusao" class="toc-item">
                   <span class="toc-name">10. Conclusão e Disposições Finais</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">11</span>
+                  <span class="toc-page">16</span>
                 </a>
                 <a href="#aprovacao" class="toc-item">
                   <span class="toc-name">11. Aprovação</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">12</span>
+                  <span class="toc-page">17</span>
                 </a>
                 <a href="#anexo-i" class="toc-item">
                   <span class="toc-name">Anexo I: Relação Completa de Demandas</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">13</span>
+                  <span class="toc-page">18</span>
                 </a>
               </div>
             </div>
