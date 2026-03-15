@@ -886,68 +886,73 @@ const Relatorios = () => {
               </div>
             </div>
 
-            <div class="page-break section" id="sumario">
+            <div class="page-break section sumario-page" id="sumario">
               <h2 style="margin-bottom: 10mm;">Sumário</h2>
               <div class="toc-list">
+                <a href="#termos-siglas" class="toc-item">
+                  <span class="toc-name">Lista de Termos e Siglas</span>
+                  <span class="toc-dots"></span>
+                  <span class="toc-page">4</span>
+                </a>
                 <a href="#apresentacao" class="toc-item">
                   <span class="toc-name">1. Apresentação</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">01</span>
+                  <span class="toc-page">5</span>
                 </a>
                 <a href="#consideracoes" class="toc-item">
                   <span class="toc-name">2. Considerações Iniciais</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">02</span>
+                  <span class="toc-page">6</span>
                 </a>
                 <a href="#diretrizes" class="toc-item">
                   <span class="toc-name">3. Diretrizes da Política de Aquisições</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">03</span>
+                  <span class="toc-page">7</span>
                 </a>
                 <a href="#do-plan" class="toc-item">
                   <span class="toc-name">4. Do Plano de Contratação Anual</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">04</span>
+                  <span class="toc-page">8</span>
                 </a>
                 <a href="#perspectiva" class="toc-item">
                   <span class="toc-name">5. Perspectiva Orçamentária do PCA-2026</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">05</span>
+                  <span class="toc-page">9</span>
                 </a>
                 <a href="#alinhamento" class="toc-item">
                   <span class="toc-name">6. Alinhamento Estratégico</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">07</span>
+                  <span class="toc-page">11</span>
                 </a>
                 <a href="#novos-certames" class="toc-item">
                   <span class="toc-name">7. Alocação de Recursos para Novos Certames</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">08</span>
+                  <span class="toc-page">12</span>
                 </a>
                 <a href="#servicos-publicos" class="toc-item">
                   <span class="toc-name">8. Contratações de Serviços Públicos</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">09</span>
+                  <span class="toc-page">13</span>
                 </a>
                 <a href="#metodologia" class="toc-item">
                   <span class="toc-name">9. Metodologia de Monitoramento e Riscos</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">10</span>
+                  <span class="toc-page">14</span>
                 </a>
                 <a href="#conclusao" class="toc-item">
                   <span class="toc-name">10. Conclusão e Disposições Finais</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">11</span>
+                  <span class="toc-page">16</span>
                 </a>
                 <a href="#aprovacao" class="toc-item">
                   <span class="toc-name">11. Aprovação</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">12</span>
+                  <span class="toc-page">17</span>
                 </a>
                 <a href="#anexo-i" class="toc-item">
                   <span class="toc-name">Anexo I: Relação Completa de Demandas</span>
                   <span class="toc-dots"></span>
-                  <span class="toc-page">13</span>
+                  <span class="toc-page">18</span>
                 </a>
               </div>
             </div>
