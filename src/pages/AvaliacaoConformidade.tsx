@@ -17,7 +17,7 @@ import { Loader2, Copy } from "lucide-react";
 
 type Contratacao = Tables<"contratacoes">;
 
-const FASE_LICITACAO = [
+const FASE_LICITACAO_CONTRATACAO = [
   { key: "termo_referencia_aprovado", label: "Termo de Referência aprovado" },
   { key: "pesquisa_mercado", label: "Pesquisa de Mercado" },
   { key: "pareceres_juridicos", label: "Pareceres Jurídicos emitidos sobre a licitação" },
@@ -25,13 +25,27 @@ const FASE_LICITACAO = [
   { key: "atas_certame", label: "Atas do Certame" },
   { key: "termo_homologacao", label: "Termo de Homologação" },
   { key: "termo_adjudicacao", label: "Termo de Adjudicação" },
-] as const;
-
-const FASE_CONTRATACAO = [
   { key: "atos_autorizacao", label: "Atos de autorização registrados" },
   { key: "documentacao_fornecedor", label: "Documentação do fornecedor completa" },
   { key: "assinatura_contrato", label: "Assinatura do Contrato" },
   { key: "publicacao_contrato", label: "Publicação do Extrato do Contrato" },
+] as const;
+
+const FASE_EXECUCAO = [
+  { key: "documento_aceite", label: "Documento de aceite" },
+  { key: "justificativa_vantajosidade", label: "Justificativa da vantajosidade" },
+  { key: "declaracao_conformidade", label: "Declaração de Conformidade" },
+  { key: "pesquisa_precos", label: "Pesquisa de Preços" },
+  { key: "mapa_comparativo", label: "Mapa Comparativo" },
+  { key: "certidoes_habilitacao", label: "Certidões de habilitação/Contrato social" },
+  { key: "margem_calculo", label: "Margem de cálculo" },
+  { key: "parecer_orcamentario_financeiro", label: "Pareceres Orçamentário e Financeiro" },
+  { key: "parecer_juridico_execucao", label: "Parecer Jurídico" },
+  { key: "parecer_conint", label: "Parecer CONINT" },
+  { key: "oficio_autorizacao_empenho", label: "Ofício e Autorização de empenho" },
+  { key: "atualizar_certidoes", label: "Atualizar certidões" },
+  { key: "termo_aditivo_apostilamento", label: "Termo Adtivo/Apostilamento" },
+  { key: "publicacoes_execucao", label: "Publicações" },
 ] as const;
 
 const AvaliacaoConformidade = () => {
@@ -48,7 +62,7 @@ const AvaliacaoConformidade = () => {
   const [pageSize, setPageSize] = useState(10);
 
   const calculateConformity = (data: Record<string, any>, isSrp: boolean) => {
-    const items = isSrp ? FASE_LICITACAO : [...FASE_LICITACAO, ...FASE_CONTRATACAO];
+    const items = [...FASE_LICITACAO_CONTRATACAO, ...FASE_EXECUCAO];
     const total: number = items.length;
     if (total === 0) return 0;
     let checked = 0;
@@ -178,19 +192,14 @@ const AvaliacaoConformidade = () => {
       .maybeSingle();
 
     if (conf) {
-      setAuditState({
-        termo_referencia_aprovado: conf.termo_referencia_aprovado || false,
-        pesquisa_mercado: conf.pesquisa_mercado || false,
-        pareceres_juridicos: conf.pareceres_juridicos || false,
-        publicacao_edital: conf.publicacao_edital || false,
-        atas_certame: conf.atas_certame || false,
-        atos_autorizacao: conf.atos_autorizacao || false,
-        documentacao_fornecedor: conf.documentacao_fornecedor || false,
-        termo_homologacao: conf.termo_homologacao || false,
-        termo_adjudicacao: conf.termo_adjudicacao || false,
-        assinatura_contrato: conf.assinatura_contrato || false,
-        publicacao_contrato: conf.publicacao_contrato || false,
+      const newState: Record<string, boolean> = {};
+      FASE_LICITACAO_CONTRATACAO.forEach(it => {
+        newState[it.key] = (conf as any)[it.key] || false;
       });
+      FASE_EXECUCAO.forEach(it => {
+        newState[it.key] = (conf as any)[it.key] || false;
+      });
+      setAuditState(newState);
       setAuditNotes(conf.observacao || "");
     }
   };
@@ -204,25 +213,23 @@ const AvaliacaoConformidade = () => {
         return;
       }
 
+      const payload: any = {
+        contratacao_id: openAudit.id,
+        user_id: userData.user.id,
+        observacao: auditNotes || null,
+      };
+
+      FASE_LICITACAO_CONTRATACAO.forEach(it => {
+        payload[it.key] = auditState[it.key] || false;
+      });
+      FASE_EXECUCAO.forEach(it => {
+        payload[it.key] = auditState[it.key] || false;
+      });
+
       // Salvar na tabela dedicada usando upsert
       const { error } = await supabase
         .from("contratacoes_conformidade")
-        .upsert({
-          contratacao_id: openAudit.id,
-          user_id: userData.user.id,
-          termo_referencia_aprovado: auditState.termo_referencia_aprovado || false,
-          pesquisa_mercado: auditState.pesquisa_mercado || false,
-          pareceres_juridicos: auditState.pareceres_juridicos || false,
-          publicacao_edital: auditState.publicacao_edital || false,
-          atas_certame: auditState.atas_certame || false,
-          atos_autorizacao: auditState.atos_autorizacao || false,
-          documentacao_fornecedor: auditState.documentacao_fornecedor || false,
-          termo_homologacao: auditState.termo_homologacao || false,
-          termo_adjudicacao: auditState.termo_adjudicacao || false,
-          assinatura_contrato: auditState.assinatura_contrato || false,
-          publicacao_contrato: auditState.publicacao_contrato || false,
-          observacao: auditNotes || null,
-        }, { onConflict: 'contratacao_id' });
+        .upsert(payload, { onConflict: 'contratacao_id' });
 
       if (error) throw error;
 
@@ -375,64 +382,101 @@ const AvaliacaoConformidade = () => {
         </Card>
 
         <Dialog open={!!openAudit} onOpenChange={() => setOpenAudit(null)}>
-          <DialogContent className="max-w-xl p-0 overflow-hidden [&>button]:text-white">
-            <DialogHeader className="bg-sidebar p-6">
-              <DialogTitle className="text-white">Auditoria</DialogTitle>
-              <DialogDescription className="text-white/80">Preencha a checklist e registre observações para a contratação selecionada.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-3 p-6">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>SEI:</span>
-                <Badge variant="secondary" className="text-[10px]">{openAudit?.sei || "—"}</Badge>
-                {openAudit?.sei ? (
-                  <Button
-                    variant="ghost"
-                    size="xs"
-                    className="h-6 w-6 p-0"
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(String(openAudit?.sei));
-                        toast.success("Número SEI copiado");
-                      } catch {
-                        toast.error("Falha ao copiar número SEI");
-                      }
-                    }}
-                    title="Copiar número SEI"
-                  >
-                    <Copy className="h-3 w-3" />
-                  </Button>
-                ) : null}
-              </div>
-              <div className="space-y-4">
+          <DialogContent className="max-w-4xl p-0 overflow-hidden [&>button]:text-white">
+            <DialogHeader className="bg-sidebar p-4">
+              <div className="flex items-center justify-between pr-8">
                 <div>
-                  <h3 className="font-semibold text-sm mb-2 text-foreground">Fase de Licitação</h3>
-                  {FASE_LICITACAO.map((it) => (
-                    <label key={it.key} className="flex items-center gap-2 text-sm text-foreground/90">
-                      <Checkbox checked={!!auditState[it.key]} onCheckedChange={(v) => setAuditState((s) => ({ ...s, [it.key]: !!v }))} />
-                      {it.label}
-                    </label>
-                  ))}
+                  <DialogTitle className="text-white text-lg">Auditoria de Conformidade</DialogTitle>
+                  <DialogDescription className="text-white/80 text-xs">Verificação de requisitos das fases de licitação e execução.</DialogDescription>
                 </div>
-
-                {(!openAudit?.srp) && (
-                  <div>
-                    <h3 className="font-semibold text-sm mb-2 text-foreground">Fase de Contratação</h3>
-                    {FASE_CONTRATACAO.map((it) => (
-                      <label key={it.key} className="flex items-center gap-2 text-sm text-foreground/90">
-                        <Checkbox checked={!!auditState[it.key]} onCheckedChange={(v) => setAuditState((s) => ({ ...s, [it.key]: !!v }))} />
-                        {it.label}
+                <div className="flex items-center gap-2 text-xs text-white/90 bg-white/10 px-2 py-1 rounded">
+                  <span className="font-semibold">SEI:</span>
+                  <span>{openAudit?.sei || "—"}</span>
+                  {openAudit?.sei && (
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      className="h-5 w-5 p-0 hover:bg-white/20 text-white"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(String(openAudit?.sei));
+                          toast.success("Número SEI copiado");
+                        } catch {
+                          toast.error("Falha ao copiar número SEI");
+                        }
+                      }}
+                      title="Copiar número SEI"
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </DialogHeader>
+            
+            <div className="p-4 space-y-4">
+              <div className="grid grid-cols-2 gap-6 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b pb-1">
+                    <h3 className="font-bold text-xs uppercase tracking-wider text-primary">1. Licitação e Contratação</h3>
+                    <Badge variant="outline" className="text-[10px] h-4 px-1 opacity-70">
+                      {FASE_LICITACAO_CONTRATACAO.length} itens
+                    </Badge>
+                  </div>
+                  <div className="grid gap-1">
+                    {FASE_LICITACAO_CONTRATACAO.map((it) => (
+                      <label key={it.key} className="flex items-start gap-2 text-[13px] text-foreground/90 cursor-pointer hover:bg-muted/50 p-1 rounded transition-colors group">
+                        <Checkbox 
+                          id={it.key}
+                          className="mt-0.5 h-3.5 w-3.5"
+                          checked={!!auditState[it.key]} 
+                          onCheckedChange={(v) => setAuditState((s) => ({ ...s, [it.key]: !!v }))} 
+                        />
+                        <span className="leading-tight group-hover:text-primary transition-colors">{it.label}</span>
                       </label>
                     ))}
                   </div>
-                )}
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b pb-1">
+                    <h3 className="font-bold text-xs uppercase tracking-wider text-primary">2. Execução Contratual</h3>
+                    <Badge variant="outline" className="text-[10px] h-4 px-1 opacity-70">
+                      {FASE_EXECUCAO.length} itens
+                    </Badge>
+                  </div>
+                  <div className="grid gap-1">
+                    {FASE_EXECUCAO.map((it) => (
+                      <label key={it.key} className="flex items-start gap-2 text-[13px] text-foreground/90 cursor-pointer hover:bg-muted/50 p-1 rounded transition-colors group">
+                        <Checkbox 
+                          id={it.key}
+                          className="mt-0.5 h-3.5 w-3.5"
+                          checked={!!auditState[it.key]} 
+                          onCheckedChange={(v) => setAuditState((s) => ({ ...s, [it.key]: !!v }))} 
+                        />
+                        <span className="leading-tight group-hover:text-primary transition-colors">{it.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-xs text-muted-foreground">Observações</label>
-                <Textarea value={auditNotes} onChange={(e) => setAuditNotes(e.target.value)} rows={3} placeholder="Observações e apontamentos" />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="ghost" size="sm" onClick={() => setOpenAudit(null)}>Cancelar</Button>
-                <Button size="sm" onClick={saveChecklist}>Salvar</Button>
+
+              <div className="flex items-end gap-4 pt-2 border-t">
+                <div className="flex-1 space-y-1">
+                  <label htmlFor="audit-notes" className="text-[10px] font-bold uppercase text-muted-foreground ml-1">Observações e Apontamentos</label>
+                  <Textarea 
+                    id="audit-notes"
+                    value={auditNotes} 
+                    onChange={(e) => setAuditNotes(e.target.value)} 
+                    rows={2} 
+                    placeholder="Registre aqui observações relevantes encontradas durante a auditoria..." 
+                    className="text-sm resize-none focus-visible:ring-primary min-h-[60px]" 
+                  />
+                </div>
+                <div className="flex flex-col gap-2 pb-0.5">
+                  <Button size="sm" className="w-24 font-bold" onClick={saveChecklist}>Salvar</Button>
+                  <Button variant="ghost" size="sm" className="w-24 text-xs h-8" onClick={() => setOpenAudit(null)}>Cancelar</Button>
+                </div>
               </div>
             </div>
           </DialogContent>

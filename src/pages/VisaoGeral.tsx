@@ -621,6 +621,7 @@ const VisaoGeral = () => {
               value={loading ? "—" : kpis.totalDemandas}
               icon={FileText}
               variant="default"
+              description="Quantidade total de processos de contratação registrados no PCA."
             />
           </div>
           <div className="md:col-span-2 lg:col-span-2">
@@ -629,6 +630,7 @@ const VisaoGeral = () => {
               value={loading ? "—" : formatCurrencyBRL(kpis.totalEstimado)}
               icon={DollarSign}
               variant="info"
+              description="Soma dos valores estimados originalmente para todas as contratações planejadas."
             />
           </div>
           <div className="md:col-span-2 lg:col-span-2">
@@ -637,6 +639,7 @@ const VisaoGeral = () => {
               value={loading ? "—" : formatCurrencyBRL(kpis.totalExecutado)}
               icon={DollarSign}
               variant="success"
+              description="Soma dos valores que já foram empenhados e estão em execução."
             />
           </div>
           <div className="md:col-span-1 lg:col-span-1">
@@ -645,6 +648,7 @@ const VisaoGeral = () => {
               value={loading ? "—" : kpis.totalConcluidas}
               icon={CheckCircle}
               variant="success"
+              description="Quantidade de processos de contratação que já foram totalmente finalizados."
             />
           </div>
         </div>
