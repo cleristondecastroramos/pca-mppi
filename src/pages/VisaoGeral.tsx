@@ -614,43 +614,37 @@ const VisaoGeral = () => {
         </Card>
 
         {/* KPIs (reposicionados logo abaixo dos filtros) */}
-        <div className="grid gap-3 grid-cols-1 md:grid-cols-6 lg:grid-cols-6">
-          <div className="md:col-span-1 lg:col-span-1">
-            <KPICard
-              title="Total de Demandas"
-              value={loading ? "—" : kpis.totalDemandas}
-              icon={FileText}
-              variant="default"
-              description="Quantidade total de processos de contratação registrados no PCA."
-            />
-          </div>
-          <div className="md:col-span-2 lg:col-span-2">
-            <KPICard
-              title="Valor Total Estimado"
-              value={loading ? "—" : formatCurrencyBRL(kpis.totalEstimado)}
-              icon={DollarSign}
-              variant="info"
-              description="Soma dos valores estimados originalmente para todas as contratações planejadas."
-            />
-          </div>
-          <div className="md:col-span-2 lg:col-span-2">
-            <KPICard
-              title="Valor Executado"
-              value={loading ? "—" : formatCurrencyBRL(kpis.totalExecutado)}
-              icon={DollarSign}
-              variant="success"
-              description="Soma dos valores que já foram empenhados e estão em execução."
-            />
-          </div>
-          <div className="md:col-span-1 lg:col-span-1">
-            <KPICard
-              title="Demandas Concluídas"
-              value={loading ? "—" : kpis.totalConcluidas}
-              icon={CheckCircle}
-              variant="success"
-              description="Quantidade de processos de contratação que já foram totalmente finalizados."
-            />
-          </div>
+        <div className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+          <KPICard
+            title="Total de Demandas"
+            value={loading ? "—" : kpis.totalDemandas}
+            icon={FileText}
+            variant="default"
+            description="Quantidade total de processos de contratação registrados no PCA."
+          />
+          <KPICard
+            title="Valor Total Estimado"
+            value={loading ? "—" : formatCurrencyBRL(kpis.totalEstimado)}
+            icon={DollarSign}
+            variant="info"
+            description="Soma dos valores estimados originalmente para todas as contratações planejadas."
+          />
+          <KPICard
+            title="Valor Executado"
+            value={loading ? "—" : formatCurrencyBRL(kpis.totalExecutado)}
+            icon={DollarSign}
+            variant="success"
+            description="Soma dos valores que já foram empenhados e estão em execução."
+            progress={kpis.totalEstimado > 0 ? (kpis.totalExecutado / kpis.totalEstimado) * 100 : 0}
+          />
+          <KPICard
+            title="Demandas Concluídas"
+            value={loading ? "—" : kpis.totalConcluidas}
+            icon={CheckCircle}
+            variant="success"
+            description="Quantidade de processos de contratação que já foram totalmente finalizados."
+            progress={kpis.totalDemandas > 0 ? (kpis.totalConcluidas / kpis.totalDemandas) * 100 : 0}
+          />
         </div>
 
         {/* Gráfico único com alternância: Demandas vs Valores por Setor */}
