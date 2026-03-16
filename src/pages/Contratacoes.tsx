@@ -157,7 +157,7 @@ export default function Contratacoes() {
     try {
       let query = supabase
         .from("contratacoes")
-        .select("id, codigo, descricao, setor_requisitante, unidade_orcamentaria, classe, valor_estimado, valor_contratado, etapa_processo, sobrestado, grau_prioridade, justificativa, data_prevista_contratacao, data_entrada_clc, numero_sei_contratacao, pdm_catser, created_at, quantidade_itens, valor_unitario, unidade_fornecimento, tipo_recurso, tipo_contratacao, modalidade, normativo, srp")
+        .select("id, codigo, descricao, setor_requisitante, unidade_orcamentaria, classe, valor_estimado, valor_contratado, etapa_processo, sobrestado, grau_prioridade, justificativa, data_prevista_contratacao, data_entrada_clc, numero_sei_contratacao, pdm_catser, created_at, quantidade_itens, valor_unitario, unidade_fornecimento, tipo_recurso, tipo_contratacao, modalidade, normativo, srp, empenho_1, empenho_2, empenho_3")
         .neq("srp", true)
         .order("created_at", { ascending: false });
 
@@ -589,6 +589,10 @@ export default function Contratacoes() {
           };
           aVal = getOrder(a); bVal = getOrder(b);
         }
+        if (sortField === "_valor_executado") {
+          aVal = calcExecutado(a);
+          bVal = calcExecutado(b);
+        }
         // Numérico
         if (typeof aVal === "number" && typeof bVal === "number") {
           return sortDir === "asc" ? aVal - bVal : bVal - aVal;
@@ -603,6 +607,25 @@ export default function Contratacoes() {
     const start = (page - 1) * pageSize;
     return sorted.slice(start, start + pageSize);
   }, [filteredContratacoes, page, pageSize, sortField, sortDir]);
+
+  const parseCurrency = (val: string | number | null | undefined): number => {
+    if (!val) return 0;
+    if (typeof val === "number") return val;
+    const strVal = String(val).trim();
+    if (strVal.includes(",")) {
+      const clean = strVal.replace(/\./g, "").replace(/[^\d,-]/g, "");
+      const dot = clean.replace(",", ".");
+      const num = parseFloat(dot);
+      return isNaN(num) ? 0 : num;
+    }
+    const clean = strVal.replace(/[^\d.-]/g, "");
+    const num = parseFloat(clean);
+    return isNaN(num) ? 0 : num;
+  };
+
+  const calcExecutado = (r: any) => {
+    return parseCurrency(r.empenho_1) + parseCurrency(r.empenho_2) + parseCurrency(r.empenho_3);
+  };
 
   const formatCurrency = (value: number | null) => {
     if (!value) return "R$ 0,00";
@@ -984,7 +1007,7 @@ export default function Contratacoes() {
                 <TableHead onClick={() => handleSort("quantidade_itens")} className="text-center w-[80px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Quantidade<SortIcon field="quantidade_itens" /></TableHead>
                 <TableHead onClick={() => handleSort("valor_unitario")} className="text-center w-[120px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Valor Unitário<SortIcon field="valor_unitario" /></TableHead>
                 <TableHead onClick={() => handleSort("valor_estimado")} className="text-center w-[120px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Valor Estimado<SortIcon field="valor_estimado" /></TableHead>
-                <TableHead onClick={() => handleSort("valor_contratado")} className="text-center w-[120px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Valor Executado<SortIcon field="valor_contratado" /></TableHead>
+                <TableHead onClick={() => handleSort("_valor_executado")} className="text-center w-[120px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Valor Executado<SortIcon field="_valor_executado" /></TableHead>
                 <TableHead className="text-center w-[130px] text-white font-bold text-xs h-9">Data Prevista de Início</TableHead>
                 <TableHead onClick={() => handleSort("data_prevista_contratacao")} className="text-center w-[130px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Data Prevista de Conclusão<SortIcon field="data_prevista_contratacao" /></TableHead>
                 <TableHead onClick={() => handleSort("_status")} className="text-center w-[110px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Status<SortIcon field="_status" /></TableHead>
@@ -1021,7 +1044,7 @@ export default function Contratacoes() {
                         {formatCurrency(contratacao.valor_estimado)}
                       </TableCell>
                       <TableCell className="text-right">
-                        {formatCurrency(contratacao.valor_contratado)}
+                        {formatCurrency(calcExecutado(contratacao))}
                       </TableCell>
                       <TableCell className="text-center">
                         {formatDate(calculateStartDate(contratacao.tipo_contratacao, contratacao.modalidade, (contratacao as any).data_prevista_contratacao))}
