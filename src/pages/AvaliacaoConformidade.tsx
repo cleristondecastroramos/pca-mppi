@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { translateError } from "@/lib/utils/error-translations";
 import { Loader2, Copy } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type Contratacao = Tables<"contratacoes">;
 
@@ -59,7 +60,7 @@ const AvaliacaoConformidade = () => {
   const [auditNotes, setAuditNotes] = useState<string>("");
   const [confMap, setConfMap] = useState<Record<string, number>>({});
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(20);
 
   const calculateConformity = (data: Record<string, any>, isSrp: boolean) => {
     const items = [...FASE_LICITACAO_CONTRATACAO, ...FASE_EXECUCAO];
@@ -330,53 +331,55 @@ const AvaliacaoConformidade = () => {
             {loading ? (
               <div className="flex items-center justify-center h-40 text-muted-foreground"><Loader2 className="mr-2 h-5 w-5 animate-spin" />Carregando...</div>
             ) : (
-              <div className="rounded-lg border border-border bg-card overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-[#D9415D] hover:bg-[#D9415D]/90">
-                      <TableHead className="w-[110px] text-white font-bold text-center">Cod. PCA</TableHead>
-                      <TableHead className="min-w-[280px] text-white font-bold text-center">Descrição</TableHead>
-                      <TableHead className="w-[160px] text-white font-bold text-center">Setor</TableHead>
-                      <TableHead className="w-[120px] text-white font-bold text-center">Status</TableHead>
-                      <TableHead className="w-[120px] text-white font-bold text-center">Conformidade</TableHead>
-                      <TableHead className="w-[140px] text-white font-bold text-center">Valor Estimado</TableHead>
-                      <TableHead className="w-[140px] text-white font-bold text-center">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filtered.length === 0 ? (
-                      <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Nenhuma contratação encontrada.</TableCell></TableRow>
-                    ) : (
-                      paginated.map((r) => (
-                        <TableRow key={r.id} className="hover:bg-muted/40">
-                          <TableCell className="text-sm text-muted-foreground whitespace-nowrap text-center">
-                            {(r as any).codigo?.toUpperCase().replace(/^PCA-/, "").replace(/-2026$/, "") || String(r.id).slice(-4).toUpperCase()}
-                          </TableCell>
-                          <TableCell><div className="truncate" title={r.descricao}>{r.descricao}</div></TableCell>
-                          <TableCell className="text-center">{r.setor_requisitante || "-"}</TableCell>
-                          <TableCell className="text-center">
-                            {(() => { const s = statusLabel(r); const b = getStatusBadge(s); return <Badge variant={b.variant as any} className={b.className}>{s}</Badge>; })()}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {(() => { const b = conformityBadge(confMap[r.id]); return <Badge variant={b.variant as any} className={b.className}>{b.text}</Badge>; })()}
-                          </TableCell>
-                          <TableCell className="text-right">{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(r.valor_estimado) || 0)}</TableCell>
-                          <TableCell className="text-right">
-                            <Button size="xs" onClick={() => openChecklist(r)}>Auditar</Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-                <div className="flex items-center justify-between p-2">
+              <>
+                <div className="rounded-lg border border-border bg-card overflow-hidden">
+                  <table style={{ tableLayout: "fixed", width: "100%", borderCollapse: "collapse" }} className="text-sm caption-bottom">
+                    <thead className="[&_tr]:border-b">
+                      <tr className="bg-[#D9415D] border-b transition-colors">
+                        <th style={{ width: "50px" }} className="h-10 px-1 text-center align-middle font-bold text-white text-xs">Cod. PCA</th>
+                        <th style={{ width: "440px" }} className="h-10 px-1 text-center align-middle font-bold text-white text-xs">Descrição</th>
+                        <th style={{ width: "60px" }} className="h-10 px-1 text-center align-middle font-bold text-white text-xs">Setor</th>
+                        <th style={{ width: "70px" }} className="h-10 px-1 text-center align-middle font-bold text-white text-xs">Status</th>
+                        <th style={{ width: "40px" }} className="h-10 px-1 text-center align-middle font-bold text-white text-xs">Conformidade</th>
+                        <th style={{ width: "60px" }} className="h-10 px-1 text-center align-middle font-bold text-white text-xs">Valor Estimado</th>
+                        <th style={{ width: "60px" }} className="h-10 px-1 text-center align-middle font-bold text-white text-xs">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="[&_tr:last-child]:border-0">
+                      {filtered.length === 0 ? (
+                        <tr><td colSpan={7} className="p-4 text-center py-8 text-muted-foreground">Nenhuma contratação encontrada.</td></tr>
+                      ) : (
+                        paginated.map((r) => (
+                          <tr key={r.id} className="border-b transition-colors hover:bg-muted/40">
+                            <td className="p-1 align-middle text-xs text-muted-foreground whitespace-nowrap text-center">
+                              {(r as any).codigo?.toUpperCase().replace(/^PCA-/, "").replace(/-2026$/, "") || String(r.id).slice(-4).toUpperCase()}
+                            </td>
+                            <td className="p-1 align-middle" style={{ overflow: "hidden" }}><div className="truncate" title={r.descricao}>{r.descricao}</div></td>
+                            <td className="p-1 align-middle text-center text-xs" style={{ overflow: "hidden" }}><div className="truncate" title={r.setor_requisitante || "-"}>{r.setor_requisitante || "-"}</div></td>
+                            <td className="p-1 align-middle text-center">
+                              {(() => { const s = statusLabel(r); const b = getStatusBadge(s); return <Badge variant={b.variant as any} className={cn("text-[10px] px-1 h-5", b.className)}>{s}</Badge>; })()}
+                            </td>
+                            <td className="p-1 align-middle text-center">
+                              {(() => { const b = conformityBadge(confMap[r.id]); return <Badge variant={b.variant as any} className={cn("text-[10px] px-1 h-5", b.className)}>{b.text}</Badge>; })()}
+                            </td>
+                            <td className="p-1 align-middle text-right text-xs">{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(r.valor_estimado) || 0)}</td>
+                            <td className="p-1 align-middle text-center">
+                              <Button size="xs" className="h-7 px-2 text-[11px]" onClick={() => openChecklist(r)}>Auditar</Button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="flex items-center justify-between mt-2 px-1">
                   <div className="text-xs text-muted-foreground">Página {page}</div>
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="xs" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>Anterior</Button>
                     <Button variant="outline" size="xs" onClick={() => setPage((p) => (p * pageSize >= filtered.length ? p : p + 1))} disabled={page * pageSize >= filtered.length}>Próxima</Button>
                   </div>
                 </div>
-              </div>
+              </>
             )}
           </CardContent>
         </Card>

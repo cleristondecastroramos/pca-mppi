@@ -2,7 +2,7 @@ import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Filter, Edit, History, Trash2, FileUp, Eraser } from "lucide-react";
+import { Plus, Search, Filter, Edit, History, Trash2, FileUp, Eraser, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Table,
@@ -67,7 +67,26 @@ export default function Contratacoes() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const navigate = useNavigate();
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDir("asc");
+    }
+    setPage(1);
+  };
+
+  const SortIcon = ({ field }: { field: string }) => {
+    if (sortField !== field) return <ArrowUpDown className="inline ml-1 h-3 w-3 opacity-40" />;
+    return sortDir === "asc"
+      ? <ArrowUp className="inline ml-1 h-3 w-3 opacity-90" />
+      : <ArrowDown className="inline ml-1 h-3 w-3 opacity-90" />;
+  };
 
   // Auth: role and profile info
   const { data: session } = useAuthSession();
@@ -552,9 +571,38 @@ export default function Contratacoes() {
   }, [debouncedSearchTerm, filtros]);
 
   const displayedContratacoes = useMemo(() => {
+    let sorted = [...filteredContratacoes];
+    if (sortField) {
+      sorted.sort((a, b) => {
+        let aVal: any = (a as any)[sortField];
+        let bVal: any = (b as any)[sortField];
+        // Tratamento especial para status (baseado em etapa_processo e sobrestado)
+        if (sortField === "_status") {
+          const getOrder = (c: any) => {
+            if (c.sobrestado) return 5;
+            const e = c.etapa_processo?.toLowerCase() || "";
+            if (e === "concluído") return 4;
+            if (e === "em licitação" || e === "contratado") return 3;
+            if (e === "iniciado") return 2;
+            if (e === "retornado para diligência") return 1;
+            return 0;
+          };
+          aVal = getOrder(a); bVal = getOrder(b);
+        }
+        // Numérico
+        if (typeof aVal === "number" && typeof bVal === "number") {
+          return sortDir === "asc" ? aVal - bVal : bVal - aVal;
+        }
+        // String
+        const aStr = String(aVal ?? "").toLowerCase();
+        const bStr = String(bVal ?? "").toLowerCase();
+        const cmp = aStr.localeCompare(bStr, "pt-BR");
+        return sortDir === "asc" ? cmp : -cmp;
+      });
+    }
     const start = (page - 1) * pageSize;
-    return filteredContratacoes.slice(start, start + pageSize);
-  }, [filteredContratacoes, page, pageSize]);
+    return sorted.slice(start, start + pageSize);
+  }, [filteredContratacoes, page, pageSize, sortField, sortDir]);
 
   const formatCurrency = (value: number | null) => {
     if (!value) return "R$ 0,00";
@@ -929,22 +977,22 @@ export default function Contratacoes() {
           <Table containerClassName="max-h-[60vh]">
             <TableHeader className="bg-primary hover:bg-primary">
               <TableRow>
-                <TableHead className="text-center w-[80px] text-white font-bold">Cod. PCA</TableHead>
-                <TableHead className="text-center min-w-[180px] text-white font-bold">Descrição</TableHead>
-                <TableHead className="text-center w-[90px] text-white font-bold">Setor</TableHead>
-                <TableHead className="text-center w-[110px] text-white font-bold">Classe</TableHead>
-                <TableHead className="text-center w-[80px] text-white font-bold">Quantidade</TableHead>
-                <TableHead className="text-center w-[120px] text-white font-bold">Valor Unitário</TableHead>
-                <TableHead className="text-center w-[120px] text-white font-bold">Valor Estimado</TableHead>
-                <TableHead className="text-center w-[120px] text-white font-bold">Valor Executado</TableHead>
-                <TableHead className="text-center w-[130px] text-white font-bold">Data Prevista de Início</TableHead>
-                <TableHead className="text-center w-[130px] text-white font-bold">Data Prevista de Conclusão</TableHead>
-                <TableHead className="text-center w-[110px] text-white font-bold">Status</TableHead>
-                <TableHead className="text-center w-[90px] text-white font-bold">Prioridade</TableHead>
-                <TableHead className="text-center w-[90px] text-white font-bold">Ações</TableHead>
+                <TableHead className="text-center w-[80px] text-white font-bold text-xs h-9">Cod. PCA</TableHead>
+                <TableHead onClick={() => handleSort("descricao")} className="text-center min-w-[180px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Descrição<SortIcon field="descricao" /></TableHead>
+                <TableHead onClick={() => handleSort("setor_requisitante")} className="text-center w-[90px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Setor<SortIcon field="setor_requisitante" /></TableHead>
+                <TableHead onClick={() => handleSort("classe")} className="text-center w-[110px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Classe<SortIcon field="classe" /></TableHead>
+                <TableHead onClick={() => handleSort("quantidade_itens")} className="text-center w-[80px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Quantidade<SortIcon field="quantidade_itens" /></TableHead>
+                <TableHead onClick={() => handleSort("valor_unitario")} className="text-center w-[120px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Valor Unitário<SortIcon field="valor_unitario" /></TableHead>
+                <TableHead onClick={() => handleSort("valor_estimado")} className="text-center w-[120px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Valor Estimado<SortIcon field="valor_estimado" /></TableHead>
+                <TableHead onClick={() => handleSort("valor_contratado")} className="text-center w-[120px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Valor Executado<SortIcon field="valor_contratado" /></TableHead>
+                <TableHead className="text-center w-[130px] text-white font-bold text-xs h-9">Data Prevista de Início</TableHead>
+                <TableHead onClick={() => handleSort("data_prevista_contratacao")} className="text-center w-[130px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Data Prevista de Conclusão<SortIcon field="data_prevista_contratacao" /></TableHead>
+                <TableHead onClick={() => handleSort("_status")} className="text-center w-[110px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Status<SortIcon field="_status" /></TableHead>
+                <TableHead onClick={() => handleSort("grau_prioridade")} className="text-center w-[90px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Prioridade<SortIcon field="grau_prioridade" /></TableHead>
+                <TableHead className="text-center w-[90px] text-white font-bold text-xs h-9">Ações</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="text-[11px]">
               {displayedContratacoes.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={13} className="text-center py-8 text-muted-foreground">
@@ -955,7 +1003,7 @@ export default function Contratacoes() {
                 <>
                   {displayedContratacoes.map((contratacao) => (
                     <TableRow key={contratacao.id} className="hover:bg-muted/50">
-                      <TableCell className="text-center text-sm text-muted-foreground">
+                      <TableCell className="text-center text-muted-foreground">
                         {contratacao.codigo?.toUpperCase().replace(/^PCA-/, "").replace(/-2026$/, "") || contratacao.id.slice(-4).toUpperCase()}
                       </TableCell>
                       <TableCell className="max-w-xs">
@@ -964,8 +1012,8 @@ export default function Contratacoes() {
                         </div>
                       </TableCell>
                       <TableCell className="max-w-xs text-center">{formatSetor(contratacao.setor_requisitante)}</TableCell>
-                      <TableCell className="text-sm text-center">{contratacao.classe || "-"}</TableCell>
-                      <TableCell className="text-center">{contratacao.quantidade_itens || "-"}</TableCell>
+                      <TableCell className="text-center">{contratacao.classe || "-"}</TableCell>
+                      <TableCell className="text-center">{contratacao.quantidade_itens != null ? new Intl.NumberFormat("pt-BR").format(contratacao.quantidade_itens) : "-"}</TableCell>
                       <TableCell className="text-right">
                         {formatCurrency(contratacao.valor_unitario)}
                       </TableCell>
