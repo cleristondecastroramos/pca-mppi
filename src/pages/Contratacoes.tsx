@@ -157,7 +157,7 @@ export default function Contratacoes() {
     try {
       let query = supabase
         .from("contratacoes")
-        .select("id, codigo, descricao, setor_requisitante, unidade_orcamentaria, classe, valor_estimado, valor_contratado, etapa_processo, sobrestado, grau_prioridade, justificativa, data_prevista_contratacao, data_entrada_clc, numero_sei_contratacao, pdm_catser, created_at, quantidade_itens, valor_unitario, unidade_fornecimento, tipo_recurso, tipo_contratacao, modalidade, normativo, srp, empenho_1, empenho_2, empenho_3")
+        .select("id, codigo, descricao, setor_requisitante, unidade_orcamentaria, classe, valor_estimado, valor_contratado, valor_licitado, etapa_processo, sobrestado, grau_prioridade, justificativa, data_prevista_contratacao, data_entrada_clc, numero_sei_contratacao, pdm_catser, created_at, quantidade_itens, valor_unitario, unidade_fornecimento, tipo_recurso, tipo_contratacao, modalidade, normativo, srp, empenho_1, empenho_2, empenho_3")
         .neq("srp", true)
         .order("created_at", { ascending: false });
 
@@ -590,8 +590,8 @@ export default function Contratacoes() {
           aVal = getOrder(a); bVal = getOrder(b);
         }
         if (sortField === "_valor_executado") {
-          aVal = calcExecutado(a);
-          bVal = calcExecutado(b);
+          aVal = getExecutado(a);
+          bVal = getExecutado(b);
         }
         // Numérico
         if (typeof aVal === "number" && typeof bVal === "number") {
@@ -625,6 +625,15 @@ export default function Contratacoes() {
 
   const calcExecutado = (r: any) => {
     return parseCurrency(r.empenho_1) + parseCurrency(r.empenho_2) + parseCurrency(r.empenho_3);
+  };
+
+  const getExecutado = (r: any) => {
+    // Se o valor_contratado for diferente do valor_licitado, consideramos que foi editado manualmente
+    // Caso contrário, ou se for nulo, retornamos a soma dos empenhos (regra de negócio)
+    if (r.valor_contratado !== null && r.valor_contratado !== r.valor_licitado) {
+      return r.valor_contratado;
+    }
+    return calcExecutado(r);
   };
 
   const formatCurrency = (value: number | null) => {
@@ -1044,7 +1053,7 @@ export default function Contratacoes() {
                         {formatCurrency(contratacao.valor_estimado)}
                       </TableCell>
                       <TableCell className="text-right">
-                        {formatCurrency(calcExecutado(contratacao))}
+                        {formatCurrency(getExecutado(contratacao))}
                       </TableCell>
                       <TableCell className="text-center">
                         {formatDate(calculateStartDate(contratacao.tipo_contratacao, contratacao.modalidade, (contratacao as any).data_prevista_contratacao))}
@@ -1552,7 +1561,7 @@ export default function Contratacoes() {
                     <Input
                       id="edit-valor-executado"
                       inputMode="numeric"
-                      value={formatCurrencyNumber(editingContratacao.valor_contratado ?? 0)}
+                      value={formatCurrencyNumber(getExecutado(editingContratacao))}
                       onChange={(e) => {
                         const formatted = formatCurrencyInput(e.target.value);
                         e.currentTarget.value = formatted;
