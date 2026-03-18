@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { KPICard } from "@/components/KPICard";
-import { ClipboardList, DollarSign } from "lucide-react";
+import { ClipboardList, DollarSign, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -371,8 +371,27 @@ const SetoresDemandantes = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [kpiResumo, setKpiResumo] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
+  const [sortField, setSortField] = useState<string>("created_at");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const filtros = useMemo(() => ({ setor_requisitante: setor, tipo_contratacao: tipoContratacao, etapa_processo: status }), [setor, tipoContratacao, status]);
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
+    setPage(1);
+  };
+
+  const SortIcon = ({ field }: { field: string }) => {
+    if (sortField !== field) return <ArrowUpDown className="inline ml-1 h-3 w-3 opacity-40" />;
+    return sortOrder === "asc"
+      ? <ArrowUp className="inline ml-1 h-3 w-3 opacity-90" />
+      : <ArrowDown className="inline ml-1 h-3 w-3 opacity-90" />;
+  };
 
   const statusCategoryMap: Record<string, { etapas: string[]; sobrestado?: boolean }> = {
     "não iniciado": { etapas: ["Planejamento"], sobrestado: false },
@@ -422,6 +441,9 @@ const SetoresDemandantes = () => {
         }
       }
 
+      // Adiciona ordenação
+      query = query.order(sortField, { ascending: sortOrder === "asc" });
+
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
       const { data, error, count } = await query.range(from, to);
@@ -468,7 +490,7 @@ const SetoresDemandantes = () => {
       setLoading(false);
     };
     fetchData();
-  }, [page, pageSize, filtros]);
+  }, [page, pageSize, filtros, sortField, sortOrder]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
@@ -481,7 +503,7 @@ const SetoresDemandantes = () => {
             <p className="text-sm text-muted-foreground">Visualize demandas por setor e tipo.</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => { setSetor(undefined); setTipoContratacao(undefined); setStatus(undefined); setPage(1); }}>Limpar filtros</Button>
+            <Button variant="outline" onClick={() => { setSetor(undefined); setTipoContratacao(undefined); setStatus(undefined); setSortField("created_at"); setSortOrder("desc"); setPage(1); }}>Limpar filtros</Button>
           </div>
         </div>
 
@@ -618,13 +640,38 @@ const SetoresDemandantes = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-primary hover:bg-primary/90">
-                    <TableHead className="text-center text-primary-foreground font-semibold w-[80px]">Cod. PCA</TableHead>
-                    <TableHead className="text-center text-primary-foreground font-semibold w-[320px] max-w-[320px]">Tipo de Material/Serviço</TableHead>
-                    <TableHead className="text-center text-primary-foreground font-semibold w-[120px]">Valor Estimado</TableHead>
+                    <TableHead 
+                      className="text-center text-primary-foreground font-semibold w-[80px] cursor-pointer select-none"
+                      onClick={() => handleSort("codigo")}
+                    >
+                      Cod. PCA <SortIcon field="codigo" />
+                    </TableHead>
+                    <TableHead 
+                      className="text-center text-primary-foreground font-semibold w-[320px] max-w-[320px] cursor-pointer select-none"
+                      onClick={() => handleSort("descricao")}
+                    >
+                      Tipo de Material/Serviço <SortIcon field="descricao" />
+                    </TableHead>
+                    <TableHead 
+                      className="text-center text-primary-foreground font-semibold w-[120px] cursor-pointer select-none"
+                      onClick={() => handleSort("valor_estimado")}
+                    >
+                      Valor Estimado <SortIcon field="valor_estimado" />
+                    </TableHead>
                     <TableHead className="text-center text-primary-foreground font-semibold w-[120px]">Valor Executado</TableHead>
                     <TableHead className="text-center text-primary-foreground font-semibold w-[120px]">Saldo Orçamentário</TableHead>
-                    <TableHead className="text-center text-primary-foreground font-semibold w-[120px]">Status</TableHead>
-                    <TableHead className="text-center text-primary-foreground font-semibold w-[100px]">Prazo</TableHead>
+                    <TableHead 
+                      className="text-center text-primary-foreground font-semibold w-[120px] cursor-pointer select-none"
+                      onClick={() => handleSort("etapa_processo")}
+                    >
+                      Status <SortIcon field="etapa_processo" />
+                    </TableHead>
+                    <TableHead 
+                      className="text-center text-primary-foreground font-semibold w-[100px] cursor-pointer select-none"
+                      onClick={() => handleSort("data_prevista_contratacao")}
+                    >
+                      Prazo <SortIcon field="data_prevista_contratacao" />
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
