@@ -135,7 +135,7 @@ export default function NovaContratacao() {
       valor_unitario: valorUnitario,
       unidade_fornecimento: formData.get("unidade_fornecimento") as string,
       pdm_catser: formData.get("pdm_catser") as string,
-      srp: formData.get("srp") === "Sim",
+      srp: false,
       etapa_processo: "Planejamento",
     };
 
@@ -253,9 +253,10 @@ export default function NovaContratacao() {
               <CardTitle>Informações Básicas</CardTitle>
               <CardDescription>Dados principais da contratação</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="space-y-2">
+            <CardContent className="space-y-4">
+              {/* primeira linha: 'Descrição do Objeto' (2/3) e 'PDM/CATSER' (1/3) */}
+              <div className="grid gap-3 md:grid-cols-3">
+                <div className="space-y-2 md:col-span-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="descricao">Descrição do Objeto *</Label>
                     <AIWriter 
@@ -279,7 +280,10 @@ export default function NovaContratacao() {
                   <Label htmlFor="pdm">PDM/CATSER</Label>
                   <Input name="pdm_catser" id="pdm" placeholder="Código do catálogo" />
                 </div>
+              </div>
 
+              {/* segunda linha: 'Classe', 'Setor Requisitante' e 'Tipo de Contratação' */}
+              <div className="grid gap-3 md:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="classe">Classe *</Label>
                   <Select name="classe" required>
@@ -350,20 +354,10 @@ export default function NovaContratacao() {
                   </Select>
                   {errors.tipo_contratacao && <p className="text-sm text-destructive">{errors.tipo_contratacao}</p>}
                 </div>
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="srp">SRP (Registro de Preços)? *</Label>
-                  <Select name="srp" required defaultValue="Não">
-                    <SelectTrigger id="srp" className="h-9">
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Sim">Sim</SelectItem>
-                      <SelectItem value="Não">Não</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
+              {/* terceira linha: 'Modalidade', 'Normativo' e 'Grau de Prioridade' */}
+              <div className="grid gap-3 md:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="modalidade">Modalidade *</Label>
                   <Select name="modalidade" required onValueChange={(val) => setModalidade(val)} value={modalidade}>
@@ -409,7 +403,10 @@ export default function NovaContratacao() {
                   </Select>
                   {errors.grau_prioridade && <p className="text-sm text-destructive">{errors.grau_prioridade}</p>}
                 </div>
+              </div>
 
+              {/* quarta linha: 'Unidade Orçamentária', 'Data Prevista para Início' e 'Data Prevista para Conclusão' */}
+              <div className="grid gap-3 md:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="unidade-orcamentaria">Unidade Orçamentária *</Label>
                   <Select name="unidade_orcamentaria" required>
@@ -426,7 +423,7 @@ export default function NovaContratacao() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="data-inicio">Data Prevista para Início da Contratação</Label>
+                  <Label htmlFor="data-inicio">Data Prevista para Início</Label>
                   <Input 
                     name="data_entrada_clc_virtual" 
                     id="data-inicio" 
@@ -438,7 +435,7 @@ export default function NovaContratacao() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="data-prevista">Data Prevista para Conclusão da Contratação *</Label>
+                  <Label htmlFor="data-prevista" className="truncate block">Data Prevista para Conclusão *</Label>
                   <Input 
                     name="data_prevista_contratacao" 
                     id="data-prevista" 

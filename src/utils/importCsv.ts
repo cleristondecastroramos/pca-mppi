@@ -154,9 +154,9 @@ export const parseAndImportCSV = async (fileContent: string) => {
       numero_sei_contratacao: cols[colMap.numero_sei]?.replace(/^"|"$/g, '') || null,
       pdm_catser: cols[colMap.pdm_catser]?.replace(/^"|"$/g, '') || null,
       valor_contratado: parseCurrency(cols[colMap.valor_contratado]?.replace(/^"|"$/g, '') || "0"),
-      empenho_1: cols[colMap.empenho_1]?.replace(/^"|"$/g, '') || null,
-      empenho_2: cols[colMap.empenho_2]?.replace(/^"|"$/g, '') || null,
-      empenho_3: cols[colMap.empenho_3]?.replace(/^"|"$/g, '') || null,
+      valor_executado: parseCurrency(cols[colMap.empenho_1]?.replace(/^"|"$/g, '') || "0") + 
+                       parseCurrency(cols[colMap.empenho_2]?.replace(/^"|"$/g, '') || "0") + 
+                       parseCurrency(cols[colMap.empenho_3]?.replace(/^"|"$/g, '') || "0"),
       status_inicio: "DENTRO DO PRAZO", // Default or derived
       etapa_processo: status
     };

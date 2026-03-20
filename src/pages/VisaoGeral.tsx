@@ -19,9 +19,7 @@ type Contratacao = Pick<
   | "id"
   | "valor_estimado"
   | "valor_contratado"
-  | "empenho_1"
-  | "empenho_2"
-  | "empenho_3"
+  | "valor_executado"
   | "modalidade"
   | "unidade_orcamentaria"
   | "setor_requisitante"
@@ -134,9 +132,7 @@ const VisaoGeral = () => {
             "id",
             "valor_estimado",
             "valor_contratado",
-            "empenho_1",
-            "empenho_2",
-            "empenho_3",
+            "valor_executado",
             "modalidade",
             "unidade_orcamentaria",
             "setor_requisitante",
@@ -302,12 +298,7 @@ const VisaoGeral = () => {
   const kpis = useMemo(() => {
     const totalDemandas = filteredRows.length;
     const totalEstimado = filteredRows.reduce((sum, r) => sum + (r.valor_estimado || 0), 0);
-    const totalExecutado = filteredRows.reduce((sum, r) => {
-      const e1 = parseFloat(String(r.empenho_1 || "0").replace(/[R$\s.]/g, '').replace(',', '.'));
-      const e2 = parseFloat(String(r.empenho_2 || "0").replace(/[R$\s.]/g, '').replace(',', '.'));
-      const e3 = parseFloat(String(r.empenho_3 || "0").replace(/[R$\s.]/g, '').replace(',', '.'));
-      return sum + (isNaN(e1) ? 0 : e1) + (isNaN(e2) ? 0 : e2) + (isNaN(e3) ? 0 : e3);
-    }, 0);
+    const totalExecutado = filteredRows.reduce((sum, r) => sum + (r.valor_executado || 0), 0);
     const totalConcluidas = filteredRows.filter((r) => r.etapa_processo === "Concluído").length;
     return { totalDemandas, totalEstimado, totalExecutado, totalConcluidas };
   }, [filteredRows]);

@@ -38,17 +38,14 @@ const Relatorios = () => {
     if (!codigo) return String(id).slice(-4).toUpperCase();
     return String(codigo).toUpperCase().replace(/^PCA-/, "").replace(/-2026$/, "");
   };
-  const selectBase =
-    "id, codigo, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, srp, numero_sei_contratacao, etapa_processo, sobrestado, created_at, data_finalizacao_licitacao, valor_estimado, valor_contratado, data_prevista_contratacao, quantidade_itens, valor_unitario, data_conclusao";
-  const selectWithExecutado = `${selectBase}, valor_executado`;
   const fetchAllContratacoes = async () => {
-    const q1 = await supabase.from("contratacoes").select(selectWithExecutado).neq("srp", true);
-    if (q1.error) {
-      const q2 = await supabase.from("contratacoes").select(selectBase).neq("srp", true);
-      if (q2.error) throw q2.error;
-      return q2.data || [];
-    }
-    return q1.data || [];
+    const { data, error } = await supabase
+      .from("contratacoes")
+      .select("id, codigo, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, srp, numero_sei_contratacao, etapa_processo, sobrestado, created_at, data_finalizacao_licitacao, valor_estimado, valor_contratado, data_prevista_contratacao, quantidade_itens, valor_unitario, data_conclusao, valor_executado")
+      .neq("srp", true);
+    
+    if (error) throw error;
+    return data || [];
   };
   const normalizeNormativoRecords = async () => {
     try {
@@ -288,7 +285,7 @@ const Relatorios = () => {
         r.setor_requisitante || "",
         r.grau_prioridade || "",
         r.valor_estimado || 0,
-        (r as any).valor_executado ?? r.valor_contratado ?? 0,
+        r.valor_executado || 0,
         r.data_prevista_contratacao || "",
       ],
       title: (n) => `Relatório Detalhado de Contratações (${n} registros)`,
@@ -323,7 +320,7 @@ const Relatorios = () => {
         r.setor_requisitante || "",
         statusLabel(r),
         r.valor_estimado || 0,
-        (r as any).valor_executado ?? r.valor_contratado ?? 0,
+        r.valor_executado || 0,
       ],
       title: (n) => `Relatório por Setor (${n} registros)`,
     },
@@ -354,7 +351,7 @@ const Relatorios = () => {
         String(r.descricao || ""),
         r.valor_estimado || 0,
         r.valor_contratado || 0,
-        (r as any).valor_executado ?? r.valor_contratado ?? 0,
+        r.valor_executado || 0,
       ],
       title: (n) => `Relatório Financeiro (${n} registros)`,
     },

@@ -30,9 +30,6 @@ export type Database = {
           data_prevista_contratacao: string | null
           data_termino_contrato: string | null
           descricao: string
-          empenho_1: string | null
-          empenho_2: string | null
-          empenho_3: string | null
           etapa_processo: string | null
           grau_prioridade: string
           houve_devolucao: boolean | null
@@ -64,6 +61,7 @@ export type Database = {
           updated_at: string | null
           valor_contratado: number | null
           valor_estimado: number
+          valor_executado: number | null
           valor_licitado: number | null
           valor_unitario: number | null
         }
@@ -82,9 +80,6 @@ export type Database = {
           data_prevista_contratacao?: string | null
           data_termino_contrato?: string | null
           descricao: string
-          empenho_1?: string | null
-          empenho_2?: string | null
-          empenho_3?: string | null
           etapa_processo?: string | null
           grau_prioridade: string
           houve_devolucao?: boolean | null
@@ -116,6 +111,7 @@ export type Database = {
           updated_at?: string | null
           valor_contratado?: number | null
           valor_estimado: number
+          valor_executado?: number | null
           valor_licitado?: number | null
           valor_unitario?: number | null
         }
@@ -134,9 +130,6 @@ export type Database = {
           data_prevista_contratacao?: string | null
           data_termino_contrato?: string | null
           descricao?: string
-          empenho_1?: string | null
-          empenho_2?: string | null
-          empenho_3?: string | null
           etapa_processo?: string | null
           grau_prioridade?: string
           houve_devolucao?: boolean | null
@@ -168,6 +161,7 @@ export type Database = {
           updated_at?: string | null
           valor_contratado?: number | null
           valor_estimado?: number
+          valor_executado?: number | null
           valor_licitado?: number | null
           valor_unitario?: number | null
         }

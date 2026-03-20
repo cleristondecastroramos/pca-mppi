@@ -157,7 +157,7 @@ export default function Contratacoes() {
     try {
       let query = supabase
         .from("contratacoes")
-        .select("id, codigo, descricao, setor_requisitante, unidade_orcamentaria, classe, valor_estimado, valor_contratado, valor_licitado, etapa_processo, sobrestado, grau_prioridade, justificativa, data_prevista_contratacao, data_entrada_clc, numero_sei_contratacao, pdm_catser, created_at, quantidade_itens, valor_unitario, unidade_fornecimento, tipo_recurso, tipo_contratacao, modalidade, normativo, srp, empenho_1, empenho_2, empenho_3")
+        .select("id, codigo, descricao, setor_requisitante, unidade_orcamentaria, classe, valor_estimado, valor_contratado, valor_licitado, etapa_processo, sobrestado, grau_prioridade, justificativa, data_prevista_contratacao, data_entrada_clc, numero_sei_contratacao, pdm_catser, created_at, quantidade_itens, valor_unitario, unidade_fornecimento, tipo_recurso, tipo_contratacao, modalidade, normativo, srp, valor_executado")
         .neq("srp", true)
         .order("created_at", { ascending: false });
 
@@ -319,6 +319,7 @@ export default function Contratacoes() {
         sobrestado: mapped.sobrestado,
         grau_prioridade: editingContratacao.grau_prioridade,
         justificativa: editingContratacao.justificativa,
+        valor_executado: editingContratacao.valor_executado,
         updated_at: new Date().toISOString(),
       };
 
@@ -624,16 +625,11 @@ export default function Contratacoes() {
   };
 
   const calcExecutado = (r: any) => {
-    return parseCurrency(r.empenho_1) + parseCurrency(r.empenho_2) + parseCurrency(r.empenho_3);
+    return r.valor_executado || 0;
   };
 
   const getExecutado = (r: any) => {
-    // Se o valor_contratado for diferente do valor_licitado, consideramos que foi editado manualmente
-    // Caso contrário, ou se for nulo, retornamos a soma dos empenhos (regra de negócio)
-    if (r.valor_contratado !== null && r.valor_contratado !== r.valor_licitado) {
-      return r.valor_contratado;
-    }
-    return calcExecutado(r);
+    return r.valor_executado || 0;
   };
 
   const formatCurrency = (value: number | null) => {
@@ -1568,7 +1564,7 @@ export default function Contratacoes() {
                         const parsed = parseCurrencyInput(formatted);
                         setEditingContratacao({
                           ...editingContratacao,
-                          valor_contratado: parsed,
+                          valor_executado: parsed,
                         });
                       }}
                       className="h-8 text-xs focus-visible:ring-1"

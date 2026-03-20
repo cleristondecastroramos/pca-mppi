@@ -18,9 +18,9 @@ type Contratacao = Tables<"contratacoes">;
 const ResultadosAlcancados = () => {
   const [rows, setRows] = useState<Contratacao[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [metricTipo, setMetricTipo] = useState<"quantidade" | "valor_contratado">("valor_contratado");
-  const [metricClasse, setMetricClasse] = useState<"quantidade" | "valor_contratado">("valor_contratado");
-  const [metricUo, setMetricUo] = useState<"quantidade" | "valor_contratado">("valor_contratado");
+  const [metricTipo, setMetricTipo] = useState<"quantidade" | "valor_executado">("valor_executado");
+  const [metricClasse, setMetricClasse] = useState<"quantidade" | "valor_executado">("valor_executado");
+  const [metricUo, setMetricUo] = useState<"quantidade" | "valor_executado">("valor_executado");
 
   useEffect(() => {
     let mounted = true;
@@ -29,7 +29,7 @@ const ResultadosAlcancados = () => {
       try {
         const { data, error } = await supabase
           .from("contratacoes")
-          .select("id, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, classe, etapa_processo, valor_contratado")
+          .select("id, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, classe, etapa_processo, valor_executado, valor_contratado")
           .neq("srp", true)
           .order("created_at", { ascending: false });
         if (error) throw error;
@@ -49,7 +49,7 @@ const ResultadosAlcancados = () => {
   }, []);
 
   const concluidas = useMemo(() => rows.filter((r) => r.etapa_processo === "Concluído"), [rows]);
-  const totalEstimadoConcluido = useMemo(() => concluidas.reduce((s, r) => s + (r.valor_contratado || 0), 0), [concluidas]);
+  const totalEstimadoConcluido = useMemo(() => concluidas.reduce((s, r) => s + (r.valor_executado || 0), 0), [concluidas]);
   const taxaConclusao = useMemo(() => {
     const total = rows.length || 1;
     return Math.round((concluidas.length / total) * 100);
@@ -63,7 +63,7 @@ const ResultadosAlcancados = () => {
       const k = r.tipo_contratacao || "Não informado";
       const cur = map.get(k) || { qtd: 0, valor: 0 };
       cur.qtd += 1;
-      cur.valor += r.valor_contratado || 0;
+      cur.valor += r.valor_executado || 0;
       map.set(k, cur);
     });
     return Array.from(map.entries()).map(([name, v]) => ({ name, value: metricTipo === "quantidade" ? v.qtd : v.valor }));
@@ -75,7 +75,7 @@ const ResultadosAlcancados = () => {
       const k = r.unidade_orcamentaria || "Não informado";
       const cur = map.get(k) || { qtd: 0, valor: 0 };
       cur.qtd += 1;
-      cur.valor += r.valor_contratado || 0;
+      cur.valor += r.valor_executado || 0;
       map.set(k, cur);
     });
     return Array.from(map.entries()).map(([name, v]) => ({ name, value: metricUo === "quantidade" ? v.qtd : v.valor }));
@@ -87,7 +87,7 @@ const ResultadosAlcancados = () => {
       const k = r.classe || "Não informado";
       const cur = map.get(k) || { qtd: 0, valor: 0 };
       cur.qtd += 1;
-      cur.valor += r.valor_contratado || 0;
+      cur.valor += r.valor_executado || 0;
       map.set(k, cur);
     });
     return Array.from(map.entries()).map(([name, v]) => ({ name, value: metricClasse === "quantidade" ? v.qtd : v.valor }));
@@ -97,7 +97,7 @@ const ResultadosAlcancados = () => {
     const map = new Map<string, number>();
     concluidas.forEach((r) => {
       const k = r.setor_requisitante || "Não informado";
-      map.set(k, (map.get(k) || 0) + (r.valor_contratado || 0));
+      map.set(k, (map.get(k) || 0) + (r.valor_executado || 0));
     });
     return Array.from(map.entries()).map(([setor, valor]) => ({ setor, valor }));
   }, [concluidas]);
@@ -139,7 +139,7 @@ const ResultadosAlcancados = () => {
                 <CardTitle className="text-sm">Distribuição por UO</CardTitle>
                 <div className="flex flex-col gap-1 items-end">
                   <Button size="xs" className="text-[10px] leading-3 w-[160px]" variant={metricUo === "quantidade" ? "default" : "outline"} onClick={() => setMetricUo("quantidade")}>Número de processos</Button>
-                  <Button size="xs" className="text-[10px] leading-3 w-[160px]" variant={metricUo === "valor_contratado" ? "default" : "outline"} onClick={() => setMetricUo("valor_contratado")}>Valores contratados</Button>
+                  <Button size="xs" className="text-[10px] leading-3 w-[160px]" variant={metricUo === "valor_executado" ? "default" : "outline"} onClick={() => setMetricUo("valor_executado")}>Valores executados</Button>
                 </div>
               </div>
             </CardHeader>
@@ -147,7 +147,7 @@ const ResultadosAlcancados = () => {
               <ChartContainer config={{ uo: { label: "UO", color: "hsl(var(--chart-4))" } }} className="w-full !aspect-auto h-[220px] min-h-[220px] overflow-visible" style={{ height: 220 }}>
                 {(() => {
                   const data = dadosPorUo.length ? dadosPorUo : [{ name: "Sem dados", value: 1 }];
-                  const formatter = (v: number) => (metricUo === "valor_contratado" ? fmtBRL(v) : v);
+                  const formatter = (v: number) => (metricUo === "valor_executado" ? fmtBRL(v) : v);
                   return (
                     <PieChart width={400} height={220}>
                       <ChartTooltip content={<ChartTooltipContent formatter={(value: number) => <span>{formatter(value as number)}</span>} />} />
@@ -168,7 +168,7 @@ const ResultadosAlcancados = () => {
                 <CardTitle className="text-sm">Distribuição por Tipo de Contratação</CardTitle>
                 <div className="flex flex-col gap-1 items-end">
                   <Button size="xs" className="text-[10px] leading-3 w-[160px]" variant={metricTipo === "quantidade" ? "default" : "outline"} onClick={() => setMetricTipo("quantidade")}>Número de processos</Button>
-                  <Button size="xs" className="text-[10px] leading-3 w-[160px]" variant={metricTipo === "valor_contratado" ? "default" : "outline"} onClick={() => setMetricTipo("valor_contratado")}>Valores contratados</Button>
+                  <Button size="xs" className="text-[10px] leading-3 w-[160px]" variant={metricTipo === "valor_executado" ? "default" : "outline"} onClick={() => setMetricTipo("valor_executado")}>Valores executados</Button>
                 </div>
               </div>
             </CardHeader>
@@ -176,7 +176,7 @@ const ResultadosAlcancados = () => {
               <ChartContainer config={{ tipo: { label: "Tipo", color: "hsl(var(--chart-3))" } }} className="w-full !aspect-auto h-[220px] min-h-[220px] overflow-visible" style={{ height: 220 }}>
                 {(() => {
                   const data = dadosPorTipo.length ? dadosPorTipo : [{ name: "Sem dados", value: 1 }];
-                  const formatter = (v: number) => (metricTipo === "valor_contratado" ? fmtBRL(v) : v);
+                  const formatter = (v: number) => (metricTipo === "valor_executado" ? fmtBRL(v) : v);
                   return (
                     <PieChart width={400} height={220}>
                       <ChartTooltip content={<ChartTooltipContent formatter={(value: number) => <span>{formatter(value as number)}</span>} />} />
@@ -197,7 +197,7 @@ const ResultadosAlcancados = () => {
                 <CardTitle className="text-sm">Distribuição por Classe</CardTitle>
                 <div className="flex flex-col gap-1 items-end">
                   <Button size="xs" className="text-[10px] leading-3 w-[160px]" variant={metricClasse === "quantidade" ? "default" : "outline"} onClick={() => setMetricClasse("quantidade")}>Número de processos</Button>
-                  <Button size="xs" className="text-[10px] leading-3 w-[160px]" variant={metricClasse === "valor_contratado" ? "default" : "outline"} onClick={() => setMetricClasse("valor_contratado")}>Valores contratados</Button>
+                  <Button size="xs" className="text-[10px] leading-3 w-[160px]" variant={metricClasse === "valor_executado" ? "default" : "outline"} onClick={() => setMetricClasse("valor_executado")}>Valores executados</Button>
                 </div>
               </div>
             </CardHeader>
@@ -205,7 +205,7 @@ const ResultadosAlcancados = () => {
               <ChartContainer config={{ classe: { label: "Classe", color: "hsl(var(--chart-1))" } }} className="w-full !aspect-auto h-[220px] min-h-[220px] overflow-visible" style={{ height: 220 }}>
                 {(() => {
                   const data = dadosPorClasse.length ? dadosPorClasse : [{ name: "Sem dados", value: 1 }];
-                  const formatter = (v: number) => (metricClasse === "valor_contratado" ? fmtBRL(v) : v);
+                  const formatter = (v: number) => (metricClasse === "valor_executado" ? fmtBRL(v) : v);
                   return (
                     <PieChart width={400} height={220}>
                       <ChartTooltip content={<ChartTooltipContent formatter={(value: number) => <span>{formatter(value as number)}</span>} />} />
@@ -265,7 +265,7 @@ const ResultadosAlcancados = () => {
                       <TableHead className="w-[160px]">Setor</TableHead>
                       <TableHead className="w-[140px]">Tipo</TableHead>
                       <TableHead className="w-[140px]">Classe</TableHead>
-                      <TableHead className="w-[160px]">Valor Contratado</TableHead>
+                      <TableHead className="w-[160px]">Valor Executado</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -280,7 +280,7 @@ const ResultadosAlcancados = () => {
                           <TableCell>{r.setor_requisitante || "-"}</TableCell>
                           <TableCell>{r.tipo_contratacao || "-"}</TableCell>
                           <TableCell>{r.classe || "-"}</TableCell>
-                          <TableCell className="text-right">{fmtBRL(r.valor_contratado || 0)}</TableCell>
+                          <TableCell className="text-right">{fmtBRL(r.valor_executado || 0)}</TableCell>
                         </TableRow>
                       ))
                     )}

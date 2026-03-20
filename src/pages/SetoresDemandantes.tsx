@@ -21,9 +21,7 @@ type Row = {
   valor_estimado: number;
   valor_contratado?: number | null;
   saldo_orcamentario?: number | null;
-  empenho_1?: number | string | null;
-  empenho_2?: number | string | null;
-  empenho_3?: number | string | null;
+  valor_executado?: number | null;
   modalidade: string;
   tipo_contratacao?: string | null;
   etapa_processo?: string | null;
@@ -71,7 +69,7 @@ const parseCurrency = (val: string | number | null | undefined): number => {
 };
 
 const calcExecutado = (r: Row) => {
-  return parseCurrency(r.empenho_1) + parseCurrency(r.empenho_2) + parseCurrency(r.empenho_3);
+  return r.valor_executado || 0;
 };
 
 const calcSaldo = (r: Row) => {
@@ -413,9 +411,7 @@ const SetoresDemandantes = () => {
           "classe",
           "valor_estimado",
           "valor_contratado",
-          "empenho_1",
-          "empenho_2",
-          "empenho_3",
+          "valor_executado",
           "saldo_orcamentario",
           "modalidade",
           "etapa_processo",
@@ -453,7 +449,7 @@ const SetoresDemandantes = () => {
         
         let kpiQuery = supabase
           .from("contratacoes")
-          .select("valor_estimado, valor_contratado, empenho_1, empenho_2, empenho_3, etapa_processo, sobrestado")
+          .select("valor_estimado, valor_contratado, valor_executado, etapa_processo, sobrestado")
           .neq("srp", true);
         
         if (filtros.setor_requisitante) kpiQuery = kpiQuery.eq("setor_requisitante", filtros.setor_requisitante);
