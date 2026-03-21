@@ -19,14 +19,12 @@ export async function getSession() {
  * Returns the session only if the token is still valid on the server.
  */
 async function getValidatedSession(): Promise<Session | null> {
-  const { data: sessionData } = await supabase.auth.getSession();
-  const session = sessionData.session;
+  const { data: { session } } = await supabase.auth.getSession();
   if (!session) return null;
 
-  // Validate the token server-side
-  const { data: userData, error } = await supabase.auth.getUser();
-  if (error || !userData.user) {
-    // Token is invalid/expired - sign out to clear stale session
+  // Confirma com o servidor que o token é válido
+  const { error } = await supabase.auth.getUser();
+  if (error) {
     await supabase.auth.signOut();
     return null;
   }
@@ -58,34 +56,15 @@ export function useAuthSession() {
 }
 
 export async function fetchUserRoles(userId?: string): Promise<PerfilAcesso[]> {
-  try {
-    const uid = userId;
-    const id = uid ?? (await getSession())?.user?.id;
-    if (!id) return [];
+  if (!userId) return [];
+  
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId);
 
-    const { data, error } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", id);
-
-    if (error) {
-      console.error("Erro ao buscar roles:", error);
-      return [];
-    }
-    let roles: PerfilAcesso[] = (data || []).map((r: { role: PerfilAcesso }) => r.role);
-
-    const defaultAdminEmail = import.meta.env.VITE_DEFAULT_ADMIN_EMAIL as string | undefined;
-    const { data: sessionData } = await supabase.auth.getSession();
-    const email = sessionData.session?.user?.email;
-    if (defaultAdminEmail && email && email.toLowerCase() === defaultAdminEmail.toLowerCase()) {
-      if (!roles.includes("administrador")) roles = [...roles, "administrador"];
-    }
-
-    return roles;
-  } catch (e) {
-    console.error("Falha ao obter roles:", e);
-    return [];
-  }
+  if (error || !data) return [];
+  return data.map(r => r.role as PerfilAcesso);
 }
 
 export function useUserRoles(userId?: string) {

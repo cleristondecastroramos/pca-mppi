@@ -32,7 +32,10 @@ import {
     Link2,
     ShieldCheck,
     Briefcase,
-    AlertCircle
+    AlertCircle,
+    Megaphone,
+    CheckCircle2,
+    LayoutList
 } from "lucide-react";
 import { BiddingService } from "../../services/BiddingService";
 import { SrpPcaItem } from "../../types";
@@ -96,33 +99,38 @@ export default function BiddingBoard() {
   };
 
   const columns = [
-    { title: "Planejamento", count: 4, items: [
+    { title: "Planejamento", icon: LayoutList, color: "bg-blue-500", textColor: "text-blue-600", count: 4, items: [
       { id: '1', numero: '015/2026', sei: '19.20.0000.00123/2025-99', objeto: 'Aquisição de Notebooks', status: 'ETP em Elaboração', priority: 'high' },
       { id: '2', numero: '016/2026', sei: '19.20.0000.00124/2025-01', objeto: 'Serviço de Nuvem', status: 'Termo de Referência', priority: 'medium' },
     ]},
-    { title: "Publicado", count: 2, items: [] },
-    { title: "Disputa", count: 1, items: [] },
+    { title: "Publicado", icon: Megaphone, color: "bg-orange-500", textColor: "text-orange-600", count: 2, items: [] },
+    { title: "Disputa", icon: Gavel, color: "bg-red-500", textColor: "text-red-600", count: 1, items: [] },
+    { title: "Homologado", icon: CheckCircle2, color: "bg-green-500", textColor: "text-green-600", count: 0, items: [] },
   ];
 
   return (
     <div className="h-full flex flex-col space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Mesa de Operações (Kanban)</h1>
+        <h1 className="text-2xl font-bold text-foreground">Mesa de Operações</h1>
         <Button size="sm" onClick={() => setIsModalOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Nova Licitação
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 flex-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 flex-1">
         {columns.map((column, idx) => (
-          <div key={idx} className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-2 flex flex-col space-y-3 min-w-[250px] border-2 border-slate-100 dark:border-slate-800">
-            <div className="flex items-center justify-between px-2 py-1">
-              <h3 className="text-xs font-bold uppercase text-slate-500 tracking-wider flex items-center gap-2">
-                 <div className="h-2 w-2 rounded-full bg-primary/40"></div>
-                 {column.title}
-              </h3>
-              <Badge variant="secondary" className="text-[10px] h-4">{column.count}</Badge>
+          <div key={idx} className="bg-slate-50/50 dark:bg-slate-900/40 rounded-xl p-3 flex flex-col space-y-4 min-w-[250px] border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-2">
+                 <div className={`p-1.5 rounded-lg ${column.color} bg-opacity-10 ${column.textColor}`}>
+                    <column.icon className="h-4 w-4" />
+                 </div>
+                 <h3 className="text-xs font-bold uppercase text-slate-600 dark:text-slate-400 tracking-wider">
+                    {column.title}
+                 </h3>
+              </div>
+              <Badge variant="secondary" className="text-[10px] h-5 px-1.5 rounded-full bg-white dark:bg-slate-800 border">{column.count}</Badge>
             </div>
             
             <div className="flex-1 space-y-3">
@@ -154,49 +162,45 @@ export default function BiddingBoard() {
       {/* Genesis Modal: Nova Licitação SRP (Fricção Mínima) */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[700px] overflow-hidden p-0 dark:border-slate-800">
-          <div className="bg-primary/5 dark:bg-primary/10 p-6 border-b border-primary/20">
+          <div className="bg-primary p-5 border-b border-primary/20 text-white shadow-md">
             <DialogHeader>
-                <DialogTitle className="flex items-center gap-3 text-xl font-bold text-primary">
-                    <Gavel className="h-6 w-6" />
+                <DialogTitle className="flex items-center gap-3 text-xl font-bold">
+                    <Gavel className="h-6 w-6 text-white/90" />
                     Iniciar Novo Processo SRP
                 </DialogTitle>
-                <DialogDescription className="text-xs font-medium text-slate-500 uppercase tracking-widest mt-1">
-                    Fase de Planejamento Automático (Lei 14.133/21)
+                <DialogDescription className="text-[10px] font-medium text-white/70 uppercase tracking-[0.2em] mt-1">
+                    Fase Inicial de Planejamento • MPPI 2026
                 </DialogDescription>
             </DialogHeader>
           </div>
 
-          <div className="p-6 space-y-8 max-h-[80vh] overflow-y-auto">
+          <div className="p-5 space-y-6 max-h-[75vh] overflow-y-auto bg-slate-50/30">
             {/* Bloco A: Identificação & Vínculo PCA */}
-            <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-2">
-                    <div className="p-1 px-2 rounded bg-primary/10 text-primary text-[10px] font-bold">BLOCO A</div>
-                    <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">Identificação e Planejamento</h3>
+            <div className="space-y-3 bg-white dark:bg-slate-900 p-4 rounded-xl border shadow-sm">
+                <div className="flex items-center gap-2 mb-1 border-b pb-2">
+                    <div className="h-4 w-1 bg-primary rounded-full"></div>
+                    <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Identificação do Processo</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <Label htmlFor="sei" className="text-xs font-bold uppercase tracking-tight flex items-center gap-2">
-                            <FileText className="h-3 w-3" /> Processo SEI / e-Docs
-                        </Label>
+                        <Label htmlFor="sei" className="text-[10px] font-bold uppercase text-slate-400">Processo SEI / e-Docs</Label>
                         <Input 
                             id="sei" 
                             placeholder="Ex: 19.20.0000.00123/2025-99" 
-                            className="bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-primary/20"
+                            className="h-9 text-xs focus:ring-2 focus:ring-primary/20"
                             value={formData.numero_processo_sei}
                             onChange={(e) => setFormData(prev => ({ ...prev, numero_processo_sei: e.target.value }))}
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="pca" className="text-xs font-bold uppercase tracking-tight flex items-center gap-2">
-                            <Briefcase className="h-3 w-3" /> Vínculo com o PCA (Anual)
-                        </Label>
+                        <Label htmlFor="pca" className="text-[10px] font-bold uppercase text-slate-400">Vínculo com o PCA Anual</Label>
                         <Select onValueChange={handlePcaSelect}>
-                            <SelectTrigger id="pca" className="bg-slate-50 dark:bg-slate-900 border-none shadow-sm h-10">
+                            <SelectTrigger id="pca" className="bg-slate-50/50 h-9 text-xs border-slate-200">
                                 <SelectValue placeholder="Pesquisar item no PCA..." />
                             </SelectTrigger>
                             <SelectContent>
                                 {pcaItems.map(item => (
-                                    <SelectItem key={item.id} value={item.id}>
+                                    <SelectItem key={item.id} value={item.id} className="text-xs">
                                         <div className="flex flex-col text-left">
                                             <span className="font-bold text-[11px]">{item.descricao}</span>
                                             <span className="text-[9px] text-muted-foreground opacity-70">Estimado: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor_estimado)}</span>
@@ -205,28 +209,25 @@ export default function BiddingBoard() {
                                 ))}
                             </SelectContent>
                         </Select>
-                        <p className="text-[10px] text-muted-foreground italic flex items-center gap-1 mt-1">
-                            <Link2 className="h-2 w-2" /> Isto conecta o contrato ao planejamento estratégico do MPPI.
-                        </p>
                     </div>
                 </div>
             </div>
 
-            {/* Bloco B: Enquadramento Legal */}
-            <div className="space-y-4 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                <div className="flex items-center gap-2 mb-2">
-                    <div className="p-1 px-2 rounded bg-slate-200 dark:bg-slate-800 text-slate-500 text-[10px] font-bold">BLOCO B</div>
-                    <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">Enquadramento Legal (Lei 14.133/202)</h3>
+            {/* Bloco B: Configuração da Licitação */}
+            <div className="space-y-3 bg-white dark:bg-slate-900 p-4 rounded-xl border shadow-sm">
+                <div className="flex items-center gap-2 mb-1 border-b pb-2">
+                    <div className="h-4 w-1 bg-primary rounded-full"></div>
+                    <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Configuração da Licitação</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                     <div className="space-y-2">
                         <Label className="text-[10px] font-bold uppercase text-slate-400">Modalidade</Label>
                         <Select value={formData.modalidade} onValueChange={(val: any) => setFormData(prev => ({ ...prev, modalidade: val }))}>
-                            <SelectTrigger className="border-none shadow-none h-8 font-bold text-xs bg-transparent p-0">
+                            <SelectTrigger className="h-9 text-xs border-slate-200">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="PREGAO">Pregão Eletrônico (Regra Geral)</SelectItem>
+                                <SelectItem value="PREGAO">Pregão Eletrônico</SelectItem>
                                 <SelectItem value="CONCORRENCIA">Concorrência Eletrônica</SelectItem>
                             </SelectContent>
                         </Select>
@@ -234,7 +235,7 @@ export default function BiddingBoard() {
                     <div className="space-y-2">
                         <Label className="text-[10px] font-bold uppercase text-slate-400">Critério de Julgamento</Label>
                         <Select value={formData.criterio_julgamento} onValueChange={(val: any) => setFormData(prev => ({ ...prev, criterio_julgamento: val }))}>
-                            <SelectTrigger className="border-none shadow-none h-8 font-bold text-xs bg-transparent p-0">
+                            <SelectTrigger className="h-9 text-xs border-slate-200">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -243,14 +244,12 @@ export default function BiddingBoard() {
                             </SelectContent>
                         </Select>
                     </div>
-                    <div className="col-span-2 flex items-center justify-between p-3 bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-100 dark:border-slate-800">
+                    <div className="col-span-2 flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-primary/10 rounded-full">
-                                <ShieldCheck className="h-4 w-4 text-primary" />
-                            </div>
+                            <ShieldCheck className="h-4 w-4 text-primary" />
                             <div className="space-y-0.5">
-                                <p className="text-xs font-bold">Permite Adesão (Carona)?</p>
-                                <p className="text-[10px] text-muted-foreground">Art. 86 da Lei 14.133/21</p>
+                                <p className="text-xs font-bold uppercase text-slate-600">Permitir Adesão de Outros Órgãos?</p>
+                                <p className="text-[9px] text-muted-foreground italic">Autoriza pedidos de consumo de órgãos externos (Caronas)</p>
                             </div>
                         </div>
                         <Switch 
@@ -259,12 +258,12 @@ export default function BiddingBoard() {
                         />
                     </div>
                     {formData.permite_adesao && (
-                        <div className="col-span-2 space-y-2 animate-in slide-in-from-top-2 duration-300">
-                             <Label htmlFor="justificativa" className="text-[10px] font-bold uppercase text-slate-400">Justificativa para Aceite de Caronas (Exigência TCU)</Label>
+                        <div className="col-span-2 space-y-2 animate-in slide-in-from-top-1">
+                             <Label htmlFor="justificativa" className="text-[10px] font-bold uppercase text-slate-400">Motivação para Adesão</Label>
                              <Textarea 
                                 id="justificativa" 
-                                placeholder="Justifique por que este registro poderá ser utilizado por outros órgãos..." 
-                                className="h-16 text-xs bg-transparent"
+                                placeholder="Descreva brevemente por que autorizar o consumo externo..." 
+                                className="h-14 text-xs resize-none"
                                 value={formData.justificativa_adesao}
                                 onChange={(e) => setFormData(prev => ({ ...prev, justificativa_adesao: e.target.value }))}
                              />
@@ -273,13 +272,16 @@ export default function BiddingBoard() {
                 </div>
             </div>
 
-            {/* Bloco C: O Objeto */}
-            <div className="space-y-3">
-                <Label htmlFor="objeto" className="text-xs font-bold uppercase tracking-tight">Descrição Detalhada do Objeto</Label>
+            {/* Bloco C: Objeto */}
+            <div className="space-y-3 bg-white dark:bg-slate-900 p-4 rounded-xl border shadow-sm">
+                <div className="flex items-center gap-2 mb-1 border-b pb-2">
+                    <div className="h-4 w-1 bg-primary rounded-full"></div>
+                    <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Objeto da Licitação</h3>
+                </div>
                 <Textarea 
                     id="objeto" 
-                    placeholder="Ex: Registro de preços para eventual aquisição de equipamentos de TI..." 
-                    className="h-24 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20"
+                    placeholder="Descrição detalhada do objeto de acordo com o Termo de Referência..." 
+                    className="h-20 text-xs focus:ring-2 focus:ring-primary/20 resize-none"
                     value={formData.objeto}
                     onChange={(e) => setFormData(prev => ({ ...prev, objeto: e.target.value }))}
                 />

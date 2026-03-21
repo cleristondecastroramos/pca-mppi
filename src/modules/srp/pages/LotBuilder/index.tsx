@@ -37,10 +37,10 @@ const ME_EPP_LIMIT = 80000;
 
 export default function LotBuilder() {
   const [unallocatedItems, setUnallocatedItems] = useState<SrpItem[]>([
-    { id: '1', lote_id: '', numero_item: 1, codigo_catalogo: '1234', descricao_detalhada: 'Notebook Core i7 16GB RAM', unidade_medida: 'UN', quantidade_estimada: 10, valor_unitario_estimado: 4500, menor_lance_valido_certame: false },
-    { id: '2', lote_id: '', numero_item: 2, codigo_catalogo: '1235', descricao_detalhada: 'Monitor 27" 4K', unidade_medida: 'UN', quantidade_estimada: 5, valor_unitario_estimado: 2200, menor_lance_valido_certame: false },
-    { id: '3', lote_id: '', numero_item: 3, codigo_catalogo: '1236', descricao_detalhada: 'Switch Gerenciável 24 Portas', unidade_medida: 'UN', quantidade_estimada: 2, valor_unitario_estimado: 3500, menor_lance_valido_certame: false },
-    { id: '4', lote_id: '', numero_item: 4, codigo_catalogo: '1237', descricao_detalhada: 'Cabo de Rede Cat6 305m', unidade_medida: 'CX', quantidade_estimada: 20, valor_unitario_estimado: 450, menor_lance_valido_certame: false },
+    { id: '1', lote_id: '', numero_item: 1, descricao: 'Notebook Core i7 16GB RAM', unidade_medida: 'UN', quantidade: 10, valor_estimado: 4500, menor_lance_valido_certame: false },
+    { id: '2', lote_id: '', numero_item: 2, descricao: 'Monitor 27" 4K', unidade_medida: 'UN', quantidade: 5, valor_estimado: 2200, menor_lance_valido_certame: false },
+    { id: '3', lote_id: '', numero_item: 3, descricao: 'Switch Gerenciável 24 Portas', unidade_medida: 'UN', quantidade: 2, valor_estimado: 3500, menor_lance_valido_certame: false },
+    { id: '4', lote_id: '', numero_item: 4, descricao: 'Cabo de Rede Cat6 305m', unidade_medida: 'CX', quantidade: 20, valor_estimado: 450, menor_lance_valido_certame: false },
   ]);
 
   const [lots, setLots] = useState<any[]>([
@@ -69,7 +69,7 @@ export default function LotBuilder() {
     ));
   };
 
-  const getLotTotal = (items: any[]) => items.reduce((acc, curr) => acc + (curr.quantidade_estimada * curr.valor_unitario_estimado), 0);
+  const getLotTotal = (items: SrpItem[]) => items.reduce((acc, curr) => acc + (curr.quantidade * curr.valor_estimado), 0);
 
   const handleStrategyChange = (lotId: string, strategy: SrpEstrategiaAdjudicacao) => {
     if (strategy === 'POR_GRUPO_GLOBAL') {
@@ -112,10 +112,10 @@ export default function LotBuilder() {
                       <span className="text-[10px] font-bold text-slate-400">ITEM {item.numero_item}</span>
                       <Badge variant="outline" className="text-[9px] h-4 py-0 px-1">{item.unidade_medida}</Badge>
                     </div>
-                    <p className="text-xs font-semibold leading-relaxed">{item.descricao_detalhada}</p>
+                    <p className="text-xs font-semibold leading-relaxed">{item.descricao}</p>
                     <div className="mt-2 text-[10px] text-muted-foreground flex items-center gap-3">
-                       <span className="flex items-center"><Package className="h-3 w-3 mr-1" /> Qtd: {item.quantidade_estimada}</span>
-                       <span className="flex items-center font-bold text-primary"><DollarSign className="h-3 w-3 mr-0.5" /> Unit: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor_unitario_estimado)}</span>
+                       <span className="flex items-center"><Package className="h-3 w-3 mr-1" /> Qtd: {new Intl.NumberFormat('pt-BR').format(item.quantidade)}</span>
+                       <span className="flex items-center font-bold text-primary"><DollarSign className="h-3 w-3 mr-0.5" /> Unit: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor_estimado)}</span>
                     </div>
                   </div>
                   <Button 
@@ -193,7 +193,7 @@ export default function LotBuilder() {
                                     onClick={() => { setActiveLotId(lot.id); setIsJustifyModalOpen(true); }}
                                 >
                                    <FileText className="h-3 w-3 mr-1" />
-                                   {lot.justificativa_agrupamento ? 'Vinculado ao ETP' : 'REQUER JUSTIFICATIVA'}
+                                   {lot.justificativa_agrupamento ? 'Motivação Vinculada' : 'INFORMAR MOTIVAÇÃO'}
                                 </Button>
                             ) : (
                                 <div className="text-[10px] text-slate-400 italic flex items-center h-7 px-2 border rounded bg-slate-50 opacity-50">Não se aplica</div>
@@ -206,10 +206,10 @@ export default function LotBuilder() {
                 <CardContent className="pt-4 space-y-2 min-h-[80px]">
                   {lot.items.map((item: any) => (
                     <div key={item.id} className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded border border-transparent hover:border-slate-300 transition-colors flex items-center justify-between text-xs">
-                      <span className="font-semibold line-clamp-1 flex-1 pr-4">{item.descricao_detalhada}</span>
+                      <span className="font-semibold line-clamp-1 flex-1 pr-4">{item.descricao}</span>
                       <div className="flex items-center gap-4 shrink-0">
-                         <span className="text-muted-foreground">{item.quantidade_estimada} {item.unidade_medida}</span>
-                         <span className="font-medium text-primary">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.quantidade_estimada * item.valor_unitario_estimado)}</span>
+                         <span className="text-muted-foreground">{new Intl.NumberFormat('pt-BR').format(item.quantidade)} {item.unidade_medida}</span>
+                         <span className="font-medium text-primary">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.quantidade * item.valor_estimado)}</span>
                          <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500/50 hover:text-red-500 transition-colors"><Trash2 className="h-3 w-3" /></Button>
                       </div>
                     </div>
@@ -237,10 +237,10 @@ export default function LotBuilder() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                Justificativa de Agrupamento Global
+                Motivação para Agrupamento Global
             </DialogTitle>
             <DialogDescription>
-                Determine a vantagem econômica ou técnica para a adjudicação global conforme exigido pelo TCU (Lei 14.133/2021).
+                Descreva os motivos para realizar o agrupamento de itens neste lote.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">

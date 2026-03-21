@@ -3,8 +3,17 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Label } from "@/components/ui/label";
+import { 
+    Select, 
+    SelectContent, 
+    SelectItem, 
+    SelectTrigger, 
+    SelectValue 
+} from "@/components/ui/select";
+
 import { 
   Table, 
   TableHeader, 
@@ -80,7 +89,6 @@ export default function ArpManager() {
       processo_sei: '',
       numero_ne: '',
       data_empenho: new Date().toISOString().split('T')[0],
-      anexo_ne: null as File | null,
   });
 
   const addToCart = (item: any) => {
@@ -123,15 +131,23 @@ export default function ArpManager() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Conta Corrente da Ata (SRP)</h1>
-          <p className="text-sm text-muted-foreground">Monitoramento de saldo interno e limites de carona (Art. 86 Lei 14.133/21).</p>
+          <h1 className="text-2xl font-bold text-foreground">Gestão de Atas e Saldos (SRP)</h1>
+          <p className="text-sm text-muted-foreground">Monitoramento da execução de itens e controle de saldos da Ata.</p>
         </div>
-        <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setActiveTab(activeTab === 'extrato' ? 'adesoes' : 'extrato')}>
+        <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-52 justify-center"
+              onClick={() => setActiveTab(activeTab === 'extrato' ? 'adesoes' : 'extrato')}
+            >
                 {activeTab === 'extrato' ? 'Ver Fila de Adesões' : 'Ver Extrato da Ata'}
             </Button>
-            <Button size="sm" onClick={() => setIsConsumoModalOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
+            <Button 
+              size="sm" 
+              className="w-52 justify-center"
+              onClick={() => setIsConsumoModalOpen(true)}
+            >
                 Novo Consumo / Empenho
             </Button>
         </div>
@@ -139,10 +155,10 @@ export default function ArpManager() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
          {[
-           { label: 'Saldo Gerenciador/Participantes', value: 'R$ 1.2M', icon: Building2, color: 'bg-primary/10 text-primary' },
-           { label: 'Limites de Carona Usados', value: 'R$ 845K', icon: Users2, color: 'bg-orange-100 text-orange-600' },
-           { label: 'Adesões na Fila (Reservas)', value: 'R$ 120K', icon: Clock, color: 'bg-blue-100 text-blue-600' },
-           { label: 'Itens em Risco (TCU Lock)', value: '3', icon: AlertTriangle, color: 'bg-red-100 text-red-600' }
+           { label: 'Saldo Unidades Participantes', value: 'R$ 1.250.000,00', icon: Building2, color: 'bg-primary/10 text-primary' },
+           { label: 'Adesões de Outros Órgãos', value: 'R$ 845.000,00', icon: Users2, color: 'bg-orange-100 text-orange-600' },
+           { label: 'Reservas Pendentes', value: 'R$ 120.000,00', icon: Clock, color: 'bg-blue-100 text-blue-600' },
+           { label: 'Itens em Atenção', value: '3', icon: AlertTriangle, color: 'bg-red-100 text-red-600' }
          ].map((stat, idx) => (
            <Card key={idx} className="bg-slate-50 dark:bg-slate-900 border-slate-200">
              <CardContent className="p-4 flex items-center justify-between">
@@ -164,7 +180,7 @@ export default function ArpManager() {
                 <div className="flex flex-wrap gap-4 items-center justify-between">
                     <CardTitle className="text-base font-bold flex items-center gap-2">
                         <Wallet className="h-4 w-4 text-primary" />
-                        Extrato da Conta Corrente: Saldo de Itens
+                        Situação Geral: Saldo de Itens por Ata
                     </CardTitle>
                     <Input className="h-8 w-60 text-xs" placeholder="Buscar por Ata ou Item..." />
                 </div>
@@ -174,8 +190,8 @@ export default function ArpManager() {
                     <TableHeader className="bg-slate-50/50">
                         <TableRow>
                             <TableHead className="text-[9px] font-bold uppercase py-2">Item/Ata</TableHead>
-                            <TableHead className="text-center text-[9px] font-bold uppercase py-2">Saldo Interno (Original)</TableHead>
-                            <TableHead className="text-center text-[9px] font-bold uppercase py-2">Termômetro de Carona (Limite Global 2x)</TableHead>
+                            <TableHead className="text-center text-[9px] font-bold uppercase py-2">Saldo da Unidade</TableHead>
+                            <TableHead className="text-center text-[9px] font-bold uppercase py-2">Consumo por Outras Unidades</TableHead>
                             <TableHead className="text-right text-[9px] font-bold uppercase py-2 pr-4"></TableHead>
                         </TableRow>
                     </TableHeader>
@@ -201,8 +217,8 @@ export default function ArpManager() {
                             <TableCell className="text-center">
                                 <div className="flex flex-col items-center gap-1.5 min-w-[150px]">
                                     <div className="flex items-center justify-between w-full text-[10px]">
-                                        <span className="font-bold text-primary">{item.qtd_original - item.consumo_interna} disp.</span>
-                                        <span className="text-slate-400">Total: {item.qtd_original}</span>
+                                        <span className="font-bold text-primary">{new Intl.NumberFormat('pt-BR').format(item.qtd_original - item.consumo_interna)} disp.</span>
+                                        <span className="text-slate-400">Total: {new Intl.NumberFormat('pt-BR').format(item.qtd_original)}</span>
                                     </div>
                                     <Progress value={percInterno} className="h-2 bg-slate-100" />
                                 </div>
@@ -210,8 +226,8 @@ export default function ArpManager() {
                             <TableCell className="text-center">
                                 <div className="flex flex-col items-center gap-1.5 min-w-[150px]">
                                     <div className="flex items-center justify-between w-full text-[10px]">
-                                        <span className={`font-bold ${isCritical ? 'text-red-600 animate-pulse' : 'text-orange-600'}`}>{totalCarona} usado</span>
-                                        <span className="text-slate-400">Limite: {limiteCaronaGlobal} (2x)</span>
+                                        <span className={`font-bold ${isCritical ? 'text-red-600 animate-pulse' : 'text-orange-600'}`}>{new Intl.NumberFormat('pt-BR').format(totalCarona)} usado</span>
+                                        <span className="text-slate-400">Capacidade: {new Intl.NumberFormat('pt-BR').format(limiteCaronaGlobal)}</span>
                                     </div>
                                     <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                                         <div 
@@ -246,69 +262,73 @@ export default function ArpManager() {
       {/* Modal: Novo Registro de Consumo/Empenho (Módulo de Execução) */}
       <Dialog open={isConsumoModalOpen} onOpenChange={setIsConsumoModalOpen}>
         <DialogContent className="sm:max-w-[800px] overflow-hidden p-0 max-h-[90vh]">
-          <div className="bg-primary/5 dark:bg-primary/10 p-6 border-b border-primary/20 flex items-center justify-between">
+          <div className="bg-primary p-5 border-b border-primary/20 text-white shadow-md">
             <DialogHeader>
-                <DialogTitle className="flex items-center gap-3 text-xl font-bold text-primary">
-                    <FileCheck className="h-6 w-6" />
-                    Registrar Consumo / Nota de Empenho
+                <DialogTitle className="flex items-center gap-3 text-xl font-bold">
+                    <FileCheck className="h-6 w-6 text-white/90" />
+                    Registrar Consumo / Empenho
                 </DialogTitle>
-                <DialogDescription className="text-xs font-semibold uppercase tracking-widest text-slate-500 mt-1">
-                    Debitar saldo da Conta Corrente ARP
+                <DialogDescription className="text-[10px] font-medium text-white/70 uppercase tracking-[0.2em] mt-1">
+                    Gestão de Execução SRP • MPPI 2026
                 </DialogDescription>
             </DialogHeader>
-            <div className="text-right">
-                <p className="text-[10px] text-muted-foreground uppercase font-bold">Valor Total do Pedido</p>
-                <p className="text-xl font-bold text-primary">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cartTotalValue)}
-                </p>
-            </div>
           </div>
 
-          <div className="p-6 space-y-8 overflow-y-auto max-h-[60vh]">
-            {/* Bloco A: Dados do Pedido */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                    <Label className="text-[10px] font-bold uppercase text-slate-400">Órgão Solicitante</Label>
-                    <Select value={consumoForm.tipo_orgao} onValueChange={(val: any) => setConsumoForm(p => ({ ...p, tipo_orgao: val }))}>
-                        <SelectTrigger className="h-9 text-xs bg-slate-50 hover:bg-slate-100 border-none">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="GERENCIADOR">MPPI (Gerenciador)</SelectItem>
-                            <SelectItem value="PARTICIPANTE">Outro Participante</SelectItem>
-                            <SelectItem value="CARONA">Carona Autorizado</SelectItem>
-                        </SelectContent>
-                    </Select>
+          <div className="p-5 space-y-6 overflow-y-auto max-h-[65vh] bg-slate-50/30">
+            {/* Bloco A: Dados do Empenho */}
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b pb-2 mb-1">
+                    <div className="flex items-center gap-2">
+                        <div className="h-4 w-1 bg-primary rounded-full"></div>
+                        <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Identificação do Empenho</h3>
+                    </div>
+                    <div className="text-right">
+                        <span className="text-[9px] text-muted-foreground font-bold uppercase">Total Selecionado: </span>
+                        <span className="text-sm font-bold text-primary">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cartTotalValue)}
+                        </span>
+                    </div>
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="ne" className="text-[10px] font-bold uppercase text-slate-400">Número da NE (Nota de Empenho)</Label>
-                    <Input id="ne" placeholder="Ex: 2026NE00045" className="h-9 text-xs" 
-                        value={consumoForm.numero_ne} 
-                        onChange={(e) => setConsumoForm(p => ({ ...p, numero_ne: e.target.value }))} 
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="date" className="text-[10px] font-bold uppercase text-slate-400">Data do Empenho</Label>
-                    <Input id="date" type="date" className="h-9 text-xs" 
-                        value={consumoForm.data_empenho} 
-                        onChange={(e) => setConsumoForm(p => ({ ...p, data_empenho: e.target.value }))} 
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                        <Label className="text-[10px] font-bold uppercase text-slate-400">Tipo de Órgão</Label>
+                        <Select value={consumoForm.tipo_orgao} onValueChange={(val: any) => setConsumoForm(p => ({ ...p, tipo_orgao: val }))}>
+                            <SelectTrigger className="h-9 text-xs border-slate-200">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="GERENCIADOR" className="text-xs">MPPI (Gerenciador)</SelectItem>
+                                <SelectItem value="PARTICIPANTE" className="text-xs">Outro Participante</SelectItem>
+                                <SelectItem value="CARONA" className="text-xs">Carona Autorizado</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="ne" className="text-[10px] font-bold uppercase text-slate-400">Número da NE (Nota de Empenho)</Label>
+                        <Input id="ne" placeholder="Ex: 2026NE00045" className="h-9 text-xs focus:ring-2 focus:ring-primary/20" 
+                            value={consumoForm.numero_ne} 
+                            onChange={(e) => setConsumoForm(p => ({ ...p, numero_ne: e.target.value }))} 
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="date" className="text-[10px] font-bold uppercase text-slate-400">Data do Empenho</Label>
+                        <Input id="date" type="date" className="h-9 text-xs border-slate-200" 
+                            value={consumoForm.data_empenho} 
+                            onChange={(e) => setConsumoForm(p => ({ ...p, data_empenho: e.target.value }))} 
+                        />
+                    </div>
                 </div>
             </div>
 
-            {/* Bloco B: Carrinho de Consumo */}
-            <div className="space-y-4">
-                <div className="flex items-center justify-between">
+            {/* Bloco B: Itens a Consumir */}
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b pb-2 mb-1">
                     <div className="flex items-center gap-2">
-                        <div className="p-1 px-2 rounded bg-slate-100 text-slate-500 text-[10px] font-bold">BLOCO B</div>
-                        <h3 className="text-sm font-bold text-slate-700">Carrinho de Consumo</h3>
+                        <div className="h-4 w-1 bg-primary rounded-full"></div>
+                        <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Itens e Quantidades</h3>
                     </div>
-                    <Button variant="ghost" size="sm" className="text-[10px] font-bold text-primary h-7">
-                        <Search className="h-3 w-3 mr-1" /> Adicionar Outro Item
-                    </Button>
                 </div>
-
-                <div className="border rounded-xl overflow-hidden bg-slate-50/50">
+                <div className="border rounded-lg overflow-hidden">
                     <Table>
                         <TableHeader className="bg-slate-100/50">
                             <TableRow>
@@ -331,21 +351,21 @@ export default function ArpManager() {
                                             <div className="flex flex-col">
                                                 <span className="text-xs font-bold leading-tight flex items-center gap-2">
                                                     {item.item}
-                                                    {item.requer_pesquisa && <AlertTriangle className="h-3 w-3 text-red-500" title="Requer Pesquisa de Mercado (TCU Rule)" />}
+                                                    {item.requer_pesquisa && <AlertTriangle className="h-3 w-3 text-red-500" />}
                                                 </span>
                                                 <span className="text-[9px] text-muted-foreground uppercase">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor_unit)} / unit</span>
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-center">
                                             <div className="flex flex-col items-center gap-1 min-w-[100px]">
-                                                <span className={`text-[10px] font-bold  ${isOverbalance ? 'text-red-600' : 'text-slate-500'}`}>{saldoDisponivel} disp.</span>
+                                                <span className={`text-[10px] font-bold  ${isOverbalance ? 'text-red-600' : 'text-slate-500'}`}>{new Intl.NumberFormat('pt-BR').format(saldoDisponivel)} disp.</span>
                                                 <Progress value={(saldoDisponivel / item.qtd_original) * 100} className={`h-1.5 ${isOverbalance ? 'bg-red-100' : 'bg-slate-100'}`} />
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-center">
                                             <Input 
                                                 type="number" 
-                                                className={`h-8 w-16 text-center text-xs mx-auto border-2 ${isOverbalance ? 'border-red-500 focus-visible:ring-red-500' : 'border-slate-200'}`} 
+                                                className={`h-8 w-24 text-center text-xs mx-auto border-2 ${isOverbalance ? 'border-red-500 focus-visible:ring-red-500' : 'border-slate-200'}`} 
                                                 value={item.quantidade_pedida}
                                                 onChange={(e) => handleQtyChange(item.id, Number(e.target.value))}
                                             />
@@ -373,26 +393,17 @@ export default function ArpManager() {
                 </div>
             </div>
 
-            {/* Bloco C: Conformidade e Anexos */}
-            <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-2">
-                    <div className="p-1 px-2 rounded bg-slate-100 text-slate-500 text-[10px] font-bold">BLOCO C</div>
-                    <h3 className="text-sm font-bold text-slate-700">Conformidade e Anexos</h3>
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border shadow-sm space-y-3">
+                <div className="flex items-center gap-2 mb-1 border-b pb-2">
+                    <div className="h-4 w-1 bg-primary rounded-full"></div>
+                    <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Observações</h3>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="border-2 border-dashed border-slate-200 p-4 rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-slate-50 transition-colors cursor-pointer group">
-                        <Upload className="h-6 w-6 text-slate-300 group-hover:text-primary" />
-                        <span className="text-[11px] font-bold text-slate-500">Nota de Empenho (PDF)</span>
-                        <span className="text-[9px] text-red-500 italic uppercase">* OBRIGATÓRIO</span>
-                    </div>
-                    {hasTcuGuardInCart && (
-                        <div className="border-2 border-dashed border-red-200 bg-red-50/20 p-4 rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-red-50 transition-colors cursor-pointer group animate-in zoom-in-95">
-                            <AlertTriangle className="h-6 w-6 text-red-300 group-hover:text-red-500" />
-                            <span className="text-[11px] font-bold text-red-600">Pesquisa de Preços (PDF)</span>
-                            <span className="text-[9px] text-red-500 italic uppercase">Requerido por Lote Global do TCU</span>
-                        </div>
-                    )}
-                </div>
+                <Textarea 
+                    placeholder="Inclua aqui qualquer observação adicional sobre este empenho ou histórico técnico (opcional)" 
+                    className="text-xs resize-none h-16"
+                    rows={2}
+                    id="observacoes"
+                />
             </div>
           </div>
 

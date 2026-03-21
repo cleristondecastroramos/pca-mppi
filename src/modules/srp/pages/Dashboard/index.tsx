@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  Cell
+  Cell, LabelList
 } from 'recharts';
 import { 
   AlertTriangle, 
@@ -67,7 +67,7 @@ export default function SrpDashboard() {
             <TrendingUp className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">R$ 12.4M</div>
+            <div className="text-2xl font-bold">R$ 12.400.000,00</div>
             <p className="text-xs text-muted-foreground">68% consumido</p>
           </CardContent>
         </Card>
@@ -80,7 +80,7 @@ export default function SrpDashboard() {
           </CardHeader>
           <CardContent className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={funnelData} layout="vertical">
+              <BarChart data={funnelData} layout="vertical" margin={{ right: 40, left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                 <XAxis type="number" hide />
                 <YAxis 
@@ -89,11 +89,12 @@ export default function SrpDashboard() {
                   width={100} 
                   tick={{ fontSize: 12 }}
                 />
-                <Tooltip />
-                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                <Tooltip formatter={(value) => [value, 'Valor']} labelStyle={{ fontWeight: 'bold' }} />
+                <Bar dataKey="value" name="Valor" radius={[0, 4, 4, 0]}>
                   {funnelData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
+                  <LabelList dataKey="value" position="right" className="fill-slate-500 font-bold text-[12px]" />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>

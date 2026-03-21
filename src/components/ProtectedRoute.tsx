@@ -40,7 +40,7 @@ export default function ProtectedRoute({ children, allowed, redirectTo = "/auth"
   }
 
   // Tem sessão mas sem permissão
-  if (!hasAnyRole(roles, allowed)) {
+  if (!hasAnyRole(roles, allowed)) { 
     return (
       <div className="flex items-center justify-center h-full py-10 text-muted-foreground">
         Seu usuário não possui permissão para acessar esta página. Contate o administrador.

@@ -308,28 +308,22 @@ export default function Tutorial() {
         </Section>
 
         {/* 8. Licitações SRP */}
-        <Section id="sec8" title="8. Licitações SRP (Sistema de Registro de Preços)">
+        <Section id="sec8" title="8. Licitações SRP (Monitoramento e Execução)">
           <P>
-            A página <strong>Licitações SRP</strong> é um módulo especializado para o gerenciamento de demandas que utilizam o Sistema de Registro de Preços. Ela oferece uma interface otimizada para o fluxo específico de atas e registros de preços, permitindo um acompanhamento mais detalhado da fase de licitação até o registro da ata.
+            O módulo <strong>Licitações SRP</strong> é dedicado exclusivamente às demandas vinculadas ao Sistema de Registro de Preços. Ele centraliza desde o monitoramento dos processos licitatórios até o controle granular dos saldos das atas registradas.
           </P>
 
-          <H3>8.1. Diferenciais do Módulo SRP</H3>
+          <H3>8.1. Funcionalidades Principais</H3>
           <UL items={[
-            <><strong>Filtro Automático:</strong> Esta página exibe exclusivamente as demandas que foram marcadas com "SRP: Sim" no momento do cadastro.</>,
-            <><strong>Status Automático:</strong> Diferente de outros módulos, o status da demanda em SRP é calculado automaticamente pelo sistema com base no preenchimento de campos técnicos específicos.</>,
-            <><strong>Edição por Seções:</strong> O modal de edição é organizado em abas (Workflow, Fases Administrativas, Resultado e Especificações) para facilitar a inserção de dados.</>,
+            <><strong>Dashboard Estratégico:</strong> Visão consolidada de valores, alertas de saldo crítico e funil de processos.</>,
+            <><strong>Mesa de Operações:</strong> Gestão do ciclo de vida dos processos administrativos e licitatórios (SEI).</>,
+            <><strong>Construtor de Lotes:</strong> Ferramenta para agrupamento técnico de itens e definição de cotas ME/EPP.</>,
+            <><strong>Gestão de Atas:</strong> Controle de saldos de todas as atas do MPPI e registro simplificado de empenhos.</>,
           ]} />
 
-          <H3>8.2. Progressão Automática de Status</H3>
-          <P>O status da demanda evolui conforme os dados são inseridos no sistema:</P>
-          <UL items={[
-            <><strong>Planejada:</strong> Status inicial ao cadastrar a demanda.</>,
-            <><strong>Processo Administrativo Iniciado:</strong> Quando o campo "Nº SEI de Contratação" é preenchido.</>,
-            <><strong>Fase Externa da Licitação:</strong> Quando os campos "Nº SEI de Licitação" e "Nº do Edital" são preenchidos.</>,
-            <><strong>Licitação Concluída:</strong> Quando a "Data Prevista para Contratação" (que no SRP representa a data do certame) é preenchida.</>,
-            <><strong>Ata Registrada:</strong> Quando o campo "Nº do Contrato/Ata" é preenchido.</>,
-          ]} />
-          <Note>Para que o status evolua corretamente, é fundamental manter os campos de controle administrativo atualizados.</Note>
+          <Note>
+            Para informações detalhadas sobre cada campo, modal e fluxo operacional do SRP, utilize o <strong>ícone de ajuda (Dúvidas sobre esta página?)</strong> localizado no canto superior direito da própria página de Licitações SRP. O tutorial interno fornece guias visuais e explicações passo a passo de todas as ferramentas deste módulo.
+          </Note>
         </Section>
 
         {/* 9. Nova Contratação */}
