@@ -192,6 +192,7 @@ const VisaoGeral = () => {
         } else {
           query = query.eq("etapa_processo", filtros.etapa_processo);
         }
+      }
       if (filtros.tipo_sobrestamento && filtros.tipo_sobrestamento !== ALL_VALUE) {
         if (filtros.tipo_sobrestamento === "total") query = query.eq("tipo_sobrestamento", "total");
         else if (filtros.tipo_sobrestamento === "parcial") query = query.eq("tipo_sobrestamento", "parcial");
