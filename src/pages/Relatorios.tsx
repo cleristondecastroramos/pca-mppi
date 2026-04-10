@@ -50,7 +50,7 @@ const Relatorios = () => {
   const fetchAllContratacoes = async () => {
     let query = supabase
       .from("contratacoes")
-      .select("id, codigo, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, srp, numero_sei_contratacao, etapa_processo, sobrestado, created_at, data_finalizacao_licitacao, valor_estimado, valor_contratado, data_prevista_contratacao, quantidade_itens, valor_unitario, data_conclusao, valor_executado")
+      .select("id, codigo, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, srp, numero_sei_contratacao, etapa_processo, sobrestado, tipo_sobrestamento, valor_ativo, quantidade_sobrestada, valor_sobrestado, quantidade_ativa, created_at, data_finalizacao_licitacao, valor_estimado, valor_contratado, data_prevista_contratacao, quantidade_itens, valor_unitario, data_conclusao, valor_executado")
       .neq("srp", true);
 
     if (isSetorRequisitante && userSetor) {
@@ -308,10 +308,10 @@ const Relatorios = () => {
     },
     por_status: {
       label: "Contratações — Por Status",
-      description: "Listagem focada no status e andamento das contratações.",
+      description: "Listagem focada no status e andamento das contratações. Agrupado por status.",
       icon: BarChart3,
-      columns: ["Cod. PCA", "Descrição", "Setor", "Status", "Situação", "Valor Estimado", "Valor Executado"],
-      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Status", "Situação", "Valor Estimado", "Valor Executado"],
+      columns: ["Cod. PCA", "Descrição", "Setor", "Status", "Sobrestamento", "Valor Ativo", "Valor Executado"],
+      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Status", "Sobrestamento", "Valor Ativo", "Valor Executado"],
       mapRow: (r) => {
         const status = getPrazoStatus(r);
         return [
@@ -319,8 +319,8 @@ const Relatorios = () => {
           String(r.descricao || ""),
           String(r.setor_requisitante || ""),
           statusLabel(r),
-          status.label,
-          r.valor_estimado || 0,
+          r.sobrestado ? (r.tipo_sobrestamento === 'total' ? 'Total' : 'Parcial') : '-',
+          r.valor_ativo || 0,
           r.valor_executado || 0,
         ];
       },
@@ -330,14 +330,15 @@ const Relatorios = () => {
       label: "Contratações — Por Setor",
       description: "Listagem agrupável por setor requisitante.",
       icon: ClipboardList,
-      columns: ["Cod. PCA", "Descrição", "Setor", "Status", "Valor Estimado", "Valor Executado"],
-      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Status", "Valor Estimado", "Valor Executado"],
+      columns: ["Cod. PCA", "Descrição", "Setor", "Status", "Sobrestamento", "Valor Ativo", "Valor Executado"],
+      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Status", "Sobrestamento", "Valor Ativo", "Valor Executado"],
       mapRow: (r) => [
         formatId(r.id, r.codigo),
         String(r.descricao || ""),
         r.setor_requisitante || "",
         statusLabel(r),
-        r.valor_estimado || 0,
+        r.sobrestado ? (r.tipo_sobrestamento === 'total' ? 'Total' : 'Parcial') : '-',
+        r.valor_ativo || 0,
         r.valor_executado || 0,
       ],
       title: (n) => `Relatório por Setor (${n} registros)`,
@@ -1710,13 +1711,13 @@ const Relatorios = () => {
         };
 
         const generateFooterRowHtml = (rowsList: any[]) => {
-          const gEst = rowsList.reduce((acc, r) => acc + (Number(r.valor_estimado) || 0), 0);
+          const gEst = rowsList.reduce((acc, r) => acc + (Number(r.valor_ativo || r.valor_estimado) || 0), 0);
           const gExec = rowsList.reduce((acc, r) => acc + (Number(r.valor_executado) || 0), 0);
           
           if (!["por_status", "por_setor", "detalhado", "valores", "prioridades"].includes(rType)) return "";
 
           const cells = def.columns.map((col, i) => {
-            if (col === "Valor Estimado") {
+            if (col === "Valor Estimado" || col === "Valor Ativo") {
               return `<td class="text-right" style="font-weight: bold; background: #f3f4f6;">${formatCurrency(gEst)}</td>`;
             }
             if (col === "Valor Executado") {
@@ -1735,7 +1736,7 @@ const Relatorios = () => {
           return `<tr style="border-top: 2px solid #374151;">${cells}</tr>`;
         };
 
-        const totalEstimado = sourceRows.reduce((acc, r) => acc + (Number(r.valor_estimado) || 0), 0);
+        const totalEstimado = sourceRows.reduce((acc, r) => acc + (Number(r.valor_ativo || r.valor_estimado) || 0), 0);
         const totalExecutado = sourceRows.reduce((acc, r) => acc + (Number(r.valor_executado) || 0), 0);
         const formatCurrency = (v: any) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v) || 0);
 
@@ -1746,7 +1747,8 @@ const Relatorios = () => {
         if (isGrouped) {
           const groups: Record<string, any[]> = {};
           sourceRows.forEach(r => {
-            const key = rType === "por_status" ? statusLabel(r) : (r.setor_requisitante || "Não Informado");
+            const label = statusLabel(r);
+            const key = rType === "por_status" ? label.charAt(0).toUpperCase() + label.slice(1) : (r.setor_requisitante || "Não Informado");
             if (!groups[key]) groups[key] = [];
             groups[key].push(r);
           });
@@ -1769,15 +1771,16 @@ const Relatorios = () => {
           
           // Adicionar resumo geral ao final
           reportContentHtml += `
-             <div style="margin-top: 10mm; padding: 15px; border: 2px solid ${primary}; background: #fef2f2; border-radius: 8px; break-inside: avoid;">
-               <div style="font-size: 14px; font-weight: 700; color: ${primary}; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Resumo Geral do Relatório</div>
-               <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+              <div style="margin-top: 10mm; padding: 15px; border: 2px solid ${primary}; background: #fef2f2; border-radius: 8px; break-inside: avoid;">
+                <div style="font-size: 14px; font-weight: 700; color: ${primary}; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Resumo Geral do Relatório</div>
+                <p style="font-size: 10px; color: #6b7280; margin-bottom: 10px;">* Valores financeiros consideram apenas a parte ativa das demandas (exclui suspensões).</p>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
                  <div>
                    <div style="font-size: 11px; color: #6b7280; font-weight: 600;">TOTAL DE ITENS</div>
                    <div style="font-size: 20px; font-weight: 700; color: #111;">${sourceRows.length}</div>
                  </div>
                  <div>
-                   <div style="font-size: 11px; color: #6b7280; font-weight: 600;">VALOR ESTIMADO TOTAL</div>
+                   <div style="font-size: 11px; color: #6b7280; font-weight: 600;">VALOR ATIVO TOTAL</div>
                    <div style="font-size: 20px; font-weight: 700; color: #111;">${formatCurrency(totalEstimado)}</div>
                  </div>
                  <div>

@@ -29,6 +29,9 @@ type Contratacao = Pick<
   | "grau_prioridade"
   | "normativo"
   | "etapa_processo"
+  | "sobrestado"
+  | "tipo_sobrestamento"
+  | "valor_ativo"
 >;
 
 type Filtros = {
@@ -41,6 +44,7 @@ type Filtros = {
   normativo?: string;
   modalidade?: string;
   etapa_processo?: string; // "Status Atual"
+  tipo_sobrestamento?: string;
 };
 
 const formatCurrencyBRL = (value: any) =>
@@ -112,6 +116,7 @@ const VisaoGeral = () => {
     normativo: ALL_VALUE,
     modalidade: ALL_VALUE,
     etapa_processo: ALL_VALUE,
+    tipo_sobrestamento: ALL_VALUE,
   };
   const [filtros, setFiltros] = useState<Filtros>(defaultFiltros);
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -142,6 +147,9 @@ const VisaoGeral = () => {
             "grau_prioridade",
             "normativo",
             "etapa_processo",
+            "sobrestado",
+            "tipo_sobrestamento",
+            "valor_ativo",
           ].join(","),
            { count: "exact" }
         );
@@ -184,6 +192,10 @@ const VisaoGeral = () => {
         } else {
           query = query.eq("etapa_processo", filtros.etapa_processo);
         }
+      if (filtros.tipo_sobrestamento && filtros.tipo_sobrestamento !== ALL_VALUE) {
+        if (filtros.tipo_sobrestamento === "total") query = query.eq("tipo_sobrestamento", "total");
+        else if (filtros.tipo_sobrestamento === "parcial") query = query.eq("tipo_sobrestamento", "parcial");
+        else if (filtros.tipo_sobrestamento === "none") query = query.or("tipo_sobrestamento.is.null,sobrestado.neq.true");
       }
 
       const { data, error, count } = await query;
@@ -298,8 +310,9 @@ const VisaoGeral = () => {
   const filteredRows = rows; // filtros aplicados server-side
 
   const kpis = useMemo(() => {
-    const totalDemandas = filteredRows.length;
-    const totalEstimado = filteredRows.reduce((sum, r) => sum + (r.valor_estimado || 0), 0);
+    // Para KPIs, consideramos o valor_ativo (que é 0 se for sobrestamento total)
+    const totalDemandas = filteredRows.filter(r => !r.sobrestado || (r as any).tipo_sobrestamento === 'parcial').length;
+    const totalEstimado = filteredRows.reduce((sum, r) => sum + ((r as any).valor_ativo || 0), 0);
     const totalExecutado = filteredRows.reduce((sum, r) => sum + (r.valor_executado || 0), 0);
     const totalConcluidas = filteredRows.filter((r) => r.etapa_processo === "Concluído").length;
     return { totalDemandas, totalEstimado, totalExecutado, totalConcluidas };
@@ -310,8 +323,9 @@ const VisaoGeral = () => {
   const distribuicaoPorClasse = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
+      if ((r as any).tipo_sobrestamento === "total") return;
       const key = r.classe || "Não informado";
-      map.set(key, (map.get(key) || 0) + (r.valor_estimado || 0));
+      map.set(key, (map.get(key) || 0) + ((r as any).valor_ativo || 0));
     });
     const total = Array.from(map.values()).reduce((a, b) => a + b, 0) || 1;
     return Array.from(map.entries())
@@ -322,6 +336,7 @@ const VisaoGeral = () => {
   const distribuicaoPorClasseQuantidade = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
+      if ((r as any).tipo_sobrestamento === "total") return;
       const key = r.classe || "Não informado";
       map.set(key, (map.get(key) || 0) + 1);
     });
@@ -333,6 +348,7 @@ const VisaoGeral = () => {
   const dadosQuantidadePorSetor = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
+      if ((r as any).tipo_sobrestamento === "total") return;
       const setor = r.setor_requisitante || "Não informado";
       map.set(setor, (map.get(setor) || 0) + 1);
     });
@@ -345,8 +361,9 @@ const VisaoGeral = () => {
   const dadosValoresPorSetor = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
+      if ((r as any).tipo_sobrestamento === "total") return;
       const setor = r.setor_requisitante || "Não informado";
-      map.set(setor, (map.get(setor) || 0) + (r.valor_estimado || 0));
+      map.set(setor, (map.get(setor) || 0) + ((r as any).valor_ativo || 0));
     });
     const result = Array.from(map.entries())
       .map(([setor, valor_estimado]) => ({ setor: mapSetorName(setor), valor_estimado }))
@@ -358,8 +375,9 @@ const VisaoGeral = () => {
   const dadosValoresPorUO = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
+      if ((r as any).tipo_sobrestamento === "total") return;
       const uo = r.unidade_orcamentaria || "Não informado";
-      map.set(uo, (map.get(uo) || 0) + (r.valor_estimado || 0));
+      map.set(uo, (map.get(uo) || 0) + ((r as any).valor_ativo || 0));
     });
     const result = Array.from(map.entries()).map(([name, value]) => ({ name, value }));
     const ordered = sortByFixedOrder(result, FIXED_ORDER_UO);
@@ -369,6 +387,7 @@ const VisaoGeral = () => {
   const dadosQuantidadePorUO = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
+      if ((r as any).tipo_sobrestamento === "total") return;
       const uo = r.unidade_orcamentaria || "Não informado";
       map.set(uo, (map.get(uo) || 0) + 1);
     });
@@ -380,8 +399,9 @@ const VisaoGeral = () => {
   const dadosValoresPorTipoContratacao = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
+      if ((r as any).tipo_sobrestamento === "total") return;
       const tipo = r.tipo_contratacao || "Não informado";
-      map.set(tipo, (map.get(tipo) || 0) + (r.valor_estimado || 0));
+      map.set(tipo, (map.get(tipo) || 0) + ((r as any).valor_ativo || 0));
     });
     const result = Array.from(map.entries()).map(([name, value]) => ({ name, value }));
     const ordered = sortByFixedOrder(result, FIXED_ORDER_TIPO);
@@ -391,6 +411,7 @@ const VisaoGeral = () => {
   const dadosQuantidadePorTipoContratacao = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
+      if ((r as any).tipo_sobrestamento === "total") return;
       const tipo = r.tipo_contratacao || "Não informado";
       map.set(tipo, (map.get(tipo) || 0) + 1);
     });
@@ -403,8 +424,9 @@ const VisaoGeral = () => {
   const dadosValoresPorClasse = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
+      if ((r as any).tipo_sobrestamento === "total") return;
       const classe = r.classe || "Não informado";
-      map.set(classe, (map.get(classe) || 0) + (r.valor_estimado || 0));
+      map.set(classe, (map.get(classe) || 0) + ((r as any).valor_ativo || 0));
     });
     const result = Array.from(map.entries()).map(([name, value]) => ({ name, value }));
     const ordered = sortByFixedOrder(result, FIXED_ORDER_CLASSE);
@@ -414,6 +436,7 @@ const VisaoGeral = () => {
   const dadosQuantidadePorClasse = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
+      if ((r as any).tipo_sobrestamento === "total") return;
       const classe = r.classe || "Não informado";
       map.set(classe, (map.get(classe) || 0) + 1);
     });
@@ -599,6 +622,20 @@ const VisaoGeral = () => {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="w-[120px] shrink-0">
+                <div className="text-[10px] font-medium text-muted-foreground px-1">Sobrestamento:</div>
+                <Select onValueChange={(v) => setFiltro("tipo_sobrestamento", v)} value={filtros.tipo_sobrestamento}>
+                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm">
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
+                    <SelectItem className="text-xs" value="total">Total</SelectItem>
+                    <SelectItem className="text-xs" value="parcial">Parcial</SelectItem>
+                    <SelectItem className="text-xs" value="none">Nenhum</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="ml-auto shrink-0">
                 <Button size="xs" variant="outline" onClick={clearFiltros} className="h-9">Limpar filtros</Button>
               </div>
@@ -613,14 +650,14 @@ const VisaoGeral = () => {
             value={loading ? "—" : kpis.totalDemandas}
             icon={FileText}
             variant="default"
-            description="Quantidade total de processos de contratação registrados no PCA."
+            description="Quantidade total de processos ativos ou parcialmente suspensos no PCA."
           />
           <KPICard
-            title="Valor Total Estimado"
+            title="Valor PCA Ativo"
             value={loading ? "—" : formatCurrencyBRL(kpis.totalEstimado)}
             icon={DollarSign}
             variant="info"
-            description="Soma dos valores estimados originalmente para todas as contratações planejadas."
+            description="Soma dos valores ativos das demandas (exclui totais suspensos e partes suspensas de demandas parciais)."
           />
           <KPICard
             title="Valor Executado"

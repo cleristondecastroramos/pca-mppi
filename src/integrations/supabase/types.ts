@@ -43,7 +43,8 @@ export type Database = {
           numero_sei_contratacao: string | null
           numero_sei_licitacao: string | null
           pdm_catser: string | null
-          quantidade_devolucoes: number | null
+          quantidade_ativa: number | null
+          quantidade_sobrestada: number | null
           quantidade_itens: number | null
           saldo_orcamentario: number | null
           setor_atual: string | null
@@ -54,15 +55,18 @@ export type Database = {
           status_inicio: string | null
           tipo_contratacao: string
           tipo_material_servico: string | null
+          tipo_sobrestamento: string | null
           tipo_recurso: string
           unidade_beneficiaria: string | null
           unidade_fornecimento: string | null
           unidade_orcamentaria: string
           updated_at: string | null
+          valor_ativo: number | null
           valor_contratado: number | null
           valor_estimado: number
           valor_executado: number | null
           valor_licitado: number | null
+          valor_sobrestado: number | null
           valor_unitario: number | null
         }
         Insert: {
@@ -93,7 +97,8 @@ export type Database = {
           numero_sei_contratacao?: string | null
           numero_sei_licitacao?: string | null
           pdm_catser?: string | null
-          quantidade_devolucoes?: number | null
+          quantidade_ativa?: number | null
+          quantidade_sobrestada?: number | null
           quantidade_itens?: number | null
           saldo_orcamentario?: number | null
           setor_atual?: string | null
@@ -104,15 +109,18 @@ export type Database = {
           status_inicio?: string | null
           tipo_contratacao: string
           tipo_material_servico?: string | null
+          tipo_sobrestamento?: string | null
           tipo_recurso: string
           unidade_beneficiaria?: string | null
           unidade_fornecimento?: string | null
           unidade_orcamentaria: string
           updated_at?: string | null
+          valor_ativo?: number | null
           valor_contratado?: number | null
           valor_estimado: number
           valor_executado?: number | null
           valor_licitado?: number | null
+          valor_sobrestado?: number | null
           valor_unitario?: number | null
         }
         Update: {
@@ -143,7 +151,8 @@ export type Database = {
           numero_sei_contratacao?: string | null
           numero_sei_licitacao?: string | null
           pdm_catser?: string | null
-          quantidade_devolucoes?: number | null
+          quantidade_ativa?: number | null
+          quantidade_sobrestada?: number | null
           quantidade_itens?: number | null
           saldo_orcamentario?: number | null
           setor_atual?: string | null
@@ -154,15 +163,18 @@ export type Database = {
           status_inicio?: string | null
           tipo_contratacao?: string
           tipo_material_servico?: string | null
+          tipo_sobrestamento?: string | null
           tipo_recurso?: string
           unidade_beneficiaria?: string | null
           unidade_fornecimento?: string | null
           unidade_orcamentaria?: string
           updated_at?: string | null
+          valor_ativo?: number | null
           valor_contratado?: number | null
           valor_estimado?: number
           valor_executado?: number | null
           valor_licitado?: number | null
+          valor_sobrestado?: number | null
           valor_unitario?: number | null
         }
         Relationships: []

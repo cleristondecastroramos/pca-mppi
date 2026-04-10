@@ -109,6 +109,7 @@ export default function Contratacoes() {
     normativo?: string;
     modalidade?: string;
     etapa_processo?: string; // "Status Atual"
+    tipo_sobrestamento?: string;
   };
   const defaultFiltros: Filtros = {
     unidade_orcamentaria: ALL_VALUE,
@@ -120,6 +121,7 @@ export default function Contratacoes() {
     normativo: ALL_VALUE,
     modalidade: ALL_VALUE,
     etapa_processo: ALL_VALUE,
+    tipo_sobrestamento: ALL_VALUE,
   };
   const [filtros, setFiltros] = useState<Filtros>(defaultFiltros);
   const setFiltro = (key: keyof Filtros, value: string) => setFiltros((prev) => ({ ...prev, [key]: value }));
@@ -157,7 +159,7 @@ export default function Contratacoes() {
     try {
       let query = supabase
         .from("contratacoes")
-        .select("id, codigo, descricao, setor_requisitante, unidade_orcamentaria, classe, valor_estimado, valor_contratado, valor_licitado, etapa_processo, sobrestado, grau_prioridade, justificativa, data_prevista_contratacao, data_entrada_clc, numero_sei_contratacao, pdm_catser, created_at, quantidade_itens, valor_unitario, unidade_fornecimento, tipo_recurso, tipo_contratacao, modalidade, normativo, srp, valor_executado")
+        .select("id, codigo, descricao, setor_requisitante, unidade_orcamentaria, classe, valor_estimado, valor_contratado, valor_licitado, etapa_processo, sobrestado, tipo_sobrestamento, quantidade_sobrestada, valor_sobrestado, quantidade_ativa, valor_ativo, grau_prioridade, justificativa, data_prevista_contratacao, data_entrada_clc, numero_sei_contratacao, pdm_catser, created_at, quantidade_itens, valor_unitario, unidade_fornecimento, tipo_recurso, tipo_contratacao, modalidade, normativo, srp, valor_executado")
         .neq("srp", true)
         .order("created_at", { ascending: false });
 
@@ -318,6 +320,11 @@ export default function Contratacoes() {
         valor_contratado: editingContratacao.valor_contratado,
         etapa_processo: mapped.etapa,
         sobrestado: mapped.sobrestado,
+        tipo_sobrestamento: (editingContratacao as any).tipo_sobrestamento || null,
+        quantidade_sobrestada: (editingContratacao as any).quantidade_sobrestada || 0,
+        valor_sobrestado: (editingContratacao as any).valor_sobrestado || 0,
+        quantidade_ativa: (editingContratacao as any).quantidade_ativa || (editingContratacao as any).quantidade_itens || 0,
+        valor_ativo: (editingContratacao as any).valor_ativo || editingContratacao.valor_estimado || 0,
         grau_prioridade: editingContratacao.grau_prioridade,
         justificativa: editingContratacao.justificativa,
         valor_executado: editingContratacao.valor_executado,
@@ -498,6 +505,7 @@ export default function Contratacoes() {
       normativo: build("normativo" as any),
       modalidade: build("modalidade" as any),
       etapa_processo: build("etapa_processo" as any),
+      tipo_sobrestamento: build("tipo_sobrestamento" as any),
     };
   })();
 
@@ -538,6 +546,7 @@ export default function Contratacoes() {
     applyEq("grau_prioridade", "grau_prioridade");
     applyEq("normativo", "normativo");
     applyEq("modalidade", "modalidade");
+    applyEq("tipo_sobrestamento", "tipo_sobrestamento");
 
     // 3. Filtro de Status
     const status = filtros.etapa_processo;
@@ -850,6 +859,20 @@ export default function Contratacoes() {
         <Card>
           <CardContent className="p-2">
             <div className="flex flex-wrap md:flex-nowrap gap-2 items-center">
+              <div className="w-[120px] shrink-0">
+                <div className="text-[10px] font-medium text-muted-foreground px-1">Sobrestamento:</div>
+                <Select onValueChange={(v) => setFiltro("tipo_sobrestamento", v)} value={filtros.tipo_sobrestamento}>
+                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm">
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
+                    <SelectItem className="text-xs" value="total">Total</SelectItem>
+                    <SelectItem className="text-xs" value="parcial">Parcial</SelectItem>
+                    <SelectItem className="text-xs" value="none">Nenhum</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="w-28 shrink-0">
                 <div className="text-[10px] font-medium text-muted-foreground px-1">UO:</div>
                 <Select onValueChange={(v) => setFiltro("unidade_orcamentaria", v)} value={filtros.unidade_orcamentaria}>
@@ -1017,6 +1040,7 @@ export default function Contratacoes() {
                 <TableHead className="text-center w-[130px] text-white font-bold text-xs h-9">Data Prevista de Início</TableHead>
                 <TableHead onClick={() => handleSort("data_prevista_contratacao")} className="text-center w-[130px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Data Prevista de Conclusão<SortIcon field="data_prevista_contratacao" /></TableHead>
                 <TableHead onClick={() => handleSort("_status")} className="text-center w-[110px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Status<SortIcon field="_status" /></TableHead>
+                <TableHead className="text-center w-[100px] text-white font-bold text-xs h-9">Sobrestamento</TableHead>
                 <TableHead onClick={() => handleSort("grau_prioridade")} className="text-center w-[90px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Prioridade<SortIcon field="grau_prioridade" /></TableHead>
                 <TableHead className="text-center w-[90px] text-white font-bold text-xs h-9">Ações</TableHead>
               </TableRow>
@@ -1080,6 +1104,15 @@ export default function Contratacoes() {
                             </Badge>
                           );
                         })()}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {contratacao.sobrestado ? (
+                          <Badge variant="outline" className={contratacao.tipo_sobrestamento === 'total' ? "bg-red-50 text-red-700 border-red-200" : "bg-yellow-50 text-yellow-700 border-yellow-200"}>
+                            {contratacao.tipo_sobrestamento === 'total' ? 'Total' : 'Parcial'}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -1464,8 +1497,21 @@ export default function Contratacoes() {
 
                         if (value === "sobrestado") {
                           next.sobrestado = true;
+                          // Default to total suspension if not specified
+                          if (!next.tipo_sobrestamento) {
+                            next.tipo_sobrestamento = "total";
+                            next.quantidade_sobrestada = next.quantidade_itens || 0;
+                            next.valor_sobrestado = next.valor_estimado || 0;
+                            next.quantidade_ativa = 0;
+                            next.valor_ativo = 0;
+                          }
                         } else {
                           next.sobrestado = false;
+                          next.tipo_sobrestamento = null;
+                          next.quantidade_sobrestada = 0;
+                          next.valor_sobrestado = 0;
+                          next.quantidade_ativa = next.quantidade_itens || 0;
+                          next.valor_ativo = next.valor_estimado || 0;
                           if (value === "não iniciado") next.etapa_processo = "Planejamento";
                           else if (value === "iniciado") next.etapa_processo = "Iniciado";
                           else if (value === "retornado para diligência") next.etapa_processo = "Retornado para Diligência";
@@ -1489,6 +1535,96 @@ export default function Contratacoes() {
                       </SelectContent>
                     </Select>
                   </div>
+                  
+                  {/* Seção de Sobrestamento - Exibida apenas se sobrestado for TRUE */}
+                  {(editingContratacao as any).sobrestado && (
+                    <div className="sm:col-span-12 grid grid-cols-12 gap-3 mt-1 p-3 bg-red-50/50 border border-red-100 rounded-md">
+                      <div className="sm:col-span-12 mb-1">
+                        <Label className="text-[11px] font-bold text-red-800 uppercase">Configuração de Sobrestamento</Label>
+                      </div>
+                      <div className="space-y-1.5 sm:col-span-3">
+                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">O sobrestamento é total ou parcial?</Label>
+                        <Select
+                          value={(editingContratacao as any).tipo_sobrestamento || "total"}
+                          onValueChange={(val) => {
+                            const next = { ...editingContratacao } as any;
+                            next.tipo_sobrestamento = val;
+                            if (val === "total") {
+                              next.quantidade_sobrestada = next.quantidade_itens || 0;
+                              next.valor_sobrestado = next.valor_estimado || 0;
+                              next.quantidade_ativa = 0;
+                              next.valor_ativo = 0;
+                            }
+                            setEditingContratacao(next);
+                          }}
+                        >
+                          <SelectTrigger className="h-8 text-xs font-medium border-red-200 focus:ring-red-500">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="total">Total</SelectItem>
+                            <SelectItem value="parcial">Parcial</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {(editingContratacao as any).tipo_sobrestamento === "parcial" && (
+                        <>
+                          <div className="space-y-1.5 sm:col-span-2">
+                            <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Qtd. a Sobrestar</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              max={(editingContratacao as any).quantidade_itens || 1}
+                              value={(editingContratacao as any).quantidade_sobrestada || 0}
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value) || 0;
+                                const total = (editingContratacao as any).quantidade_itens || 0;
+                                const next = { ...editingContratacao } as any;
+                                next.quantidade_sobrestada = val > total ? total : val;
+                                next.quantidade_ativa = total - next.quantidade_sobrestada;
+                                setEditingContratacao(next);
+                              }}
+                              className="h-8 text-xs border-red-200"
+                            />
+                            <p className="text-[9px] text-muted-foreground">Em execução: {(editingContratacao as any).quantidade_ativa || 0}</p>
+                          </div>
+                          <div className="space-y-1.5 sm:col-span-3">
+                            <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Valor a Sobrestar (R$)</Label>
+                            <Input
+                              inputMode="numeric"
+                              value={formatCurrencyNumber((editingContratacao as any).valor_sobrestado || 0)}
+                              onChange={(e) => {
+                                const formatted = formatCurrencyInput(e.target.value);
+                                e.currentTarget.value = formatted;
+                                const parsed = parseCurrencyInput(formatted);
+                                const total = (editingContratacao as any).valor_estimado || 0;
+                                const next = { ...editingContratacao } as any;
+                                next.valor_sobrestado = parsed > total ? total : parsed;
+                                next.valor_ativo = total - next.valor_sobrestado;
+                                setEditingContratacao(next);
+                              }}
+                              className="h-8 text-xs border-red-200"
+                            />
+                            <p className="text-[9px] text-muted-foreground">Em execução: {formatCurrency((editingContratacao as any).valor_ativo || 0)}</p>
+                          </div>
+                          <div className="sm:col-span-4 self-end pb-3">
+                            <div className="text-[10px] bg-white p-1.5 border border-red-100 rounded text-red-700 font-medium">
+                              Parte ativa continua impactando cálculos e saldo.
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      
+                      {(editingContratacao as any).tipo_sobrestamento === "total" && (
+                        <div className="sm:col-span-9 flex items-center">
+                          <p className="text-xs text-red-600 bg-white p-2 border border-red-100 rounded w-full">
+                            Toda a demanda será suspensa e não impactará os cálculos do PCA ou saldo da UO.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Bloco 3: Dados Financeiros e de Quantidade */}
