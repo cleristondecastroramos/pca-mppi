@@ -4,20 +4,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-// Removido alternador de abas e componentes de cadastro
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTheme } from "@/components/theme-provider";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { translateError } from "@/lib/utils/error-translations";
 
+import { InfiniteGrid } from "@/components/ui/the-infinite-grid";
+import { ShimmerText } from "@/components/ui/shimmer-bg-text";
+
 export default function Auth() {
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // Removido estado de confirmação de senha (cadastro desativado)
 
-  // Override theme colors locally for the login page to use red (#D9415D)
   const loginThemeVars = {
     ["--primary" as any]: "349 67% 55%", // #D9415D
     ["--primary-foreground" as any]: "0 0% 100%",
@@ -28,17 +30,14 @@ export default function Auth() {
   } as React.CSSProperties;
 
   useEffect(() => {
-    // Valida a sessão no servidor antes de redirecionar
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      // Confirma que o token é válido no servidor
       const { data, error } = await supabase.auth.getUser();
       if (data?.user && !error) {
         navigate("/home", { replace: true });
       } else {
-        // Sessão local inválida — limpar
         await supabase.auth.signOut();
       }
     };
@@ -57,8 +56,7 @@ export default function Auth() {
 
       if (error) throw error;
       toast.success("Login realizado com sucesso!");
-      // Navega após sucesso para o dashboard, agora com sessão válida
-    navigate("/home", { replace: true });
+      navigate("/home", { replace: true });
     } catch (error: any) {
       const errorMessage = translateError(error.message || "Erro ao fazer login");
       toast.error(errorMessage);
@@ -67,92 +65,103 @@ export default function Auth() {
     }
   };
 
-  // Removido handler de cadastro
-
   return (
-    <div
-      className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4"
-      style={loginThemeVars}
-    >
-      <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
-        <div className="absolute -left-24 -top-24 h-80 w-80 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute -right-32 -bottom-32 h-96 w-96 rounded-full bg-accent/10 blur-3xl" />
-        <div className="absolute inset-0 opacity-40 [mask-image:radial-gradient(ellipse_at_center,rgba(255,255,255,0.7),transparent_70%)] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.08),transparent_60%)]" />
-        <div className="absolute inset-0 opacity-10 [mask-image:radial-gradient(circle,white,transparent_70%)] bg-[linear-gradient(to_right,rgba(0,0,0,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.06)_1px,transparent_1px)] bg-[size:28px_28px]" />
-      </div>
-      <Card className="w-full max-w-3xl shadow-2xl overflow-hidden">
-        <CardHeader className="text-center space-y-0.5">
-          <div className="mb-2">
-            <img
-              src="/logo-mppi.png"
-              alt="Logo oficial do MPPI"
-              className="mx-auto h-12 w-auto object-contain"
-            />
+    <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 h-screen overflow-hidden" style={loginThemeVars}>
+      {/* Left Section: Access and Credentials */}
+      <InfiniteGrid className="p-8 md:p-16 dark:bg-slate-950 flex flex-col items-center justify-center">
+        <div className="w-full max-w-sm space-y-10 animate-in fade-in slide-in-from-left-4 duration-1000">
+          <div className="flex justify-center transition-transform hover:scale-105 duration-300">
+            <img src="/logo-mppi.png" alt="MPPI" className="h-20 w-auto object-contain" />
           </div>
-          <CardTitle
-            className="text-lg font-bold uppercase"
-          >
-            PLANO DE CONTRATAÇÕES ANUAL - PCA 2026
-          </CardTitle>
-          <CardDescription>
-            Sistema de Gerenciamento de Contratações - MPPI
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="grid grid-cols-1 md:grid-cols-12">
-            {/* Lado esquerdo: imagem ilustrativa */}
-            <div className="flex items-center justify-center px-6 pt-0 pb-6 bg-card md:col-span-5 md:col-start-2">
-              <img
-                src="/22933-removebg-preview.png"
-                alt="Ilustração PCA"
-                className="h-56 md:h-72 w-auto object-contain"
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-1.5">
+              <Label htmlFor="login-email" className="text-gray-600 font-semibold ml-1 dark:text-gray-300">Usuário</Label>
+              <Input 
+                id="login-email" 
+                type="email" 
+                placeholder="seu.email@mppi.mp.br" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                required 
+                className="bg-red-50/50 border border-[#D9415D]/30 h-11 focus-visible:ring-1 focus-visible:ring-primary shadow-sm dark:bg-slate-900"
               />
             </div>
-
-            {/* Lado direito: login */}
-            <div className="p-6 md:col-span-5">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">E-mail Institucional:</Label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    placeholder="seu.email@mppi.mp.br"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Senha:</Label>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading} size="lg">
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Entrar
-                </Button>
-                <div className="text-center">
-                  <button
-                    type="button"
-                    className="text-sm text-primary hover:underline"
-                    onClick={() => navigate("/esqueci-senha")}
-                  >
-                    Esqueci minha senha
-                  </button>
-                </div>
-              </form>
+            <div className="space-y-1.5">
+              <Label htmlFor="login-password" className="text-gray-600 font-semibold ml-1 dark:text-gray-300">Senha</Label>
+              <Input 
+                id="login-password" 
+                type="password" 
+                placeholder="********"
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                required 
+                className="bg-red-50/50 border border-[#D9415D]/30 h-11 focus-visible:ring-1 focus-visible:ring-primary shadow-sm dark:bg-slate-900"
+              />
             </div>
+            
+            <div className="space-y-1.5">
+              <Label className="text-gray-600 font-semibold ml-1 dark:text-gray-300">Tema</Label>
+              <Select value={theme} onValueChange={(v: any) => setTheme(v)}>
+                <SelectTrigger className="bg-red-50/50 border border-[#D9415D]/30 h-11 focus:ring-1 focus:ring-primary shadow-sm dark:bg-slate-900">
+                  <SelectValue placeholder="Padrão" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="light">Claro</SelectItem>
+                  <SelectItem value="dark">Escuro</SelectItem>
+                  <SelectItem value="system">Padrão do Sistema</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button type="submit" className="w-full h-12 text-base font-bold bg-[#D9415D] hover:bg-[#C0354E] text-white shadow-lg transition-all active:scale-[0.98]" disabled={loading}>
+              {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "Acessar minha conta"}
+            </Button>
+
+            <div className="flex flex-col items-center gap-3 pt-4">
+              <button type="button" className="text-sm font-semibold hover:underline text-[#D9415D] dark:text-red-400" onClick={() => navigate("/redefinir-senha")}>
+                Alterar a senha? <span className="font-bold">Altere aqui</span>
+              </button>
+              <button type="button" className="text-sm font-semibold hover:underline text-[#D9415D] dark:text-red-400" onClick={() => navigate("/esqueci-senha")}>
+                Esqueceu sua senha? <span className="font-bold">Recupere aqui</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Footer on left side bottom - Centered single line */}
+        <div className="absolute bottom-2 left-0 right-0 px-8 text-center w-full z-20">
+          <p className="text-[10px] text-gray-400 font-medium whitespace-nowrap dark:text-gray-500">
+            © 2026 Sistema de Gerenciamento de Contratações - MPPI | Desenvolvido pela Assessoria de Planejamento e Gestão
+          </p>
+        </div>
+      </InfiniteGrid>
+
+      {/* Right Section: Visual Illustration */}
+      <div className="hidden md:flex flex-col items-center justify-center bg-[#D9415D] relative overflow-hidden p-12">
+        {/* Subtle decorative elements for premium feel */}
+        <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-white/10 rounded-full blur-3xl p-10" />
+        <div className="absolute bottom-[-5%] left-[-5%] w-64 h-64 bg-black/10 rounded-full blur-3xl" />
+        
+        <div className="relative z-10 flex flex-col items-center text-center animate-in zoom-in-95 duration-1000">
+          <img 
+            src="/22933-removebg-preview.png" 
+            alt="PCA MPPI Illustration" 
+            className="max-h-[45vh] w-auto object-contain filter brightness-110 mb-8 drop-shadow-2xl"
+          />
+          <div className="space-y-2">
+            <ShimmerText 
+              text="PLANO DE CONTRATAÇÕES ANUAL - PCA 2026" 
+              className="text-2xl font-extrabold tracking-tight uppercase drop-shadow-md"
+            />
+            <p className="text-white/90 text-sm font-medium tracking-widest uppercase border-t border-white/20 pt-2">
+              Sistema de Gerenciamento de Contratações - MPPI
+            </p>
           </div>
-        </CardContent>
-      </Card>
-      <div className="fixed bottom-2 left-0 right-0 text-center text-muted-foreground text-xs opacity-70">
-        © 2026 Sistema de Gerenciamento de Contratações - MPPI | Desenvolvido pela Assessoria de Planejamento e Gestão
+        </div>
+        
+        {/* Light overlay for dynamic feel */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-black/20 via-transparent to-white/10 pointer-events-none" />
       </div>
     </div>
   );
