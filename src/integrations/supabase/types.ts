@@ -449,6 +449,7 @@ export type Database = {
           nome_completo: string | null
           ramal: string | null
           setor: string | null
+          setores_adicionais: string[] | null
           updated_at: string | null
         }
         Insert: {
@@ -460,6 +461,7 @@ export type Database = {
           nome_completo?: string | null
           ramal?: string | null
           setor?: string | null
+          setores_adicionais?: string[] | null
           updated_at?: string | null
         }
         Update: {
@@ -471,6 +473,7 @@ export type Database = {
           nome_completo?: string | null
           ramal?: string | null
           setor?: string | null
+          setores_adicionais?: string[] | null
           updated_at?: string | null
         }
         Relationships: []

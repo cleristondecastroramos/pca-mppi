@@ -68,7 +68,8 @@ const ControlePrazos = () => {
         .order("created_at", { ascending: false });
       
       if (isSetorRequisitante && userSetor) {
-        query = query.eq("setor_requisitante", userSetor);
+        const allowedSectors = [userSetor, ...(userProfile?.setores_adicionais || [])];
+        query = query.in("setor_requisitante", allowedSectors);
       }
 
       // @ts-ignore

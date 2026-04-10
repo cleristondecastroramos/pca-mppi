@@ -14,7 +14,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
+import { useAuthSession, useUserRoles, useUserProfile, hasAnyRole } from "@/lib/auth";
+
 const Relatorios = () => {
+  const { data: session } = useAuthSession();
+  const uid = session?.user?.id;
+  const { data: roles } = useUserRoles(uid);
+  const { data: userProfile } = useUserProfile(uid);
+  const isSetorRequisitante = hasAnyRole(roles, ["setor_requisitante"]) && !hasAnyRole(roles, ["administrador", "gestor"]);
+  const userSetor = userProfile?.setor || null;
+
   const [status, setStatus] = useState<string>("todos");
   const [setor, setSetor] = useState<string>("todos");
   const [range, setRange] = useState<DateRange | undefined>({ from: undefined, to: undefined });
@@ -39,10 +48,17 @@ const Relatorios = () => {
     return String(codigo).toUpperCase().replace(/^PCA-/, "").replace(/-2026$/, "");
   };
   const fetchAllContratacoes = async () => {
-    const { data, error } = await supabase
+    let query = supabase
       .from("contratacoes")
       .select("id, codigo, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, srp, numero_sei_contratacao, etapa_processo, sobrestado, created_at, data_finalizacao_licitacao, valor_estimado, valor_contratado, data_prevista_contratacao, quantidade_itens, valor_unitario, data_conclusao, valor_executado")
       .neq("srp", true);
+
+    if (isSetorRequisitante && userSetor) {
+      const allowedSectors = [userSetor, ...(userProfile?.setores_adicionais || [])];
+      query = query.in("setor_requisitante", allowedSectors);
+    }
+
+    const { data, error } = await query;
     
     if (error) throw error;
     return data || [];
@@ -427,7 +443,7 @@ const Relatorios = () => {
       mounted = false;
       sub.subscription.unsubscribe();
     };
-  }, []);
+  }, [roles, userSetor]);
 
   // removido filtro legacy; filtros atuais aplicados por applyFilters
 

@@ -81,6 +81,7 @@ Deno.serve(async (req) => {
     const email: string | undefined = payload?.email;
     const nome_completo: string | undefined = payload?.nome_completo;
     const setor: string | undefined = payload?.setor;
+    const setores_adicionais: string[] | undefined = payload?.setores_adicionais;
     const cargo: string | undefined = payload?.cargo;
     const role: string | undefined = payload?.role;
     const provisional_password: string | undefined = payload?.provisional_password;
@@ -92,7 +93,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log("Creating user:", { email, role, hasPassword: !!provisional_password });
+    console.log("Creating user:", { email, role, hasPassword: !!provisional_password, setores_adicionais });
 
     // Cria usuário com senha provisória, ou convida se não houver senha
     let newUser: any = null;
@@ -145,7 +146,7 @@ Deno.serve(async (req) => {
     // Atualiza perfil com setor/cargo/nome (trigger handle_new_user já criou o profile)
     const { error: profileErr } = await supabaseAdmin
       .from("profiles")
-      .update({ nome_completo, setor, cargo, email })
+      .update({ nome_completo, setor, setores_adicionais, cargo, email })
       .eq("id", newUser.id);
     if (profileErr) {
       console.error("profile update error:", profileErr.message);

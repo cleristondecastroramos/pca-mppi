@@ -82,7 +82,7 @@ export async function fetchUserProfile(userId?: string) {
     if (!id) return null;
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, nome_completo, setor, cargo, email")
+      .select("id, nome_completo, setor, setores_adicionais, cargo, email")
       .eq("id", id)
       .single();
     if (error) return null;

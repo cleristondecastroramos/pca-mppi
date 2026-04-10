@@ -161,9 +161,10 @@ export default function Contratacoes() {
         .neq("srp", true)
         .order("created_at", { ascending: false });
 
-      // Setor requisitante users only see their own setor
+      // Setor requisitante users see their own setor and additional sectors
       if (isSetorRequisitante && userSetor) {
-        query = query.eq("setor_requisitante", userSetor);
+        const allowedSectors = [userSetor, ...(profile?.setores_adicionais || [])];
+        query = query.in("setor_requisitante", allowedSectors);
       }
 
       const { data, error } = await query;

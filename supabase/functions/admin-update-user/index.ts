@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
     }
 
     const payload = await req.json();
-    const { user_id, nome_completo, setor, cargo, role } = payload;
+    const { user_id, nome_completo, setor, setores_adicionais, cargo, role } = payload;
 
     if (!user_id) {
       return new Response(JSON.stringify({ error: "Missing user_id" }), {
@@ -54,9 +54,10 @@ Deno.serve(async (req) => {
     }
 
     // Update profile
-    const profileUpdate: Record<string, string> = {};
+    const profileUpdate: Record<string, any> = {};
     if (nome_completo !== undefined) profileUpdate.nome_completo = nome_completo;
     if (setor !== undefined) profileUpdate.setor = setor;
+    if (setores_adicionais !== undefined) profileUpdate.setores_adicionais = setores_adicionais;
     if (cargo !== undefined) profileUpdate.cargo = cargo;
 
     if (Object.keys(profileUpdate).length > 0) {

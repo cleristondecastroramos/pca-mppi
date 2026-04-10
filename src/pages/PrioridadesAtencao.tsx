@@ -94,7 +94,8 @@ const PrioridadesAtencao = () => {
           .order("data_prevista_contratacao", { ascending: true });
 
         if (isSetorRequisitante && userSetor) {
-          query = query.eq("setor_requisitante", userSetor);
+          const allowedSectors = [userSetor, ...(userProfile?.setores_adicionais || [])];
+          query = query.in("setor_requisitante", allowedSectors);
         }
 
         const { data, error } = await query;

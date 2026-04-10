@@ -10,9 +10,12 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { translateError } from "@/lib/utils/error-translations";
-import type { PerfilAcesso } from "@/lib/auth";
-import { SETORES_REQUISITANTES } from "@/lib/auth";
-import { Shield, UserCog, ClipboardList, Eye, Info, Pencil, Trash2, Users } from "lucide-react";
+import { type PerfilAcesso, SETORES_REQUISITANTES } from "@/lib/auth";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Shield, UserCog, ClipboardList, Eye, Info, Pencil, Trash2, Users, ChevronDown } from "lucide-react";
 
 const ROLE_DEFINITIONS = {
   administrador: {
@@ -69,6 +72,7 @@ type Profile = {
   nome_completo: string | null;
   email: string | null;
   setor: string | null;
+  setores_adicionais: string[] | null;
   cargo: string | null;
 };
 
@@ -90,6 +94,7 @@ const GerenciamentoUsuarios = () => {
   const [newNome, setNewNome] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newSetor, setNewSetor] = useState("");
+  const [newSetoresAdicionais, setNewSetoresAdicionais] = useState<string[]>([]);
   const [newCargo, setNewCargo] = useState("");
   const [newRole, setNewRole] = useState<PerfilAcesso | undefined>(undefined);
   const [newProvisionalPassword, setNewProvisionalPassword] = useState("");
@@ -99,6 +104,7 @@ const GerenciamentoUsuarios = () => {
   const [showEdit, setShowEdit] = useState(false);
   const [editNome, setEditNome] = useState("");
   const [editSetor, setEditSetor] = useState("");
+  const [editSetoresAdicionais, setEditSetoresAdicionais] = useState<string[]>([]);
   const [editCargo, setEditCargo] = useState("");
   const [editRole, setEditRole] = useState<PerfilAcesso | undefined>(undefined);
   const [saving, setSaving] = useState(false);
@@ -114,7 +120,7 @@ const GerenciamentoUsuarios = () => {
       const end = start + pageSize - 1;
       const { data: profiles, error, count } = await supabase
         .from("profiles")
-        .select("id, nome_completo, email, setor, cargo", { count: "exact" })
+        .select("id, nome_completo, email, setor, setores_adicionais, cargo", { count: "exact" })
         .order("nome_completo", { ascending: true })
         .range(start, end);
       if (error) throw error;
@@ -139,6 +145,7 @@ const GerenciamentoUsuarios = () => {
         nome_completo: p.nome_completo,
         email: p.email,
         setor: p.setor,
+        setores_adicionais: (p as any).setores_adicionais || [],
         cargo: p.cargo,
         roles: rolesMap.get(p.id) || [],
       }));
@@ -173,6 +180,7 @@ const GerenciamentoUsuarios = () => {
     setEditTarget(u);
     setEditNome(u.nome_completo || "");
     setEditSetor(u.setor || "");
+    setEditSetoresAdicionais(u.setores_adicionais || []);
     setEditCargo(u.cargo || "");
     setEditRole(u.roles[0] || undefined);
     setShowEdit(true);
@@ -184,36 +192,47 @@ const GerenciamentoUsuarios = () => {
       toast.error("É obrigatório selecionar um setor para o usuário.");
       return;
     }
+    setSaving(true);
     try {
-      console.log("Iniciando edição de usuário:", { user_id: editTarget.id, editNome, editRole });
+      const payload = {
+        user_id: editTarget.id,
+        nome_completo: editNome,
+        setor: editSetor,
+        setores_adicionais: editSetoresAdicionais,
+        cargo: editCargo,
+        role: editRole,
+      };
+      console.log("Iniciando edição de usuário:", payload);
+      
       const { data, error } = await supabase.functions.invoke("admin-update-user", {
-        body: {
-          user_id: editTarget.id,
-          nome_completo: editNome,
-          setor: editSetor,
-          cargo: editCargo,
-          role: editRole,
-        },
+        body: payload,
       });
 
-      console.log("Resposta update-user:", data, error);
+      console.log("Resposta bruta update-user:", { data, error });
 
       if (error) {
-          throw error;
+        throw error;
       }
 
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
       if (parsed?.error) {
-          throw new Error(parsed.error);
+        throw new Error(parsed.error);
       }
 
-      toast.success("Usuário atualizado com sucesso.");
-      setShowEdit(false);
-      setEditTarget(null);
-      loadUsers();
+      if (parsed?.ok || parsed?.success) {
+        toast.success("Usuário atualizado com sucesso.");
+        setShowEdit(false);
+        setEditTarget(null);
+        await loadUsers();
+      } else {
+        console.warn("Resposta inesperada do servidor:", parsed);
+        toast.warning("Usuário pode não ter sido atualizado corretamente.");
+      }
     } catch (e: any) {
-      console.error("Erro ao atualizar:", e);
-      toast.error("Falha ao atualizar usuário", { description: translateError(e.message || "Erro desconhecido") });
+      console.error("Erro ao atualizar usuário:", e);
+      toast.error("Falha ao atualizar usuário", { 
+        description: translateError(e.message || "Erro desconhecido") 
+      });
     } finally {
       setSaving(false);
     }
@@ -234,39 +253,48 @@ const GerenciamentoUsuarios = () => {
     }
     setCreating(true);
     try {
-      console.log("Iniciando cadastro de usuário:", { newEmail, newNome, newRole });
+      const payload = {
+        email: newEmail,
+        nome_completo: newNome,
+        setor: newSetor,
+        setores_adicionais: newSetoresAdicionais,
+        cargo: newCargo,
+        role: newRole,
+        provisional_password: newProvisionalPassword || undefined,
+      };
+      console.log("Iniciando cadastro de usuário:", payload);
+      
       const { data, error } = await supabase.functions.invoke("admin-create-user", {
-        body: {
-          email: newEmail,
-          nome_completo: newNome,
-          setor: newSetor,
-          cargo: newCargo,
-          role: newRole,
-          provisional_password: newProvisionalPassword || undefined,
-        },
+        body: payload,
       });
 
-      console.log("Resposta create-user:", data, error);
+      console.log("Resposta bruta create-user:", { data, error });
 
       if (error) {
-          // Captura erro retornado pelo Supabase (ex: timeout, network error)
           throw error;
       }
 
-      // Verifica se a resposta contém erro na estrutura JSON
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
       if (parsed?.error) {
           throw new Error(parsed.error);
       }
 
-      toast.success("Usuário cadastrado com sucesso.");
-      setShowCreate(false);
-      setNewEmail(""); setNewNome(""); setNewSetor(""); setNewCargo("");
-      setNewRole(undefined); setNewProvisionalPassword("");
-      loadUsers();
+      if (parsed?.ok || parsed?.success || parsed?.user) {
+        toast.success("Usuário cadastrado com sucesso.");
+        setShowCreate(false);
+        setNewEmail(""); setNewNome(""); setNewSetor(""); setNewCargo("");
+        setNewSetoresAdicionais([]);
+        setNewRole(undefined); setNewProvisionalPassword("");
+        await loadUsers();
+      } else {
+        console.warn("Resposta inesperada do servidor:", parsed);
+        toast.warning("O usuário pode ter sido criado, mas a resposta foi inconclusiva.");
+      }
     } catch (e: any) {
-      console.error("Erro ao cadastrar:", e);
-      toast.error("Falha ao cadastrar usuário", { description: translateError(e.message || "Erro desconhecido") });
+      console.error("Erro ao cadastrar usuário:", e);
+      toast.error("Falha ao cadastrar usuário", { 
+        description: translateError(e.message || "Erro desconhecido") 
+      });
     } finally {
       setCreating(false);
     }
@@ -461,7 +489,7 @@ const GerenciamentoUsuarios = () => {
                 <TableRow className="bg-[#D9415D] hover:bg-[#D9415D]/90">
                   <TableHead className="text-white font-bold text-center">Nome</TableHead>
                   <TableHead className="text-white font-bold text-center">E-mail</TableHead>
-                  <TableHead className="text-white font-bold text-center">Setor</TableHead>
+                  <TableHead className="text-white font-bold text-center">Setores</TableHead>
                   <TableHead className="text-white font-bold text-center">Cargo</TableHead>
                   <TableHead className="text-white font-bold text-center">Perfil</TableHead>
                   <TableHead className="text-white font-bold text-center">Ações</TableHead>
@@ -472,7 +500,14 @@ const GerenciamentoUsuarios = () => {
                   <TableRow key={u.id}>
                     <TableCell className="font-medium text-left">{u.nome_completo || "—"}</TableCell>
                     <TableCell className="text-left">{u.email || "—"}</TableCell>
-                    <TableCell className="text-left">{u.setor || "—"}</TableCell>
+                    <TableCell className="text-left">
+                      <div className="flex flex-wrap gap-1">
+                        <Badge variant="outline" title="Lotação Principal">{u.setor || "—"}</Badge>
+                        {u.setores_adicionais?.map((s) => (
+                          <Badge key={s} variant="secondary" className="text-[10px]" title="Acesso Adicional">{s}</Badge>
+                        ))}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-left">{u.cargo || "—"}</TableCell>
                     <TableCell className="text-left">{u.roles.length ? u.roles.map(roleLabel).join(", ") : "—"}</TableCell>
                     <TableCell className="text-center space-x-1">
@@ -552,6 +587,53 @@ const GerenciamentoUsuarios = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground">Setores Adicionais</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between mt-1 h-auto py-2 min-h-[40px]">
+                        <div className="flex flex-wrap gap-1 max-w-[90%]">
+                          {newSetoresAdicionais.length === 0 ? (
+                            <span className="text-muted-foreground">Nenhum setor adicional</span>
+                          ) : (
+                            newSetoresAdicionais.map((s) => (
+                              <Badge key={s} variant="secondary" className="text-[10px]">{s}</Badge>
+                            ))
+                          )}
+                        </div>
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] p-0" align="start">
+                      <ScrollArea className="h-[300px] p-4">
+                        <div className="space-y-2">
+                          {SETORES_REQUISITANTES.map((s) => (
+                            <div key={s} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`new-sector-${s}`}
+                                checked={newSetoresAdicionais.includes(s)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setNewSetoresAdicionais([...newSetoresAdicionais, s]);
+                                  } else {
+                                    setNewSetoresAdicionais(newSetoresAdicionais.filter((item) => item !== s));
+                                  }
+                                }}
+                              />
+                              <label
+                                htmlFor={`new-sector-${s}`}
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                {s}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </PopoverContent>
+                  </Popover>
+                  <p className="text-[10px] text-muted-foreground mt-1">Permite ao usuário visualizar e gerenciar demandas de outros setores além da sua lotação.</p>
+                </div>
                 <div>
                   <label className="text-sm text-muted-foreground">Cargo</label>
                   <Input value={newCargo} onChange={(e) => setNewCargo(e.target.value)} placeholder="Ex.: Analista" />
@@ -606,6 +688,53 @@ const GerenciamentoUsuarios = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground">Setores Adicionais</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between mt-1 h-auto py-2 min-h-[40px]">
+                        <div className="flex flex-wrap gap-1 max-w-[90%]">
+                          {editSetoresAdicionais.length === 0 ? (
+                            <span className="text-muted-foreground">Nenhum setor adicional</span>
+                          ) : (
+                            editSetoresAdicionais.map((s) => (
+                              <Badge key={s} variant="secondary" className="text-[10px]">{s}</Badge>
+                            ))
+                          )}
+                        </div>
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] p-0" align="start">
+                      <ScrollArea className="h-[300px] p-4">
+                        <div className="space-y-2">
+                          {SETORES_REQUISITANTES.map((s) => (
+                            <div key={s} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`edit-sector-${s}`}
+                                checked={editSetoresAdicionais.includes(s)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setEditSetoresAdicionais([...editSetoresAdicionais, s]);
+                                  } else {
+                                    setEditSetoresAdicionais(editSetoresAdicionais.filter((item) => item !== s));
+                                  }
+                                }}
+                              />
+                              <label
+                                htmlFor={`edit-sector-${s}`}
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                {s}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </PopoverContent>
+                  </Popover>
+                  <p className="text-[10px] text-muted-foreground mt-1">Permite ao usuário visualizar e gerenciar demandas de outros setores além da sua lotação.</p>
                 </div>
                 <div>
                   <label className="text-sm text-muted-foreground">Cargo</label>

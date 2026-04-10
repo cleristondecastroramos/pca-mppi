@@ -145,9 +145,10 @@ const VisaoGeral = () => {
           ].join(","),
            { count: "exact" }
         );
-      // Setor requisitante: always filter by their setor
+      // Setor requisitante: filter by their setor and additional sectors
       if (isSetorRequisitante && userSetor) {
-        query = query.eq("setor_requisitante", userSetor);
+        const allowedSectors = [userSetor, ...(profile?.setores_adicionais || [])];
+        query = query.in("setor_requisitante", allowedSectors);
       }
       
       // IsolarSRP: never sum SRP in standard dashboards
@@ -207,7 +208,8 @@ const VisaoGeral = () => {
         .neq("srp", true);
       
       if (isSetorRequisitante && userSetor) {
-        query = query.eq("setor_requisitante", userSetor);
+        const allowedSectors = [userSetor, ...(profile?.setores_adicionais || [])];
+        query = query.in("setor_requisitante", allowedSectors);
       }
 
       const { data } = await query;

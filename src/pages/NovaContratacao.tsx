@@ -307,11 +307,23 @@ export default function NovaContratacao() {
 
                 <div className="space-y-2">
                   <Label htmlFor="setor">Setor Requisitante *</Label>
-                  {isSetorRequisitante && userSetor ? (
+                  {isSetorRequisitante && userSetor && (!profile?.setores_adicionais || profile.setores_adicionais.length === 0) ? (
                     <>
                       <Input value={userSetor === "PLANEJAMENTO" ? "PLAN" : userSetor} disabled className="h-9 bg-muted" />
                       <input type="hidden" name="setor_requisitante" value={userSetor} />
                     </>
+                  ) : isSetorRequisitante && userSetor ? (
+                    <Select name="setor_requisitante" defaultValue={userSetor} required>
+                      <SelectTrigger id="setor" className="h-9">
+                        <SelectValue placeholder="Selecione o setor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={userSetor}>{userSetor === "PLANEJAMENTO" ? "PLAN" : userSetor}</SelectItem>
+                        {profile?.setores_adicionais?.map((s) => (
+                          <SelectItem key={s} value={s}>{s === "PLANEJAMENTO" ? "PLAN" : s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   ) : (
                     <Select name="setor_requisitante" required>
                       <SelectTrigger id="setor" className="h-9">
