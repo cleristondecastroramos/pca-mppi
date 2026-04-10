@@ -292,183 +292,110 @@ export default function Contratacoes() {
   };
 
   const handleSaveEdit = async () => {
-    if (!editingContratacao) return;
+    if (!editingContratacao || !editingContratacao.id) {
+      toast.error("Nenhuma contratação selecionada para edição.");
+      return;
+    }
+
+    const toastId = "save-edit";
+    toast.loading("Salvando alterações...", { id: toastId });
 
     try {
-      // Buscar dados anteriores para o histórico
-      const { data: dadosAnteriores } = await supabase
+      console.log("[SaveEdit] Iniciando salvamento para:", editingContratacao.id);
+
+      // Buscar dados atuais para o histórico (uso interno)
+      const { data: dadosAnteriores, error: fetchError } = await supabase
         .from("contratacoes")
         .select("*")
         .eq("id", editingContratacao.id)
         .single();
 
-      // Mapear seleção de status para persistência em etapa_processo e sobrestado
-      const mapStatusToPersistence = (
-        selected: string | null,
-        currentEtapa: string | null
-      ): { etapa: string | null; sobrestado: boolean } => {
-        if (!selected) return { etapa: currentEtapa, sobrestado: false };
-        switch (selected) {
-          case "sobrestado":
-            return { etapa: currentEtapa || "Planejamento", sobrestado: true };
-          case "não iniciado":
-            return { etapa: "Planejamento", sobrestado: false };
-          case "iniciado":
-            return { etapa: "Iniciado", sobrestado: false };
-          case "retornado para diligência":
-            return { etapa: "Retornado para Diligência", sobrestado: false };
-          case "em andamento":
-            return { etapa: currentEtapa === "Contratado" ? "Contratado" : "Em Licitação", sobrestado: false };
-          case "concluído":
-            return { etapa: "Concluído", sobrestado: false };
-          default:
-            return { etapa: selected, sobrestado: false };
-        }
-      };
+      if (fetchError) {
+        console.warn("[SaveEdit] Erro ao buscar dados anteriores:", fetchError);
+      }
 
-      // Se o usuário marcou "Sobrestado" no estado local, prioriza persistência desse flag
-      const isSobrestadoLocal = (editingContratacao as any)?.sobrestado === true;
-      const mapped = isSobrestadoLocal
-        ? {
-          etapa: editingContratacao.etapa_processo || dadosAnteriores?.etapa_processo || "Planejamento",
-          sobrestado: true,
-        }
-        : mapStatusToPersistence(
-          editingContratacao.etapa_processo || null,
-          dadosAnteriores?.etapa_processo || null
-        );
+      // Mapeamento de status simplificado
+      const isSobrestado = (editingContratacao as any).sobrestado === true;
+      let etapaFinal = editingContratacao.etapa_processo;
 
-      // Atualizar contratação
-      let payload: any = {
+      // Se for sobrestado, garantimos que a etapa seja mantida (ou default para Planejamento)
+      if (isSobrestado && !etapaFinal) {
+        etapaFinal = "Planejamento";
+      }
+
+      // Preparar payload de atualização
+      // Removendo campos que podem ser GERADOS no banco de dados para evitar conflitos
+      const payload: any = {
         descricao: editingContratacao.descricao,
         setor_requisitante: editingContratacao.setor_requisitante,
         unidade_orcamentaria: editingContratacao.unidade_orcamentaria,
         classe: editingContratacao.classe,
         valor_estimado: editingContratacao.valor_estimado,
         valor_contratado: editingContratacao.valor_contratado,
-        etapa_processo: mapped.etapa,
-        sobrestado: mapped.sobrestado,
+        etapa_processo: etapaFinal,
+        sobrestado: isSobrestado,
         tipo_sobrestamento: (editingContratacao as any).tipo_sobrestamento || null,
         quantidade_sobrestada: (editingContratacao as any).quantidade_sobrestada || 0,
         valor_sobrestado: (editingContratacao as any).valor_sobrestado || 0,
-        quantidade_ativa: (editingContratacao as any).quantidade_ativa || (editingContratacao as any).quantidade_itens || 0,
-        valor_ativo: (editingContratacao as any).valor_ativo || editingContratacao.valor_estimado || 0,
+        quantidade_ativa: (editingContratacao as any).quantidade_ativa || 0,
+        valor_ativo: (editingContratacao as any).valor_ativo || 0,
         grau_prioridade: editingContratacao.grau_prioridade,
         justificativa: editingContratacao.justificativa,
-        valor_executado: editingContratacao.valor_executado,
+        quantidade_itens: (editingContratacao as any).quantidade_itens,
+        valor_unitario: (editingContratacao as any).valor_unitario,
+        unidade_fornecimento: (editingContratacao as any).unidade_fornecimento,
+        tipo_recurso: (editingContratacao as any).tipo_recurso,
+        tipo_contratacao: (editingContratacao as any).tipo_contratacao,
+        modalidade: (editingContratacao as any).modalidade,
+        normativo: (editingContratacao as any).normativo,
+        srp: (editingContratacao as any).srp === true,
+        pdm_catser: (editingContratacao as any).pdm_catser || null,
+        numero_sei_contratacao: (editingContratacao as any).numero_sei_contratacao || null,
+        data_prevista_contratacao: (editingContratacao as any).data_prevista_contratacao || null,
         updated_at: new Date().toISOString(),
       };
 
-      // Add missing fields
-      if ((editingContratacao as any).quantidade_itens !== undefined) {
-        payload.quantidade_itens = (editingContratacao as any).quantidade_itens;
-      }
-      if ((editingContratacao as any).valor_unitario !== undefined) {
-        payload.valor_unitario = (editingContratacao as any).valor_unitario;
-      }
-      if ((editingContratacao as any).unidade_fornecimento !== undefined) {
-        payload.unidade_fornecimento = (editingContratacao as any).unidade_fornecimento;
-      }
-      if ((editingContratacao as any).tipo_recurso !== undefined) {
-        payload.tipo_recurso = (editingContratacao as any).tipo_recurso;
-      }
-      if ((editingContratacao as any).tipo_contratacao !== undefined) {
-        payload.tipo_contratacao = (editingContratacao as any).tipo_contratacao;
-      }
-      if ((editingContratacao as any).modalidade !== undefined) {
-        payload.modalidade = (editingContratacao as any).modalidade;
-      }
-      if ((editingContratacao as any).normativo !== undefined) {
-        payload.normativo = (editingContratacao as any).normativo;
-      }
+      console.log("[SaveEdit] Payload preparado:", payload);
 
-      if ((editingContratacao as any).pdm_catser !== undefined) {
-        payload.pdm_catser = (editingContratacao as any).pdm_catser || null;
-      }
-      if ((editingContratacao as any).numero_sei_contratacao !== undefined) {
-        payload.numero_sei_contratacao = (editingContratacao as any).numero_sei_contratacao || null;
-      }
-      if ((editingContratacao as any).data_prevista_contratacao !== undefined) {
-        payload.data_prevista_contratacao = (editingContratacao as any).data_prevista_contratacao || null;
-      }
-      // data_entrada_clc removed from payload as per requirement (start date is now calculated)
-      if ((editingContratacao as any).srp !== undefined) {
-        payload.srp = (editingContratacao as any).srp;
-      }
-
-      let { error: updateError } = await supabase
+      const { error: updateError } = await supabase
         .from("contratacoes")
         .update(payload)
         .eq("id", editingContratacao.id);
 
       if (updateError) {
-        const msg = String(updateError.message || updateError);
-        if (msg.includes("column \"data_prevista_contratacao\" does not exist")) {
-          delete payload.data_prevista_contratacao;
-          ({ error: updateError } = await supabase.from("contratacoes").update(payload).eq("id", editingContratacao.id));
-        }
-        if (!updateError && msg.includes("column \"numero_sei_contratacao\" does not exist")) {
-          delete payload.numero_sei_contratacao;
-          ({ error: updateError } = await supabase.from("contratacoes").update(payload).eq("id", editingContratacao.id));
-        }
-      }
-
-      if (updateError) {
-        const msg = String(updateError.message || updateError);
-        if (msg.includes("Saldo orçamentário insuficiente") || msg.includes("saldo orçamentário insuficiente")) {
-          toast.error("Saldo orçamentário insuficiente na UO selecionada. Solicite autorização do administrador para excedente.");
+        console.error("[SaveEdit] Erro no update do Supabase:", updateError);
+        const errorMsg = updateError.message || "Erro desconhecido";
+        
+        if (errorMsg.includes("Saldo orçamentário insuficiente")) {
+          toast.error("Saldo orçamentário insuficiente na UO selecionada.", { id: toastId });
         } else {
-          // Tenta corrigir erro de schema cache/coluna inexistente removendo campos opcionais e reenviando
-          const mentionsDataPrevista = msg.includes("data_prevista_contratacao");
-          const mentionsNumeroSei = msg.includes("numero_sei_contratacao");
-          if (mentionsDataPrevista && payload.data_prevista_contratacao !== undefined) {
-            delete payload.data_prevista_contratacao;
-            const retry = await supabase.from("contratacoes").update(payload).eq("id", editingContratacao.id);
-            if (!retry.error) {
-              updateError = undefined as any;
-            } else {
-              // Ainda erro: mostra descrição detalhada
-              toast.error("Erro ao salvar alterações", {
-                description: `${retry.error.message}${retry.error.hint ? ' - ' + retry.error.hint : ''} (${retry.error.code})`
-              });
-            }
-          } else if (mentionsNumeroSei && payload.numero_sei_contratacao !== undefined) {
-            delete payload.numero_sei_contratacao;
-            const retry = await supabase.from("contratacoes").update(payload).eq("id", editingContratacao.id);
-            if (!retry.error) {
-              updateError = undefined as any;
-            } else {
-              toast.error("Erro ao salvar alterações", {
-                description: `${retry.error.message}${retry.error.hint ? ' - ' + retry.error.hint : ''} (${retry.error.code})`
-              });
-            }
-          } else {
-            toast.error("Erro ao salvar alterações no banco de dados", {
-              description: `${updateError.message}${updateError.hint ? ' - ' + updateError.hint : ''} (Código: ${updateError.code})`
-            });
-          }
+          toast.error(`Erro ao salvar: ${errorMsg}`, { id: toastId });
         }
-        throw updateError;
+        return;
       }
 
-      // Registrar no histórico
-      const { data: userData } = await supabase.auth.getUser();
-      if (userData.user) {
-        await supabase.from("contratacoes_historico").insert({
-          contratacao_id: editingContratacao.id,
-          user_id: userData.user.id,
-          acao: "Edição",
-          dados_anteriores: dadosAnteriores,
-          dados_novos: editingContratacao,
-        });
+      // Registrar histórico (operação secundária)
+      try {
+        const { data: user } = await supabase.auth.getUser();
+        if (user?.user) {
+          await supabase.from("contratacoes_historico").insert({
+            contratacao_id: editingContratacao.id,
+            user_id: user.user.id,
+            acao: "Edição",
+            dados_anteriores: dadosAnteriores || {},
+            dados_novos: payload,
+          });
+        }
+      } catch (histErr) {
+        console.warn("[SaveEdit] Erro ao gravar histórico:", histErr);
       }
 
-      toast.success("Contratação atualizada com sucesso");
+      toast.success("Contratação atualizada com sucesso!", { id: toastId });
       setEditingContratacao(null);
       fetchContratacoes();
-    } catch (error: any) {
-      console.error("Erro ao salvar edição:", error);
-      toast.error("Erro ao salvar alterações", { description: translateError(error.message || String(error)) });
+    } catch (err: any) {
+      console.error("[SaveEdit] Erro catastrófico:", err);
+      toast.error("Ocorreu um erro inesperado ao salvar.", { id: toastId, description: err.message });
     }
   };
 
