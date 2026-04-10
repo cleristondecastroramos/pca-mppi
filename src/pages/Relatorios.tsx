@@ -310,8 +310,8 @@ const Relatorios = () => {
       label: "Contratações — Por Status",
       description: "Listagem focada no status e andamento das contratações.",
       icon: BarChart3,
-      columns: ["Cod. PCA", "Descrição", "Setor", "Status", "Situação"],
-      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Status", "Situação"],
+      columns: ["Cod. PCA", "Descrição", "Setor", "Status", "Situação", "Valor Estimado", "Valor Executado"],
+      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Status", "Situação", "Valor Estimado", "Valor Executado"],
       mapRow: (r) => {
         const status = getPrazoStatus(r);
         return [
@@ -320,6 +320,8 @@ const Relatorios = () => {
           String(r.setor_requisitante || ""),
           statusLabel(r),
           status.label,
+          r.valor_estimado || 0,
+          r.valor_executado || 0,
         ];
       },
       title: (n) => `Relatório por Status (${n} registros)`,
@@ -1673,8 +1675,9 @@ const Relatorios = () => {
           return "";
         };
         const headersHtml = def.columns.map((c) => `<th class="${widthClass(c)}">${c}</th>`).join("");
-        const rowsHtml = sourceRows
-          .map((r) => {
+        // Helper para gerar linhas de uma tabela
+        const generateTableRowsHtml = (rowsList: any[]) => {
+          return rowsList.map((r) => {
             const data = def.mapRow(r);
             const formatted = data.map((v, i) => {
               const col = def.columns[i];
@@ -1683,7 +1686,6 @@ const Relatorios = () => {
                 val = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v) || 0);
               } else if (col.includes("Data")) {
                 const dt = String(v || "");
-                // Only format if it looks like a date and isn't already formatted (simple check)
                 if (dt.includes("-") && dt.length === 10) {
                   const [y, m, d] = dt.split("-").map(Number);
                   val = new Date(y, m - 1, d).toLocaleDateString("pt-BR");
@@ -1704,12 +1706,102 @@ const Relatorios = () => {
               return `<td class="${align} ${widthClass(col)}">${val}</td>`;
             });
             return `<tr>${formatted.join("")}</tr>`;
-          })
-          .join("");
+          }).join("");
+        };
+
+        const generateFooterRowHtml = (rowsList: any[]) => {
+          const gEst = rowsList.reduce((acc, r) => acc + (Number(r.valor_estimado) || 0), 0);
+          const gExec = rowsList.reduce((acc, r) => acc + (Number(r.valor_executado) || 0), 0);
+          
+          if (!["por_status", "por_setor", "detalhado", "valores", "prioridades"].includes(rType)) return "";
+
+          const cells = def.columns.map((col, i) => {
+            if (col === "Valor Estimado") {
+              return `<td class="text-right" style="font-weight: bold; background: #f3f4f6;">${formatCurrency(gEst)}</td>`;
+            }
+            if (col === "Valor Executado") {
+              return `<td class="text-right" style="font-weight: bold; background: #f3f4f6;">${formatCurrency(gExec)}</td>`;
+            }
+            if (col === "Valor Contratado") {
+              const totalContratado = rowsList.reduce((acc, r) => acc + (Number(r.valor_contratado) || 0), 0);
+              return `<td class="text-right" style="font-weight: bold; background: #f3f4f6;">${formatCurrency(totalContratado)}</td>`;
+            }
+            const firstValorIdx = def.columns.findIndex(c => c.toLowerCase().includes("valor"));
+            if (i === firstValorIdx - 1 && firstValorIdx > 0) {
+              return `<td class="text-right" style="font-weight: bold; background: #f3f4f6;">TOTAL:</td>`;
+            }
+            return `<td style="background: #f3f4f6;"></td>`;
+          }).join("");
+          return `<tr style="border-top: 2px solid #374151;">${cells}</tr>`;
+        };
+
+        const totalEstimado = sourceRows.reduce((acc, r) => acc + (Number(r.valor_estimado) || 0), 0);
+        const totalExecutado = sourceRows.reduce((acc, r) => acc + (Number(r.valor_executado) || 0), 0);
+        const formatCurrency = (v: any) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v) || 0);
+
+        let reportContentHtml = "";
+        const isGrouped = ["por_status", "por_setor"].includes(rType);
+        const primary = "#D9415D";
+        
+        if (isGrouped) {
+          const groups: Record<string, any[]> = {};
+          sourceRows.forEach(r => {
+            const key = rType === "por_status" ? statusLabel(r) : (r.setor_requisitante || "Não Informado");
+            if (!groups[key]) groups[key] = [];
+            groups[key].push(r);
+          });
+          
+          const sortedGroupKeys = Object.keys(groups).sort((a, b) => a.localeCompare(b, "pt-BR"));
+          reportContentHtml = sortedGroupKeys.map(key => `
+            <div class="group-section" style="margin-bottom: 40px;">
+              <h3 style="background: ${primary}08; color: ${primary}; border-left: 4px solid ${primary}; padding: 10px 15px; margin-bottom: 15px; text-transform: uppercase; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; border-radius: 0 4px 4px 0;">
+                ${rType === "por_status" ? "Status" : "Setor"}: ${key.toUpperCase()} (${groups[key].length} itens)
+              </h3>
+              <table>
+                <thead><tr>${headersHtml}</tr></thead>
+                <tbody>
+                  ${generateTableRowsHtml(groups[key])}
+                  ${generateFooterRowHtml(groups[key])}
+                </tbody>
+              </table>
+            </div>
+          `).join("");
+          
+          // Adicionar resumo geral ao final
+          reportContentHtml += `
+             <div style="margin-top: 10mm; padding: 15px; border: 2px solid ${primary}; background: #fef2f2; border-radius: 8px; break-inside: avoid;">
+               <div style="font-size: 14px; font-weight: 700; color: ${primary}; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Resumo Geral do Relatório</div>
+               <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                 <div>
+                   <div style="font-size: 11px; color: #6b7280; font-weight: 600;">TOTAL DE ITENS</div>
+                   <div style="font-size: 20px; font-weight: 700; color: #111;">${sourceRows.length}</div>
+                 </div>
+                 <div>
+                   <div style="font-size: 11px; color: #6b7280; font-weight: 600;">VALOR ESTIMADO TOTAL</div>
+                   <div style="font-size: 20px; font-weight: 700; color: #111;">${formatCurrency(totalEstimado)}</div>
+                 </div>
+                 <div>
+                   <div style="font-size: 11px; color: #6b7280; font-weight: 600;">VALOR EXECUTADO TOTAL</div>
+                   <div style="font-size: 20px; font-weight: 700; color: #111;">${formatCurrency(totalExecutado)}</div>
+                 </div>
+               </div>
+             </div>
+          `;
+        } else {
+          reportContentHtml = `
+            <table>
+              <thead><tr>${headersHtml}</tr></thead>
+              <tbody>
+                ${generateTableRowsHtml(sourceRows)}
+                ${generateFooterRowHtml(sourceRows)}
+              </tbody>
+            </table>
+          `;
+        }
+
         const today = new Date().toLocaleString('pt-BR');
         const title = REPORT_TYPES[rType].title(sourceRows.length);
         const brand = "MPPI | PCA 2026";
-        const primary = "#D9415D";
         const activeFilters = Object.entries(filtros).filter(([_, v]) => v && v !== "__all__");
         const labelMap: Record<string, string> = {
           unidade_orcamentaria: "UO",
@@ -1774,27 +1866,43 @@ const Relatorios = () => {
               .filters-grid{display:flex;flex-wrap:wrap;gap:6px}
               .chip{display:inline-flex;align-items:center;gap:4px;border:1px solid #e5e7eb;border-radius:6px;padding:4px 8px;font-size:11px;background:#f9fafb}
               .chip .k{color:#6b7280}
-              /* Larguras otimizadas por coluna */
-              .col-ID{width:12%}
-              .col-Descrição{width:38%}
-              .col-Setor{width:16%}
-              /* Ajuste específico: reduzir setor e ampliar valores */
-              .col-Setor{width:14%}
-              .col-Valor-Estimado{width:16%}
-              .col-Valor-Executado{width:16%}
-              .col-Prioridade{width:12%}
-              .col-Status{width:12%}
-              .col-Data{width:12%}
-              .col-SEI{width:20%}
-              .col-Valor{width:14%}
+              /* Larguras otimizadas para PDF */
+              .col-ID{width: 7%}
+              .col-Descrição{width: 32%}
+              .col-Setor{width: 13%}
+              .col-Valor-Estimado{width: 12%}
+              .col-Valor-Executado{width: 12%}
+              .col-Prioridade{width: 8%}
+              .col-Status{width: 8%}
+              .col-Data{width: 8%}
+              .col-SEI{width: 15%}
+              .col-Valor{width: 10%}
+
+              /* Ajustes específicos para orientação Paisagem */
+              ${isGrouped ? `
+                .col-ID { width: 6%; }
+                .col-Descrição { width: 44%; }
+                .col-Setor { width: 14%; }
+                .col-Status { width: 10%; }
+                .col-Valor-Estimado { width: 13%; }
+                .col-Valor-Executado { width: 13%; }
+                td, th { font-size: 11px; padding: 5px 8px; }
+              ` : ""}
+
               /* Quebra de linha aprimorada para descrição */
-              td.col-Descrição{white-space:normal;hyphens:auto;line-height:1.35}
+              td.col-Descrição{white-space:normal;hyphens:auto;line-height:1.4; font-weight: 500;}
               .footer{position:fixed;bottom:0;left:0;right:0;background:#fff}
               .footer .divider{height:2px;background:${primary};}
               .footer-inner{display:flex;align-items:center;justify-content:space-between;padding:8px 24px;font-size:11px;color:#6b7280}
               .page-num::after{content: counter(page) " de " counter(pages);}
-              @page{size:A4;margin:18mm 10mm 10mm 10mm}
+              @page{size:A4 ${isGrouped ? 'landscape' : 'portrait'};margin:15mm 10mm 15mm 10mm}
               ${rType === "sei" ? `.col-Descrição{width:40%}.col-SEI{width:24%}` : ""}
+              
+              /* Prevenção de quebras orfãs em tabelas curtas */
+              .group-section { page-break-inside: avoid; }
+              @media print {
+                tr { page-break-inside: avoid; page-break-after: auto; }
+              }
             </style>
           </head>
           <body>
@@ -1814,13 +1922,7 @@ const Relatorios = () => {
               <div class="content">
                 ${filterHtml}
                 ${rType === "por_status" ? `<div class="legend">A coluna "Data de Referência" exibe: se o status for <strong>concluído</strong>, a data de finalização da licitação; caso contrário, a <strong>data de criação</strong> da contratação.</div>` : ""}
-                <table>
-                  <thead>
-                    <tr>${headersHtml}</tr>
-                  </thead>
-                  <tbody>${rowsHtml}</tbody>
-                  <tfoot><tr><td colspan="${def.columns.length}"></td></tr></tfoot>
-                </table>
+                ${reportContentHtml}
               </div>
             </div>
             <div class="footer">
