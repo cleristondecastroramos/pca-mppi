@@ -44,7 +44,6 @@ type Filtros = {
   normativo?: string;
   modalidade?: string;
   etapa_processo?: string; // "Status Atual"
-  tipo_sobrestamento?: string;
 };
 
 const formatCurrencyBRL = (value: any) =>
@@ -116,7 +115,6 @@ const VisaoGeral = () => {
     normativo: ALL_VALUE,
     modalidade: ALL_VALUE,
     etapa_processo: ALL_VALUE,
-    tipo_sobrestamento: ALL_VALUE,
   };
   const [filtros, setFiltros] = useState<Filtros>(defaultFiltros);
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -171,32 +169,32 @@ const VisaoGeral = () => {
       if (filtros.normativo && filtros.normativo !== ALL_VALUE) query = query.eq("normativo", filtros.normativo);
       if (filtros.modalidade && filtros.modalidade !== ALL_VALUE) query = query.eq("modalidade", filtros.modalidade);
       if (filtros.etapa_processo && filtros.etapa_processo !== ALL_VALUE) {
-        const STATUS_CATEGORY_MAP: Record<string, { etapas: string[]; sobrestado?: boolean }> = {
+        const STATUS_CATEGORY_MAP: Record<string, { etapas: string[]; sobrestado?: boolean; tipo_sobrestamento?: string }> = {
           "não iniciado": { etapas: ["Planejamento"], sobrestado: false },
           "iniciado": { etapas: ["Iniciado"], sobrestado: false },
           "retornado para diligência": { etapas: ["Retornado para Diligência"], sobrestado: false },
           "em andamento": { etapas: ["Em Licitação", "Contratado"], sobrestado: false },
           "concluído": { etapas: ["Concluído"], sobrestado: false },
           "sobrestado": { etapas: [], sobrestado: true },
+          "sobrestado total": { etapas: [], sobrestado: true, tipo_sobrestamento: "total" },
+          "sobrestado parcial": { etapas: [], sobrestado: true, tipo_sobrestamento: "parcial" },
         };
         const cat = STATUS_CATEGORY_MAP[filtros.etapa_processo];
         if (cat) {
           if (cat.sobrestado) {
             query = query.eq("sobrestado", true);
+            if (cat.tipo_sobrestamento) {
+              query = query.eq("tipo_sobrestamento", cat.tipo_sobrestamento);
+            }
           } else if (filtros.etapa_processo === "não iniciado") {
             // Include null etapa_processo as "não iniciado" and exclude sobrestados
             query = query.or("etapa_processo.is.null,etapa_processo.eq.Planejamento").neq("sobrestado", true);
           } else if (cat.etapas.length > 0) {
-            query = query.in("etapa_processo", cat.etapas);
+            query = query.in("etapa_processo", cat.etapas).neq("sobrestado", true);
           }
         } else {
           query = query.eq("etapa_processo", filtros.etapa_processo);
         }
-      }
-      if (filtros.tipo_sobrestamento && filtros.tipo_sobrestamento !== ALL_VALUE) {
-        if (filtros.tipo_sobrestamento === "total") query = query.eq("tipo_sobrestamento", "total");
-        else if (filtros.tipo_sobrestamento === "parcial") query = query.eq("tipo_sobrestamento", "parcial");
-        else if (filtros.tipo_sobrestamento === "none") query = query.or("tipo_sobrestamento.is.null,sobrestado.neq.true");
       }
 
       const { data, error, count } = await query;
@@ -312,7 +310,7 @@ const VisaoGeral = () => {
 
   const kpis = useMemo(() => {
     // Para KPIs, consideramos o valor_ativo (que é 0 se for sobrestamento total)
-    const totalDemandas = filteredRows.filter(r => !r.sobrestado || (r as any).tipo_sobrestamento === 'parcial').length;
+    const totalDemandas = filteredRows.length;
     const totalEstimado = filteredRows.reduce((sum, r) => sum + ((r as any).valor_ativo || 0), 0);
     const totalExecutado = filteredRows.reduce((sum, r) => sum + (r.valor_executado || 0), 0);
     const totalConcluidas = filteredRows.filter((r) => r.etapa_processo === "Concluído").length;
@@ -324,7 +322,6 @@ const VisaoGeral = () => {
   const distribuicaoPorClasse = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
-      if ((r as any).tipo_sobrestamento === "total") return;
       const key = r.classe || "Não informado";
       map.set(key, (map.get(key) || 0) + ((r as any).valor_ativo || 0));
     });
@@ -337,7 +334,6 @@ const VisaoGeral = () => {
   const distribuicaoPorClasseQuantidade = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
-      if ((r as any).tipo_sobrestamento === "total") return;
       const key = r.classe || "Não informado";
       map.set(key, (map.get(key) || 0) + 1);
     });
@@ -349,7 +345,6 @@ const VisaoGeral = () => {
   const dadosQuantidadePorSetor = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
-      if ((r as any).tipo_sobrestamento === "total") return;
       const setor = r.setor_requisitante || "Não informado";
       map.set(setor, (map.get(setor) || 0) + 1);
     });
@@ -362,7 +357,6 @@ const VisaoGeral = () => {
   const dadosValoresPorSetor = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
-      if ((r as any).tipo_sobrestamento === "total") return;
       const setor = r.setor_requisitante || "Não informado";
       map.set(setor, (map.get(setor) || 0) + ((r as any).valor_ativo || 0));
     });
@@ -376,7 +370,6 @@ const VisaoGeral = () => {
   const dadosValoresPorUO = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
-      if ((r as any).tipo_sobrestamento === "total") return;
       const uo = r.unidade_orcamentaria || "Não informado";
       map.set(uo, (map.get(uo) || 0) + ((r as any).valor_ativo || 0));
     });
@@ -388,7 +381,6 @@ const VisaoGeral = () => {
   const dadosQuantidadePorUO = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
-      if ((r as any).tipo_sobrestamento === "total") return;
       const uo = r.unidade_orcamentaria || "Não informado";
       map.set(uo, (map.get(uo) || 0) + 1);
     });
@@ -400,7 +392,6 @@ const VisaoGeral = () => {
   const dadosValoresPorTipoContratacao = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
-      if ((r as any).tipo_sobrestamento === "total") return;
       const tipo = r.tipo_contratacao || "Não informado";
       map.set(tipo, (map.get(tipo) || 0) + ((r as any).valor_ativo || 0));
     });
@@ -412,7 +403,6 @@ const VisaoGeral = () => {
   const dadosQuantidadePorTipoContratacao = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
-      if ((r as any).tipo_sobrestamento === "total") return;
       const tipo = r.tipo_contratacao || "Não informado";
       map.set(tipo, (map.get(tipo) || 0) + 1);
     });
@@ -425,7 +415,6 @@ const VisaoGeral = () => {
   const dadosValoresPorClasse = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
-      if ((r as any).tipo_sobrestamento === "total") return;
       const classe = r.classe || "Não informado";
       map.set(classe, (map.get(classe) || 0) + ((r as any).valor_ativo || 0));
     });
@@ -437,7 +426,6 @@ const VisaoGeral = () => {
   const dadosQuantidadePorClasse = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.forEach((r) => {
-      if ((r as any).tipo_sobrestamento === "total") return;
       const classe = r.classe || "Não informado";
       map.set(classe, (map.get(classe) || 0) + 1);
     });
@@ -609,7 +597,7 @@ const VisaoGeral = () => {
               <div className="w-[130px] shrink-0">
                 <div className="text-[10px] font-medium text-muted-foreground px-1">Status Atual:</div>
                 <Select onValueChange={(v) => setFiltro("etapa_processo", v)} value={filtros.etapa_processo}>
-                  <SelectTrigger className="h-9 w-[120px] truncate px-3 text-sm">
+                  <SelectTrigger className="h-9 w-[150px] truncate px-3 text-sm">
                     <SelectValue placeholder="" />
                   </SelectTrigger>
                   <SelectContent>
@@ -619,21 +607,9 @@ const VisaoGeral = () => {
                     <SelectItem className="text-xs" value="retornado para diligência">retornado para diligência</SelectItem>
                     <SelectItem className="text-xs" value="em andamento">em andamento</SelectItem>
                     <SelectItem className="text-xs" value="concluído">concluído</SelectItem>
-                    <SelectItem className="text-xs" value="sobrestado">sobrestado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="w-[120px] shrink-0">
-                <div className="text-[10px] font-medium text-muted-foreground px-1">Sobrestamento:</div>
-                <Select onValueChange={(v) => setFiltro("tipo_sobrestamento", v)} value={filtros.tipo_sobrestamento}>
-                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm">
-                    <SelectValue placeholder="Todos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
-                    <SelectItem className="text-xs" value="total">Total</SelectItem>
-                    <SelectItem className="text-xs" value="parcial">Parcial</SelectItem>
-                    <SelectItem className="text-xs" value="none">Nenhum</SelectItem>
+                    <SelectItem className="text-xs" value="sobrestado">sobrestado (todos)</SelectItem>
+                    <SelectItem className="text-xs" value="sobrestado total">sobrestado total</SelectItem>
+                    <SelectItem className="text-xs" value="sobrestado parcial">sobrestado parcial</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -651,7 +627,7 @@ const VisaoGeral = () => {
             value={loading ? "—" : kpis.totalDemandas}
             icon={FileText}
             variant="default"
-            description="Quantidade total de processos ativos ou parcialmente suspensos no PCA."
+            description="Quantidade total de demandas planejadas no PCA (inclui ativas e sobrestadas)."
           />
           <KPICard
             title="Valor PCA Ativo"
