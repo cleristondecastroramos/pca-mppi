@@ -26,7 +26,7 @@ const MinhaConta = lazy(() => import("./pages/MinhaConta"));
 const EsqueciSenha = lazy(() => import("./pages/EsqueciSenha"));
 const RedefinirSenha = lazy(() => import("./pages/RedefinirSenha"));
 const Faq = lazy(() => import("./pages/Faq"));
-const Desenvolvimento = lazy(() => import("./pages/Desenvolvimento"));
+
 const Notificacoes = lazy(() => import("./pages/Notificacoes"));
 const OrcamentoPlanejado = lazy(() => import("./pages/OrcamentoPlanejado"));
 const Tutorial = lazy(() => import("./pages/Tutorial"));
@@ -144,11 +144,7 @@ const App = () => {
                     <Faq />
                   </ProtectedRoute>
                 } />
-                <Route path="/desenvolvimento" element={
-                  <ProtectedRoute allowed={["administrador"]}>
-                    <Desenvolvimento />
-                  </ProtectedRoute>
-                } />
+
                 <Route path="/notificacoes" element={
                   <ProtectedRoute allowed={["administrador"]}>
                     <Notificacoes />

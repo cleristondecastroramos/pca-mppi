@@ -48,7 +48,7 @@ const menuItems: MenuItem[] = [
   { title: "Orçamento Planejado", url: "/orcamento-planejado", icon: Calculator, allowedRoles: ["administrador"] },
   { title: "Gerenciamento de Usuários", url: "/gerenciamento-usuarios", icon: Users, allowedRoles: ["administrador"] },
   { title: "Notificações", url: "/notificacoes", icon: BellRing, allowedRoles: ["administrador"] },
-  { title: "Desenvolvimento", url: "/desenvolvimento", icon: Terminal, allowedRoles: ["administrador"] },
+
   { title: "Tutorial", url: "/tutorial", icon: BookOpen, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
   { title: "FAQ / Dúvidas", url: "/faq", icon: HelpCircle, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
   { title: "Minha Conta", url: "/minha-conta", icon: Settings, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
