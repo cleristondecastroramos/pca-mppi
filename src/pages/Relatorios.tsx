@@ -424,6 +424,26 @@ const Relatorios = () => {
       },
       title: (n) => `Relatório de Prazos Críticos (${n} registros)`,
     },
+    demandas_sobrestadas: {
+      label: "Relação de Demandas Sobrestadas",
+      description: "Relatório detalhado de todas as demandas com sobrestamento total ou parcial.",
+      icon: AlertCircle,
+      columns: ["Cod. PCA", "Descrição", "Setor", "Tipo Sobr.", "Quantidade", "Valor Unitário", "Valor Total Sobrestado"],
+      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Tipo Sobrestamento", "Quantidade Sobrestada", "Valor Unitário", "Valor Total Sobrestado"],
+      mapRow: (r) => {
+        const isParcial = r.tipo_sobrestamento === 'parcial';
+        return [
+          formatId(r.id, r.codigo),
+          String(r.descricao || ""),
+          r.setor_requisitante || "",
+          r.tipo_sobrestamento === 'total' ? 'Total' : 'Parcial',
+          isParcial ? (r.quantidade_sobrestada || 0) : (r.quantidade_itens || 0),
+          r.valor_unitario || 0,
+          isParcial ? (r.valor_sobrestado || 0) : (r.valor_estimado || 0),
+        ];
+      },
+      title: (n) => `Relação de Demandas Sobrestadas (${n} registros)`,
+    },
   };
 
   useEffect(() => {
@@ -529,9 +549,10 @@ const Relatorios = () => {
           const sa = getPrazoStatus(a);
           const sb = getPrazoStatus(b);
           if (sa.variant === sb.variant) return 0;
-          if (sa.variant === 'destructive') return -1;
-          return 1;
+          return sa.variant === 'destructive' ? -1 : 1;
         });
+      } else if (rType === 'demandas_sobrestadas') {
+        sourceRows = sourceRows.filter(r => r.sobrestado === true);
       }
 
       if (tipo === "csv") {
@@ -560,6 +581,7 @@ const Relatorios = () => {
         const totalDemandas = sourceRows.length;
         const totalEstimado = sourceRows.reduce((sum, r) => sum + (Number(r.valor_estimado) || 0), 0);
         const formatCurrency = (v: any) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v) || 0);
+        const formatNumber = (v: any) => new Intl.NumberFormat("pt-BR").format(Number(v) || 0);
 
         // -- Cálculos para as tabelas da seção 4 --
 
@@ -632,10 +654,10 @@ const Relatorios = () => {
           return `
             <tr>
               <td>${s}</td>
-              <td class="text-center">${d.totalQty}</td>
-              <td class="text-center">${d.newQty}</td>
+              <td class="text-center">${formatNumber(d.totalQty)}</td>
+              <td class="text-center">${formatNumber(d.newQty)}</td>
               <td class="text-right">${formatCurrency(d.newVal)}</td>
-              <td class="text-center">${d.renQty}</td>
+              <td class="text-center">${formatNumber(d.renQty)}</td>
               <td class="text-right">${formatCurrency(d.renVal)}</td>
               <td class="text-right">${formatCurrency(totalVal)}</td>
               <td class="text-center">${((totalVal / (totalEstimado || 1)) * 100).toFixed(2)}%</td>
@@ -698,7 +720,7 @@ const Relatorios = () => {
                 <td class="text-center" style="width: 7%; font-size: 7.5pt;">${data[0]}</td>
                 <td class="text-left" style="width: 23%; font-size: 7.5pt;">${data[1]}</td>
                 <td class="text-center" style="width: 4%; font-size: 7.5pt;">${data[2]}</td>
-                <td class="text-center" style="width: 4%; font-size: 7.5pt;">${data[3]}</td>
+                <td class="text-center" style="width: 4%; font-size: 7.5pt;">${formatNumber(data[3])}</td>
                 <td class="text-right" style="width: 8%; font-size: 7.5pt;">${formatCurrency(data[4])}</td>
                 <td class="text-right" style="width: 10%; font-size: 7.5pt; font-weight: 600;">${formatCurrency(data[5])}</td>
                 <td class="text-center" style="width: 8%; font-size: 7.5pt;">${data[6] === 'Nova Contratação' ? 'Nova' : data[6]}</td>
@@ -1672,7 +1694,9 @@ const Relatorios = () => {
           if (col === "Conformidade") return "col-Status";
           if (col === "Valor Estimado") return "col-Valor-Estimado";
           if (col === "Valor Executado") return "col-Valor-Executado";
-          if (["Valor Contratado", "Valor"].includes(col)) return "col-Valor";
+          if (["Valor Contratado", "Valor", "Valor Unitário", "Valor Total Sobrestado"].includes(col)) return "col-Valor";
+          if (col === "Tipo Sobr.") return "col-Status";
+          if (col === "Quantidade") return "col-ID";
           return "";
         };
         const headersHtml = def.columns.map((c) => `<th class="${widthClass(c)}">${c}</th>`).join("");
@@ -1685,6 +1709,8 @@ const Relatorios = () => {
               let val: string;
               if (col.toLowerCase().includes("valor")) {
                 val = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v) || 0);
+              } else if (col.toLowerCase().includes("quantidade") || col === "Qtd") {
+                val = new Intl.NumberFormat("pt-BR").format(Number(v) || 0);
               } else if (col.includes("Data")) {
                 const dt = String(v || "");
                 if (dt.includes("-") && dt.length === 10) {
@@ -1714,7 +1740,7 @@ const Relatorios = () => {
           const gEst = rowsList.reduce((acc, r) => acc + (Number(r.valor_ativo || r.valor_estimado) || 0), 0);
           const gExec = rowsList.reduce((acc, r) => acc + (Number(r.valor_executado) || 0), 0);
           
-          if (!["por_status", "por_setor", "detalhado", "valores", "prioridades"].includes(rType)) return "";
+          if (!["por_status", "por_setor", "detalhado", "valores", "prioridades", "demandas_sobrestadas"].includes(rType)) return "";
 
           const cells = def.columns.map((col, i) => {
             if (col === "Valor Estimado" || col === "Valor Ativo") {
@@ -1726,6 +1752,10 @@ const Relatorios = () => {
             if (col === "Valor Contratado") {
               const totalContratado = rowsList.reduce((acc, r) => acc + (Number(r.valor_contratado) || 0), 0);
               return `<td class="text-right" style="font-weight: bold; background: #f3f4f6;">${formatCurrency(totalContratado)}</td>`;
+            }
+            if (col === "Valor Total Sobrestado") {
+              const totalSobr = rowsList.reduce((acc, r) => acc + (Number(r.tipo_sobrestamento === 'parcial' ? r.valor_sobrestado : r.valor_estimado) || 0), 0);
+              return `<td class="text-right" style="font-weight: bold; background: #f3f4f6;">${formatCurrency(totalSobr)}</td>`;
             }
             const firstValorIdx = def.columns.findIndex(c => c.toLowerCase().includes("valor"));
             if (i === firstValorIdx - 1 && firstValorIdx > 0) {
@@ -1742,6 +1772,7 @@ const Relatorios = () => {
 
         let reportContentHtml = "";
         const isGrouped = ["por_status", "por_setor"].includes(rType);
+        const isLandscape = isGrouped || rType === "demandas_sobrestadas";
         const primary = "#D9415D";
         
         if (isGrouped) {
@@ -1858,8 +1889,8 @@ const Relatorios = () => {
               table{table-layout:fixed}
               thead{display:table-header-group}
               tfoot{display:table-footer-group}
-              th{background:#f9fafb;text-align:center;font-weight:600}
-              td,th{border:1px solid #e5e7eb;padding:6px 8px;font-size:12px;word-break:break-word}
+              th{background:#f9fafb;text-align:center;font-weight:700;color:#000;border:1px solid #334155}
+              td,th{border:1px solid #334155;padding:6px 8px;font-size:12px;word-break:break-word}
               td.text-right{text-align:right}
               td.text-left{text-align:left}
               td.text-center{text-align:center}
@@ -1882,7 +1913,7 @@ const Relatorios = () => {
               .col-Valor{width: 10%}
 
               /* Ajustes específicos para orientação Paisagem */
-              ${isGrouped ? `
+              ${isLandscape ? `
                 .col-ID { width: 6%; }
                 .col-Descrição { width: 44%; }
                 .col-Setor { width: 14%; }
@@ -1898,7 +1929,7 @@ const Relatorios = () => {
               .footer .divider{height:2px;background:${primary};}
               .footer-inner{display:flex;align-items:center;justify-content:space-between;padding:8px 24px;font-size:11px;color:#6b7280}
               .page-num::after{content: counter(page) " de " counter(pages);}
-              @page{size:A4 ${isGrouped ? 'landscape' : 'portrait'};margin:15mm 10mm 15mm 10mm}
+              @page{size:A4 ${isLandscape ? 'landscape' : 'portrait'};margin:15mm 10mm 15mm 10mm}
               ${rType === "sei" ? `.col-Descrição{width:40%}.col-SEI{width:24%}` : ""}
               
               /* Prevenção de quebras orfãs em tabelas curtas */
