@@ -470,13 +470,19 @@ const SetoresDemandantes = () => {
         const { data: allData } = await kpiQuery;
         if (allData) {
           const resumo = {
-            total_demandas: allData.length,
-            valor_estimado: allData.reduce((sum, r) => sum + (r.valor_estimado || 0), 0),
-            valor_contratado: allData.reduce((sum, r) => sum + calcExecutado(r as unknown as Row), 0),
-            saldo_orcamentario: allData.reduce((sum, r) => sum + ((r.valor_estimado || 0) - calcExecutado(r as unknown as Row)), 0),
-            count_planejamento: allData.filter(r => r.etapa_processo === "Planejamento" || !r.etapa_processo).length,
-            count_em_andamento: allData.filter(r => ["Em Licitação", "Contratado"].includes(r.etapa_processo || "")).length,
-            count_concluidos: allData.filter(r => r.etapa_processo === "Concluído").length,
+            total_demandas: allData.filter((r) => r.sobrestado !== true).length,
+            valor_estimado: allData
+              .filter((r) => r.sobrestado !== true)
+              .reduce((sum, r) => sum + (r.valor_estimado || 0), 0),
+            valor_contratado: allData
+              .filter((r) => r.sobrestado !== true)
+              .reduce((sum, r) => sum + calcExecutado(r as unknown as Row), 0),
+            saldo_orcamentario: allData
+              .filter((r) => r.sobrestado !== true)
+              .reduce((sum, r) => sum + ((r.valor_estimado || 0) - calcExecutado(r as unknown as Row)), 0),
+            count_planejamento: allData.filter(r => r.sobrestado !== true && (r.etapa_processo === "Planejamento" || !r.etapa_processo)).length,
+            count_em_andamento: allData.filter(r => r.sobrestado !== true && ["Em Licitação", "Contratado"].includes(r.etapa_processo || "")).length,
+            count_concluidos: allData.filter(r => r.sobrestado !== true && r.etapa_processo === "Concluído").length,
             count_sobrestados: allData.filter(r => r.sobrestado === true).length,
           };
           setKpiResumo(resumo);
@@ -556,13 +562,21 @@ const SetoresDemandantes = () => {
         </Card>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <KPICard title="Quantidade de Demandas" value={kpiResumo?.total_demandas || rows.length} icon={ClipboardList} />
+          <KPICard 
+            title="Quantidade de Demandas" 
+            value={kpiResumo?.total_demandas || rows.filter(r => r.sobrestado !== true).length} 
+            icon={ClipboardList} 
+          />
 
-          <KPICard title="Valor Estimado" value={formatCurrencyBRL(kpiResumo?.valor_estimado || rows.reduce((s, r) => s + (r.valor_estimado || 0), 0))} icon={DollarSign} />
+          <KPICard 
+            title="Valor Estimado" 
+            value={formatCurrencyBRL(kpiResumo?.valor_estimado || rows.filter(r => r.sobrestado !== true).reduce((s, r) => s + (r.valor_estimado || 0), 0))} 
+            icon={DollarSign} 
+          />
 
           {(() => {
-            const executado = kpiResumo?.valor_contratado || rows.reduce((s, r) => s + calcExecutado(r), 0);
-            const estimado  = kpiResumo?.valor_estimado  || rows.reduce((s, r) => s + (r.valor_estimado || 0), 0);
+            const executado = kpiResumo?.valor_contratado || rows.filter(r => r.sobrestado !== true).reduce((s, r) => s + calcExecutado(r), 0);
+            const estimado  = kpiResumo?.valor_estimado  || rows.filter(r => r.sobrestado !== true).reduce((s, r) => s + (r.valor_estimado || 0), 0);
             const pct = estimado > 0 ? Math.min((executado / estimado) * 100, 100) : 0;
             const variant = pct >= 80 ? "success" : pct >= 40 ? "info" : "default";
             return (
@@ -579,11 +593,11 @@ const SetoresDemandantes = () => {
 
           {(() => {
             const kpiSaldo = kpiResumo?.saldo_orcamentario;
-            const fallbackSaldo = rows.reduce((s, r) => s + calcSaldo(r), 0);
+            const fallbackSaldo = rows.filter(r => r.sobrestado !== true).reduce((s, r) => s + calcSaldo(r), 0);
             const saldo = (kpiSaldo !== undefined && kpiSaldo !== null && kpiSaldo !== 0)
               ? kpiSaldo
               : fallbackSaldo;
-            const estimado = kpiResumo?.valor_estimado || rows.reduce((s, r) => s + (r.valor_estimado || 0), 0);
+            const estimado = kpiResumo?.valor_estimado || rows.filter(r => r.sobrestado !== true).reduce((s, r) => s + (r.valor_estimado || 0), 0);
             const pct = estimado > 0 ? Math.max(0, Math.min((saldo / estimado) * 100, 100)) : 0;
             const variant = saldo < 0 ? "danger" : pct <= 20 ? "warning" : "success";
             return (

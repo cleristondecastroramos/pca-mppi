@@ -308,21 +308,22 @@ const VisaoGeral = () => {
   const filteredRows = rows; // filtros aplicados server-side
 
   const kpis = useMemo(() => {
-    // Para KPIs, consideramos o valor_ativo (que é 0 se for sobrestamento total)
-    const totalDemandas = filteredRows.length;
-    const totalEstimado = filteredRows.reduce((sum, r) => sum + ((r as any).valor_ativo || 0), 0);
-    const totalExecutado = filteredRows.reduce((sum, r) => sum + (r.valor_executado || 0), 0);
-    const totalConcluidas = filteredRows.filter((r) => r.etapa_processo === "Concluído").length;
-    return { totalDemandas, totalEstimado, totalExecutado, totalConcluidas };
+    // A pedido do usuário, demandas sobrestadas estritamente não entram na contabilidade ativa do PCA.
+    const activeRows = filteredRows.filter(r => r.sobrestado !== true);
+    const totalDemandas = activeRows.length;
+    const totalEstimado = activeRows.reduce((sum, r) => sum + (r.valor_estimado || 0), 0);
+    const totalExecutado = activeRows.reduce((sum, r) => sum + (r.valor_executado || 0), 0);
+    const totalConcluidas = activeRows.filter((r) => r.etapa_processo === "Concluído").length;
+    return { totalDemandas, totalEstimado, totalExecutado, totalConcluidas, totalDemandasComSobrestadas: filteredRows.length };
   }, [filteredRows]);
 
 
 
   const distribuicaoPorClasse = useMemo(() => {
     const map = new Map<string, number>();
-    filteredRows.forEach((r) => {
+    filteredRows.filter(r => r.sobrestado !== true).forEach((r) => {
       const key = r.classe || "Não informado";
-      map.set(key, (map.get(key) || 0) + ((r as any).valor_ativo || 0));
+      map.set(key, (map.get(key) || 0) + (r.valor_estimado || 0));
     });
     const total = Array.from(map.values()).reduce((a, b) => a + b, 0) || 1;
     return Array.from(map.entries())
@@ -332,7 +333,7 @@ const VisaoGeral = () => {
 
   const distribuicaoPorClasseQuantidade = useMemo(() => {
     const map = new Map<string, number>();
-    filteredRows.forEach((r) => {
+    filteredRows.filter(r => r.sobrestado !== true).forEach((r) => {
       const key = r.classe || "Não informado";
       map.set(key, (map.get(key) || 0) + 1);
     });
@@ -343,7 +344,7 @@ const VisaoGeral = () => {
 
   const dadosQuantidadePorSetor = useMemo(() => {
     const map = new Map<string, number>();
-    filteredRows.forEach((r) => {
+    filteredRows.filter(r => r.sobrestado !== true).forEach((r) => {
       const setor = r.setor_requisitante || "Não informado";
       map.set(setor, (map.get(setor) || 0) + 1);
     });
@@ -355,9 +356,9 @@ const VisaoGeral = () => {
 
   const dadosValoresPorSetor = useMemo(() => {
     const map = new Map<string, number>();
-    filteredRows.forEach((r) => {
+    filteredRows.filter(r => r.sobrestado !== true).forEach((r) => {
       const setor = r.setor_requisitante || "Não informado";
-      map.set(setor, (map.get(setor) || 0) + ((r as any).valor_ativo || 0));
+      map.set(setor, (map.get(setor) || 0) + (r.valor_estimado || 0));
     });
     const result = Array.from(map.entries())
       .map(([setor, valor_estimado]) => ({ setor: mapSetorName(setor), valor_estimado }))
@@ -368,9 +369,9 @@ const VisaoGeral = () => {
   // Dados para os novos gráficos de pizza
   const dadosValoresPorUO = useMemo(() => {
     const map = new Map<string, number>();
-    filteredRows.forEach((r) => {
+    filteredRows.filter(r => r.sobrestado !== true).forEach((r) => {
       const uo = r.unidade_orcamentaria || "Não informado";
-      map.set(uo, (map.get(uo) || 0) + ((r as any).valor_ativo || 0));
+      map.set(uo, (map.get(uo) || 0) + (r.valor_estimado || 0));
     });
     const result = Array.from(map.entries()).map(([name, value]) => ({ name, value }));
     const ordered = sortByFixedOrder(result, FIXED_ORDER_UO);
@@ -379,7 +380,7 @@ const VisaoGeral = () => {
 
   const dadosQuantidadePorUO = useMemo(() => {
     const map = new Map<string, number>();
-    filteredRows.forEach((r) => {
+    filteredRows.filter(r => r.sobrestado !== true).forEach((r) => {
       const uo = r.unidade_orcamentaria || "Não informado";
       map.set(uo, (map.get(uo) || 0) + 1);
     });
@@ -390,9 +391,9 @@ const VisaoGeral = () => {
 
   const dadosValoresPorTipoContratacao = useMemo(() => {
     const map = new Map<string, number>();
-    filteredRows.forEach((r) => {
+    filteredRows.filter(r => r.sobrestado !== true).forEach((r) => {
       const tipo = r.tipo_contratacao || "Não informado";
-      map.set(tipo, (map.get(tipo) || 0) + ((r as any).valor_ativo || 0));
+      map.set(tipo, (map.get(tipo) || 0) + (r.valor_estimado || 0));
     });
     const result = Array.from(map.entries()).map(([name, value]) => ({ name, value }));
     const ordered = sortByFixedOrder(result, FIXED_ORDER_TIPO);
@@ -401,7 +402,7 @@ const VisaoGeral = () => {
 
   const dadosQuantidadePorTipoContratacao = useMemo(() => {
     const map = new Map<string, number>();
-    filteredRows.forEach((r) => {
+    filteredRows.filter(r => r.sobrestado !== true).forEach((r) => {
       const tipo = r.tipo_contratacao || "Não informado";
       map.set(tipo, (map.get(tipo) || 0) + 1);
     });
@@ -410,12 +411,11 @@ const VisaoGeral = () => {
     return ordered.length > 0 ? ordered : [{ name: "Sem dados", value: 1 }];
   }, [filteredRows]);
 
-  // Dados para Classe (valores e quantidade) usados no terceiro gráfico de pizza
   const dadosValoresPorClasse = useMemo(() => {
     const map = new Map<string, number>();
-    filteredRows.forEach((r) => {
+    filteredRows.filter(r => r.sobrestado !== true).forEach((r) => {
       const classe = r.classe || "Não informado";
-      map.set(classe, (map.get(classe) || 0) + ((r as any).valor_ativo || 0));
+      map.set(classe, (map.get(classe) || 0) + (r.valor_estimado || 0));
     });
     const result = Array.from(map.entries()).map(([name, value]) => ({ name, value }));
     const ordered = sortByFixedOrder(result, FIXED_ORDER_CLASSE);
@@ -424,7 +424,7 @@ const VisaoGeral = () => {
 
   const dadosQuantidadePorClasse = useMemo(() => {
     const map = new Map<string, number>();
-    filteredRows.forEach((r) => {
+    filteredRows.filter(r => r.sobrestado !== true).forEach((r) => {
       const classe = r.classe || "Não informado";
       map.set(classe, (map.get(classe) || 0) + 1);
     });
@@ -620,18 +620,18 @@ const VisaoGeral = () => {
         {/* KPIs (reposicionados logo abaixo dos filtros) */}
         <div className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
           <KPICard
-            title="Total de Demandas"
+            title="Total de Demandas (Ativas)"
             value={loading ? "—" : kpis.totalDemandas}
             icon={FileText}
             variant="default"
-            description="Quantidade total de demandas planejadas no PCA (inclui ativas e sobrestadas)."
+            description={`Quantidade ativa no PCA (exclui um total de ${kpis.totalDemandasComSobrestadas - kpis.totalDemandas} processos suspensos).`}
           />
           <KPICard
             title="Valor PCA Ativo"
             value={loading ? "—" : formatCurrencyBRL(kpis.totalEstimado)}
             icon={DollarSign}
             variant="info"
-            description="Soma dos valores ativos das demandas (exclui totais suspensos e partes suspensas de demandas parciais)."
+            description="Soma dos valores estimados para as demandas ativas (exclui processos sobrestados e parciais suspensas)."
           />
           <KPICard
             title="Valor Executado"
