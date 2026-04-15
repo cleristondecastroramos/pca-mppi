@@ -66,8 +66,8 @@ BEGIN
   -- Gerar novo ID
   v_nova_id := gen_random_uuid();
   
-  -- Gerar novo código (4 digitos alfanumericos como as demais demandas)
-  v_codigo_novo := UPPER(SUBSTRING(MD5(RANDOM()::TEXT) FROM 1 FOR 4));
+  -- Gerar novo código (4 digitos alfanumericos como as demais demandas: PCA-XXXX-ANO)
+  v_codigo_novo := 'PCA-' || UPPER(SUBSTRING(MD5(RANDOM()::TEXT) FROM 1 FOR 4)) || '-' || extract(year from now())::text;
 
   -- 1) INSERIR a filha
   INSERT INTO public.contratacoes (
@@ -127,7 +127,7 @@ BEGIN
   LOOP
     v_nova_id := gen_random_uuid();
     
-    v_codigo_novo := UPPER(SUBSTRING(MD5(RANDOM()::TEXT) FROM 1 FOR 4));
+    v_codigo_novo := 'PCA-' || UPPER(SUBSTRING(MD5(RANDOM()::TEXT) FROM 1 FOR 4)) || '-' || extract(year from now())::text;
 
     -- Cria o filho com a mesma logica
     INSERT INTO public.contratacoes (
