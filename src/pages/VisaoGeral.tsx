@@ -1021,8 +1021,63 @@ const VisaoGeral = () => {
             </CardContent>
           </Card>
         </div>
+        </TabsContent>
 
-        {/* Paginação removida a pedido: botões e contador no rodapé */}
+        <TabsContent value="suspensas" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Demandas Suspensas (Estacionadas)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-lg border border-border bg-card">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-primary hover:bg-primary/90">
+                      <TableHead className="text-center text-primary-foreground font-semibold w-[80px]">Cod. PCA</TableHead>
+                      <TableHead className="text-center text-primary-foreground font-semibold w-[320px] max-w-[320px]">Tipo de Material/Serviço</TableHead>
+                      <TableHead className="text-center text-primary-foreground font-semibold w-[120px]">Valor Retido</TableHead>
+                      <TableHead className="text-center text-primary-foreground font-semibold w-[150px]">Origem (Demanda Pai)</TableHead>
+                      <TableHead className="text-center text-primary-foreground font-semibold w-[120px]">Status Original</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredRows.filter((r: any) => r.sobrestado === true).map((r: any) => (
+                      <TableRow key={r.id}>
+                        <TableCell className="text-sm text-muted-foreground text-center line-through opacity-70">
+                          {formatId(r.id, r.codigo)}
+                        </TableCell>
+                        <TableCell className="w-[320px] max-w-[320px] truncate" title={r.descricao ?? ""}>{r.descricao}</TableCell>
+                        <TableCell className="text-right text-orange-600 font-medium">{formatCurrencyBRL(r.valor_estimado)}</TableCell>
+                        <TableCell className="text-center">
+                          {r.parent_id ? (
+                            <span className="text-xs font-semibold bg-slate-100 text-slate-700 px-2 py-1 rounded">
+                              Origem: {r.parent?.codigo ? formatId(r.parent_id, r.parent.codigo) : r.parent_id.slice(-4).toUpperCase()}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic">Suspensão Total</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center align-middle">
+                          <span className="text-[10px] font-semibold bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
+                            {r.etapa_processo}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {filteredRows.filter((r: any) => r.sobrestado === true).length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                          Nenhuma demanda suspensa ou sobrestada pelos filtros atuais.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );
