@@ -44,7 +44,7 @@ const menuItems: MenuItem[] = [
   { title: "Prioridades de Contratação", url: "/prioridades-contratacao", icon: BadgeCheck, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
   { title: "Avaliação e Conformidade", url: "/avaliacao-conformidade", icon: CheckSquare, allowedRoles: ["administrador", "gestor"] },
   { title: "Resultados Alcançados", url: "/resultados-alcancados", icon: TrendingUp, allowedRoles: ["administrador", "gestor"] },
-  { title: "Relatórios", url: "/relatorios", icon: BarChart3, allowedRoles: ["administrador", "gestor"] },
+  { title: "Relatórios", url: "/relatorios", icon: BarChart3, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
   { title: "Orçamento Planejado", url: "/orcamento-planejado", icon: Calculator, allowedRoles: ["administrador"] },
   { title: "Gerenciamento de Usuários", url: "/gerenciamento-usuarios", icon: Users, allowedRoles: ["administrador"] },
   { title: "Notificações", url: "/notificacoes", icon: BellRing, allowedRoles: ["administrador"] },

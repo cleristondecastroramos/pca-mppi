@@ -53,8 +53,8 @@ const Relatorios = () => {
       .select("id, codigo, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, srp, numero_sei_contratacao, etapa_processo, sobrestado, tipo_sobrestamento, valor_ativo, quantidade_sobrestada, valor_sobrestado, quantidade_ativa, created_at, data_finalizacao_licitacao, valor_estimado, valor_contratado, data_prevista_contratacao, quantidade_itens, valor_unitario, data_conclusao, valor_executado")
       .neq("srp", true);
 
-    if (isSetorRequisitante && userSetor) {
-      const allowedSectors = [userSetor, ...(userProfile?.setores_adicionais || [])];
+    if (isSetorRequisitante) {
+      const allowedSectors = [userProfile?.setor, ...(userProfile?.setores_adicionais || [])].filter(Boolean) as string[];
       query = query.in("setor_requisitante", allowedSectors);
     }
 
@@ -447,6 +447,7 @@ const Relatorios = () => {
   };
 
   useEffect(() => {
+    if (roles === undefined || (isSetorRequisitante && userProfile === undefined)) return;
     let mounted = true;
     const fetchData = async () => {
       setFetching(true);
@@ -466,7 +467,7 @@ const Relatorios = () => {
       mounted = false;
       sub.subscription.unsubscribe();
     };
-  }, [roles, userSetor]);
+  }, [roles, userSetor, userProfile?.setores_adicionais]);
 
   // removido filtro legacy; filtros atuais aplicados por applyFilters
 

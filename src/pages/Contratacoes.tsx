@@ -139,7 +139,7 @@ export default function Contratacoes() {
 
   useEffect(() => {
     // Only fetch once role/profile are resolved
-    if (roles === undefined || (isSetorRequisitante && !userSetor)) return;
+    if (roles === undefined || (isSetorRequisitante && profile === undefined)) return;
     let mounted = true;
     const run = async () => {
       await fetchContratacoes();
@@ -152,7 +152,7 @@ export default function Contratacoes() {
       mounted = false;
       sub.subscription.unsubscribe();
     };
-  }, [roles, userSetor]);
+  }, [roles, userSetor, profile?.setores_adicionais]);
 
   const fetchContratacoes = async () => {
     setLoading(true);
@@ -164,8 +164,8 @@ export default function Contratacoes() {
         .order("created_at", { ascending: false });
 
       // Setor requisitante users see their own setor and additional sectors
-      if (isSetorRequisitante && userSetor) {
-        const allowedSectors = [userSetor, ...(profile?.setores_adicionais || [])];
+      if (isSetorRequisitante) {
+        const allowedSectors = [profile?.setor, ...(profile?.setores_adicionais || [])].filter(Boolean) as string[];
         query = query.in("setor_requisitante", allowedSectors);
       }
 

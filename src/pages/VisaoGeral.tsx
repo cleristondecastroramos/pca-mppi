@@ -125,6 +125,7 @@ const VisaoGeral = () => {
   const [metricPieTipo, setMetricPieTipo] = useState<"quantidade" | "valor_estimado">("quantidade");
 
   useEffect(() => {
+    if (roles === undefined || (isSetorRequisitante && profile === undefined)) return;
     const fetchData = async () => {
       setLoading(true);
       setError(null);
@@ -152,8 +153,8 @@ const VisaoGeral = () => {
            { count: "exact" }
         );
       // Setor requisitante: filter by their setor and additional sectors
-      if (isSetorRequisitante && userSetor) {
-        const allowedSectors = [userSetor, ...(profile?.setores_adicionais || [])];
+      if (isSetorRequisitante) {
+        const allowedSectors = [profile?.setor, ...(profile?.setores_adicionais || [])].filter(Boolean) as string[];
         query = query.in("setor_requisitante", allowedSectors);
       }
       
@@ -208,18 +209,18 @@ const VisaoGeral = () => {
       setLoading(false);
     };
     fetchData();
-  }, [filtros, roles, userSetor]);
+  }, [filtros, roles, userSetor, profile?.setores_adicionais]);
 
   useEffect(() => {
-    if (roles === undefined || (isSetorRequisitante && !userSetor)) return;
+    if (roles === undefined || (isSetorRequisitante && profile === undefined)) return;
     const fetchDistinct = async () => {
       let query = supabase
         .from("contratacoes")
         .select("unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, etapa_processo")
         .neq("srp", true);
       
-      if (isSetorRequisitante && userSetor) {
-        const allowedSectors = [userSetor, ...(profile?.setores_adicionais || [])];
+      if (isSetorRequisitante) {
+        const allowedSectors = [profile?.setor, ...(profile?.setores_adicionais || [])].filter(Boolean) as string[];
         query = query.in("setor_requisitante", allowedSectors);
       }
 
@@ -241,7 +242,7 @@ const VisaoGeral = () => {
       }
     };
     fetchDistinct();
-  }, [roles, userSetor]);
+  }, [roles, userSetor, profile?.setores_adicionais]);
 
   const distinctOptions = useMemo(() => {
     if (distinctOptionsRpc) {
