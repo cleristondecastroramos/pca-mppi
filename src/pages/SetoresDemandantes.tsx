@@ -782,11 +782,206 @@ const SetoresDemandantes = () => {
                 </Table>
               </div>
             </CardContent>
+                description={`${pct.toFixed(1)}% do valor estimado já foi executado.`}
+              />
+            );
+          })()}
+
+          {(() => {
+            const kpiSaldo = kpiResumo?.saldo_orcamentario;
+            const fallbackSaldo = rows.filter(r => r.sobrestado !== true).reduce((s, r) => s + calcSaldo(r), 0);
+            const saldo = (kpiSaldo !== undefined && kpiSaldo !== null && kpiSaldo !== 0)
+              ? kpiSaldo
+              : fallbackSaldo;
+            const estimado = kpiResumo?.valor_estimado || rows.filter(r => r.sobrestado !== true).reduce((s, r) => s + (r.valor_estimado || 0), 0);
+            const pct = estimado > 0 ? Math.max(0, Math.min((saldo / estimado) * 100, 100)) : 0;
+            const variant = saldo < 0 ? "danger" : pct <= 20 ? "warning" : "success";
+            return (
+              <KPICard
+                title="Saldo Orçamentário"
+                value={formatCurrencyBRL(saldo)}
+                icon={DollarSign}
+                variant={variant}
+                progress={pct}
+                description={`${pct.toFixed(1)}% do valor estimado ainda disponível.`}
+              />
+            );
+          })()}
+        </div>
+
+        <Tabs defaultValue="ativas" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="ativas">Demandas Ativas</TabsTrigger>
+            <TabsTrigger value="suspensas">Demandas Suspensas</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="ativas" className="space-y-4">
+            {/* Legenda dos status */}
+        <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground px-1">
+          <span className="font-medium text-foreground">Status:</span>
+          {[
+            { dot: "bg-slate-400", label: "Não Iniciado" },
+            { dot: "bg-blue-400", label: "Iniciado" },
+            { dot: "bg-yellow-500", label: "Retornado" },
+            { dot: "bg-indigo-500", label: "Em Andamento" },
+            { dot: "bg-emerald-500", label: "Concluído" },
+          ].map(({ dot, label }) => (
+            <span key={label} className="flex items-center gap-1.5">
+              <span className={`h-2.5 w-2.5 rounded-full ${dot}`} />
+              {label}
+            </span>
+          ))}
+          <span className="ml-4 font-medium text-foreground">Prazo:</span>
+          {[
+            { cls: "bg-emerald-100 text-emerald-700 border border-emerald-300", label: "No Prazo" },
+            { cls: "bg-amber-100 text-amber-700 border border-amber-300", label: "Atenção (≤30d)" },
+            { cls: "bg-red-100 text-red-700 border border-red-300", label: "Atrasado" },
+          ].map(({ cls, label }) => (
+            <span key={label} className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${cls}`}>
+              {label}
+            </span>
+          ))}
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Lista de Demandas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-lg border border-border bg-card">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-primary hover:bg-primary/90">
+                    <TableHead 
+                      className="text-center text-primary-foreground font-semibold w-[80px] cursor-pointer select-none"
+                      onClick={() => handleSort("codigo")}
+                    >
+                      Cod. PCA <SortIcon field="codigo" />
+                    </TableHead>
+                    <TableHead 
+                      className="text-center text-primary-foreground font-semibold w-[320px] max-w-[320px] cursor-pointer select-none"
+                      onClick={() => handleSort("descricao")}
+                    >
+                      Tipo de Material/Serviço <SortIcon field="descricao" />
+                    </TableHead>
+                    <TableHead 
+                      className="text-center text-primary-foreground font-semibold w-[120px] cursor-pointer select-none"
+                      onClick={() => handleSort("valor_estimado")}
+                    >
+                      Valor Estimado <SortIcon field="valor_estimado" />
+                    </TableHead>
+                    <TableHead className="text-center text-primary-foreground font-semibold w-[120px]">Valor Executado</TableHead>
+                    <TableHead className="text-center text-primary-foreground font-semibold w-[120px]">Saldo Orçamentário</TableHead>
+                    <TableHead 
+                      className="text-center text-primary-foreground font-semibold w-[120px] cursor-pointer select-none"
+                      onClick={() => handleSort("etapa_processo")}
+                    >
+                      Status <SortIcon field="etapa_processo" />
+                    </TableHead>
+                    <TableHead 
+                      className="text-center text-primary-foreground font-semibold w-[100px] cursor-pointer select-none"
+                      onClick={() => handleSort("data_prevista_contratacao")}
+                    >
+                      Prazo <SortIcon field="data_prevista_contratacao" />
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rows.filter(r => r.sobrestado !== true).map((r) => (
+                    <TableRow key={r.id}>
+                      <TableCell className="text-sm text-muted-foreground text-center">{formatId(r.id, r.codigo)}</TableCell>
+                      <TableCell className="w-[320px] max-w-[320px] truncate" title={r.descricao ?? ""}>{r.descricao}</TableCell>
+                      <TableCell className="text-right">{formatCurrencyBRL(r.valor_estimado)}</TableCell>
+                      <TableCell className="text-right">{formatCurrencyBRL(calcExecutado(r))}</TableCell>
+                      <TableCell className={`text-right ${calcSaldo(r) < 0 ? "text-destructive font-medium" : ""}`}>
+                        {formatCurrencyBRL(calcSaldo(r))}
+                      </TableCell>
+                      <TableCell className="text-center align-middle">
+                        <StatusCell row={r} />
+                      </TableCell>
+                      <TableCell className="text-center align-middle">
+                        <DeadlineCell row={r} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="flex items-center justify-between mt-3 text-sm text-muted-foreground">
+              <div>
+                Página {page} de {totalPages} • {totalCount} itens
+              </div>
+              <div className="flex gap-2">
+                <Button size="xs" variant="outline" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                  Anterior
+                </Button>
+                <Button size="xs" variant="outline" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
+                  Próxima
+                </Button>
+              </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="suspensas" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Demandas Suspensas (Estacionadas)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-lg border border-border bg-card">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-primary hover:bg-primary/90">
+                      <TableHead className="text-center text-primary-foreground font-semibold w-[80px]">Cod. PCA</TableHead>
+                      <TableHead className="text-center text-primary-foreground font-semibold w-[320px] max-w-[320px]">Tipo de Material/Serviço</TableHead>
+                      <TableHead className="text-center text-primary-foreground font-semibold w-[120px]">Valor Retido</TableHead>
+                      <TableHead className="text-center text-primary-foreground font-semibold w-[150px]">Origem (Demanda Pai)</TableHead>
+                      <TableHead className="text-center text-primary-foreground font-semibold w-[120px]">Status Original</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {rows.filter(r => r.sobrestado === true).map((r) => (
+                      <TableRow key={r.id}>
+                        <TableCell className="text-sm text-muted-foreground text-center line-through opacity-70">
+                          {formatId(r.id, r.codigo)}
+                        </TableCell>
+                        <TableCell className="w-[320px] max-w-[320px] truncate" title={r.descricao ?? ""}>{r.descricao}</TableCell>
+                        <TableCell className="text-right text-orange-600 font-medium">{formatCurrencyBRL(r.valor_estimado)}</TableCell>
+                        <TableCell className="text-center">
+                          {r.parent_id ? (
+                            <span className="text-xs font-semibold bg-slate-100 text-slate-700 px-2 py-1 rounded">
+                              Origem: {r.parent?.codigo ? formatId(r.parent_id, r.parent.codigo) : r.parent_id.slice(-4).toUpperCase()}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic">Suspensão Total</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center align-middle">
+                          <span className="text-[10px] font-semibold bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
+                            {r.etapa_processo}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {rows.filter(r => r.sobrestado === true).length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                          Nenhuma demanda suspensa ou sobrestada pelos filtros atuais.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
           </Card>
         </TabsContent>
         </Tabs>
       </div>
     </Layout>
-  );
-};e x p o r t   d e f a u l t   S e t o r e s D e m a n d a n t e s ;  
- 
+};
+
+export default SetoresDemandantes;
