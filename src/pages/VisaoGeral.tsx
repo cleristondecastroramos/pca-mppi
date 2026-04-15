@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { KPICard } from "@/components/KPICard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useState } from "react";
 import type { Tables } from "@/integrations/supabase/types";
@@ -48,6 +50,11 @@ type Filtros = {
 
 const formatCurrencyBRL = (value: any) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value) || 0);
+
+const formatId = (id: string, codigo?: string | null) => {
+  if (!codigo) return id.slice(-4).toUpperCase();
+  return codigo.toUpperCase().replace(/^PCA-/, "").replace(/-2026$/, "");
+};
 
 // Ordem fixa das legendas dos gráficos de pizza
 const FIXED_ORDER_UO = ["PGJ", "FMMP", "FEPDC"];
@@ -134,6 +141,8 @@ const VisaoGeral = () => {
         .select(
           [
             "id",
+            "codigo",
+            "descricao",
             "valor_estimado",
             "valor_contratado",
             "valor_executado",
@@ -149,6 +158,8 @@ const VisaoGeral = () => {
             "sobrestado",
             "tipo_sobrestamento",
             "valor_ativo",
+            "parent_id",
+            "parent:parent_id(codigo)"
           ].join(","),
            { count: "exact" }
         );
@@ -651,6 +662,13 @@ const VisaoGeral = () => {
           />
         </div>
 
+        <Tabs defaultValue="ativas" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="ativas">Demandas Ativas</TabsTrigger>
+            <TabsTrigger value="suspensas">Demandas Suspensas</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="ativas" className="space-y-6">
         {/* Gráfico único com alternância: Demandas vs Valores por Setor */}
         <div className="grid gap-6">
           <Card>

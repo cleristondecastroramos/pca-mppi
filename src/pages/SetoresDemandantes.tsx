@@ -11,6 +11,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Row = {
   id: string;
@@ -28,6 +29,8 @@ type Row = {
   sobrestado?: boolean | null;
   data_prevista_contratacao?: string | null;
   grau_prioridade?: string | null;
+  parent_id?: string | null;
+  parent?: { codigo: string | null } | null;
 };
 
 const setores = [
@@ -419,6 +422,8 @@ const SetoresDemandantes = () => {
           "data_prevista_contratacao",
           "tipo_contratacao",
           "grau_prioridade",
+          "parent_id",
+          "parent:parent_id(codigo)"
         ].join(","), { count: "exact" })
         .neq("srp", true);
 
@@ -426,13 +431,9 @@ const SetoresDemandantes = () => {
       if (filtros.tipo_contratacao) query = query.eq("tipo_contratacao", filtros.tipo_contratacao);
       if (filtros.etapa_processo) {
         const cat = statusCategoryMap[filtros.etapa_processo];
-        if (cat) {
-          if (cat.sobrestado) {
-            query = query.eq("sobrestado", true);
-          } else if (cat.etapas.length > 0) {
-            query = query.in("etapa_processo", cat.etapas);
-          }
-        } else {
+        if (cat && cat.etapas.length > 0) {
+          query = query.in("etapa_processo", cat.etapas);
+        } else if (!cat) {
           query = query.eq("etapa_processo", filtros.etapa_processo);
         }
       }
@@ -545,7 +546,7 @@ const SetoresDemandantes = () => {
               <div className="shrink-0 ml-24">
                 <div className="text-[11px] text-muted-foreground px-0.5">Status:</div>
                 <div className="flex flex-nowrap gap-0.5 overflow-x-auto whitespace-nowrap py-0.5">
-                  {["não iniciado", "em andamento", "concluído", "sobrestado"].map((st) => (
+                  {["não iniciado", "em andamento", "concluído"].map((st) => (
                     <Button
                       key={st}
                       variant={status === st ? "default" : "secondary"}
@@ -613,7 +614,14 @@ const SetoresDemandantes = () => {
           })()}
         </div>
 
-        {/* Legenda dos status */}
+        <Tabs defaultValue="ativas" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="ativas">Demandas Ativas</TabsTrigger>
+            <TabsTrigger value="suspensas">Demandas Suspensas</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="ativas" className="space-y-4">
+            {/* Legenda dos status */}
         <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground px-1">
           <span className="font-medium text-foreground">Status:</span>
           {[
@@ -622,7 +630,6 @@ const SetoresDemandantes = () => {
             { dot: "bg-yellow-500", label: "Retornado" },
             { dot: "bg-indigo-500", label: "Em Andamento" },
             { dot: "bg-emerald-500", label: "Concluído" },
-            { dot: "bg-orange-500", label: "Sobrestado" },
           ].map(({ dot, label }) => (
             <span key={label} className="flex items-center gap-1.5">
               <span className={`h-2.5 w-2.5 rounded-full ${dot}`} />
@@ -685,7 +692,7 @@ const SetoresDemandantes = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map((r) => (
+                  {rows.filter(r => r.sobrestado !== true).map((r) => (
                     <TableRow key={r.id}>
                       <TableCell className="text-sm text-muted-foreground text-center">{formatId(r.id, r.codigo)}</TableCell>
                       <TableCell className="w-[320px] max-w-[320px] truncate" title={r.descricao ?? ""}>{r.descricao}</TableCell>
@@ -718,12 +725,68 @@ const SetoresDemandantes = () => {
                   Próxima
                 </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="suspensas" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Demandas Suspensas (Estacionadas)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-lg border border-border bg-card">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-primary hover:bg-primary/90">
+                      <TableHead className="text-center text-primary-foreground font-semibold w-[80px]">Cod. PCA</TableHead>
+                      <TableHead className="text-center text-primary-foreground font-semibold w-[320px] max-w-[320px]">Tipo de Material/Serviço</TableHead>
+                      <TableHead className="text-center text-primary-foreground font-semibold w-[120px]">Valor Retido</TableHead>
+                      <TableHead className="text-center text-primary-foreground font-semibold w-[150px]">Origem (Demanda Pai)</TableHead>
+                      <TableHead className="text-center text-primary-foreground font-semibold w-[120px]">Status Original</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {rows.filter(r => r.sobrestado === true).map((r) => (
+                      <TableRow key={r.id}>
+                        <TableCell className="text-sm text-muted-foreground text-center line-through opacity-70">
+                          {formatId(r.id, r.codigo)}
+                        </TableCell>
+                        <TableCell className="w-[320px] max-w-[320px] truncate" title={r.descricao ?? ""}>{r.descricao}</TableCell>
+                        <TableCell className="text-right text-orange-600 font-medium">{formatCurrencyBRL(r.valor_estimado)}</TableCell>
+                        <TableCell className="text-center">
+                          {r.parent_id ? (
+                            <span className="text-xs font-semibold bg-slate-100 text-slate-700 px-2 py-1 rounded">
+                              Origem: {r.parent?.codigo ? formatId(r.parent_id, r.parent.codigo) : r.parent_id.slice(-4).toUpperCase()}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic">Suspensão Total</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center align-middle">
+                          <span className="text-[10px] font-semibold bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
+                            {r.etapa_processo}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {rows.filter(r => r.sobrestado === true).length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                          Nenhuma demanda suspensa ou sobrestada pelos filtros atuais.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );
-};
-
-export default SetoresDemandantes;
+};e x p o r t   d e f a u l t   S e t o r e s D e m a n d a n t e s ;  
+ 
