@@ -46,7 +46,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { translateError } from "@/lib/utils/error-translations";
-import { Pencil, Play } from "lucide-react";
+import { Pencil, Play, Split } from "lucide-react";
 import { useAuthSession, useUserRoles, useUserProfile, hasAnyRole } from "@/lib/auth";
 
 type Contratacao = Tables<"contratacoes"> & { codigo?: string | null };
@@ -60,6 +60,8 @@ export default function Contratacoes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [editingContratacao, setEditingContratacao] = useState<Contratacao | null>(null);
+  const [sobrestarContratacao, setSobrestarContratacao] = useState<Contratacao | null>(null);
+  const [qtdSobrestar, setQtdSobrestar] = useState<number>(0);
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);
   const [showHistorico, setShowHistorico] = useState(false);
   const [selectedContratacaoId, setSelectedContratacaoId] = useState<string | null>(null);
@@ -256,6 +258,26 @@ export default function Contratacoes() {
         id: toastId,
         description: translateError(err.message || "Ocorreu um erro ao processar a exclusão.") 
       });
+    }
+  };
+
+  const handleSobrestarParcial = async () => {
+    if (!sobrestarContratacao || qtdSobrestar <= 0 || qtdSobrestar >= (sobrestarContratacao.quantidade_itens || 0)) {
+      toast.error("Quantidade inválida.");
+      return;
+    }
+    const tid = toast.loading("Segregando demanda...");
+    try {
+      const { error } = await supabase.rpc("sobrestar_parcial", {
+        p_id: sobrestarContratacao.id,
+        p_quantidade: qtdSobrestar
+      });
+      if (error) throw error;
+      toast.success("Demanda segregada com sucesso!", { id: tid });
+      setSobrestarContratacao(null);
+      await fetchContratacoes();
+    } catch (e: any) {
+      toast.error("Erro ao sobrestar", { id: tid, description: translateError(e.message || String(e)) });
     }
   };
 
@@ -1105,6 +1127,18 @@ export default function Contratacoes() {
                                 >
                                   <History className="h-4 w-4" />
                                 </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="xs"
+                                  onClick={() => {
+                                    setSobrestarContratacao(contratacao);
+                                    setQtdSobrestar(0);
+                                  }}
+                                  title="Sobrestar Parcialmente"
+                                  disabled={!canEdit || contratacao.sobrestado || (contratacao.etapa_processo === "Concluído" || contratacao.etapa_processo === "Cancelada") || !contratacao.quantidade_itens || contratacao.quantidade_itens <= 1}
+                                >
+                                  <Split className="h-4 w-4" />
+                                </Button>
                                 {canDelete && (
                                   <Button
                                     variant="ghost"
@@ -1491,183 +1525,6 @@ export default function Contratacoes() {
                     </Select>
                   </div>
                   
-                   {/* Seção de Sobrestamento - Exibida apenas se sobrestado for TRUE */}
-                  {(editingContratacao as any).sobrestado && (
-                    <div className="sm:col-span-12 space-y-4 mt-2 p-4 bg-muted/20 border border-border/50 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="h-6 w-6 rounded-full bg-red-100 flex items-center justify-center">
-                          <ArrowUpDown className="h-3 w-3 text-red-600" />
-                        </div>
-                        <Label className="text-xs font-bold uppercase tracking-wider text-foreground">Configuração de Sobrestamento</Label>
-                      </div>
-
-                      <div className="grid grid-cols-12 gap-3 mb-2">
-                        <div className="sm:col-span-12">
-                          <Label className="text-[10px] font-semibold text-muted-foreground uppercase">O sobrestamento é total ou parcial?</Label>
-                          <Select
-                            value={(editingContratacao as any).tipo_sobrestamento || "total"}
-                            onValueChange={(val) => {
-                              const next = { ...editingContratacao } as any;
-                              next.tipo_sobrestamento = val;
-                              if (val === "total") {
-                                next.quantidade_sobrestada = next.quantidade_itens || 0;
-                                next.valor_sobrestado = next.valor_estimado || 0;
-                                next.quantidade_ativa = 0;
-                                next.valor_ativo = 0;
-                              } else {
-                                // Default for partial: 1 unit or 0
-                                if (next.quantidade_sobrestada >= (next.quantidade_itens || 1)) {
-                                  next.quantidade_sobrestada = 0;
-                                }
-                                next.quantidade_ativa = (next.quantidade_itens || 0) - (next.quantidade_sobrestada || 0);
-                                next.valor_sobrestado = (next.quantidade_sobrestada || 0) * (next.valor_unitario || 0);
-                                next.valor_ativo = (next.quantidade_ativa || 0) * (next.valor_unitario || 0);
-                              }
-                              setEditingContratacao(next);
-                            }}
-                          >
-                            <SelectTrigger className="h-8 w-[200px] text-xs font-medium border-red-200 focus:ring-red-500 bg-white">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="total">Total (Suspensão Completa)</SelectItem>
-                              <SelectItem value="parcial">Parcial (Suspensão Parcial)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      
-                      {(editingContratacao as any).tipo_sobrestamento === "parcial" ? (
-                        <div className="space-y-3">
-                          {/* Linha 1: Planejamento Inicial */}
-                          <div className="grid grid-cols-12 gap-3 items-end p-2.5 rounded bg-slate-50 border border-slate-200 shadow-sm">
-                            <div className="col-span-12 mb-1 flex items-center justify-between">
-                              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Linha 1 — Planejamento Inicial (PCA)</span>
-                              <Badge variant="outline" className="text-[9px] bg-white text-slate-400 border-slate-200 h-4">Edição permitida no Unitário</Badge>
-                            </div>
-                            <div className="col-span-3 space-y-1">
-                              <Label className="text-[9px] uppercase text-slate-600 font-bold">Qtd. Planejada</Label>
-                              <Input value={(editingContratacao as any).quantidade_itens || 0} readOnly className="h-8 text-xs bg-slate-100/50 cursor-not-allowed border-slate-200" />
-                            </div>
-                            <div className="col-span-1 flex items-center justify-center pb-2 text-slate-400">×</div>
-                            <div className="col-span-3 space-y-1">
-                              <Label className="text-[9px] uppercase text-primary font-bold">Valor Unitário (R$)</Label>
-                              <Input 
-                                inputMode="numeric"
-                                value={formatCurrencyNumber((editingContratacao as any).valor_unitario || 0)} 
-                                onChange={(e) => {
-                                  const formatted = formatCurrencyInput(e.target.value);
-                                  e.currentTarget.value = formatted;
-                                  const parsed = parseCurrencyInput(formatted);
-                                  const next = { ...editingContratacao } as any;
-                                  next.valor_unitario = parsed;
-                                  const qtd = next.quantidade_itens || 0;
-                                  next.valor_estimado = qtd * parsed;
-                                  next.valor_sobrestado = (next.quantidade_sobrestada || 0) * parsed;
-                                  next.valor_ativo = (next.quantidade_ativa || 0) * parsed;
-                                  setEditingContratacao(next);
-                                }}
-                                className="h-8 text-xs border-primary/40 focus:ring-primary shadow-sm bg-white font-semibold" 
-                              />
-                            </div>
-                            <div className="col-span-1 flex items-center justify-center pb-2 text-slate-400">=</div>
-                            <div className="col-span-4 space-y-1">
-                              <Label className="text-[9px] uppercase text-slate-600 font-bold">Valor Total Planejado</Label>
-                              <Input value={formatCurrency((editingContratacao as any).valor_estimado || 0)} readOnly className="h-8 text-xs bg-slate-100/50 font-semibold cursor-not-allowed border-slate-200" />
-                            </div>
-                          </div>
-
-                          {/* Linha 2: Sobrestado */}
-                          <div className="grid grid-cols-12 gap-3 items-end p-2.5 rounded bg-red-50 border border-red-200 shadow-sm">
-                            <div className="col-span-12 mb-1 flex items-center justify-between">
-                              <span className="text-[10px] font-bold text-red-600 uppercase tracking-tight">Linha 2 — Parte Sobrestada (Retirada)</span>
-                              <Badge variant="outline" className="text-[9px] bg-white text-red-500 border-red-200 h-4">Edição permitida na Qtd.</Badge>
-                            </div>
-                            <div className="col-span-3 space-y-1">
-                              <Label className="text-[9px] uppercase text-red-700 font-bold">Qtd. Sobrestada</Label>
-                              <Input 
-                                type="number" 
-                                min="0"
-                                max={(editingContratacao as any).quantidade_itens || 0}
-                                value={(editingContratacao as any).quantidade_sobrestada || 0}
-                                onChange={(e) => {
-                                  let val = parseFloat(e.target.value) || 0;
-                                  const totalQtd = (editingContratacao as any).quantidade_itens || 0;
-                                  if (val > totalQtd) val = totalQtd;
-                                  if (val < 0) val = 0;
-                                  
-                                  const next = { ...editingContratacao } as any;
-                                  next.quantidade_sobrestada = val;
-                                  next.quantidade_ativa = totalQtd - val;
-                                  const unit = next.valor_unitario || 0;
-                                  next.valor_sobrestado = val * unit;
-                                  next.valor_ativo = next.quantidade_ativa * unit;
-                                  setEditingContratacao(next);
-                                }}
-                                className="h-8 text-xs border-red-300 focus:ring-red-500 font-bold bg-white" 
-                              />
-                            </div>
-                            <div className="col-span-1 flex items-center justify-center pb-2 text-red-300">×</div>
-                            <div className="col-span-3 space-y-1">
-                              <Label className="text-[9px] uppercase text-red-400 font-semibold tracking-tighter">Valor Unitário (L1)</Label>
-                              <Input value={formatCurrency((editingContratacao as any).valor_unitario || 0)} readOnly className="h-8 text-xs bg-red-50/50 cursor-not-allowed border-red-100 text-red-400" />
-                            </div>
-                            <div className="col-span-1 flex items-center justify-center pb-2 text-red-300">=</div>
-                            <div className="col-span-4 space-y-1">
-                              <Label className="text-[9px] uppercase text-red-700 font-bold">Total Sobrestado</Label>
-                              <Input value={formatCurrency((editingContratacao as any).valor_sobrestado || 0)} readOnly className="h-8 text-xs bg-red-100/30 font-bold text-red-600 cursor-not-allowed border-red-200" />
-                            </div>
-                          </div>
-
-                          <div className="flex items-center justify-center -my-1.5 opacity-40">
-                            <div className="h-[1px] bg-border flex-1"></div>
-                            <div className="mx-4 text-sm font-light text-muted-foreground italic">subtração lógica</div>
-                            <div className="h-[1px] bg-border flex-1"></div>
-                          </div>
-
-                          {/* Linha 3: Em Execução */}
-                          <div className="grid grid-cols-12 gap-3 items-end p-2.5 rounded bg-emerald-50 border border-emerald-300 shadow-md ring-1 ring-emerald-200">
-                            <div className="col-span-12 mb-1 flex items-center justify-between">
-                              <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-tight">Linha 3 — Resultado em Execução (Ativo)</span>
-                              <Badge className="text-[9px] bg-emerald-600 text-white border-none h-4">Impacto Real no PCA</Badge>
-                            </div>
-                            <div className="col-span-3 space-y-1">
-                              <Label className="text-[9px] uppercase text-emerald-800 font-bold">Qtd. em Execução</Label>
-                              <Input value={(editingContratacao as any).quantidade_ativa || 0} readOnly className="h-8 text-xs bg-emerald-100/50 text-emerald-900 font-bold cursor-not-allowed border-emerald-200" />
-                            </div>
-                            <div className="col-span-1 flex items-center justify-center pb-2 text-emerald-600/30">×</div>
-                            <div className="col-span-3 space-y-1">
-                              <Label className="text-[9px] uppercase text-emerald-800 font-semibold tracking-tighter">Valor Unitário</Label>
-                              <Input value={formatCurrency((editingContratacao as any).valor_unitario || 0)} readOnly className="h-8 text-xs bg-emerald-100/50 text-emerald-900 font-medium cursor-not-allowed border-emerald-200" />
-                            </div>
-                            <div className="col-span-1 flex items-center justify-center pb-2 text-emerald-600/30">=</div>
-                            <div className="col-span-4 space-y-1">
-                              <Label className="text-[9px] uppercase text-emerald-800 font-bold">Valor em Execução (PCA 2026)</Label>
-                              <Input value={formatCurrency((editingContratacao as any).valor_ativo || 0)} readOnly className="h-8 text-xs bg-emerald-200 text-emerald-900 font-black cursor-not-allowed border-emerald-300" />
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-3 p-4 bg-white border border-red-200 rounded-md shadow-sm">
-                          <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-                            <Trash2 className="h-5 w-5 text-red-600" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-red-700">Sobrestamento Total Selecionado</p>
-                            <p className="text-xs text-red-600 opacity-80">
-                              Toda a demanda será suspensa. Ela não impactará os cálculos do PCA ou o saldo da sua UO.
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Bloco 3: Dados Financeiros e de Quantidade */}
-                <div className="grid gap-3 sm:grid-cols-12 bg-muted/30 p-3 rounded-md border border-border/50">
-                  {/* Se NÃO for sobrestamento parcial, mostra Qtd e Valores normalmente para edição */}
-                  {(editingContratacao as any).tipo_sobrestamento !== "parcial" ? (
                     <>
                       <div className="space-y-1.5 sm:col-span-2">
                         <Label htmlFor="edit-quantidade" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Qtd.</Label>
@@ -1682,14 +1539,6 @@ export default function Contratacoes() {
                             const next = { ...editingContratacao } as any;
                             next.quantidade_itens = qtd;
                             next.valor_estimado = qtd * unitario;
-                            // Se estiver em sobrestamento total, atualiza também os campos de sobrestamento
-                            if (next.tipo_sobrestamento === 'total') {
-                              next.quantidade_sobrestada = qtd;
-                              next.valor_sobrestado = next.valor_estimado;
-                            } else {
-                              next.quantidade_ativa = qtd;
-                              next.valor_ativo = next.valor_estimado;
-                            }
                             setEditingContratacao(next);
                           }}
                           className="h-8 text-xs focus-visible:ring-1"
@@ -1709,11 +1558,6 @@ export default function Contratacoes() {
                             next.valor_unitario = parsed;
                             const qtd = next.quantidade_itens || 0;
                             next.valor_estimado = qtd * parsed;
-                            if (next.tipo_sobrestamento === 'total') {
-                              next.valor_sobrestado = next.valor_estimado;
-                            } else {
-                              next.valor_ativo = next.valor_estimado;
-                            }
                             setEditingContratacao(next);
                           }}
                           className="h-8 text-xs focus-visible:ring-1"
@@ -1730,13 +1574,6 @@ export default function Contratacoes() {
                         />
                       </div>
                     </>
-                  ) : (
-                    <div className="sm:col-span-8 flex items-center">
-                      <div className="text-[10px] text-muted-foreground bg-white/50 p-2 rounded border border-dashed border-muted-foreground/30 w-full italic">
-                        Quantidade e Valores (Planejado/Sobrestado/Ativo) estão sendo gerenciados na seção de Sobrestamento acima.
-                      </div>
-                    </div>
-                  )}
                   
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label htmlFor="edit-unidade" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Unidade</Label>
@@ -1800,6 +1637,34 @@ export default function Contratacoes() {
                 </div>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog Sobrestamento Parcial */}
+        <Dialog open={!!sobrestarContratacao} onOpenChange={() => setSobrestarContratacao(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Sobrestar Parcialmente</DialogTitle>
+              <DialogDescription>
+                Esta ação dividirá a demanda atual (<strong>{sobrestarContratacao?.quantidade_itens} unidades</strong>). A quantidade informada abaixo se tornará uma nova demanda separada com status 'SOBRESTADO_PARCIAL'. O saldo restante será mantido na demanda atual.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+              <div className="space-y-2">
+                <Label>Quantidade a sobrestar</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max={(sobrestarContratacao?.quantidade_itens || 0) - 1}
+                  value={qtdSobrestar || ""}
+                  onChange={(e) => setQtdSobrestar(parseInt(e.target.value) || 0)}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setSobrestarContratacao(null)}>Cancelar</Button>
+              <Button onClick={handleSobrestarParcial}>Confirmar</Button>
+            </div>
           </DialogContent>
         </Dialog>
 
