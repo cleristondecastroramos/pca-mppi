@@ -177,8 +177,6 @@ const VisaoGeral = () => {
           "em andamento": { etapas: ["Em Licitação", "Contratado"], sobrestado: false },
           "concluído": { etapas: ["Concluído"], sobrestado: false },
           "sobrestado": { etapas: [], sobrestado: true },
-          "sobrestado total": { etapas: [], sobrestado: true, tipo_sobrestamento: "total" },
-          "sobrestado parcial": { etapas: [], sobrestado: true, tipo_sobrestamento: "parcial" },
         };
         const cat = STATUS_CATEGORY_MAP[filtros.etapa_processo];
         if (cat) {
@@ -608,9 +606,7 @@ const VisaoGeral = () => {
                     <SelectItem className="text-xs" value="retornado para diligência">retornado para diligência</SelectItem>
                     <SelectItem className="text-xs" value="em andamento">em andamento</SelectItem>
                     <SelectItem className="text-xs" value="concluído">concluído</SelectItem>
-                    <SelectItem className="text-xs" value="sobrestado">sobrestado (todos)</SelectItem>
-                    <SelectItem className="text-xs" value="sobrestado total">sobrestado total</SelectItem>
-                    <SelectItem className="text-xs" value="sobrestado parcial">sobrestado parcial</SelectItem>
+                    <SelectItem className="text-xs" value="sobrestado">sobrestado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
