@@ -617,7 +617,6 @@ const VisaoGeral = () => {
                     <SelectItem className="text-xs" value="retornado para diligência">retornado para diligência</SelectItem>
                     <SelectItem className="text-xs" value="em andamento">em andamento</SelectItem>
                     <SelectItem className="text-xs" value="concluído">concluído</SelectItem>
-                    <SelectItem className="text-xs" value="sobrestado">sobrestado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
