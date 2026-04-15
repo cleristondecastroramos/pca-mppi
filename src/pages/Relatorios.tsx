@@ -293,13 +293,14 @@ const Relatorios = () => {
       label: "Contratações — Detalhado",
       description: "Listagem completa com Cod. PCA, descrição, setor, prioridade e valores (estimado e executado).",
       icon: LayoutList,
-      columns: ["Cod. PCA", "Descrição", "Setor", "Prioridade", "Valor Estimado", "Valor Executado", "Data Prevista"],
-      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Prioridade", "Valor Estimado", "Valor Executado", "Data Prevista"],
+      columns: ["Cod. PCA", "Descrição", "Setor", "Prioridade", "Qtd", "Valor Estimado", "Valor Executado", "Data Prevista"],
+      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Prioridade", "Quantidade", "Valor Estimado", "Valor Executado", "Data Prevista"],
       mapRow: (r) => [
         formatId(r.id, r.codigo),
         String(r.descricao || ""),
         r.setor_requisitante || "",
         r.grau_prioridade || "",
+        r.quantidade_itens || 0,
         r.valor_estimado || 0,
         r.valor_executado || 0,
         r.data_prevista_contratacao || "",
@@ -1697,7 +1698,7 @@ const Relatorios = () => {
           if (col === "Valor Executado") return "col-Valor-Executado";
           if (["Valor Contratado", "Valor", "Valor Unitário", "Valor Total Sobrestado"].includes(col)) return "col-Valor";
           if (col === "Tipo Sobr.") return "col-Status";
-          if (col === "Quantidade") return "col-ID";
+          if (col === "Quantidade" || col === "Qtd") return "col-ID";
           return "";
         };
         const headersHtml = def.columns.map((c) => `<th class="${widthClass(c)}">${c}</th>`).join("");
