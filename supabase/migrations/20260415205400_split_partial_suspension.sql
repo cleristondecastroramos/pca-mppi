@@ -66,12 +66,8 @@ BEGIN
   -- Gerar novo ID
   v_nova_id := gen_random_uuid();
   
-  -- Gerar novo código
-  IF v_origem.codigo IS NOT NULL THEN
-    v_codigo_novo := v_origem.codigo || '-SOB-' || (extract(epoch from now())::int % 10000)::text;
-  ELSE
-    v_codigo_novo := SUBSTRING(p_id::text, 1, 8) || '-SOB-' || (extract(epoch from now())::int % 10000)::text;
-  END IF;
+  -- Gerar novo código (4 digitos alfanumericos como as demais demandas)
+  v_codigo_novo := UPPER(SUBSTRING(MD5(RANDOM()::TEXT) FROM 1 FOR 4));
 
   -- 1) INSERIR a filha
   INSERT INTO public.contratacoes (
@@ -131,11 +127,7 @@ BEGIN
   LOOP
     v_nova_id := gen_random_uuid();
     
-    IF v_rec.codigo IS NOT NULL THEN
-      v_codigo_novo := v_rec.codigo || '-SOB-' || (extract(epoch from now())::int % 10000)::text;
-    ELSE
-      v_codigo_novo := SUBSTRING(v_rec.id::text, 1, 8) || '-SOB-' || (extract(epoch from now())::int % 10000)::text;
-    END IF;
+    v_codigo_novo := UPPER(SUBSTRING(MD5(RANDOM()::TEXT) FROM 1 FOR 4));
 
     -- Cria o filho com a mesma logica
     INSERT INTO public.contratacoes (
