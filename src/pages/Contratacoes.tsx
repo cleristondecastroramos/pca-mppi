@@ -60,6 +60,7 @@ export default function Contratacoes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [editingContratacao, setEditingContratacao] = useState<Contratacao | null>(null);
+  const [valorExecutadoInput, setValorExecutadoInput] = useState<string>("0,00");
   const [sobrestarContratacao, setSobrestarContratacao] = useState<Contratacao | null>(null);
   const [qtdSobrestar, setQtdSobrestar] = useState<number>(0);
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);
@@ -312,6 +313,11 @@ export default function Contratacoes() {
     }
     
     setEditingContratacao(next);
+    // Inicializa o estado local do campo V. Executado com o valor atual do banco
+    const valorAtual = next.valor_contratado ?? next.valor_executado ?? 0;
+    setValorExecutadoInput(
+      (valorAtual as number).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    );
   };
 
   const handleSaveEdit = async () => {
@@ -347,14 +353,15 @@ export default function Contratacoes() {
       }
 
       // Preparar payload de atualização
-      // Removendo campos que podem ser GERADOS no banco de dados para evitar conflitos
+      // Removendo campos que podem ser GERADOS no banco de dados para evitar conflitos (ex: valor_executado)
       const payload: any = {
         descricao: editingContratacao.descricao,
         setor_requisitante: editingContratacao.setor_requisitante,
         unidade_orcamentaria: editingContratacao.unidade_orcamentaria,
         classe: editingContratacao.classe,
         valor_estimado: editingContratacao.valor_estimado,
-        valor_contratado: editingContratacao.valor_contratado,
+        // Lê o valor diretamente do estado local do input (fonte única de verdade)
+        valor_contratado: parseCurrencyInput(valorExecutadoInput),
         etapa_processo: etapaFinal,
         sobrestado: isSobrestado,
         tipo_sobrestamento: (editingContratacao as any).tipo_sobrestamento || null,
@@ -380,10 +387,14 @@ export default function Contratacoes() {
 
       console.log("[SaveEdit] Payload preparado:", payload);
 
-      const { error: updateError } = await supabase
+      const { data: updatedData, error: updateError } = await supabase
         .from("contratacoes")
         .update(payload)
-        .eq("id", editingContratacao.id);
+        .eq("id", editingContratacao.id)
+        .select();
+
+      const affectedRows = updatedData?.length || 0;
+      console.log("[SaveEdit] Resultado do update:", { affectedRows, data: updatedData?.[0], updateError });
 
       if (updateError) {
         console.error("[SaveEdit] Erro no update do Supabase:", updateError);
@@ -397,13 +408,19 @@ export default function Contratacoes() {
         return;
       }
 
+      if (affectedRows === 0) {
+        console.warn("[SaveEdit] Nenhuma linha foi atualizada. Verifique permissões (RLS).");
+        toast.error("Não foi possível salvar as alterações. Verifique se você tem permissão para editar esta demanda.", { id: toastId });
+        return;
+      }
+
       // Registrar histórico (operação secundária)
       try {
-        const { data: user } = await supabase.auth.getUser();
-        if (user?.user) {
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData?.user) {
           await supabase.from("contratacoes_historico").insert({
             contratacao_id: editingContratacao.id,
-            user_id: user.user.id,
+            user_id: userData.user.id,
             acao: "Edição",
             dados_anteriores: dadosAnteriores || {},
             dados_novos: payload,
@@ -418,7 +435,10 @@ export default function Contratacoes() {
       fetchContratacoes();
     } catch (err: any) {
       console.error("[SaveEdit] Erro catastrófico:", err);
-      toast.error("Ocorreu um erro inesperado ao salvar.", { id: toastId, description: err.message });
+      toast.error("Ocorreu um erro inesperado ao salvar.", { 
+        id: toastId, 
+        description: err instanceof Error ? err.message : String(err) 
+      });
     }
   };
 
@@ -1589,15 +1609,10 @@ export default function Contratacoes() {
                     <Input
                       id="edit-valor-executado"
                       inputMode="numeric"
-                      value={formatCurrencyNumber(getExecutado(editingContratacao))}
+                      value={valorExecutadoInput}
                       onChange={(e) => {
                         const formatted = formatCurrencyInput(e.target.value);
-                        e.currentTarget.value = formatted;
-                        const parsed = parseCurrencyInput(formatted);
-                        setEditingContratacao({
-                          ...editingContratacao,
-                          valor_executado: parsed,
-                        });
+                        setValorExecutadoInput(formatted);
                       }}
                       className="h-8 text-xs focus-visible:ring-1"
                     />
