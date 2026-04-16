@@ -661,13 +661,7 @@ const VisaoGeral = () => {
           />
         </div>
 
-        <Tabs defaultValue="ativas" className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="ativas">Demandas Ativas</TabsTrigger>
-            <TabsTrigger value="suspensas">Demandas Suspensas</TabsTrigger>
-          </TabsList>
 
-          <TabsContent value="ativas" className="space-y-6">
         {/* Gráfico único com alternância: Demandas vs Valores por Setor */}
         <div className="grid gap-6">
           <Card>
@@ -712,7 +706,7 @@ const VisaoGeral = () => {
                     return <div className="flex items-center justify-center h-[220px] text-xs text-muted-foreground">Sem dados</div>;
                   }
                   return (
-                    <BarChart data={chartData} width={400} height={260} margin={{ top: 24, right: 16, bottom: 8, left: 8 }}>
+                    <BarChart data={chartData} margin={{ top: 24, right: 16, bottom: 8, left: 8 }}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="setor" />
                       <YAxis hide domain={[0, 'dataMax + 1']} />
@@ -771,7 +765,7 @@ const VisaoGeral = () => {
                     return <div className="flex items-center justify-center h-[200px] text-xs text-muted-foreground">Sem dados</div>;
                   }
                   return (
-                    <PieChart width={400} height={220}>
+                    <PieChart>
                       <ChartTooltip
                         content={
                           <ChartTooltipContent
@@ -863,7 +857,7 @@ const VisaoGeral = () => {
                     return <div className="flex items-center justify-center h-[200px] text-xs text-muted-foreground">Sem dados</div>;
                   }
                   return (
-                    <PieChart width={400} height={220}>
+                    <PieChart>
                       <ChartTooltip
                         content={
                           <ChartTooltipContent
@@ -955,7 +949,7 @@ const VisaoGeral = () => {
                     return <div className="flex items-center justify-center h-[200px] text-xs text-muted-foreground">Sem dados</div>;
                   }
                   return (
-                    <PieChart width={400} height={220}>
+                    <PieChart>
                       <ChartTooltip
                         content={
                           <ChartTooltipContent
@@ -1020,63 +1014,7 @@ const VisaoGeral = () => {
             </CardContent>
           </Card>
         </div>
-        </TabsContent>
 
-        <TabsContent value="suspensas" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Demandas Suspensas (Estacionadas)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-lg border border-border bg-card">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-primary hover:bg-primary/90">
-                      <TableHead className="text-center text-primary-foreground font-semibold w-[80px]">Cod. PCA</TableHead>
-                      <TableHead className="text-center text-primary-foreground font-semibold w-[320px] max-w-[320px]">Tipo de Material/Serviço</TableHead>
-                      <TableHead className="text-center text-primary-foreground font-semibold w-[120px]">Valor Retido</TableHead>
-                      <TableHead className="text-center text-primary-foreground font-semibold w-[150px]">Origem (Demanda Pai)</TableHead>
-                      <TableHead className="text-center text-primary-foreground font-semibold w-[120px]">Status Original</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredRows.filter((r: any) => r.sobrestado === true).map((r: any) => (
-                      <TableRow key={r.id}>
-                        <TableCell className="text-sm text-muted-foreground text-center line-through opacity-70">
-                          {formatId(r.id, r.codigo)}
-                        </TableCell>
-                        <TableCell className="w-[320px] max-w-[320px] truncate" title={r.descricao ?? ""}>{r.descricao}</TableCell>
-                        <TableCell className="text-right text-orange-600 font-medium">{formatCurrencyBRL(r.valor_estimado)}</TableCell>
-                        <TableCell className="text-center">
-                          {r.parent_id ? (
-                            <span className="text-xs font-semibold bg-slate-100 text-slate-700 px-2 py-1 rounded">
-                              Origem: {r.parent?.codigo ? formatId(r.parent_id, r.parent.codigo) : r.parent_id.slice(-4).toUpperCase()}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground italic">Suspensão Total</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center align-middle">
-                          <span className="text-[10px] font-semibold bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
-                            {r.etapa_processo}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {filteredRows.filter((r: any) => r.sobrestado === true).length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
-                          Nenhuma demanda suspensa ou sobrestada pelos filtros atuais.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        </Tabs>
       </div>
     </Layout>
   );

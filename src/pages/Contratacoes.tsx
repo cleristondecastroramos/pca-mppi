@@ -163,6 +163,7 @@ export default function Contratacoes() {
         .from("contratacoes")
         .select("id, codigo, descricao, setor_requisitante, unidade_orcamentaria, classe, valor_estimado, valor_contratado, valor_licitado, etapa_processo, sobrestado, tipo_sobrestamento, quantidade_sobrestada, valor_sobrestado, quantidade_ativa, valor_ativo, grau_prioridade, justificativa, data_prevista_contratacao, data_entrada_clc, numero_sei_contratacao, pdm_catser, created_at, quantidade_itens, valor_unitario, unidade_fornecimento, tipo_recurso, tipo_contratacao, modalidade, normativo, srp, valor_executado")
         .neq("srp", true)
+        .neq("sobrestado", true)
         .order("created_at", { ascending: false });
 
       // Setor requisitante users see their own setor and additional sectors
@@ -528,9 +529,7 @@ export default function Contratacoes() {
     // 3. Filtro de Status
     const status = filtros.etapa_processo;
     if (status && status !== ALL_VALUE) {
-      if (status === "sobrestado") {
-        result = result.filter((item) => (item as any).sobrestado === true);
-      } else if (status === "não iniciado") {
+      if (status === "não iniciado") {
         result = result.filter((item) => !item.etapa_processo || item.etapa_processo === "Planejamento");
       } else if (status === "iniciado") {
         result = result.filter((item) => item.etapa_processo === "Iniciado");
@@ -815,9 +814,9 @@ export default function Contratacoes() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-foreground">Contratações</h1>
+            <h1 className="text-xl font-bold text-foreground">Demandas Ativas</h1>
             <p className="text-sm text-muted-foreground">
-              Gerencie todas as contratações do PCA 2026 ({totalCount} registros)
+              Gerencie todas as demandas ativas do PCA 2026 ({totalCount} registros)
             </p>
           </div>
           {!isConsulta && (
@@ -825,7 +824,7 @@ export default function Contratacoes() {
               <Link to="/nova-contratacao">
                 <Button size="xs">
                   <Plus className="h-4 w-4 mr-1" />
-                  Nova Contratação
+                  Nova Demanda de Contratação
                 </Button>
               </Link>
             </div>
@@ -975,7 +974,6 @@ export default function Contratacoes() {
                     <SelectItem className="text-xs" value="retornado para diligência">retornado para diligência</SelectItem>
                     <SelectItem className="text-xs" value="em andamento">em andamento</SelectItem>
                     <SelectItem className="text-xs" value="concluído">concluído</SelectItem>
-                    <SelectItem className="text-xs" value="sobrestado">sobrestado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1012,12 +1010,11 @@ export default function Contratacoes() {
                 <TableHead onClick={() => handleSort("classe")} className="text-center w-[110px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Classe<SortIcon field="classe" /></TableHead>
                 <TableHead onClick={() => handleSort("quantidade_itens")} className="text-center w-[80px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Quantidade<SortIcon field="quantidade_itens" /></TableHead>
                 <TableHead onClick={() => handleSort("valor_unitario")} className="text-center w-[120px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Valor Unitário<SortIcon field="valor_unitario" /></TableHead>
-                <TableHead onClick={() => handleSort("valor_estimado")} className="text-center w-[120px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Valor Estimado<SortIcon field="valor_estimado" /></TableHead>
+                <TableHead onClick={() => handleSort("valor_estimado")} className="text-center w-[120px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Valor Total<SortIcon field="valor_estimado" /></TableHead>
                 <TableHead onClick={() => handleSort("_valor_executado")} className="text-center w-[120px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Valor Executado<SortIcon field="_valor_executado" /></TableHead>
                 <TableHead className="text-center w-[130px] text-white font-bold text-xs h-9">Data Prevista de Início</TableHead>
                 <TableHead onClick={() => handleSort("data_prevista_contratacao")} className="text-center w-[130px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Data Prevista de Conclusão<SortIcon field="data_prevista_contratacao" /></TableHead>
                 <TableHead onClick={() => handleSort("_status")} className="text-center w-[110px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Status<SortIcon field="_status" /></TableHead>
-                <TableHead className="text-center w-[100px] text-white font-bold text-xs h-9">Sobrestamento</TableHead>
                 <TableHead onClick={() => handleSort("grau_prioridade")} className="text-center w-[90px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Prioridade<SortIcon field="grau_prioridade" /></TableHead>
                 <TableHead className="text-center w-[90px] text-white font-bold text-xs h-9">Ações</TableHead>
               </TableRow>
@@ -1025,7 +1022,7 @@ export default function Contratacoes() {
             <TableBody className="text-[11px]">
               {displayedContratacoes.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={13} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
                     {searchTerm ? "Nenhuma contratação encontrada com os critérios de busca." : "Nenhuma contratação cadastrada."}
                   </TableCell>
                 </TableRow>
@@ -1081,15 +1078,6 @@ export default function Contratacoes() {
                             </Badge>
                           );
                         })()}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {contratacao.sobrestado ? (
-                          <Badge variant="outline" className={contratacao.tipo_sobrestamento === 'total' ? "bg-red-50 text-red-700 border-red-200" : "bg-yellow-50 text-yellow-700 border-yellow-200"}>
-                            {contratacao.tipo_sobrestamento === 'total' ? 'Total' : 'Parcial'}
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
                       </TableCell>
                       <TableCell>
                         <Badge

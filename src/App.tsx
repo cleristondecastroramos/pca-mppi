@@ -15,6 +15,7 @@ const LicitacoesSRP = lazy(() => import("./pages/LicitacoesSRP"));
 const NovaContratacao = lazy(() => import("./pages/NovaContratacao"));
 const VisaoGeral = lazy(() => import("./pages/VisaoGeral"));
 const SetoresDemandantes = lazy(() => import("./pages/SetoresDemandantes"));
+const Suspensas = lazy(() => import("./pages/Suspensas"));
 const ControlePrazos = lazy(() => import("./pages/ControlePrazos"));
 const PrioridadesContratacao = lazy(() => import("./pages/PrioridadesContratacao"));
 const PrioridadesAtencao = lazy(() => import("./pages/PrioridadesAtencao"));
@@ -62,7 +63,7 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <Suspense fallback={<div className="p-6 text-center text-sm text-muted-foreground">Carregando...</div>}>
               <Routes>
                 <Route path="/" element={<Navigate to="/auth" replace />} />
@@ -74,7 +75,8 @@ const App = () => {
                     <Home />
                   </ProtectedRoute>
                 } />
-                <Route path="/pontos-atencao" element={
+                <Route path="/pontos-atencao" element={<Navigate to="/riscos-pendencias" replace />} />
+                <Route path="/riscos-pendencias" element={
                   <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante"]}>
                     <PrioridadesAtencao />
                   </ProtectedRoute>
@@ -89,6 +91,11 @@ const App = () => {
                     <SetoresDemandantes />
                   </ProtectedRoute>
                 } />
+                <Route path="/suspensas" element={
+                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
+                    <Suspensas />
+                  </ProtectedRoute>
+                } />
                 <Route path="/controle-prazos" element={
                   <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante"]}>
                     <ControlePrazos />
@@ -99,7 +106,8 @@ const App = () => {
                     <PrioridadesContratacao />
                   </ProtectedRoute>
                 } />
-                <Route path="/avaliacao-conformidade" element={
+                <Route path="/avaliacao-conformidade" element={<Navigate to="/conformidade" replace />} />
+                <Route path="/conformidade" element={
                   <ProtectedRoute allowed={["administrador", "gestor"]}>
                     <AvaliacaoConformidade />
                   </ProtectedRoute>
@@ -109,7 +117,8 @@ const App = () => {
                     <ResultadosAlcancados />
                   </ProtectedRoute>
                 } />
-                <Route path="/contratacoes" element={
+                <Route path="/contratacoes" element={<Navigate to="/demandas-ativas" replace />} />
+                <Route path="/demandas-ativas" element={
                   <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
                     <Contratacoes />
                   </ProtectedRoute>
@@ -150,7 +159,8 @@ const App = () => {
                     <Notificacoes />
                   </ProtectedRoute>
                 } />
-                <Route path="/orcamento-planejado" element={
+                <Route path="/orcamento-planejado" element={<Navigate to="/orcamento" replace />} />
+                <Route path="/orcamento" element={
                   <ProtectedRoute allowed={["administrador"]}>
                     <OrcamentoPlanejado />
                   </ProtectedRoute>

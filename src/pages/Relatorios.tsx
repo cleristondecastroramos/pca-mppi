@@ -245,7 +245,7 @@ const Relatorios = () => {
       icon: any;
       columns: string[];
       csvColumns: string[];
-      mapRow: (r: any) => (string | number)[];
+      mapRow: (r: any, tipo: "pdf" | "csv") => (string | number)[];
       title: (count: number) => string;
     }
   > = {
@@ -255,7 +255,7 @@ const Relatorios = () => {
       icon: FileText,
       columns: ["Cod. PCA", "Objeto", "UO", "Qtd", "V. Unit", "Valor Total", "Tipo", "Mod.", "Prior.", "Início", "Concl."],
       csvColumns: ["Cod. PCA", "Descrição", "Unidade Requisitante", "UO", "Quantidade", "Valor Unitário", "Valor Planejado", "Tipo de Contratação", "Modalidade", "Grau de Prioridade", "Data Prevista Inicio", "Data Prevista Conclusão"],
-      mapRow: (r) => {
+      mapRow: (r, tipo) => {
         const calculateStart = (tipo: string, mod: string, termino: string) => {
           if (!termino) return "-";
           const [y, m, d] = termino.split("-").map(Number);
@@ -289,128 +289,85 @@ const Relatorios = () => {
       },
       title: (n) => `Plano de Contratações Anual — PCA 2026 (Lista de ${n} Itens)`,
     },
-    detalhado: {
-      label: "Contratações — Detalhado",
-      description: "Listagem completa com Cod. PCA, descrição, setor, prioridade e valores (estimado e executado).",
+    gerencial_completo: {
+      label: "Gerencial — Base de Dados Completa",
+      description: "Listagem transacional super-enriquecida consolidando cruzamentos de processo, normativos, financeiro e planejamento.",
       icon: LayoutList,
-      columns: ["Cod. PCA", "Descrição", "Setor", "Prioridade", "Qtd", "Valor Estimado", "Valor Executado", "Data Prevista"],
-      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Prioridade", "Quantidade", "Valor Estimado", "Valor Executado", "Data Prevista"],
-      mapRow: (r) => [
-        formatId(r.id, r.codigo),
-        String(r.descricao || ""),
-        r.setor_requisitante || "",
-        r.grau_prioridade || "",
-        r.quantidade_itens || 0,
-        r.valor_estimado || 0,
-        r.valor_executado || 0,
-        r.data_prevista_contratacao || "",
-      ],
-      title: (n) => `Relatório Detalhado de Contratações (${n} registros)`,
-    },
-    por_status: {
-      label: "Contratações — Por Status",
-      description: "Listagem focada no status e andamento das contratações. Agrupado por status.",
-      icon: BarChart3,
-      columns: ["Cod. PCA", "Descrição", "Setor", "Status", "Sobrestamento", "Valor Ativo", "Valor Executado"],
-      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Status", "Sobrestamento", "Valor Ativo", "Valor Executado"],
-      mapRow: (r) => {
-        const status = getPrazoStatus(r);
+      columns: ["Cod. PCA", "Descrição", "Setor", "Prior.", "Mod.", "Status", "Valor Planejado", "Valor Contratado", "Valor Executado"],
+      csvColumns: ["Cod. PCA", "Descrição", "Setor Requisitante", "Unidade Orçamentária", "Tipo de Recurso", "Classe", "Prioridade", "Normativo", "Modalidade", "SEI Contratação", "Status Atual", "Sobrestamento", "Data Prevista", "Data Conclusão", "Quantidade", "Valor Unitário", "Valor Planejado", "Valor Contratado", "Valor Executado"],
+      mapRow: (r, tipo) => {
+        const isParcial = r.sobrestado && r.tipo_sobrestamento === 'parcial';
+        if (tipo === "pdf") {
+          return [
+            formatId(r.id, r.codigo),
+            String(r.descricao || ""),
+            r.setor_requisitante || "",
+            r.grau_prioridade || "",
+            r.modalidade || "",
+            statusLabel(r),
+            isParcial ? (r.valor_sobrestado || 0) : (r.valor_estimado || 0),
+            r.valor_contratado || 0,
+            r.valor_executado || 0,
+          ];
+        }
         return [
           formatId(r.id, r.codigo),
           String(r.descricao || ""),
-          String(r.setor_requisitante || ""),
+          r.setor_requisitante || "",
+          r.unidade_orcamentaria || "",
+          r.tipo_recurso || "",
+          r.classe || "",
+          r.grau_prioridade || "",
+          r.normativo || "",
+          r.modalidade || "",
+          r.numero_sei_contratacao || "",
           statusLabel(r),
           r.sobrestado ? (r.tipo_sobrestamento === 'total' ? 'Total' : 'Parcial') : '-',
-          r.valor_ativo || 0,
+          r.data_prevista_contratacao || "",
+          r.data_conclusao || "",
+          isParcial ? (r.quantidade_sobrestada || 0) : (r.quantidade_itens || 0),
+          r.valor_unitario || 0,
+          isParcial ? (r.valor_sobrestado || 0) : (r.valor_estimado || 0),
+          r.valor_contratado || 0,
           r.valor_executado || 0,
         ];
       },
-      title: (n) => `Relatório por Status (${n} registros)`,
-    },
-    por_setor: {
-      label: "Contratações — Por Setor",
-      description: "Listagem agrupável por setor requisitante.",
-      icon: ClipboardList,
-      columns: ["Cod. PCA", "Descrição", "Setor", "Status", "Sobrestamento", "Valor Ativo", "Valor Executado"],
-      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Status", "Sobrestamento", "Valor Ativo", "Valor Executado"],
-      mapRow: (r) => [
-        formatId(r.id, r.codigo),
-        String(r.descricao || ""),
-        r.setor_requisitante || "",
-        statusLabel(r),
-        r.sobrestado ? (r.tipo_sobrestamento === 'total' ? 'Total' : 'Parcial') : '-',
-        r.valor_ativo || 0,
-        r.valor_executado || 0,
-      ],
-      title: (n) => `Relatório por Setor (${n} registros)`,
-    },
-    prioridades: {
-      label: "Demandas — Por Prioridade",
-      description: "Visão por grau de prioridade (Alta, Média, Baixa).",
-      icon: BadgeCheck,
-      columns: ["Cod. PCA", "Descrição", "Prioridade", "Setor", "Status", "Valor Estimado"],
-      csvColumns: ["Cod. PCA", "Descrição", "Prioridade", "Setor", "Status", "Valor Estimado"],
-      mapRow: (r) => [
-        formatId(r.id, r.codigo),
-        String(r.descricao || ""),
-        r.grau_prioridade || "",
-        r.setor_requisitante || "",
-        statusLabel(r),
-        r.valor_estimado || 0,
-      ],
-      title: (n) => `Relatório por Prioridade (${n} registros)`,
-    },
-    valores: {
-      label: "Financeiro — Estimado vs Contratado",
-      description: "Comparativo financeiro entre valores estimados e contratados.",
-      icon: DollarSign,
-      columns: ["Cod. PCA", "Descrição", "Valor Estimado", "Valor Contratado", "Valor Executado"],
-      csvColumns: ["Cod. PCA", "Descrição", "Valor Estimado", "Valor Contratado", "Valor Executado"],
-      mapRow: (r) => [
-        formatId(r.id, r.codigo),
-        String(r.descricao || ""),
-        r.valor_estimado || 0,
-        r.valor_contratado || 0,
-        r.valor_executado || 0,
-      ],
-      title: (n) => `Relatório Financeiro (${n} registros)`,
-    },
-    sei: {
-      label: "SEI — Processos por Contratação",
-      description: "Relação de contratações com seus números de SEI para consulta.",
-      icon: FileSearch,
-      columns: ["Cod. PCA", "Descrição", "SEI", "Status"],
-      csvColumns: ["Cod. PCA", "Descrição", "SEI", "Status"],
-      mapRow: (r) => [
-        formatId(r.id, r.codigo),
-        String(r.descricao || ""),
-        r.numero_sei_contratacao || "",
-        statusLabel(r),
-      ],
-      title: (n) => `Relatório SEI (${n} registros)`,
+      title: (n) => `Relatório Gerencial — Base Completa (${n} registros)`,
     },
     auditoria: {
-      label: "Auditoria — Conformidade",
-      description: "Relatório de conformidade com itens de checklist de auditoria.",
+      label: "Auditoria — Conformidade Licitatória",
+      description: "Relatório de conformidade com itens de checklist e métricas burocráticas auditadas.",
       icon: ShieldCheck,
       columns: ["Cod. PCA", "Descrição", "Setor", "Conformidade", "Status"],
-      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Conformidade", "Status"],
-      mapRow: (r) => [
-        formatId(r.id, r.codigo),
-        String(r.descricao || ""),
-        r.setor_requisitante || "",
-        `${(r as any).conformidade || 0}%`,
-        r.sobrestado === true ? "sobrestado" : r.etapa_processo,
-      ],
-      title: (n) => `Relatório de Auditoria (${n} registros)`,
+      csvColumns: ["Cod. PCA", "Descrição", "Setor Requisitante", "Conformidade (%)", "Fase", "Status"],
+      mapRow: (r, tipo) => {
+        if (tipo === "pdf") {
+          return [
+            formatId(r.id, r.codigo),
+            String(r.descricao || ""),
+            r.setor_requisitante || "",
+            `${(r as any).conformidade || 0}%`,
+            r.sobrestado === true ? "sobrestado" : r.etapa_processo || "",
+          ];
+        }
+        return [
+          formatId(r.id, r.codigo),
+          String(r.descricao || ""),
+          r.setor_requisitante || "",
+          `${(r as any).conformidade || 0}%`,
+          r.srp ? '1ª Fase Apenas' : '2 Fases',
+          r.sobrestado === true ? "sobrestado" : r.etapa_processo || "",
+        ];
+      },
+      title: (n) => `Relatório de Auditoria e Conformidade (${n} registros)`,
     },
-    prazos_criticos: {
-      label: "Prazos — Críticos e Alertas",
-      description: "Relatório focado em processos atrasados ou com prazo curto.",
+    prazos_riscos: {
+      label: "Riscos — Prazos Críticos e Alertas",
+      description: "Relatório focado no monitoramento estrito de processos atrasados ou com prazo curto.",
       icon: AlertCircle,
       columns: ["Cod. PCA", "Descrição", "Setor", "Data Prevista", "Situação"],
       csvColumns: ["Cod. PCA", "Descrição", "Setor", "Data Prevista", "Situação"],
-      mapRow: (r) => {
+      mapRow: (r, tipo) => {
         const status = getPrazoStatus(r);
         return [
           formatId(r.id, r.codigo),
@@ -423,27 +380,54 @@ const Relatorios = () => {
           status.label
         ];
       },
-      title: (n) => `Relatório de Prazos Críticos (${n} registros)`,
+      title: (n) => `Relatório de Riscos e Prazos (${n} registros)`,
     },
-    demandas_sobrestadas: {
-      label: "Relação de Demandas Sobrestadas",
-      description: "Relatório detalhado de todas as demandas com sobrestamento total ou parcial.",
-      icon: AlertCircle,
-      columns: ["Cod. PCA", "Descrição", "Setor", "Tipo Sobr.", "Quantidade", "Valor Unitário", "Valor Total Sobrestado"],
-      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Tipo Sobrestamento", "Quantidade Sobrestada", "Valor Unitário", "Valor Total Sobrestado"],
-      mapRow: (r) => {
+    sobrestadas: {
+      label: "Demandas Suspensas e Retidas",
+      description: "Relatório detalhado sobre o isolamento orçamentário e quantitativo parado por paralisação processual.",
+      icon: CalendarDays,
+      columns: ["Cod. PCA", "Descrição", "Setor", "Tipo Sobr.", "Quantidade", "Valor Unitário", "Valor Retido"],
+      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Unidade Orçamentária", "Tipo Sobrestamento", "Quantidade Retida", "Valor Unitário", "Valor Retido"],
+      mapRow: (r, tipo) => {
         const isParcial = r.tipo_sobrestamento === 'parcial';
+        if (tipo === "pdf") {
+          return [
+            formatId(r.id, r.codigo),
+            String(r.descricao || ""),
+            r.setor_requisitante || "",
+            r.tipo_sobrestamento === 'total' ? 'Total' : 'Parcial',
+            isParcial ? (r.quantidade_sobrestada || 0) : (r.quantidade_itens || 0),
+            r.valor_unitario || 0,
+            isParcial ? (r.valor_sobrestado || 0) : (r.valor_estimado || 0),
+          ];
+        }
         return [
           formatId(r.id, r.codigo),
           String(r.descricao || ""),
           r.setor_requisitante || "",
+          r.unidade_orcamentaria || "",
           r.tipo_sobrestamento === 'total' ? 'Total' : 'Parcial',
           isParcial ? (r.quantidade_sobrestada || 0) : (r.quantidade_itens || 0),
           r.valor_unitario || 0,
           isParcial ? (r.valor_sobrestado || 0) : (r.valor_estimado || 0),
         ];
       },
-      title: (n) => `Relação de Demandas Sobrestadas (${n} registros)`,
+      title: (n) => `Relação de Demandas Suspensas e Retidas (${n} registros)`,
+    },
+    orcamento_setorial: {
+      label: "Orçamento — Extrato Consolidado Setorial",
+      description: "Agrupamento financeiro de saldos por Setor Requisitante. Fornece visão estática de gastos previstos vs executados e o saldo em caixa.",
+      icon: DollarSign,
+      columns: ["Setor Requisitante", "Demandas Ativas", "Valor Planejado", "Valor Executado", "Saldo Restante"],
+      csvColumns: ["Setor Requisitante", "Demandas Ativas", "Valor Planejado", "Valor Executado", "Saldo Restante"],
+      mapRow: (r, tipo) => [
+        r.setor || "Não Informado",
+        r.demandas || 0,
+        r.valor_planejado || 0,
+        r.valor_executado || 0,
+        r.saldo || 0,
+      ],
+      title: (n) => `Extrato Consolidado Setorial (${n} setores)`
     },
   };
 
@@ -517,7 +501,6 @@ const Relatorios = () => {
       if (rType === 'auditoria') {
         const ids = sourceRows.map(r => r.id);
         if (ids.length) {
-          // Batch requests to avoid URL length limits
           const batchSize = 50;
           const promises = [];
           for (let i = 0; i < ids.length; i += batchSize) {
@@ -542,7 +525,7 @@ const Relatorios = () => {
             conformidade: map[r.id] || 0
           }));
         }
-      } else if (rType === 'prazos_criticos') {
+      } else if (rType === 'prazos_riscos') {
         sourceRows = sourceRows.filter(r => {
           const status = getPrazoStatus(r);
           return status.variant === 'destructive' || status.variant === 'warning';
@@ -553,14 +536,28 @@ const Relatorios = () => {
           if (sa.variant === sb.variant) return 0;
           return sa.variant === 'destructive' ? -1 : 1;
         });
-      } else if (rType === 'demandas_sobrestadas') {
+      } else if (rType === 'sobrestadas') {
         sourceRows = sourceRows.filter(r => r.sobrestado === true);
+      } else if (rType === 'orcamento_setorial') {
+        const sectorMap: Record<string, any> = {};
+        sourceRows.forEach(r => {
+          if (r.sobrestado === true) return;
+          const s = r.setor_requisitante || "Não Informado";
+          if (!sectorMap[s]) sectorMap[s] = { setor: s, demandas: 0, valor_planejado: 0, valor_executado: 0 };
+          sectorMap[s].demandas++;
+          sectorMap[s].valor_planejado += (Number(r.valor_ativo || r.valor_estimado) || 0);
+          sectorMap[s].valor_executado += (Number(r.valor_executado) || 0);
+        });
+        sourceRows = Object.values(sectorMap).map(s => ({
+          ...s,
+          saldo: s.valor_planejado - s.valor_executado
+        })).sort((a, b) => a.setor.localeCompare(b.setor, "pt-BR"));
       }
 
       if (tipo === "csv") {
         const header = def.csvColumns.join(",");
         const lines = sourceRows.map((r) => {
-          const data = def.mapRow(r).map((v) => {
+          const data = def.mapRow(r, "csv").map((v) => {
             if (typeof v === "string") return `"${String(v).replace(/\"/g, '""')}"`;
             return String(v);
           });
@@ -716,7 +713,7 @@ const Relatorios = () => {
         const anexoIHtml = sortedSectorsForAnexo.map((sector, index) => {
           const sectorRows = rowsBySector[sector];
           const sectorRowsHtml = sectorRows.map(r => {
-            const data = def.mapRow(r);
+            const data = def.mapRow(r, "pdf");
             return `
               <tr>
                 <td class="text-center" style="width: 7%; font-size: 7.5pt;">${data[0]}</td>
@@ -1689,15 +1686,17 @@ const Relatorios = () => {
           if (col === "Cod. PCA") return "col-ID";
           if (col === "Descrição") return "col-Descrição";
           if (col === "Setor") return "col-Setor";
+          if (col === "Setor Requisitante") return "col-Descrição"; // Para deixar mais largo no relatório setorial
           if (col === "Prioridade") return "col-Prioridade";
           if (col === "Status" || col === "Situação") return "col-Status";
           if (col.includes("Data")) return "col-Data";
           if (col === "SEI") return "col-SEI";
           if (col === "Conformidade") return "col-Status";
-          if (col === "Valor Estimado") return "col-Valor-Estimado";
+          if (col === "Valor Planejado") return "col-Valor-Estimado";
           if (col === "Valor Executado") return "col-Valor-Executado";
-          if (["Valor Contratado", "Valor", "Valor Unitário", "Valor Total Sobrestado"].includes(col)) return "col-Valor";
+          if (["Valor Contratado", "Valor", "Valor Unitário", "Valor Retido", "Saldo Restante"].includes(col)) return "col-Valor";
           if (col === "Tipo Sobr.") return "col-Status";
+          if (col === "Demandas" || col === "Demandas Ativas") return "col-ID";
           if (col === "Quantidade" || col === "Qtd") return "col-ID";
           return "";
         };
@@ -1705,13 +1704,14 @@ const Relatorios = () => {
         // Helper para gerar linhas de uma tabela
         const generateTableRowsHtml = (rowsList: any[]) => {
           return rowsList.map((r) => {
-            const data = def.mapRow(r);
+            const data = def.mapRow(r, "pdf");
             const formatted = data.map((v, i) => {
               const col = def.columns[i];
+              if (!col) return "";
               let val: string;
-              if (col.toLowerCase().includes("valor")) {
+              if (col.toLowerCase().includes("valor") || ["Saldo Restante", "Valor Retido"].includes(col)) {
                 val = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v) || 0);
-              } else if (col.toLowerCase().includes("quantidade") || col === "Qtd") {
+              } else if (col.toLowerCase().includes("quantidade") || col === "Qtd" || col === "Demandas Ativas" || col === "Demandas") {
                 val = new Intl.NumberFormat("pt-BR").format(Number(v) || 0);
               } else if (col.includes("Data")) {
                 const dt = String(v || "");
@@ -1725,11 +1725,11 @@ const Relatorios = () => {
                 val = String(v).replace(/</g, "&lt;");
               }
               const align =
-                col.toLowerCase().includes("valor")
+                (col.toLowerCase().includes("valor") || ["Saldo Restante", "Valor Retido"].includes(col))
                   ? "text-right"
-                  : col === "Descrição"
+                  : (col === "Descrição" || col === "Setor Requisitante")
                     ? "text-left"
-                    : ["Cod. PCA", "Setor", "Prioridade", "Status", "Situação", "Conformidade"].includes(col) || col.includes("Data")
+                    : ["Cod. PCA", "Setor", "Prioridade", "Status", "Situação", "Conformidade", "Demandas Ativas", "Demandas"].includes(col) || col.includes("Data")
                       ? "text-center"
                       : "text-left";
               return `<td class="${align} ${widthClass(col)}">${val}</td>`;
@@ -1739,13 +1739,13 @@ const Relatorios = () => {
         };
 
         const generateFooterRowHtml = (rowsList: any[]) => {
-          const gEst = rowsList.reduce((acc, r) => acc + (Number(r.valor_ativo || r.valor_estimado) || 0), 0);
+          if (!["gerencial_completo", "sobrestadas", "orcamento_setorial"].includes(rType)) return "";
+
+          const gEst = rowsList.reduce((acc, r) => acc + (Number(r.valor_ativo || r.valor_estimado || r.valor_planejado) || 0), 0);
           const gExec = rowsList.reduce((acc, r) => acc + (Number(r.valor_executado) || 0), 0);
           
-          if (!["por_status", "por_setor", "detalhado", "valores", "prioridades", "demandas_sobrestadas"].includes(rType)) return "";
-
           const cells = def.columns.map((col, i) => {
-            if (col === "Valor Estimado" || col === "Valor Ativo") {
+            if (col === "Valor Planejado") {
               return `<td class="text-right" style="font-weight: bold; background: #f3f4f6;">${formatCurrency(gEst)}</td>`;
             }
             if (col === "Valor Executado") {
@@ -1755,7 +1755,11 @@ const Relatorios = () => {
               const totalContratado = rowsList.reduce((acc, r) => acc + (Number(r.valor_contratado) || 0), 0);
               return `<td class="text-right" style="font-weight: bold; background: #f3f4f6;">${formatCurrency(totalContratado)}</td>`;
             }
-            if (col === "Valor Total Sobrestado") {
+            if (col === "Saldo Restante") {
+               const gSaldo = rowsList.reduce((acc, r) => acc + (Number(r.saldo) || 0), 0);
+              return `<td class="text-right" style="font-weight: bold; background: #f3f4f6;">${formatCurrency(gSaldo)}</td>`;
+            }
+            if (col === "Valor Retido") {
               const totalSobr = rowsList.reduce((acc, r) => acc + (Number(r.tipo_sobrestamento === 'parcial' ? r.valor_sobrestado : r.valor_estimado) || 0), 0);
               return `<td class="text-right" style="font-weight: bold; background: #f3f4f6;">${formatCurrency(totalSobr)}</td>`;
             }
@@ -1768,13 +1772,13 @@ const Relatorios = () => {
           return `<tr style="border-top: 2px solid #374151;">${cells}</tr>`;
         };
 
-        const totalEstimado = sourceRows.reduce((acc, r) => acc + (Number(r.valor_ativo || r.valor_estimado) || 0), 0);
+        const totalEstimado = sourceRows.reduce((acc, r) => acc + (Number(r.valor_ativo || r.valor_estimado || r.valor_planejado) || 0), 0);
         const totalExecutado = sourceRows.reduce((acc, r) => acc + (Number(r.valor_executado) || 0), 0);
         const formatCurrency = (v: any) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v) || 0);
 
         let reportContentHtml = "";
-        const isGrouped = ["por_status", "por_setor"].includes(rType);
-        const isLandscape = isGrouped || rType === "demandas_sobrestadas";
+        const isGrouped = false; // Removido isGrouped pois consolidamos em base_dados
+        const isLandscape = ["gerencial_completo", "sobrestadas", "orcamento_setorial"].includes(rType);
         const primary = "#D9415D";
         
         if (isGrouped) {

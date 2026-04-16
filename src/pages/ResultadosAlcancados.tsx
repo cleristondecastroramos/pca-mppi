@@ -149,7 +149,7 @@ const ResultadosAlcancados = () => {
                   const data = dadosPorUo.length ? dadosPorUo : [{ name: "Sem dados", value: 1 }];
                   const formatter = (v: number) => (metricUo === "valor_executado" ? fmtBRL(v) : v);
                   return (
-                    <PieChart width={400} height={220}>
+                    <PieChart>
                       <ChartTooltip content={<ChartTooltipContent formatter={(value: number) => <span>{formatter(value as number)}</span>} />} />
                       <Legend layout="horizontal" verticalAlign="bottom" align="center" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 10, lineHeight: "12px", marginTop: 6 }} />
                       <Pie data={data} dataKey="value" nameKey="name" innerRadius={54} outerRadius={94} labelLine={false}>
@@ -178,7 +178,7 @@ const ResultadosAlcancados = () => {
                   const data = dadosPorTipo.length ? dadosPorTipo : [{ name: "Sem dados", value: 1 }];
                   const formatter = (v: number) => (metricTipo === "valor_executado" ? fmtBRL(v) : v);
                   return (
-                    <PieChart width={400} height={220}>
+                    <PieChart>
                       <ChartTooltip content={<ChartTooltipContent formatter={(value: number) => <span>{formatter(value as number)}</span>} />} />
                       <Legend layout="horizontal" verticalAlign="bottom" align="center" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 10, lineHeight: "12px", marginTop: 6 }} />
                       <Pie data={data} dataKey="value" nameKey="name" innerRadius={54} outerRadius={94} labelLine={false}>
@@ -207,7 +207,7 @@ const ResultadosAlcancados = () => {
                   const data = dadosPorClasse.length ? dadosPorClasse : [{ name: "Sem dados", value: 1 }];
                   const formatter = (v: number) => (metricClasse === "valor_executado" ? fmtBRL(v) : v);
                   return (
-                    <PieChart width={400} height={220}>
+                    <PieChart>
                       <ChartTooltip content={<ChartTooltipContent formatter={(value: number) => <span>{formatter(value as number)}</span>} />} />
                       <Legend layout="horizontal" verticalAlign="bottom" align="center" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 10, lineHeight: "12px", marginTop: 6 }} />
                       <Pie data={data} dataKey="value" nameKey="name" innerRadius={54} outerRadius={94} labelLine={false}>
@@ -231,8 +231,7 @@ const ResultadosAlcancados = () => {
                 {(() => {
                   const chartData = dadosSetor.length ? dadosSetor : [{ setor: "Sem dados", valor: 1 }];
                   return (
-                    <ResponsiveContainer width="100%" height={320}>
-                      <BarChart data={chartData} margin={{ top: 24, right: 16, bottom: 8, left: 8 }}>
+                    <BarChart data={chartData} margin={{ top: 24, right: 16, bottom: 8, left: 8 }}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="setor" />
                         <YAxis hide domain={[0, 'dataMax + 1']} />
@@ -241,7 +240,6 @@ const ResultadosAlcancados = () => {
                           <LabelList dataKey="valor" position="top" formatter={(v: number) => fmtBRL(v)} fontSize={12} offset={12} />
                         </Bar>
                       </BarChart>
-                    </ResponsiveContainer>
                   );
                 })()}
               </ChartContainer>

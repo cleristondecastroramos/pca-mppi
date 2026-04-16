@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, Plus, Settings, LogOut, BarChart3, Users, CheckSquare, ClipboardList, Gauge, BadgeCheck, Clock, TrendingUp, AlertTriangle, HelpCircle, Terminal, BellRing, BookOpen, Gavel, Calculator, ListTodo } from "lucide-react";
+import { LayoutDashboard, FileText, Plus, Settings, LogOut, BarChart3, Users, CheckSquare, ClipboardList, Gauge, BadgeCheck, Clock, TrendingUp, AlertTriangle, HelpCircle, Terminal, BellRing, BookOpen, Gavel, Calculator, ListTodo, PauseCircle } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useUserRoles, useAuthSession, type PerfilAcesso } from "@/lib/auth";
 import {
@@ -25,7 +25,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
 import { prefetchPage } from "@/lib/prefetch";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 
 type MenuItem = {
   title: string;
@@ -36,16 +36,17 @@ type MenuItem = {
 
 const menuItems: MenuItem[] = [
   { title: "Visão Geral", url: "/visao-geral", icon: Gauge, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
-  { title: "Contratações", url: "/contratacoes", icon: ListTodo, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
-  { title: "Licitações SRP", url: "/licitacoes-srp", icon: Gavel, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
+  { title: "Demandas Ativas", url: "/demandas-ativas", icon: ListTodo, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
+  { title: "Demandas Suspensas", url: "/suspensas", icon: PauseCircle, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
   { title: "Setores Demandantes", url: "/setores-demandantes", icon: ClipboardList, allowedRoles: ["administrador", "gestor"] },
   { title: "Controle de Prazos", url: "/controle-prazos", icon: Clock, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
-  { title: "Pontos de Atenção", url: "/pontos-atencao", icon: AlertTriangle, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
+  { title: "Riscos e Pendências", url: "/riscos-pendencias", icon: AlertTriangle, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
   { title: "Prioridades de Contratação", url: "/prioridades-contratacao", icon: BadgeCheck, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
-  { title: "Avaliação e Conformidade", url: "/avaliacao-conformidade", icon: CheckSquare, allowedRoles: ["administrador", "gestor"] },
+  { title: "Conformidade", url: "/conformidade", icon: CheckSquare, allowedRoles: ["administrador", "gestor"] },
+  { title: "Licitações SRP", url: "/licitacoes-srp", icon: Gavel, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
   { title: "Resultados Alcançados", url: "/resultados-alcancados", icon: TrendingUp, allowedRoles: ["administrador", "gestor"] },
   { title: "Relatórios", url: "/relatorios", icon: BarChart3, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
-  { title: "Orçamento Planejado", url: "/orcamento-planejado", icon: Calculator, allowedRoles: ["administrador"] },
+  { title: "Orçamento", url: "/orcamento", icon: Calculator, allowedRoles: ["administrador"] },
   { title: "Gerenciamento de Usuários", url: "/gerenciamento-usuarios", icon: Users, allowedRoles: ["administrador"] },
   { title: "Notificações", url: "/notificacoes", icon: BellRing, allowedRoles: ["administrador"] },
 
@@ -141,7 +142,7 @@ export function AppSidebar() {
       {!collapsed && (
         <div className="flex flex-col px-4 pb-1 transition-opacity">
           <span className="text-[11px] font-mono text-sidebar-foreground/80">
-            v2.3.0
+            v2.4.0
           </span>
         </div>
       )}

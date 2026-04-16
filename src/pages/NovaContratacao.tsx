@@ -242,8 +242,8 @@ export default function NovaContratacao() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-xl font-bold text-foreground">Nova Contratação</h1>
-            <p className="text-sm text-muted-foreground">Cadastre uma nova contratação no PCA 2026</p>
+            <h1 className="text-xl font-bold text-foreground">Nova Demanda de Contratação</h1>
+            <p className="text-sm text-muted-foreground">Cadastre uma nova demanda de contratação no PCA 2026</p>
           </div>
         </div>
 

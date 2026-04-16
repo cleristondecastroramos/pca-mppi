@@ -407,7 +407,7 @@ export async function generateTutorialPdf() {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(...BLACK);
-  doc.text("2.3.0", labelX, fichaY + 4);
+  doc.text("2.4.0", labelX, fichaY + 4);
   fichaY += lineHeight;
   
   // Classificação
