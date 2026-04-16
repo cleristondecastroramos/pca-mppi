@@ -30,6 +30,12 @@ const formatId = (id: string, codigo?: string | null) => {
   return codigo.toUpperCase().replace(/^PCA-/, "").replace(/-2026$/, "");
 };
 
+const formatSetor = (setor: string | null) => {
+  if (!setor) return "-";
+  if (setor === "PLANEJAMENTO") return "PLAN";
+  return setor;
+};
+
 const ALL_VALUE = "__all__";
 
 type Filtros = {
@@ -377,6 +383,8 @@ const Suspensas = () => {
                   <TableRow className="bg-muted/50 hover:bg-muted/50">
                     <TableHead className="w-[120px] font-semibold text-center">Cod. PCA</TableHead>
                     <TableHead className="font-semibold max-w-[300px]">Descrição Resumida</TableHead>
+                    <TableHead className="w-[100px] font-semibold text-center">Setor</TableHead>
+                    <TableHead className="w-[120px] font-semibold text-center">Tipo</TableHead>
                     <TableHead className="w-[100px] font-semibold text-center">Unid.</TableHead>
                     <TableHead className="w-[140px] font-semibold text-right">Valor Retido</TableHead>
                     <TableHead className="w-[160px] font-semibold text-center">Hierarquia da Origem</TableHead>
@@ -408,6 +416,18 @@ const Suspensas = () => {
                           </TableCell>
                           <TableCell className="max-w-[300px] truncate" title={r.descricao || ""}>
                             {r.descricao || <span className="italic text-muted-foreground">S/ DESCRIÇÃO</span>}
+                          </TableCell>
+                          <TableCell className="text-center text-sm">
+                            {formatSetor(r.setor_requisitante)}
+                          </TableCell>
+                          <TableCell className="text-center text-sm">
+                            {(() => {
+                              const t = r.tipo_contratacao;
+                              if (!t) return "-";
+                              if (["Aditivo Quantitativo", "Repactuação", "Apostilamento", "Renovação"].includes(t)) return "Contrato";
+                              if (t === "Nova Contratação") return "Nova Contratação";
+                              return t;
+                            })()}
                           </TableCell>
                           <TableCell className="text-center text-xs text-muted-foreground">
                             {r.unidade_orcamentaria || "-"}

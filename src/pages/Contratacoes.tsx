@@ -1007,6 +1007,7 @@ export default function Contratacoes() {
                 <TableHead className="text-center w-[80px] text-white font-bold text-xs h-9">Cod. PCA</TableHead>
                 <TableHead onClick={() => handleSort("descricao")} className="text-center min-w-[180px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Descrição<SortIcon field="descricao" /></TableHead>
                 <TableHead onClick={() => handleSort("setor_requisitante")} className="text-center w-[90px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Setor<SortIcon field="setor_requisitante" /></TableHead>
+                <TableHead onClick={() => handleSort("tipo_contratacao")} className="text-center w-[100px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Tipo<SortIcon field="tipo_contratacao" /></TableHead>
                 <TableHead onClick={() => handleSort("classe")} className="text-center w-[110px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Classe<SortIcon field="classe" /></TableHead>
                 <TableHead onClick={() => handleSort("quantidade_itens")} className="text-center w-[80px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Quantidade<SortIcon field="quantidade_itens" /></TableHead>
                 <TableHead onClick={() => handleSort("valor_unitario")} className="text-center w-[120px] text-white font-bold text-xs h-9 cursor-pointer select-none hover:bg-primary/80">Valor Unitário<SortIcon field="valor_unitario" /></TableHead>
@@ -1039,6 +1040,15 @@ export default function Contratacoes() {
                         </div>
                       </TableCell>
                       <TableCell className="max-w-xs text-center">{formatSetor(contratacao.setor_requisitante)}</TableCell>
+                      <TableCell className="text-center">
+                        {(() => {
+                          const t = contratacao.tipo_contratacao;
+                          if (!t) return "-";
+                          if (["Aditivo Quantitativo", "Repactuação", "Apostilamento", "Renovação"].includes(t)) return "Contrato";
+                          if (t === "Nova Contratação") return "Nova Contratação";
+                          return t;
+                        })()}
+                      </TableCell>
                       <TableCell className="text-center">{contratacao.classe || "-"}</TableCell>
                       <TableCell className="text-center">{contratacao.quantidade_itens != null ? new Intl.NumberFormat("pt-BR").format(contratacao.quantidade_itens) : "-"}</TableCell>
                       <TableCell className="text-right">
