@@ -82,6 +82,7 @@ const Suspensas = () => {
       .from('contratacoes')
       .select('*, parent_id, parent:parent_id(codigo)')
       .eq('sobrestado', true)
+      .neq('srp', true)
       .order('parent_id')
       .order('created_at', { ascending: false });
 

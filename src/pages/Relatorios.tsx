@@ -305,7 +305,7 @@ const Relatorios = () => {
             r.grau_prioridade || "",
             r.modalidade || "",
             statusLabel(r),
-            isParcial ? (r.valor_sobrestado || 0) : (r.valor_estimado || 0),
+            r.valor_estimado || 0,
             r.valor_contratado || 0,
             (r.valor_executado || r.valor_contratado || 0),
           ];
@@ -325,9 +325,9 @@ const Relatorios = () => {
           r.sobrestado ? (r.tipo_sobrestamento === 'total' ? 'Total' : 'Parcial') : '-',
           r.data_prevista_contratacao || "",
           r.data_conclusao || "",
-          isParcial ? (r.quantidade_sobrestada || 0) : (r.quantidade_itens || 0),
+          isParcial ? (r.quantidade_sobrestada || r.quantidade_itens || 0) : (r.quantidade_itens || 0),
           r.valor_unitario || 0,
-          isParcial ? (r.valor_sobrestado || 0) : (r.valor_estimado || 0),
+          r.valor_estimado || 0,
           r.valor_contratado || 0,
           (r.valor_executado || r.valor_contratado || 0),
         ];
@@ -389,16 +389,15 @@ const Relatorios = () => {
       columns: ["Cod. PCA", "Descrição", "Setor", "Tipo Sobr.", "Quantidade", "Valor Unitário", "Valor Retido"],
       csvColumns: ["Cod. PCA", "Descrição", "Setor", "Unidade Orçamentária", "Tipo Sobrestamento", "Quantidade Retida", "Valor Unitário", "Valor Retido"],
       mapRow: (r, tipo) => {
-        const isParcial = r.tipo_sobrestamento === 'parcial';
         if (tipo === "pdf") {
           return [
             formatId(r.id, r.codigo),
             String(r.descricao || ""),
             r.setor_requisitante || "",
             r.tipo_sobrestamento === 'total' ? 'Total' : 'Parcial',
-            isParcial ? (r.quantidade_sobrestada || 0) : (r.quantidade_itens || 0),
+            r.quantidade_itens || 0,
             r.valor_unitario || 0,
-            isParcial ? (r.valor_sobrestado || 0) : (r.valor_estimado || 0),
+            r.valor_estimado || 0,
           ];
         }
         return [
@@ -407,9 +406,9 @@ const Relatorios = () => {
           r.setor_requisitante || "",
           r.unidade_orcamentaria || "",
           r.tipo_sobrestamento === 'total' ? 'Total' : 'Parcial',
-          isParcial ? (r.quantidade_sobrestada || 0) : (r.quantidade_itens || 0),
+          r.quantidade_itens || 0,
           r.valor_unitario || 0,
-          isParcial ? (r.valor_sobrestado || 0) : (r.valor_estimado || 0),
+          r.valor_estimado || 0,
         ];
       },
       title: (n) => `Relação de Demandas Suspensas e Retidas (${n} registros)`,
@@ -545,7 +544,7 @@ const Relatorios = () => {
           const s = r.setor_requisitante || "Não Informado";
           if (!sectorMap[s]) sectorMap[s] = { setor: s, demandas: 0, valor_planejado: 0, valor_executado: 0 };
           sectorMap[s].demandas++;
-          sectorMap[s].valor_planejado += (Number(r.valor_ativo || r.valor_estimado) || 0);
+          sectorMap[s].valor_planejado += (Number(r.valor_estimado) || 0);
           sectorMap[s].valor_executado += (Number(r.valor_executado || r.valor_contratado || 0));
         });
         sourceRows = Object.values(sectorMap).map(s => ({
@@ -1741,7 +1740,7 @@ const Relatorios = () => {
         const generateFooterRowHtml = (rowsList: any[]) => {
           if (!["gerencial_completo", "sobrestadas", "orcamento_setorial"].includes(rType)) return "";
 
-          const gEst = rowsList.reduce((acc, r) => acc + (Number(r.valor_ativo || r.valor_estimado || r.valor_planejado) || 0), 0);
+          const gEst = rowsList.reduce((acc, r) => acc + (Number(r.valor_estimado || r.valor_planejado) || 0), 0);
           const gExec = rowsList.reduce((acc, r) => acc + (Number(r.valor_executado || r.valor_contratado || 0)), 0);
           
           const cells = def.columns.map((col, i) => {
@@ -1760,7 +1759,7 @@ const Relatorios = () => {
               return `<td class="text-right" style="font-weight: bold; background: #f3f4f6;">${formatCurrency(gSaldo)}</td>`;
             }
             if (col === "Valor Retido") {
-              const totalSobr = rowsList.reduce((acc, r) => acc + (Number(r.tipo_sobrestamento === 'parcial' ? r.valor_sobrestado : r.valor_estimado) || 0), 0);
+              const totalSobr = rowsList.reduce((acc, r) => acc + (Number(r.valor_estimado) || 0), 0);
               return `<td class="text-right" style="font-weight: bold; background: #f3f4f6;">${formatCurrency(totalSobr)}</td>`;
             }
             const firstValorIdx = def.columns.findIndex(c => c.toLowerCase().includes("valor"));
