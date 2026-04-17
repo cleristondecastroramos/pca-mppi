@@ -307,7 +307,7 @@ const Relatorios = () => {
             statusLabel(r),
             isParcial ? (r.valor_sobrestado || 0) : (r.valor_estimado || 0),
             r.valor_contratado || 0,
-            r.valor_executado || 0,
+            (r.valor_executado || r.valor_contratado || 0),
           ];
         }
         return [
@@ -329,7 +329,7 @@ const Relatorios = () => {
           r.valor_unitario || 0,
           isParcial ? (r.valor_sobrestado || 0) : (r.valor_estimado || 0),
           r.valor_contratado || 0,
-          r.valor_executado || 0,
+          (r.valor_executado || r.valor_contratado || 0),
         ];
       },
       title: (n) => `Relatório Gerencial — Base Completa (${n} registros)`,
@@ -424,7 +424,7 @@ const Relatorios = () => {
         r.setor || "Não Informado",
         r.demandas || 0,
         r.valor_planejado || 0,
-        r.valor_executado || 0,
+        (r.valor_executado || r.valor_contratado || 0),
         r.saldo || 0,
       ],
       title: (n) => `Extrato Consolidado Setorial (${n} setores)`
@@ -546,7 +546,7 @@ const Relatorios = () => {
           if (!sectorMap[s]) sectorMap[s] = { setor: s, demandas: 0, valor_planejado: 0, valor_executado: 0 };
           sectorMap[s].demandas++;
           sectorMap[s].valor_planejado += (Number(r.valor_ativo || r.valor_estimado) || 0);
-          sectorMap[s].valor_executado += (Number(r.valor_executado) || 0);
+          sectorMap[s].valor_executado += (Number(r.valor_executado || r.valor_contratado || 0));
         });
         sourceRows = Object.values(sectorMap).map(s => ({
           ...s,
@@ -1742,7 +1742,7 @@ const Relatorios = () => {
           if (!["gerencial_completo", "sobrestadas", "orcamento_setorial"].includes(rType)) return "";
 
           const gEst = rowsList.reduce((acc, r) => acc + (Number(r.valor_ativo || r.valor_estimado || r.valor_planejado) || 0), 0);
-          const gExec = rowsList.reduce((acc, r) => acc + (Number(r.valor_executado) || 0), 0);
+          const gExec = rowsList.reduce((acc, r) => acc + (Number(r.valor_executado || r.valor_contratado || 0)), 0);
           
           const cells = def.columns.map((col, i) => {
             if (col === "Valor Planejado") {
@@ -1773,7 +1773,7 @@ const Relatorios = () => {
         };
 
         const totalEstimado = sourceRows.reduce((acc, r) => acc + (Number(r.valor_ativo || r.valor_estimado || r.valor_planejado) || 0), 0);
-        const totalExecutado = sourceRows.reduce((acc, r) => acc + (Number(r.valor_executado) || 0), 0);
+        const totalExecutado = sourceRows.reduce((acc, r) => acc + (Number(r.valor_executado || r.valor_contratado || 0)), 0);
         const formatCurrency = (v: any) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v) || 0);
 
         let reportContentHtml = "";

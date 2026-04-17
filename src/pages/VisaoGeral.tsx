@@ -323,7 +323,7 @@ const VisaoGeral = () => {
     const activeRows = filteredRows.filter(r => r.sobrestado !== true);
     const totalDemandas = activeRows.length;
     const totalEstimado = activeRows.reduce((sum, r) => sum + (r.valor_estimado || 0), 0);
-    const totalExecutado = activeRows.reduce((sum, r) => sum + (r.valor_executado || 0), 0);
+    const totalExecutado = activeRows.reduce((sum, r) => sum + (r.valor_executado || r.valor_contratado || 0), 0);
     const totalConcluidas = activeRows.filter((r) => r.etapa_processo === "Concluído").length;
     return { totalDemandas, totalEstimado, totalExecutado, totalConcluidas, totalDemandasComSobrestadas: filteredRows.length };
   }, [filteredRows]);

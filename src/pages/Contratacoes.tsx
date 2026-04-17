@@ -362,6 +362,8 @@ export default function Contratacoes() {
         valor_estimado: editingContratacao.valor_estimado,
         // Lê o valor diretamente do estado local do input (fonte única de verdade)
         valor_contratado: parseCurrencyInput(valorExecutadoInput),
+        // Sincroniza o valor_executado com o valor_contratado para garantir que KPIs e relatórios reflitam a alteração
+        valor_executado: parseCurrencyInput(valorExecutadoInput),
         etapa_processo: etapaFinal,
         sobrestado: isSobrestado,
         tipo_sobrestamento: (editingContratacao as any).tipo_sobrestamento || null,
@@ -635,7 +637,7 @@ export default function Contratacoes() {
   };
 
   const getExecutado = (r: any) => {
-    return r.valor_executado || 0;
+    return r.valor_executado || r.valor_contratado || 0;
   };
 
   const formatCurrency = (value: number | null) => {
