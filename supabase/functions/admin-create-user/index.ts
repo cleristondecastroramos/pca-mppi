@@ -77,8 +77,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log(`Iniciando processamento para ${email}. Role: ${role}. Senha: ${!!provisional_password}`);
-    
     const payload = await req.json();
     const email: string | undefined = payload?.email;
     const nome_completo: string | undefined = payload?.nome_completo;
@@ -87,6 +85,8 @@ Deno.serve(async (req) => {
     const cargo: string | undefined = payload?.cargo;
     const role: string | undefined = payload?.role;
     const provisional_password: string | undefined = payload?.provisional_password;
+
+    console.log(`Iniciando processamento para ${email}. Role: ${role}. Senha: ${!!provisional_password}`);
 
     if (!email || !nome_completo || !isValidRole(role)) {
       console.error("Campos obrigatórios ausentes:", { email, nome_completo, role });

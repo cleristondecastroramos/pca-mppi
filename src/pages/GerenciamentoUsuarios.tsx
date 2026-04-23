@@ -206,16 +206,26 @@ const GerenciamentoUsuarios = () => {
         role: editRole,
       };
       
-      console.log("Iniciando edição de usuário:", payload);
+      console.log("[Gerenciamento] Chamando admin-update-user com payload:", payload);
       
-      const { data, error: invokeError } = await supabase.functions.invoke("admin-update-user", {
+      // Timeout de 30 segundos
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Tempo limite da requisição excedido (30s)")), 30000)
+      );
+
+      const invokePromise = supabase.functions.invoke("admin-update-user", {
         body: payload,
       });
 
-      if (invokeError) throw invokeError;
+      const { data, error: invokeError } = await Promise.race([invokePromise, timeoutPromise]) as any;
+
+      if (invokeError) {
+        console.error("[Gerenciamento] Erro no invokeError:", invokeError);
+        throw invokeError;
+      }
 
       const response = typeof data === "string" ? JSON.parse(data) : data;
-      console.log("Resposta update-user:", response);
+      console.log("[Gerenciamento] Resposta do servidor:", response);
 
       if (response?.error) {
         throw new Error(response.error);
@@ -227,11 +237,11 @@ const GerenciamentoUsuarios = () => {
         setEditTarget(null);
         await loadUsers();
       } else {
-        console.warn("Resposta inesperada do servidor:", response);
-        toast.warning("O servidor não confirmou a atualização, mas não retornou erro.", { id: toastId });
+        console.warn("[Gerenciamento] Resposta inesperada:", response);
+        toast.warning("O servidor não confirmou a atualização.", { id: toastId });
       }
     } catch (e: any) {
-      console.error("Erro ao atualizar usuário:", e);
+      console.error("[Gerenciamento] Erro capturado:", e);
       toast.error("Falha ao atualizar usuário", { 
         id: toastId,
         description: translateError(e.message || "Erro desconhecido") 
@@ -269,16 +279,26 @@ const GerenciamentoUsuarios = () => {
         provisional_password: newProvisionalPassword || undefined,
       };
       
-      console.log("Iniciando cadastro de usuário:", payload);
+      console.log("[Gerenciamento] Chamando admin-create-user com payload:", payload);
       
-      const { data, error: invokeError } = await supabase.functions.invoke("admin-create-user", {
+      // Timeout de 30 segundos
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Tempo limite da requisição excedido (30s)")), 30000)
+      );
+
+      const invokePromise = supabase.functions.invoke("admin-create-user", {
         body: payload,
       });
 
-      if (invokeError) throw invokeError;
+      const { data, error: invokeError } = await Promise.race([invokePromise, timeoutPromise]) as any;
+
+      if (invokeError) {
+        console.error("[Gerenciamento] Erro no invokeError:", invokeError);
+        throw invokeError;
+      }
 
       const response = typeof data === "string" ? JSON.parse(data) : data;
-      console.log("Resposta create-user:", response);
+      console.log("[Gerenciamento] Resposta do servidor:", response);
 
       if (response?.error) {
         throw new Error(response.error);
@@ -294,11 +314,11 @@ const GerenciamentoUsuarios = () => {
         
         await loadUsers();
       } else {
-        console.warn("Resposta inesperada do servidor:", response);
+        console.warn("[Gerenciamento] Resposta inesperada:", response);
         toast.warning("Resposta inconclusiva do servidor.", { id: toastId });
       }
     } catch (e: any) {
-      console.error("Erro ao cadastrar usuário:", e);
+      console.error("[Gerenciamento] Erro capturado:", e);
       toast.error("Falha ao cadastrar usuário", { 
         id: toastId,
         description: translateError(e.message || "Erro desconhecido") 
