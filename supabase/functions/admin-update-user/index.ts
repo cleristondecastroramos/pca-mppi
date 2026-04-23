@@ -48,10 +48,13 @@ Deno.serve(async (req) => {
     const { user_id, nome_completo, setor, setores_adicionais, cargo, role } = payload;
 
     if (!user_id) {
+      console.error("user_id ausente no payload");
       return new Response(JSON.stringify({ error: "Missing user_id" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    console.log(`Iniciando atualização para usuário ${user_id}...`);
 
     // Update profile
     const profileUpdate: Record<string, any> = {};
@@ -61,21 +64,37 @@ Deno.serve(async (req) => {
     if (cargo !== undefined) profileUpdate.cargo = cargo;
 
     if (Object.keys(profileUpdate).length > 0) {
+      console.log("Atualizando dados do perfil:", Object.keys(profileUpdate));
       const { error: profError } = await supabaseAdmin
         .from("profiles")
         .update(profileUpdate)
         .eq("id", user_id);
-      if (profError) throw profError;
+      if (profError) {
+        console.error("Erro ao atualizar profile:", profError.message);
+        throw profError;
+      }
+      console.log("Perfil atualizado com sucesso.");
     }
 
     // Update role if provided (replace all roles with the new one)
     if (role) {
-      await supabaseAdmin.from("user_roles").delete().eq("user_id", user_id);
+      console.log(`Atualizando role para '${role}'...`);
+      const { error: delError } = await supabaseAdmin.from("user_roles").delete().eq("user_id", user_id);
+      if (delError) {
+        console.warn("Erro ao deletar roles antigas:", delError.message);
+      }
+      
       const { error: roleError } = await supabaseAdmin
         .from("user_roles")
         .insert({ user_id, role });
-      if (roleError) throw roleError;
+      if (roleError) {
+        console.error("Erro ao inserir nova role:", roleError.message);
+        throw roleError;
+      }
+      console.log("Role atualizada com sucesso.");
     }
+
+    console.log("Processo de atualização finalizado com sucesso.");
 
     return new Response(JSON.stringify({ ok: true }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },

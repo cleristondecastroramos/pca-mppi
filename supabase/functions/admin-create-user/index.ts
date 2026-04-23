@@ -77,27 +77,29 @@ Deno.serve(async (req) => {
       });
     }
 
+    console.log(`Iniciando processamento para ${email}. Role: ${role}. Senha: ${!!provisional_password}`);
+    
     const payload = await req.json();
     const email: string | undefined = payload?.email;
     const nome_completo: string | undefined = payload?.nome_completo;
     const setor: string | undefined = payload?.setor;
-    const setores_adicionais: string[] | undefined = payload?.setores_adicionais;
+    const setores_adicionais: string[] | undefined = payload?.setores_adicionais || [];
     const cargo: string | undefined = payload?.cargo;
     const role: string | undefined = payload?.role;
     const provisional_password: string | undefined = payload?.provisional_password;
 
     if (!email || !nome_completo || !isValidRole(role)) {
+      console.error("Campos obrigatórios ausentes:", { email, nome_completo, role });
       return new Response(
         JSON.stringify({ error: "Missing required fields: email, nome_completo, role" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log("Creating user:", { email, role, hasPassword: !!provisional_password, setores_adicionais });
-
     // Cria usuário com senha provisória, ou convida se não houver senha
     let newUser: any = null;
     if (provisional_password && provisional_password.length >= 8) {
+      console.log("Tentando criar usuário com senha...");
       const { data: signUpData, error: signUpError } = await supabaseAdmin.auth.admin.createUser({
         email,
         password: provisional_password,
@@ -105,70 +107,85 @@ Deno.serve(async (req) => {
         user_metadata: { nome_completo },
       });
       if (signUpError) {
-        console.error("createUser error:", signUpError.message);
+        console.error("Erro auth.admin.createUser:", signUpError.message);
         return new Response(JSON.stringify({ error: signUpError.message }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       newUser = signUpData.user;
-      console.log("User created with password:", newUser.id);
+      console.log("Usuário criado via Auth Admin:", newUser.id);
 
       // Define que deve trocar senha no primeiro login
       const { error: updateErr } = await supabaseAdmin.auth.admin.updateUserById(newUser.id, {
         user_metadata: { nome_completo, must_change_password: true },
       });
       if (updateErr) {
-        console.error("updateUserById error:", updateErr.message);
+        console.warn("Erro ao definir must_change_password (não crítico):", updateErr.message);
       }
     } else {
+      console.log("Tentando convidar usuário via e-mail...");
       const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
         data: { nome_completo },
       });
       if (inviteError) {
-        console.error("inviteUser error:", inviteError.message);
+        console.error("Erro auth.admin.inviteUserByEmail:", inviteError.message);
         return new Response(JSON.stringify({ error: inviteError.message }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       newUser = inviteData?.user;
-      console.log("User invited:", newUser?.id);
+      console.log("Usuário convidado via Auth Admin:", newUser?.id);
     }
 
     if (!newUser) {
-      return new Response(JSON.stringify({ error: "Failed to create user" }), {
+      console.error("newUser é nulo após tentativa de criação/convite");
+      return new Response(JSON.stringify({ error: "Failed to create user object" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     // Atualiza perfil com setor/cargo/nome (trigger handle_new_user já criou o profile)
+    console.log("Atualizando perfil na tabela 'profiles'...");
     const { error: profileErr } = await supabaseAdmin
       .from("profiles")
       .update({ nome_completo, setor, setores_adicionais, cargo, email })
       .eq("id", newUser.id);
+    
     if (profileErr) {
-      console.error("profile update error:", profileErr.message);
+      console.error("Erro ao atualizar profile:", profileErr.message);
+      // Não retornamos erro aqui pois o usuário Auth já foi criado, 
+      // mas registramos para debug.
+    } else {
+      console.log("Perfil atualizado com sucesso.");
     }
 
     // Atribui perfil de acesso escolhido (remove o role padrão do trigger)
+    console.log(`Atribuindo role '${role}' ao usuário ${newUser.id}...`);
     const { error: delRoleErr } = await supabaseAdmin
       .from("user_roles")
       .delete()
       .eq("user_id", newUser.id);
+    
     if (delRoleErr) {
-      console.error("delete role error:", delRoleErr.message);
+      console.warn("Erro ao remover roles antigas (não crítico):", delRoleErr.message);
     }
 
     const { error: insRoleErr } = await supabaseAdmin
       .from("user_roles")
       .insert({ user_id: newUser.id, role });
+    
     if (insRoleErr) {
-      console.error("insert role error:", insRoleErr.message);
+      console.error("Erro ao inserir nova role:", insRoleErr.message);
+      return new Response(JSON.stringify({ error: "User created but role assignment failed: " + insRoleErr.message }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    console.log("User creation complete:", newUser.id);
+    console.log("Processo de criação finalizado com sucesso.");
 
     return new Response(
       JSON.stringify({ ok: true, id: newUser.id }),

@@ -192,7 +192,10 @@ const GerenciamentoUsuarios = () => {
       toast.error("É obrigatório selecionar um setor para o usuário.");
       return;
     }
+    
+    const toastId = toast.loading("Salvando alterações...");
     setSaving(true);
+    
     try {
       const payload = {
         user_id: editTarget.id,
@@ -202,35 +205,35 @@ const GerenciamentoUsuarios = () => {
         cargo: editCargo,
         role: editRole,
       };
+      
       console.log("Iniciando edição de usuário:", payload);
       
-      const { data, error } = await supabase.functions.invoke("admin-update-user", {
+      const { data, error: invokeError } = await supabase.functions.invoke("admin-update-user", {
         body: payload,
       });
 
-      console.log("Resposta bruta update-user:", { data, error });
+      if (invokeError) throw invokeError;
 
-      if (error) {
-        throw error;
+      const response = typeof data === "string" ? JSON.parse(data) : data;
+      console.log("Resposta update-user:", response);
+
+      if (response?.error) {
+        throw new Error(response.error);
       }
 
-      const parsed = typeof data === "string" ? JSON.parse(data) : data;
-      if (parsed?.error) {
-        throw new Error(parsed.error);
-      }
-
-      if (parsed?.ok || parsed?.success) {
-        toast.success("Usuário atualizado com sucesso.");
+      if (response?.ok || response?.success) {
+        toast.success("Usuário atualizado com sucesso.", { id: toastId });
         setShowEdit(false);
         setEditTarget(null);
         await loadUsers();
       } else {
-        console.warn("Resposta inesperada do servidor:", parsed);
-        toast.warning("Usuário pode não ter sido atualizado corretamente.");
+        console.warn("Resposta inesperada do servidor:", response);
+        toast.warning("O servidor não confirmou a atualização, mas não retornou erro.", { id: toastId });
       }
     } catch (e: any) {
       console.error("Erro ao atualizar usuário:", e);
       toast.error("Falha ao atualizar usuário", { 
+        id: toastId,
         description: translateError(e.message || "Erro desconhecido") 
       });
     } finally {
@@ -251,7 +254,10 @@ const GerenciamentoUsuarios = () => {
       toast.error("A senha provisória deve ter pelo menos 8 caracteres.");
       return;
     }
+    
+    const toastId = toast.loading("Cadastrando novo usuário...");
     setCreating(true);
+    
     try {
       const payload = {
         email: newEmail,
@@ -262,37 +268,39 @@ const GerenciamentoUsuarios = () => {
         role: newRole,
         provisional_password: newProvisionalPassword || undefined,
       };
+      
       console.log("Iniciando cadastro de usuário:", payload);
       
-      const { data, error } = await supabase.functions.invoke("admin-create-user", {
+      const { data, error: invokeError } = await supabase.functions.invoke("admin-create-user", {
         body: payload,
       });
 
-      console.log("Resposta bruta create-user:", { data, error });
+      if (invokeError) throw invokeError;
 
-      if (error) {
-          throw error;
+      const response = typeof data === "string" ? JSON.parse(data) : data;
+      console.log("Resposta create-user:", response);
+
+      if (response?.error) {
+        throw new Error(response.error);
       }
 
-      const parsed = typeof data === "string" ? JSON.parse(data) : data;
-      if (parsed?.error) {
-          throw new Error(parsed.error);
-      }
-
-      if (parsed?.ok || parsed?.success || parsed?.user) {
-        toast.success("Usuário cadastrado com sucesso.");
+      if (response?.ok || response?.success || response?.user || response?.id) {
+        toast.success("Usuário cadastrado com sucesso.", { id: toastId });
         setShowCreate(false);
+        // Reset fields
         setNewEmail(""); setNewNome(""); setNewSetor(""); setNewCargo("");
         setNewSetoresAdicionais([]);
         setNewRole(undefined); setNewProvisionalPassword("");
+        
         await loadUsers();
       } else {
-        console.warn("Resposta inesperada do servidor:", parsed);
-        toast.warning("O usuário pode ter sido criado, mas a resposta foi inconclusiva.");
+        console.warn("Resposta inesperada do servidor:", response);
+        toast.warning("Resposta inconclusiva do servidor.", { id: toastId });
       }
     } catch (e: any) {
       console.error("Erro ao cadastrar usuário:", e);
       toast.error("Falha ao cadastrar usuário", { 
+        id: toastId,
         description: translateError(e.message || "Erro desconhecido") 
       });
     } finally {
