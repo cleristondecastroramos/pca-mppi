@@ -260,8 +260,8 @@ const GerenciamentoUsuarios = () => {
       toast.error("É obrigatório selecionar um setor para o novo usuário.");
       return;
     }
-    if (newProvisionalPassword && newProvisionalPassword.length < 8) {
-      toast.error("A senha provisória deve ter pelo menos 8 caracteres.");
+    if (!newProvisionalPassword || newProvisionalPassword.length < 8) {
+      toast.error("A senha provisória é obrigatória e deve ter pelo menos 8 caracteres.");
       return;
     }
     
@@ -680,7 +680,7 @@ const GerenciamentoUsuarios = () => {
                   </Select>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="text-sm text-muted-foreground">Senha provisória (opcional, mín. 8 caracteres)</label>
+                  <label className="text-sm text-muted-foreground">Senha provisória (obrigatória, mín. 8 caracteres)</label>
                   <Input type="password" value={newProvisionalPassword} onChange={(e) => setNewProvisionalPassword(e.target.value)} placeholder="Mínimo 8 caracteres" />
                 </div>
               </div>
