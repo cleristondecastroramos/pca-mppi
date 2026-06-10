@@ -36,6 +36,7 @@ const contratacaoSchema = z.object({
   valor_estimado: z.number().positive("Valor estimado deve ser maior que zero"),
   data_prevista_contratacao: z.string().min(1, "Data prevista é obrigatória"),
   data_entrada_clc: z.string().optional(),
+  numero_contrato: z.string().optional(),
 });
 
 export default function NovaContratacao() {
@@ -135,6 +136,7 @@ export default function NovaContratacao() {
       valor_unitario: valorUnitario,
       unidade_fornecimento: formData.get("unidade_fornecimento") as string,
       pdm_catser: formData.get("pdm_catser") as string,
+      numero_contrato: (formData.get("numero_contrato") as string) || null,
       srp: false,
       etapa_processo: "Planejamento",
     };
@@ -279,6 +281,11 @@ export default function NovaContratacao() {
                 <div className="space-y-2">
                   <Label htmlFor="pdm">PDM/CATSER</Label>
                   <Input name="pdm_catser" id="pdm" placeholder="Código do catálogo" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="numero_contrato">Número do Contrato</Label>
+                  <Input name="numero_contrato" id="numero_contrato" placeholder="Ex: 01/2026 (Opcional)" />
                 </div>
               </div>
 

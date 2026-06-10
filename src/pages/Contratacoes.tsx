@@ -53,6 +53,7 @@ type Contratacao = Tables<"contratacoes"> & { codigo?: string | null };
 type HistoricoItem = Tables<"contratacoes_historico"> & {
   profiles?: { nome_completo: string | null } | null;
 };
+import { TipoContratacaoFilter } from "@/components/TipoContratacaoFilter";
 
 export default function Contratacoes() {
   const [contratacoes, setContratacoes] = useState<Contratacao[]>([]);
@@ -382,6 +383,7 @@ export default function Contratacoes() {
         normativo: (editingContratacao as any).normativo,
         srp: (editingContratacao as any).srp === true,
         pdm_catser: (editingContratacao as any).pdm_catser || null,
+        numero_contrato: (editingContratacao as any).numero_contrato || null,
         numero_sei_contratacao: (editingContratacao as any).numero_sei_contratacao || null,
         data_prevista_contratacao: (editingContratacao as any).data_prevista_contratacao || null,
         updated_at: new Date().toISOString(),
@@ -534,7 +536,11 @@ export default function Contratacoes() {
     const applyEq = (field: keyof Filtros, itemField: keyof Contratacao) => {
       const v = filtros[field];
       if (v && v !== ALL_VALUE) {
-        result = result.filter((item) => String(item[itemField]) === v);
+        if (field === "tipo_contratacao" && v === "__contrato_vigente__") {
+          result = result.filter((item) => ["Renovação", "Apostilamento", "Aditivo Quantitativo", "Repactuação"].includes(String(item[itemField])));
+        } else {
+          result = result.filter((item) => String(item[itemField]) === v);
+        }
       }
     };
 
@@ -901,17 +907,10 @@ export default function Contratacoes() {
               </div>
               <div className="w-[160px] shrink-0 -ml-1">
                 <div className="text-[10px] font-medium text-muted-foreground px-1">Tipo de Contratação:</div>
-                <Select onValueChange={(v) => setFiltro("tipo_contratacao", v)} value={filtros.tipo_contratacao}>
-                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm">
-                    <SelectValue placeholder="" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
-                    {distinctOptions.tipo_contratacao.map((opt) => (
-                      <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <TipoContratacaoFilter
+                  value={filtros.tipo_contratacao || ALL_VALUE}
+                  onValueChange={(v) => setFiltro("tipo_contratacao", v)}
+                />
               </div>
               <div className="w-[130px] shrink-0">
                 <div className="text-[10px] font-medium text-muted-foreground px-1">Tipo de Recurso:</div>
@@ -1424,6 +1423,19 @@ export default function Contratacoes() {
                       value={(editingContratacao as any).pdm_catser || ""}
                       onChange={(e) =>
                         setEditingContratacao({ ...editingContratacao, pdm_catser: e.target.value } as any)
+                      }
+                      className="h-8 text-xs focus-visible:ring-1"
+                    />
+                  </div>
+                  <div className="space-y-1.5 sm:col-span-3">
+                    <Label htmlFor="edit-numero-contrato" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Número do Contrato</Label>
+                    <Input
+                      id="edit-numero-contrato"
+                      type="text"
+                      placeholder="Ex: 01/2026"
+                      value={(editingContratacao as any).numero_contrato || ""}
+                      onChange={(e) =>
+                        setEditingContratacao({ ...editingContratacao, numero_contrato: e.target.value } as any)
                       }
                       className="h-8 text-xs focus-visible:ring-1"
                     />

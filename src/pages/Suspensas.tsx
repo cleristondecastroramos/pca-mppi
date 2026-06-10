@@ -21,6 +21,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { TipoContratacaoFilter } from "@/components/TipoContratacaoFilter";
 
 const formatCurrencyBRL = (v: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v || 0);
@@ -147,7 +148,11 @@ const Suspensas = () => {
     const applyEq = (filtroKey: keyof Filtros, rowKey: string) => {
       const v = filtros[filtroKey];
       if (v && v !== ALL_VALUE) {
-        result = result.filter((r) => String(r[rowKey]) === v);
+        if (filtroKey === "tipo_contratacao" && v === "__contrato_vigente__") {
+          result = result.filter((r) => ["Renovação", "Apostilamento", "Aditivo Quantitativo", "Repactuação"].includes(String(r[rowKey])));
+        } else {
+          result = result.filter((r) => String(r[rowKey]) === v);
+        }
       }
     };
 
@@ -270,17 +275,10 @@ const Suspensas = () => {
               </div>
               <div className="w-[160px] shrink-0 -ml-1">
                 <div className="text-[10px] font-medium text-muted-foreground px-1">Tipo de Contratação:</div>
-                <Select onValueChange={(v) => setFiltro("tipo_contratacao", v)} value={filtros.tipo_contratacao}>
-                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm">
-                    <SelectValue placeholder="" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
-                    {distinctOptions.tipo_contratacao.map((opt) => (
-                      <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <TipoContratacaoFilter
+                  value={filtros.tipo_contratacao || ALL_VALUE}
+                  onValueChange={(v) => setFiltro("tipo_contratacao", v)}
+                />
               </div>
               <div className="w-[130px] shrink-0">
                 <div className="text-[10px] font-medium text-muted-foreground px-1">Tipo de Recurso:</div>

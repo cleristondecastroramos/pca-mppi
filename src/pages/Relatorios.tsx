@@ -50,7 +50,7 @@ const Relatorios = () => {
   const fetchAllContratacoes = async () => {
     let query = supabase
       .from("contratacoes")
-      .select("id, codigo, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, srp, numero_sei_contratacao, etapa_processo, sobrestado, tipo_sobrestamento, valor_ativo, quantidade_sobrestada, valor_sobrestado, quantidade_ativa, created_at, data_finalizacao_licitacao, valor_estimado, valor_contratado, data_prevista_contratacao, quantidade_itens, valor_unitario, data_conclusao, valor_executado")
+      .select("id, codigo, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, srp, numero_sei_contratacao, etapa_processo, sobrestado, tipo_sobrestamento, valor_ativo, quantidade_sobrestada, valor_sobrestado, quantidade_ativa, created_at, data_finalizacao_licitacao, valor_estimado, valor_contratado, data_prevista_contratacao, quantidade_itens, valor_unitario, data_conclusao, valor_executado, numero_contrato, updated_at")
       .neq("srp", true);
 
     if (isSetorRequisitante) {
@@ -616,6 +616,8 @@ const Relatorios = () => {
           ...s,
           saldo: s.valor_planejado - s.valor_executado
         })).sort((a, b) => a.setor.localeCompare(b.setor, "pt-BR"));
+      } else if (rType === 'numero_contratos') {
+        sourceRows = sourceRows.filter(r => r.numero_contrato && r.numero_contrato.trim() !== "");
       }
 
       if (tipo === "csv") {

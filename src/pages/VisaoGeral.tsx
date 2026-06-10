@@ -13,6 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis, LabelList, PieChart, Pie, Cell, Legend } from "recharts";
 import { useAuthSession, useUserRoles, useUserProfile, hasAnyRole } from "@/lib/auth";
+import { TipoContratacaoFilter } from "@/components/TipoContratacaoFilter";
 
 const ALL_VALUE = "__all__";
 
@@ -174,7 +175,13 @@ const VisaoGeral = () => {
 
       if (filtros.unidade_orcamentaria && filtros.unidade_orcamentaria !== ALL_VALUE) query = query.eq("unidade_orcamentaria", filtros.unidade_orcamentaria);
       if (filtros.setor_requisitante && filtros.setor_requisitante !== ALL_VALUE) query = query.eq("setor_requisitante", filtros.setor_requisitante);
-      if (filtros.tipo_contratacao && filtros.tipo_contratacao !== ALL_VALUE) query = query.eq("tipo_contratacao", filtros.tipo_contratacao);
+      if (filtros.tipo_contratacao && filtros.tipo_contratacao !== ALL_VALUE) {
+        if (filtros.tipo_contratacao === "__contrato_vigente__") {
+          query = query.in("tipo_contratacao", ["Renovação", "Apostilamento", "Aditivo Quantitativo", "Repactuação"]);
+        } else {
+          query = query.eq("tipo_contratacao", filtros.tipo_contratacao);
+        }
+      }
       if (filtros.tipo_recurso && filtros.tipo_recurso !== ALL_VALUE) query = query.eq("tipo_recurso", filtros.tipo_recurso);
       if (filtros.classe && filtros.classe !== ALL_VALUE) query = query.eq("classe", filtros.classe);
       if (filtros.grau_prioridade && filtros.grau_prioridade !== ALL_VALUE) query = query.eq("grau_prioridade", filtros.grau_prioridade);
@@ -523,17 +530,10 @@ const VisaoGeral = () => {
               </div>
               <div className="w-[160px] shrink-0 -ml-1">
                 <div className="text-[10px] font-medium text-muted-foreground px-1">Tipo de Contratação:</div>
-                <Select onValueChange={(v) => setFiltro("tipo_contratacao", v)} value={filtros.tipo_contratacao}>
-                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm">
-                    <SelectValue placeholder="" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem className="text-xs" value={ALL_VALUE}>Todos</SelectItem>
-                    {distinctOptions.tipo_contratacao.map((opt) => (
-                      <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <TipoContratacaoFilter
+                  value={filtros.tipo_contratacao || ALL_VALUE}
+                  onValueChange={(v) => setFiltro("tipo_contratacao", v)}
+                />
               </div>
               <div className="w-[130px] shrink-0">
                 <div className="text-[10px] font-medium text-muted-foreground px-1">Tipo de Recurso:</div>
