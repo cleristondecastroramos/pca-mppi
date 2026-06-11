@@ -27,6 +27,7 @@ export type Database = {
           data_entrada_clc: string | null
           data_envio_pgea: string | null
           data_finalizacao_licitacao: string | null
+          data_migracao_sobrestamento: string | null
           data_prevista_contratacao: string | null
           data_termino_contrato: string | null
           descricao: string
@@ -42,10 +43,12 @@ export type Database = {
           numero_contrato: string | null
           numero_sei_contratacao: string | null
           numero_sei_licitacao: string | null
+          parent_id: string | null
           pdm_catser: string | null
           quantidade_ativa: number | null
-          quantidade_sobrestada: number | null
+          quantidade_devolucoes: number | null
           quantidade_itens: number | null
+          quantidade_sobrestada: number | null
           saldo_orcamentario: number | null
           setor_atual: string | null
           setor_requisitante: string
@@ -55,8 +58,8 @@ export type Database = {
           status_inicio: string | null
           tipo_contratacao: string
           tipo_material_servico: string | null
-          tipo_sobrestamento: string | null
           tipo_recurso: string
+          tipo_sobrestamento: string | null
           unidade_beneficiaria: string | null
           unidade_fornecimento: string | null
           unidade_orcamentaria: string
@@ -81,6 +84,7 @@ export type Database = {
           data_entrada_clc?: string | null
           data_envio_pgea?: string | null
           data_finalizacao_licitacao?: string | null
+          data_migracao_sobrestamento?: string | null
           data_prevista_contratacao?: string | null
           data_termino_contrato?: string | null
           descricao: string
@@ -96,10 +100,12 @@ export type Database = {
           numero_contrato?: string | null
           numero_sei_contratacao?: string | null
           numero_sei_licitacao?: string | null
+          parent_id?: string | null
           pdm_catser?: string | null
           quantidade_ativa?: number | null
-          quantidade_sobrestada?: number | null
+          quantidade_devolucoes?: number | null
           quantidade_itens?: number | null
+          quantidade_sobrestada?: number | null
           saldo_orcamentario?: number | null
           setor_atual?: string | null
           setor_requisitante: string
@@ -109,8 +115,8 @@ export type Database = {
           status_inicio?: string | null
           tipo_contratacao: string
           tipo_material_servico?: string | null
-          tipo_sobrestamento?: string | null
           tipo_recurso: string
+          tipo_sobrestamento?: string | null
           unidade_beneficiaria?: string | null
           unidade_fornecimento?: string | null
           unidade_orcamentaria: string
@@ -135,6 +141,7 @@ export type Database = {
           data_entrada_clc?: string | null
           data_envio_pgea?: string | null
           data_finalizacao_licitacao?: string | null
+          data_migracao_sobrestamento?: string | null
           data_prevista_contratacao?: string | null
           data_termino_contrato?: string | null
           descricao?: string
@@ -150,10 +157,12 @@ export type Database = {
           numero_contrato?: string | null
           numero_sei_contratacao?: string | null
           numero_sei_licitacao?: string | null
+          parent_id?: string | null
           pdm_catser?: string | null
           quantidade_ativa?: number | null
-          quantidade_sobrestada?: number | null
+          quantidade_devolucoes?: number | null
           quantidade_itens?: number | null
+          quantidade_sobrestada?: number | null
           saldo_orcamentario?: number | null
           setor_atual?: string | null
           setor_requisitante?: string
@@ -163,8 +172,8 @@ export type Database = {
           status_inicio?: string | null
           tipo_contratacao?: string
           tipo_material_servico?: string | null
-          tipo_sobrestamento?: string | null
           tipo_recurso?: string
+          tipo_sobrestamento?: string | null
           unidade_beneficiaria?: string | null
           unidade_fornecimento?: string | null
           unidade_orcamentaria?: string
@@ -177,7 +186,15 @@ export type Database = {
           valor_sobrestado?: number | null
           valor_unitario?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "contratacoes_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "contratacoes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contratacoes_conformidade: {
         Row: {
@@ -489,6 +506,45 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      relacao_sobrestamento: {
+        Row: {
+          contratacao_filha: string | null
+          contratacao_origem: string | null
+          created_at: string | null
+          id: string
+          quantidade_transferida: number | null
+        }
+        Insert: {
+          contratacao_filha?: string | null
+          contratacao_origem?: string | null
+          created_at?: string | null
+          id?: string
+          quantidade_transferida?: number | null
+        }
+        Update: {
+          contratacao_filha?: string | null
+          contratacao_origem?: string | null
+          created_at?: string | null
+          id?: string
+          quantidade_transferida?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relacao_sobrestamento_contratacao_filha_fkey"
+            columns: ["contratacao_filha"]
+            isOneToOne: false
+            referencedRelation: "contratacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacao_sobrestamento_contratacao_origem_fkey"
+            columns: ["contratacao_origem"]
+            isOneToOne: false
+            referencedRelation: "contratacoes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       srp_ata_adesao_itens: {
         Row: {
@@ -1433,6 +1489,11 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      reativar_suspensao: { Args: { p_id: string }; Returns: boolean }
+      sobrestar_parcial: {
+        Args: { p_id: string; p_quantidade: number }
+        Returns: string
       }
     }
     Enums: {
