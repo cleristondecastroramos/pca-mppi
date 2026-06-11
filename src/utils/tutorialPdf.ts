@@ -396,7 +396,7 @@ export async function generateTutorialPdf() {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(...BLACK);
-  doc.text("Março de 2026", labelX, fichaY + 4);
+  doc.text("Junho de 2026", labelX, fichaY + 4);
   fichaY += lineHeight;
   
   // Versão
@@ -407,7 +407,7 @@ export async function generateTutorialPdf() {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(...BLACK);
-  doc.text("2.4.0", labelX, fichaY + 4);
+  doc.text("2.6.0", labelX, fichaY + 4);
   fichaY += lineHeight;
   
   // Classificação

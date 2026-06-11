@@ -260,13 +260,13 @@ export default function Tutorial() {
           <UL items={[
             "Unidade Orçamentária (PGJ, FMMP, FEPDC)",
             "Setor Requisitante",
-            "Tipo de Contratação",
+            "Tipo de Contratação (Hierárquico)",
             "Tipo de Recurso",
             "Classe",
             "Grau de Prioridade (Alta, Média, Baixa)",
             "Normativo (14.133/2021, 8.666/1993)",
             "Modalidade",
-            "Status Atual (Não Iniciado, Iniciado, Em Diligência, Em Andamento, Concluído)",
+            "Status Atual (Não Iniciado, Iniciado, Em Diligência, Em Andamento, Concluído) - Obs: Demandas suspensas não aparecem aqui.",
           ]} />
 
           <H3>6.3. Gráficos e Visualizações</H3>
@@ -282,7 +282,7 @@ export default function Tutorial() {
         {/* 7. Demandas Ativas */}
         <Section id="sec7" title="7. Demandas Ativas">
           <H3>7.1. Listagem de Demandas Ativas</H3>
-          <P>Tabela principal com todas as demandas integradas ativamente ao fluxo orçamentário: Código (PCA-XXXX-2026), Descrição, Setor, UO, Classe, Valor Total, Valor Contratado, Status, Prioridade e Ações. Demandas suspensas não aparecem aqui.</P>
+          <P>Tabela principal com todas as demandas integradas ativamente ao fluxo orçamentário: Código (PCA-XXXX-2026), Descrição, Setor, UO, Classe, Tipo, Valor Total, Valor Contratado, Status, Prioridade e Ações. Demandas suspensas não aparecem aqui.</P>
 
           <H3>7.2. Busca e Filtros</H3>
           <P>Campo de busca textual em tempo real (debounce de 500ms) e os mesmos oitos filtros avançados da Visão Geral. Botão "Limpar filtros" para restaurar a visualização completa.</P>
@@ -319,7 +319,7 @@ export default function Tutorial() {
           ]} />
 
           <H3>8.2. Suspensão Parcial (Relação Pai e Filha)</H3>
-          <P>Em casos onde apenas alguns itens do planejamento precisam ser suspensos, o sistema bifurca a demanda original (Pai): gera-se uma Demanda Filha com os quantitativos paralisados, mantendo o Pai circulando normalmente. O valor da Filha é descontado do limite planejado.</P>
+          <P>Em casos onde apenas alguns itens do planejamento precisam ser suspensos, o sistema bifurca a demanda original (Pai): gera-se uma Demanda Filha com os quantitativos paralisados, mantendo o Pai circulando normalmente. O valor da Filha é descontado do limite planejado. O modal de edição utiliza uma interface segmentada (subtração em 3 linhas) para guiar a criação da filha com transparência.</P>
 
           <H3>8.3. Reativação e Fusão Reversa</H3>
           <OL items={[
@@ -358,7 +358,7 @@ export default function Tutorial() {
           <P>Informe Quantidade, Unidade de Fornecimento, Tipo de Recurso e Valor Unitário. O Valor Estimado Total = Quantidade × Valor Unitário é calculado automaticamente.</P>
 
           <H3>9.3. Código PCA Automático</H3>
-          <P>Ao salvar uma nova contratação, o sistema gera automaticamente um código único no formato PCA-XXXX-2026. Este código é o identificador oficial de cada demanda aprovada no Plano de Contratações Anual e possui papel fundamental no processo de aquisição.</P>
+          <P>Ao salvar uma nova contratação, o sistema gera automaticamente um código único no formato PCA-XXXX-2026, onde XXXX são 4 dígitos randômicos. Este código é o identificador oficial de cada demanda aprovada no Plano de Contratações Anual e possui papel fundamental no processo de aquisição.</P>
           <P>O código PCA é utilizado para especificar o alinhamento da contratação com o planejamento institucional na etapa de formalização da demanda, por meio do Documento de Formalização de Demanda (DFD).</P>
           <Note>O Documento de Formalização de Demanda (DFD) é o instrumento inicial previsto na Nova Lei de Licitações (Lei nº 14.133/2021) que formaliza a necessidade de compra ou contratação. O DFD garante que cada aquisição esteja devidamente alinhada com o Plano de Contratações Anual (PCA) e com os objetivos estratégicos da instituição, sendo obrigatório para o início de qualquer processo de contratação.</Note>
 
@@ -524,8 +524,10 @@ export default function Tutorial() {
           <P>O módulo Relatórios é o motor nativo da plataforma responsável pelo processamento instantâneo de dados para extrações auditáveis sob forma de PDFs e relatórios formatados robustos.</P>
           <H3>17.1. Tipos Modelados Nativamente</H3>
           <UL items={[
-            "Plano de Contratações Anual — PCA 2.0: Relatório padrão para visualização das exigências mínimas legais.",
+            "Documento — PCA 2026 (Versão 3.0): Relatório consolidado e atualizado das demandas vigentes no exercício.",
+            "Plano de Contratações Anual — PCA 2.0: Histórico do primeiro fechamento oficial do planejamento.",
             "Gerencial — Base de Dados Completa: Listagem transacional super-enriquecida consolidada para painéis financeiros avançados.",
+            "Estratégico — Número dos Contratos: Relatório focado nos vínculos formalizados na etapa de resultado.",
             "Auditoria — Conformidade Licitatória: Onde se extrai a taxa de zelo de compliance da base documental.",
             "Riscos — Prazos Críticos e Alertas: Identificação taxativa de processos em risco temporal.",
             "Demandas Suspensas e Retidas: Arquivo focado em apontar rubricas orçamentárias congeladas.",
@@ -553,6 +555,7 @@ export default function Tutorial() {
           <OL items={[
             <>Clique em "Novo Usuário".</>,
             "Forneça nome, cargo, e-mail padronizado @mppi, lotação oficial formatada.",
+            "Forneça uma Senha Provisória (agora obrigatória para evitar timeouts do servidor de SMTP).",
             "Acople o perfil que garantirá seu clearance matricial (Gestor, Consulta, etc).",
           ]} />
           <Note>A segurança impede envios automáticos de chave digital externa: notifique as credenciais internamente de forma manual.</Note>
@@ -762,7 +765,7 @@ const MATRIX = [
   ["Conformidade", "Gerenciar", "Gerenciar", "✗", "✗"],
   ["Licitações SRP", "✓", "✓", "Apenas seu setor", "Somente leitura"],
   ["Resultados", "✓", "✓", "✗", "✗"],
-  ["Relatórios", "Gerar e exportar", "Gerar e exportar", "✗", "✗"],
+  ["Relatórios", "Gerar e exportar", "Gerar e exportar", "✓ (seus setores)", "✗"],
   ["Orçamento", "Gerenciar completo", "✗", "✗", "✗"],
   ["Gerenc. Usuários", "Gerenciar completo", "✗", "✗", "✗"],
   ["Notificações", "Gerenciar", "Visualizar", "Visualizar", "Visualizar"],
@@ -781,6 +784,7 @@ const FORM_FIELDS = [
   ["Normativo", "Sim", "14.133/2021 ou 8.666/1993"],
   ["Grau de Prioridade", "Sim", "Alta, Média, Baixa"],
   ["Unidade Orçamentária", "Sim", "PGJ, FMMP, FEPDC"],
+  ["Número do Contrato", "Não", "Opcional. Preenchido na conclusão."],
   ["Data Prevista", "Sim", "Data estimada de conclusão"],
   ["Justificativa", "Sim", "20-1000 caracteres"],
 ];

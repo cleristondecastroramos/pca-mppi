@@ -251,7 +251,47 @@ const Relatorios = () => {
   > = {
     pca_2_0: {
       label: "Documento — PCA 2026 (Versão 2.0)",
-      description: "Versão oficial, moderna e profissional do Plano de Contratações Anual do MPPI.",
+      description: "Versão anterior do documento oficial do PCA 2026, preservada para fins de histórico, rastreabilidade e comparação com a versão mais recente do plano. Mantém o registro institucional do planejamento originalmente publicado, permitindo verificar a evolução das demandas ao longo da execução anual.",
+      icon: FileText,
+      columns: ["Cod. PCA", "Objeto", "UO", "Qtd", "V. Unit", "Valor Total", "Tipo", "Mod.", "Prior.", "Início", "Concl."],
+      csvColumns: ["Cod. PCA", "Descrição", "Unidade Requisitante", "UO", "Quantidade", "Valor Unitário", "Valor Planejado", "Tipo de Contratação", "Modalidade", "Grau de Prioridade", "Data Prevista Inicio", "Data Prevista Conclusão"],
+      mapRow: (r, tipo) => {
+        const calculateStart = (tipo: string, mod: string, termino: string) => {
+          if (!termino) return "-";
+          const [y, m, d] = termino.split("-").map(Number);
+          const date = new Date(y, m - 1, d);
+          let days = 120;
+          if (tipo === "Nova Contratação") {
+            if (mod === "Pregão Eletrônico" || mod === "Concorrência") days = 150;
+            else if (mod === "Dispensa" || mod === "Inexigibilidade" || mod === "ARP (própria)" || mod === "ARP (carona)") days = 90;
+          }
+          date.setDate(date.getDate() - days);
+          return date.toLocaleDateString("pt-BR");
+        };
+        const formatDateStr = (dtStr: string) => {
+          if (!dtStr) return "-";
+          const [y, m, d] = dtStr.split("-").map(Number);
+          return new Date(y, m - 1, d).toLocaleDateString("pt-BR");
+        };
+        return [
+          formatId(r.id, r.codigo),
+          r.descricao || "",
+          r.unidade_orcamentaria || "",
+          r.quantidade_itens || 0,
+          r.valor_unitario || 0,
+          r.valor_estimado || 0,
+          r.tipo_contratacao || "",
+          r.modalidade || "",
+          r.grau_prioridade || "",
+          calculateStart(r.tipo_contratacao, r.modalidade, r.data_prevista_contratacao),
+          formatDateStr(r.data_prevista_contratacao),
+        ];
+      },
+      title: (n) => `Plano de Contratações Anual — PCA 2026 (Lista de ${n} Itens)`,
+    },
+    pca_3_0: {
+      label: "Documento — PCA 2026 (Versão 3.0)",
+      description: "Versão consolidada e atualizada do Plano de Contratações Anual do MPPI para 2026, refletindo as demandas vigentes no sistema, com quantidades, valores, prazos e status revisados conforme a execução real do exercício. Este documento reúne a visão formal do planejamento institucional e serve como referência principal para publicação, acompanhamento e consulta oficial.",
       icon: FileText,
       columns: ["Cod. PCA", "Objeto", "UO", "Qtd", "V. Unit", "Valor Total", "Tipo", "Mod.", "Prior.", "Início", "Concl."],
       csvColumns: ["Cod. PCA", "Descrição", "Unidade Requisitante", "UO", "Quantidade", "Valor Unitário", "Valor Planejado", "Tipo de Contratação", "Modalidade", "Grau de Prioridade", "Data Prevista Inicio", "Data Prevista Conclusão"],
@@ -291,7 +331,7 @@ const Relatorios = () => {
     },
     gerencial_completo: {
       label: "Gerencial — Base de Dados Completa",
-      description: "Listagem transacional super-enriquecida consolidando cruzamentos de processo, normativos, financeiro e planejamento.",
+      description: "Relatório analítico com a consolidação detalhada de todas as demandas cadastradas no sistema, incluindo informações de planejamento, execução, valores, setores, status e demais atributos operacionais. É um documento voltado ao acompanhamento gerencial e à análise ampla da base de dados do PCA.",
       icon: LayoutList,
       columns: ["Cod. PCA", "Descrição", "Setor", "Prior.", "Mod.", "Status", "Valor Planejado", "Valor Contratado", "Valor Executado"],
       csvColumns: ["Cod. PCA", "Descrição", "Setor Requisitante", "Unidade Orçamentária", "Tipo de Recurso", "Classe", "Prioridade", "Normativo", "Modalidade", "SEI Contratação", "Status Atual", "Sobrestamento", "Data Prevista", "Data Conclusão", "Quantidade", "Valor Unitário", "Valor Planejado", "Valor Contratado", "Valor Executado"],
@@ -336,7 +376,7 @@ const Relatorios = () => {
     },
     auditoria: {
       label: "Auditoria — Conformidade Licitatória",
-      description: "Relatório de conformidade com itens de checklist e métricas burocráticas auditadas.",
+      description: "Relatório de controle e verificação documental das demandas do PCA, com foco na conformidade dos processos com os requisitos legais, administrativos e operacionais da contratação pública. Seu objetivo é apoiar a auditoria interna e identificar pendências, ausências documentais e pontos de atenção para regularização.",
       icon: ShieldCheck,
       columns: ["Cod. PCA", "Descrição", "Setor", "Conformidade", "Status"],
       csvColumns: ["Cod. PCA", "Descrição", "Setor Requisitante", "Conformidade (%)", "Fase", "Status"],
@@ -363,7 +403,7 @@ const Relatorios = () => {
     },
     prazos_riscos: {
       label: "Riscos — Prazos Críticos e Alertas",
-      description: "Relatório focado no monitoramento estrito de processos atrasados ou com prazo curto.",
+      description: "Relatório voltado ao monitoramento das contratações em risco de atraso ou não execução, com destaque para prazos vencidos, demandas próximas do vencimento e contratações que exigem providências imediatas. Serve como instrumento de gestão preventiva para reduzir a chance de descumprimento do PCA ao longo do exercício.",
       icon: AlertCircle,
       columns: ["Cod. PCA", "Descrição", "Setor", "Data Prevista", "Situação"],
       csvColumns: ["Cod. PCA", "Descrição", "Setor", "Data Prevista", "Situação"],
@@ -384,7 +424,7 @@ const Relatorios = () => {
     },
     sobrestadas: {
       label: "Demandas Suspensas e Retidas",
-      description: "Relatório detalhado sobre o isolamento orçamentário e quantitativo parado por paralisação processual.",
+      description: "Relatório que apresenta as demandas total ou parcialmente suspensas, com visão do impacto dessas interrupções no planejamento, nos valores reservados e na execução global do PCA. É útil para rastrear processos segregados, analisar o que foi retirado do fluxo principal e manter transparência sobre as demandas que ficaram temporariamente fora da contabilidade ativa.",
       icon: CalendarDays,
       columns: ["Cod. PCA", "Descrição", "Setor", "Tipo Sobr.", "Quantidade", "Valor Unitário", "Valor Retido"],
       csvColumns: ["Cod. PCA", "Descrição", "Setor", "Unidade Orçamentária", "Tipo Sobrestamento", "Quantidade Retida", "Valor Unitário", "Valor Retido"],
@@ -415,7 +455,7 @@ const Relatorios = () => {
     },
     orcamento_setorial: {
       label: "Orçamento — Extrato Consolidado Setorial",
-      description: "Agrupamento financeiro de saldos por Setor Requisitante. Fornece visão estática de gastos previstos vs executados e o saldo em caixa.",
+      description: "Relatório financeiro que organiza os valores planejados, executados e disponíveis por setor requisitante ou unidade responsável, permitindo a leitura consolidada da situação orçamentária do PCA. É um instrumento de apoio à gestão financeira, ao controle de saldos e à identificação de desvios entre planejamento e execução.",
       icon: DollarSign,
       columns: ["Setor Requisitante", "Demandas Ativas", "Valor Planejado", "Valor Executado", "Saldo Restante"],
       csvColumns: ["Setor Requisitante", "Demandas Ativas", "Valor Planejado", "Valor Executado", "Saldo Restante"],
@@ -427,6 +467,31 @@ const Relatorios = () => {
         r.saldo || 0,
       ],
       title: (n) => `Extrato Consolidado Setorial (${n} setores)`
+    },
+    numero_contratos: {
+      label: "Estratégico — Número dos Contratos",
+      description: "Relatório específico para localizar, consolidar e analisar os números de contrato vinculados às demandas cadastradas no sistema, facilitando consultas institucionais, conferência documental e gestão contratual posterior. Esse documento é especialmente útil para cruzamento de informações entre o planejamento, o processo administrativo e a execução contratual.",
+      icon: FileSearch,
+      columns: ["Cod. PCA", "Descrição", "Setor", "Tipo de Contratação", "Status", "Número do Contrato", "Atualização"],
+      csvColumns: ["Cod. PCA", "Descrição", "Setor Requisitante", "Tipo de Contratação", "Status Atual", "Número do Contrato", "Data Atualização"],
+      mapRow: (r, tipo) => {
+        const dateStr = r.updated_at || r.created_at;
+        const formatDate = (d: string) => {
+          if (!d) return "-";
+          const dt = new Date(d);
+          return dt.toLocaleDateString("pt-BR");
+        };
+        return [
+          formatId(r.id, r.codigo),
+          String(r.descricao || ""),
+          r.setor_requisitante || "",
+          r.tipo_contratacao || "",
+          statusLabel(r),
+          r.numero_contrato || "N/A",
+          formatDate(dateStr),
+        ];
+      },
+      title: (n) => `Relatório Estratégico — Número dos Contratos (${n} registros)`
     },
   };
 
@@ -570,7 +635,10 @@ const Relatorios = () => {
         a.download = `relatorio_${rType}.csv`;
         a.click();
         URL.revokeObjectURL(url);
-      } else if (rType === "pca_2_0") {
+      } else if (rType === "pca_2_0" || rType === "pca_3_0") {
+        if (rType === "pca_3_0") {
+          sourceRows = sourceRows.filter(r => r.sobrestado !== true);
+        }
         const logo = `${location.origin}/logo-mppi.png`;
         const mapaEstrategico = `${location.origin}/Mapa-Estrategico.jpg`;
         const today = new Date().toLocaleDateString('pt-BR');
@@ -761,7 +829,7 @@ const Relatorios = () => {
           <html>
           <head>
             <meta charset="utf-8">
-            <title>PCA 2026 - Versão 2.0 - MPPI</title>
+            <title>PCA 2026 - ${rType === "pca_3_0" ? "Versão 3.0" : "Versão 2.0"} - MPPI</title>
             <style>
               @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
               * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
@@ -933,7 +1001,7 @@ const Relatorios = () => {
               <div class="title-box">
                 <h1 class="main-title">Plano de<br>Contratações<br><span>Anual</span></h1>
                 <div class="sub-title">Ministério Público do Estado do Piauí</div>
-                <div class="version-badge">Exercício 2026 • Versão 2.0</div>
+                <div class="version-badge">Exercício 2026 • ${rType === "pca_3_0" ? "Versão 3.0" : "Versão 2.0"}</div>
               </div>
             </div> <!-- End cover -->
             
@@ -1144,7 +1212,7 @@ const Relatorios = () => {
               <h2>1. Apresentação</h2>
               <p>O Plano de Contratações Anual (PCA) do Ministério Público do Estado do Piauí, referente ao exercício de 2026, consolida-se como o instrumento central de governança estruturante e planejamento logístico institucional. Alinhado aos preceitos da Nova Lei de Licitações e Contratos (Lei nº 14.133/2021), o PCA transcende a mera formalidade administrativa para atuar como um guia estratégico, assegurando que as aquisições e contratações de serviços e obras guardem estrita consonância com o Planejamento Estratégico e as diretrizes orçamentárias deste Parquet.</p>
               
-              <p>Esta Versão 2.0 reflete um processo de amadurecimento na gestão de insumos, fundamentado em análises de dados precisas e na interlocução direta entre as unidades requisitantes e a Administração Superior. Por meio da racionalização de demandas e da busca contínua pela economia de escala e padronização, o plano visa otimizar a alocação de recursos públicos, mitigando riscos de descontinuidade administrativa e elevando os padrões de transparência, eficácia e eficiência operacional.</p>
+              <p>Esta ${rType === "pca_3_0" ? "Versão 3.0" : "Versão 2.0"} reflete um processo de amadurecimento na gestão de insumos, fundamentado em análises de dados precisas e na interlocução direta entre as unidades requisitantes e a Administração Superior. Por meio da racionalização de demandas e da busca contínua pela economia de escala e padronização, o plano visa otimizar a alocação de recursos públicos, mitigando riscos de descontinuidade administrativa e elevando os padrões de transparência, eficácia e eficiência operacional.</p>
 
               <p>As métricas consolidadas a seguir sintetizam a magnitude do planejamento para o próximo exercício, refletindo o compromisso do MPPI com a excelência e a responsabilidade na gestão da coisa pública.</p>
 
@@ -2115,55 +2183,105 @@ const Relatorios = () => {
               </div>
             </div>
           </CardContent>
-          <CardHeader>
-            <CardTitle>Catálogo de Relatórios</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-4">
-              {Object.entries(REPORT_TYPES).map(([key, def]) => (
+        </Card>
+
+        <div className="space-y-12 pt-4">
+          <section>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-foreground">Documentos Oficiais do PCA</h2>
+              <p className="text-sm text-muted-foreground mt-1">Documentos formais de publicação e consolidação do plano.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Object.entries(REPORT_TYPES).filter(([key]) => key === 'pca_3_0' || key === 'pca_2_0').map(([key, def]) => (
                 <div 
                   key={key} 
-                  className="group relative flex items-center justify-between p-5 rounded-xl border border-border bg-card transition-all duration-300 hover:shadow-xl hover:border-primary/40 hover:bg-accent/5 overflow-hidden"
+                  className="group relative flex flex-col justify-between p-6 rounded-xl border border-border bg-card transition-all duration-300 hover:shadow-xl hover:border-primary/40 hover:-translate-y-1 overflow-hidden"
                 >
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary transform -translate-x-full transition-transform duration-300 group-hover:translate-x-0" />
-                  <div className="flex items-center gap-5 transition-transform duration-300 group-hover:translate-x-1">
-                    <div className="flex items-center justify-center h-14 w-14 rounded-2xl bg-primary/10 text-primary transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-white shadow-sm">
-                      <def.icon className="h-7 w-7" />
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <div className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
-                          {def.label}
-                        </div>
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-primary transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100" />
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-primary/10 text-primary transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-white shadow-sm shrink-0">
+                        <def.icon className="h-6 w-6" />
                       </div>
-                      <div className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
-                        {def.description}
-                      </div>
+                      <h3 className="text-lg font-bold uppercase text-foreground leading-tight group-hover:text-primary transition-colors">
+                        {def.label}
+                      </h3>
                     </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed flex-grow text-justify">
+                      {def.description}
+                    </p>
                   </div>
                   
-                  <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="mt-6 pt-4 border-t border-border flex justify-end gap-2">
                     <Button 
                       variant="outline" 
-                      className="h-10 px-4 gap-2 border-primary/30 text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
+                      className="h-9 w-auto px-3 gap-2 border-primary/30 text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
                       onClick={() => handleGenerate("csv", key)}
                     >
-                      <FileSearch className="h-4 w-4" />
-                      <span className="font-semibold">Gerar CSV</span>
+                      <FileSearch className="h-4 w-4 shrink-0" />
+                      <span className="font-semibold text-xs whitespace-nowrap">Gerar CSV</span>
                     </Button>
                     <Button 
-                      className="h-10 px-4 gap-2 bg-primary text-white hover:bg-primary/90 transition-all shadow-md hover:shadow-primary/20"
+                      className="h-9 w-auto px-3 gap-2 bg-primary text-white hover:bg-primary/90 transition-all shadow-md hover:shadow-primary/20"
                       onClick={() => handleGenerate("pdf", key)}
                     >
-                      <FileText className="h-4 w-4" />
-                      <span className="font-semibold">Gerar PDF</span>
+                      <FileText className="h-4 w-4 shrink-0" />
+                      <span className="font-semibold text-xs whitespace-nowrap">Gerar PDF</span>
                     </Button>
                   </div>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </section>
+
+          <section>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-foreground">Relatórios Gerenciais e Estratégicos</h2>
+              <p className="text-sm text-muted-foreground mt-1">Painel analítico e detalhado para apoio à tomada de decisão.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Object.entries(REPORT_TYPES).filter(([key]) => key !== 'pca_3_0' && key !== 'pca_2_0').map(([key, def]) => (
+                <div 
+                  key={key} 
+                  className="group relative flex flex-col justify-between p-6 rounded-xl border border-border bg-card transition-all duration-300 hover:shadow-xl hover:border-primary/40 hover:-translate-y-1 overflow-hidden"
+                >
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-primary transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100" />
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-primary/10 text-primary transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-white shadow-sm shrink-0">
+                        <def.icon className="h-6 w-6" />
+                      </div>
+                      <h3 className="text-lg font-bold uppercase text-foreground leading-tight group-hover:text-primary transition-colors">
+                        {def.label}
+                      </h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed flex-grow text-justify">
+                      {def.description}
+                    </p>
+                  </div>
+                  
+                  <div className="mt-6 pt-4 border-t border-border flex justify-end gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="h-9 w-auto px-3 gap-2 border-primary/30 text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
+                      onClick={() => handleGenerate("csv", key)}
+                    >
+                      <FileSearch className="h-4 w-4 shrink-0" />
+                      <span className="font-semibold text-xs whitespace-nowrap">Gerar CSV</span>
+                    </Button>
+                    <Button 
+                      className="h-9 w-auto px-3 gap-2 bg-primary text-white hover:bg-primary/90 transition-all shadow-md hover:shadow-primary/20"
+                      onClick={() => handleGenerate("pdf", key)}
+                    >
+                      <FileText className="h-4 w-4 shrink-0" />
+                      <span className="font-semibold text-xs whitespace-nowrap">Gerar PDF</span>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
       </div>
     </Layout>
   );
