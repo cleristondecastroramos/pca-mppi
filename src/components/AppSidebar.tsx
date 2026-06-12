@@ -142,7 +142,7 @@ export function AppSidebar() {
       {!collapsed && (
         <div className="flex flex-col px-4 pb-1 transition-opacity">
           <span className="text-[11px] font-mono text-sidebar-foreground/80">
-            v2.6.1
+            v2.6.2
           </span>
         </div>
       )}
