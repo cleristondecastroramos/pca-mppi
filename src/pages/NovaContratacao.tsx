@@ -6,7 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -35,8 +37,8 @@ const contratacaoSchema = z.object({
   grau_prioridade: z.string().min(1, "Grau de prioridade é obrigatório"),
   valor_estimado: z.number().positive("Valor estimado deve ser maior que zero"),
   data_prevista_contratacao: z.string().min(1, "Data prevista é obrigatória"),
-  data_entrada_clc: z.string().optional(),
-  numero_contrato: z.string().optional(),
+  data_entrada_clc: z.string().nullable().optional(),
+  numero_contrato: z.string().nullable().optional(),
 });
 
 export default function NovaContratacao() {
@@ -53,6 +55,7 @@ export default function NovaContratacao() {
   const userSetor = profile?.setor || null;
   const [quantidade, setQuantidade] = useState<number>(0);
   const [valorUnitario, setValorUnitario] = useState<number>(0);
+  const [unidadeFornecimentoSelect, setUnidadeFornecimentoSelect] = useState<string>("");
 
   // Helpers para formatação de moeda
   const formatCurrency = (value: number) => {
@@ -75,7 +78,7 @@ export default function NovaContratacao() {
 
   const calculateStartDate = (tipo: string | null, mod: string | null, termino: string | null) => {
     if (!termino) return "";
-    
+
     let date: Date;
     if (termino.includes("-") && termino.length === 10) {
       const [year, month, day] = termino.split("-").map(Number);
@@ -95,7 +98,7 @@ export default function NovaContratacao() {
     }
 
     date.setDate(date.getDate() - days);
-    
+
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
@@ -161,7 +164,7 @@ export default function NovaContratacao() {
         .eq("setor_requisitante", data.setor_requisitante)
         .eq("ano", new Date().getFullYear())
         .maybeSingle();
-      
+
       if (orcamentoError) {
         console.error("Erro ao buscar orçamento:", orcamentoError);
       }
@@ -261,21 +264,40 @@ export default function NovaContratacao() {
                 <div className="space-y-2 md:col-span-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="descricao">Descrição do Objeto *</Label>
-                    <AIWriter 
-                      value={descricao} 
-                      onUpdate={setDescricao} 
-                      fieldName="Descrição" 
+                    <AIWriter
+                      value={descricao}
+                      onUpdate={setDescricao}
+                      fieldName="Descrição"
                     />
                   </div>
-                  <Input 
-                    name="descricao" 
-                    id="descricao" 
-                    placeholder="Ex: Aquisição de Computadores" 
-                    required 
+                  <Input
+                    name="descricao"
+                    id="descricao"
+                    placeholder="Ex: Aquisição de Computadores"
+                    required
                     value={descricao}
-                    onChange={(e) => setDescricao(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setDescricao(val);
+                      if (val.length > 0 && val.length < 10) {
+                        setErrors(prev => ({ ...prev, descricao: "Descrição deve ter no mínimo 10 caracteres" }));
+                      } else {
+                        setErrors(prev => {
+                          const newErrors = { ...prev };
+                          delete newErrors.descricao;
+                          return newErrors;
+                        });
+                      }
+                    }}
+                    maxLength={500}
                   />
-                  {errors.descricao && <p className="text-sm text-destructive">{errors.descricao}</p>}
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className={`text-[11px] ${descricao.length < 10 ? 'text-amber-600 font-medium' : 'text-muted-foreground'}`}>
+                      {descricao.length}/500 caracteres
+                    </span>
+
+                    {errors.descricao && <p className="text-sm text-destructive m-0">{errors.descricao}</p>}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -443,10 +465,10 @@ export default function NovaContratacao() {
 
                 <div className="space-y-2">
                   <Label htmlFor="data-inicio">Data Prevista para Início</Label>
-                  <Input 
-                    name="data_entrada_clc_virtual" 
-                    id="data-inicio" 
-                    type="date" 
+                  <Input
+                    name="data_entrada_clc_virtual"
+                    id="data-inicio"
+                    type="date"
                     value={dataInicioCalculada}
                     disabled
                     className="bg-muted text-muted-foreground"
@@ -455,11 +477,11 @@ export default function NovaContratacao() {
 
                 <div className="space-y-2">
                   <Label htmlFor="data-prevista" className="truncate block">Data Prevista para Conclusão *</Label>
-                  <Input 
-                    name="data_prevista_contratacao" 
-                    id="data-prevista" 
-                    type="date" 
-                    required 
+                  <Input
+                    name="data_prevista_contratacao"
+                    id="data-prevista"
+                    type="date"
+                    required
                     onChange={(e) => setDataTermino(e.target.value)}
                     value={dataTermino}
                   />
@@ -470,10 +492,10 @@ export default function NovaContratacao() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="justificativa">Justificativa *</Label>
-                  <AIWriter 
-                    value={justificativa} 
-                    onUpdate={setJustificativa} 
-                    fieldName="Justificativa" 
+                  <AIWriter
+                    value={justificativa}
+                    onUpdate={setJustificativa}
+                    fieldName="Justificativa"
                   />
                 </div>
                 <Textarea
@@ -483,9 +505,27 @@ export default function NovaContratacao() {
                   rows={4}
                   required
                   value={justificativa}
-                  onChange={(e) => setJustificativa(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setJustificativa(val);
+                    if (val.length > 0 && val.length < 20) {
+                      setErrors(prev => ({ ...prev, justificativa: "Justificativa deve ter no mínimo 20 caracteres" }));
+                    } else {
+                      setErrors(prev => {
+                        const newErrors = { ...prev };
+                        delete newErrors.justificativa;
+                        return newErrors;
+                      });
+                    }
+                  }}
+                  maxLength={1000}
                 />
-                {errors.justificativa && <p className="text-sm text-destructive">{errors.justificativa}</p>}
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={`text-[11px] ${justificativa.length < 20 ? 'text-amber-600 font-medium' : 'text-muted-foreground'}`}>
+                    {justificativa.length}/1000 caracteres
+                  </span>
+                  {errors.justificativa && <p className="text-sm text-destructive m-0">{errors.justificativa}</p>}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -542,7 +582,71 @@ export default function NovaContratacao() {
 
                 <div className="space-y-2">
                   <Label htmlFor="unidade-fornecimento">Unidade de Fornecimento</Label>
-                  <Input name="unidade_fornecimento" id="unidade-fornecimento" placeholder="Ex: UN, KG, M²" />
+                  <Select 
+                    name={unidadeFornecimentoSelect === "Outros (A definir)" ? undefined : "unidade_fornecimento"}
+                    value={unidadeFornecimentoSelect}
+                    onValueChange={setUnidadeFornecimentoSelect}
+                  >
+                    <SelectTrigger id="unidade-fornecimento" className="h-9">
+                      <SelectValue placeholder="Selecione a unidade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Aquisição de Bens e Materiais</SelectLabel>
+                        <SelectItem value="Unidade (UN)">Unidade (UN)</SelectItem>
+                        <SelectItem value="Caixa (CX)">Caixa (CX)</SelectItem>
+                        <SelectItem value="Pacote (PCT)">Pacote (PCT)</SelectItem>
+                        <SelectItem value="Resma (RM)">Resma (RM)</SelectItem>
+                        <SelectItem value="Quilo (KG)">Quilo (KG)</SelectItem>
+                        <SelectItem value="Grama (G)">Grama (G)</SelectItem>
+                        <SelectItem value="Tonelada (T)">Tonelada (T)</SelectItem>
+                        <SelectItem value="Litro (L)">Litro (L)</SelectItem>
+                        <SelectItem value="Mililitro (ML)">Mililitro (ML)</SelectItem>
+                        <SelectItem value="Metro (M)">Metro (M)</SelectItem>
+                        <SelectItem value="Rolo (RL)">Rolo (RL)</SelectItem>
+                        <SelectItem value="Frasco (FR)">Frasco (FR)</SelectItem>
+                        <SelectItem value="Ampola (AMP)">Ampola (AMP)</SelectItem>
+                        <SelectItem value="Blister (BL)">Blister (BL)</SelectItem>
+                      </SelectGroup>
+                      <SelectGroup>
+                        <SelectLabel>Prestação de Serviços</SelectLabel>
+                        <SelectItem value="Mês (MÊS)">Mês (MÊS)</SelectItem>
+                        <SelectItem value="Posto de Trabalho (Homem-Mês)">Posto de Trabalho (Homem-Mês)</SelectItem>
+                        <SelectItem value="Hora (H)">Hora (H)</SelectItem>
+                        <SelectItem value="Hora-Técnica (HT)">Hora-Técnica (HT)</SelectItem>
+                        <SelectItem value="Quilômetro Rodado (KM)">Quilômetro Rodado (KM)</SelectItem>
+                        <SelectItem value="Evento (EV)">Evento (EV)</SelectItem>
+                        <SelectItem value="Diária (D)">Diária (D)</SelectItem>
+                      </SelectGroup>
+                      <SelectGroup>
+                        <SelectLabel>Tecnologia da Informação</SelectLabel>
+                        <SelectItem value="Ponto de Função (PF)">Ponto de Função (PF)</SelectItem>
+                        <SelectItem value="Unidade de Serviço Técnico (UST)">Unidade de Serviço Técnico (UST)</SelectItem>
+                        <SelectItem value="Unidade de Medida de Serviço (UMS)">Unidade de Medida de Serviço (UMS)</SelectItem>
+                        <SelectItem value="Gigabyte (GB)">Gigabyte (GB)</SelectItem>
+                        <SelectItem value="Terabyte (TB)">Terabyte (TB)</SelectItem>
+                      </SelectGroup>
+                      <SelectGroup>
+                        <SelectLabel>Obras e Engenharia</SelectLabel>
+                        <SelectItem value="Metro Quadrado (M²)">Metro Quadrado (M²)</SelectItem>
+                        <SelectItem value="Metro Cúbico (M³)">Metro Cúbico (M³)</SelectItem>
+                        <SelectItem value="Metro Linear (M)">Metro Linear (M)</SelectItem>
+                        <SelectItem value="Verba (VB)">Verba (VB)</SelectItem>
+                      </SelectGroup>
+                      <SelectGroup>
+                        <SelectLabel>Outros</SelectLabel>
+                        <SelectItem value="Outros (A definir)">Outros (A definir)</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  {unidadeFornecimentoSelect === "Outros (A definir)" && (
+                    <Input 
+                      name="unidade_fornecimento" 
+                      placeholder="Digite a unidade de fornecimento" 
+                      className="mt-2"
+                      required
+                    />
+                  )}
                 </div>
 
                 <div className="space-y-2">

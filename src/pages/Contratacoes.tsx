@@ -1146,6 +1146,15 @@ export default function Contratacoes() {
                                 >
                                   <History className="h-4 w-4" />
                                 </Button>
+                                <Link to={`/artefatos/${contratacao.id}`}>
+                                  <Button
+                                    variant="ghost"
+                                    size="xs"
+                                    title="Artefatos"
+                                  >
+                                    <FileUp className="h-4 w-4" />
+                                  </Button>
+                                </Link>
                                 <Button
                                   variant="ghost"
                                   size="xs"

@@ -22,6 +22,7 @@ const PrioridadesAtencao = lazy(() => import("./pages/PrioridadesAtencao"));
 const AvaliacaoConformidade = lazy(() => import("./pages/AvaliacaoConformidade"));
 const ResultadosAlcancados = lazy(() => import("./pages/ResultadosAlcancados"));
 const Relatorios = lazy(() => import("./pages/Relatorios"));
+const Artefatos = lazy(() => import("./pages/Artefatos"));
 const GerenciamentoUsuarios = lazy(() => import("./pages/GerenciamentoUsuarios"));
 const MinhaConta = lazy(() => import("./pages/MinhaConta"));
 const EsqueciSenha = lazy(() => import("./pages/EsqueciSenha"));
@@ -136,6 +137,11 @@ const App = () => {
                 <Route path="/relatorios" element={
                   <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
                     <Relatorios />
+                  </ProtectedRoute>
+                } />
+                <Route path="/artefatos/:id" element={
+                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
+                    <Artefatos />
                   </ProtectedRoute>
                 } />
                 <Route path="/gerenciamento-usuarios" element={
