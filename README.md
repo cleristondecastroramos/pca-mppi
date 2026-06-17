@@ -1,78 +1,194 @@
-# Welcome to your Lovable project
+# PCA-MPPI
+> Sistema de Gerenciamento do Plano Anual de Contratações do Ministério Público do Estado do Piauí
 
-## Project info
+<p align="center">
+  <img src="https://img.shields.io/badge/status-Em%20Produ%C3%A7%C3%A3o-success" alt="Status do projeto" />
+  <img src="https://img.shields.io/badge/React-18.3-blue" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-5.8-blue" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Supabase-Backend-green" alt="Supabase" />
+  <img src="https://img.shields.io/badge/Licen%C3%A7a-Institucional-lightgrey" alt="Licença" />
+  <img src="https://img.shields.io/badge/Frontend-Vite-646CFF" alt="Vite" />
+  <img src="https://img.shields.io/badge/UI-shadcn%2Fui-111827" alt="shadcn/ui" />
+</p>
 
-**URL**: https://lovable.dev/projects/03615445-f5a5-47f7-a049-e3be03d459ed
+---
 
-## How can I edit this code?
+## Sumário
 
-There are several ways of editing your application.
+- [Descrição](#descrição)
+- [Funcionalidades](#funcionalidades)
+- [Capturas de tela](#capturas-de-tela)
+- [Tecnologias](#tecnologias)
+- [Ambientes](#ambientes)
+- [Como executar](#como-executar)
+- [Variáveis de ambiente](#variáveis-de-ambiente)
+- [Estrutura do sistema](#estrutura-do-sistema)
+- [Roadmap](#roadmap)
+- [Contribuição](#contribuição)
+- [Segurança e acesso](#segurança-e-acesso)
+- [Documentação e apoio](#documentação-e-apoio)
+- [Licença](#licença)
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/03615445-f5a5-47f7-a049-e3be03d459ed) and start prompting.
+## Descrição
 
-Changes made via Lovable will be committed automatically to this repo.
+O **PCA-MPPI** é um sistema web desenvolvido exclusivamente para o **Ministério Público do Estado do Piauí (MPPI)**. Seu objetivo é apoiar o planejamento, o acompanhamento e a gestão do Plano Anual de Contratações da instituição.
 
-**Use your preferred IDE**
+A solução centraliza demandas de contratação, dashboards gerenciais, relatórios estratégicos, controle de prazos, monitoramento orçamentário e rastreabilidade das ações realizadas ao longo do exercício. O sistema foi desenhado para fortalecer a governança, a transparência e a eficiência administrativa.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Funcionalidades
 
-Follow these steps:
+- Gestão do Plano Anual de Contratações.
+- Controle por exercício, com separação entre PCA 2026, PCA 2027 e exercícios futuros.
+- Cadastro e acompanhamento de demandas de contratação.
+- Gestão de demandas ativas, suspensas e sobrestadas.
+- Controle de prazos e alertas operacionais.
+- Indicadores e dashboards interativos.
+- Relatórios estratégicos, gerenciais e operacionais.
+- Exportação de relatórios em PDF e CSV.
+- Perfis de acesso e permissões por usuário.
+- Auditoria, conformidade e rastreabilidade das alterações.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+---
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## Capturas de tela
 
-# Step 3: Install the necessary dependencies.
-npm i
+> Substitua os caminhos abaixo pelas imagens reais do projeto.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+<p align="center">
+  <img src="./docs/screenshots/visao-geral.png" alt="Visão Geral" width="31%" />
+  <img src="./docs/screenshots/demandas-ativas.png" alt="Demandas Ativas" width="31%" />
+  <img src="./docs/screenshots/relatorios.png" alt="Relatórios" width="31%" />
+</p>
+
+<p align="center">
+  <img src="./docs/screenshots/demandas-suspensas.png" alt="Demandas Suspensas" width="31%" />
+  <img src="./docs/screenshots/nova-demanda.png" alt="Nova Demanda" width="31%" />
+  <img src="./docs/screenshots/tutorial.png" alt="Tutorial" width="31%" />
+</p>
+
+---
+
+## Tecnologias
+
+- [React](https://react.dev/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://vitejs.dev/)
+- [Supabase](https://supabase.com/)
+- [PostgreSQL](https://www.postgresql.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [shadcn/ui](https://ui.shadcn.com/)
+- [React Router](https://reactrouter.com/)
+- [Lucide React](https://lucide.dev/)
+
+---
+
+## Ambientes
+
+| Ambiente | Finalidade | Acesso |
+|---|---|---|
+| Desenvolvimento | Evolução local da aplicação | `localhost` |
+| Homologação | Testes e validações | ambiente interno |
+| Produção | Uso institucional do MPPI | acesso controlado |
+
+---
+
+## Como executar
+
+### Pré-requisitos
+
+- Node.js 18 ou superior.
+- NPM ou Yarn.
+- Projeto configurado no Supabase.
+
+### Passos
+
+```bash
+git clone https://github.com/mppi/pca-mppi.git
+cd pca-mppi
+npm install
+```
+
+Crie um arquivo `.env` na raiz do projeto e adicione as variáveis de ambiente necessárias.
+
+Depois, execute:
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Abra o endereço informado no terminal, normalmente:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+http://localhost:5173
+```
 
-**Use GitHub Codespaces**
+---
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Variáveis de ambiente
 
-## What technologies are used for this project?
+```env
+VITE_SUPABASE_URL=https://sua-url-do-supabase.supabase.co
+VITE_SUPABASE_ANON_KEY=sua-chave-anonima-do-supabase
+```
 
-This project is built with:
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Estrutura do sistema
 
-## How can I deploy this project?
+- **Visão Geral:** painéis e gráficos com os principais indicadores do PCA.
+- **Demandas Ativas:** gestão das contratações em execução.
+- **Demandas Suspensas:** acompanhamento das demandas interrompidas, totais ou parciais.
+- **Relatórios:** geração e exportação de relatórios gerenciais e estratégicos.
+- **Configurações e Usuários:** administração de perfis, permissões e dados cadastrais.
+- **Documentação e Tutorial:** instruções de uso e apoio ao usuário final.
 
-Simply open [Lovable](https://lovable.dev/projects/03615445-f5a5-47f7-a049-e3be03d459ed) and click on Share -> Publish.
+---
 
-## Can I connect a custom domain to my Lovable project?
+## Roadmap
 
-Yes, you can!
+- [x] Gestão de demandas por exercício.
+- [x] Separação entre demandas ativas e suspensas.
+- [x] Relatórios estratégicos e gerenciais.
+- [x] Controle de permissões por perfil.
+- [ ] Melhorias contínuas de layout e usabilidade.
+- [ ] Ampliação dos relatórios analíticos.
+- [ ] Evolução do tutorial e da documentação institucional.
+- [ ] Novos módulos de acompanhamento e governança.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+---
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## Contribuição
 
+Por se tratar de um sistema institucional do MPPI, as contribuições seguem um fluxo controlado:
 
+1. Abra uma issue descrevendo o problema ou melhoria.
+2. Crie uma branch específica para a tarefa.
+3. Realize as alterações seguindo o padrão do projeto.
+4. Abra um pull request para revisão.
+5. Aguarde a validação da equipe responsável.
 
+---
 
+## Segurança e acesso
 
+- Acesso restrito a usuários autorizados.
+- Uso de e-mail institucional do MPPI.
+- Controle de acesso por perfis.
+- Registro de histórico para auditoria e rastreabilidade.
+
+---
+
+## Documentação e apoio
+
+O PCA-MPPI conta com tutorial embutido, relatórios operacionais e estratégicos, além de apoio institucional para orientação de uso e suporte técnico.
+
+---
+
+## Licença
+
+Este projeto é um software institucional de uso restrito do Ministério Público do Estado do Piauí (MPPI).  
+A cópia, distribuição, engenharia reversa ou uso não autorizado fora do escopo institucional é estritamente proibido.
