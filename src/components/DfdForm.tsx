@@ -223,14 +223,23 @@ interface DfdData {
     previsao_termino_execucao: string;
     alinhamento_pei: string;
     alinhamento_pdtic: string;
-    resultados_esperados: string;
+    itens_pca_vigente: string;
+    objetivo_contratacao: string;
+    meta_contratacao: string;
+    indicador_contratacao: string;
 
-    // Seção 11: Fiscalização do Objeto
+    // Seção 5: Fiscalização do Objeto
     fiscal_nome: string;
     fiscal_matricula: string;
     fiscal_email: string;
     fiscal_perfil: string;
     fiscal_ramal: string;
+
+    // Seção 11: Responsável pelo preenchimento do DFD
+    preenchimento_responsavel_nome: string;
+    preenchimento_responsavel_perfil: string;
+    preenchimento_responsavel_email: string;
+    preenchimento_responsavel_data: string;
 
     grau_prioridade: string;
 }
@@ -273,12 +282,19 @@ export const DfdForm: React.FC<DfdFormProps> = ({ demandaId, onClose, onSuccess 
         previsao_termino_execucao: '',
         alinhamento_pei: '',
         alinhamento_pdtic: '',
-        resultados_esperados: '',
+        itens_pca_vigente: '',
+        objetivo_contratacao: '',
+        meta_contratacao: '',
+        indicador_contratacao: '',
         fiscal_nome: '',
         fiscal_matricula: '',
         fiscal_email: '',
         fiscal_perfil: '',
         fiscal_ramal: '',
+        preenchimento_responsavel_nome: '',
+        preenchimento_responsavel_perfil: 'Técnico',
+        preenchimento_responsavel_email: '',
+        preenchimento_responsavel_data: '',
         grau_prioridade: 'Média'
     });
 
@@ -686,22 +702,6 @@ export const DfdForm: React.FC<DfdFormProps> = ({ demandaId, onClose, onSuccess 
 
             <div className="p-6 overflow-y-auto flex-1 space-y-8">
 
-                {/* INFORMAÇÕES GERAIS DA CONTRATAÇÃO */}
-                <div className="bg-slate-50 p-4 rounded-md border border-slate-200">
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-2">INFORMAÇÕES GERAIS DA CONTRATAÇÃO</label>
-                    <select
-                        name="informacoes_gerais_contratacao"
-                        value={formData.informacoes_gerais_contratacao}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium text-slate-700"
-                    >
-                        <option value="">-- Selecione o Órgão / Fundo Estratégico --</option>
-                        <option value="250101 – PROCURADORIA GERAL DE JUSTIÇA – PGJ">250101 – PROCURADORIA GERAL DE JUSTIÇA – PGJ</option>
-                        <option value="250102 – FUNDO DE MODERNIZAÇÃO DO MINISTÉRIO PÚBLICO DO PIAUÍ – FMMPI">250102 – FUNDO DE MODERNIZAÇÃO DO MINISTÉRIO PÚBLICO DO PIAUÍ – FMMPI</option>
-                        <option value="250104 – FUNDO ESTADUAL DE PROTEÇÃO E DEFESA DO CONSUMIDOR – PROCON">250104 – FUNDO ESTADUAL DE PROTEÇÃO E DEFESA DO CONSUMIDOR – PROCON</option>
-                    </select>
-                </div>
-
                 {/* 1. Processo SEI */}
                 <div className="flex flex-col sm:flex-row sm:items-end gap-3 bg-slate-50 p-4 rounded-md border border-slate-200">
                     <div className="flex-1">
@@ -766,10 +766,208 @@ export const DfdForm: React.FC<DfdFormProps> = ({ demandaId, onClose, onSuccess 
                     </div>
                 </div>
 
-                {/* 3. Equipe de Planejamento (SEI: 4) */}
+                {/* 3. INFORMAÇÕES GERAIS DA CONTRATAÇÃO */}
+                <div className="border-l-4 border-purple-500 pl-4 py-1">
+                    <h3 className="text-sm font-bold text-slate-800 uppercase mb-3">3. INFORMAÇÕES GERAIS DA CONTRATAÇÃO</h3>
+
+                    {/* 3.1 UO */}
+                    <div className="bg-slate-50 p-4 rounded-md border border-slate-200 mb-4">
+                        <label className="block text-xs font-bold text-slate-700 uppercase mb-2">3.1 QUAL A UNIDADE ORÇAMENTÁRIA?</label>
+                        <select
+                            name="informacoes_gerais_contratacao"
+                            value={formData.informacoes_gerais_contratacao}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium text-slate-700"
+                        >
+                            <option value="">-- Selecione o Órgão / Fundo Estratégico --</option>
+                            <option value="250101 – PROCURADORIA GERAL DE JUSTIÇA – PGJ">250101 – PROCURADORIA GERAL DE JUSTIÇA – PGJ</option>
+                            <option value="250102 – FUNDO DE MODERNIZAÇÃO DO MINISTÉRIO PÚBLICO DO PIAUÍ – FMMPI">250102 – FUNDO DE MODERNIZAÇÃO DO MINISTÉRIO PÚBLICO DO PIAUÍ – FMMPI</option>
+                            <option value="250104 – FUNDO ESTADUAL DE PROTEÇÃO E DEFESA DO CONSUMIDOR – PROCON">250104 – FUNDO ESTADUAL DE PROTEÇÃO E DEFESA DO CONSUMIDOR – PROCON</option>
+                        </select>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        {/* 3.2 QUAL A NATUREZA DO OBJETO? */}
+                        <div className="md:col-span-2 bg-slate-50 p-4 rounded-md border border-slate-200">
+                            <label className="block text-xs font-bold text-slate-800 uppercase mb-2">3.2 QUAL A NATUREZA DO OBJETO?</label>
+                            <select
+                                name="natureza_objeto"
+                                value={formData.natureza_objeto}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium text-slate-700 mb-3"
+                            >
+                                <option value="">-- Selecione a Natureza Macro --</option>
+                                <option value="Bens">Bens</option>
+                                <option value="Serviços">Serviços</option>
+                                <option value="Obras e Serviços de Engenharia">Obras e Serviços de Engenharia</option>
+                                <option value="Aquisição de Soluções de TIC">Aquisição de Soluções de TIC</option>
+                            </select>
+
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="bens_servicos_continuados"
+                                    name="bens_servicos_continuados"
+                                    checked={formData.bens_servicos_continuados}
+                                    onChange={handleInputChange}
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded cursor-pointer"
+                                />
+                                <label htmlFor="bens_servicos_continuados" className="ml-2 block text-sm text-slate-700 font-medium cursor-pointer">
+                                    Bens e Serviços Continuados - Ato PGJ 1415/2024
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* 3.3 HÁ A NECESSIDADE DE CONTRATAÇÃO CORRELATA? */}
+                        <div className="md:col-span-2 bg-slate-50 p-4 rounded-md border border-slate-200">
+                            <label className="block text-xs font-bold text-slate-800 uppercase mb-2">
+                                3.3 HÁ A NECESSIDADE DE CONTRATAÇÃO CORRELATA (PROVIDÊNCIAS PRÉVIAS)?
+                            </label>
+                            <div className="flex items-center space-x-6 mb-2">
+                                <label className="flex items-center cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="necessidade_contratacao_correlata"
+                                        checked={formData.necessidade_contratacao_correlata === true}
+                                        onChange={() => setFormData(prev => ({ ...prev, necessidade_contratacao_correlata: true }))}
+                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300"
+                                    />
+                                    <span className="ml-2 text-sm text-slate-700 font-medium">SIM</span>
+                                </label>
+                                <label className="flex items-center cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="necessidade_contratacao_correlata"
+                                        checked={formData.necessidade_contratacao_correlata === false}
+                                        onChange={() => setFormData(prev => ({ ...prev, necessidade_contratacao_correlata: false, especificacao_contratacao_correlata: '' }))}
+                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300"
+                                    />
+                                    <span className="ml-2 text-sm text-slate-700 font-medium">NÃO</span>
+                                </label>
+                            </div>
+
+                            {formData.necessidade_contratacao_correlata && (
+                                <div className="mt-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <label className="block text-xs font-semibold text-slate-600 mb-1">
+                                        Especifique a contratação correlata exigida
+                                    </label>
+                                    <textarea
+                                        name="especificacao_contratacao_correlata"
+                                        value={formData.especificacao_contratacao_correlata}
+                                        onChange={handleInputChange}
+                                        maxLength={200}
+                                        rows={2}
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Especifique as providências prévias (Mínimo de 20 caracteres)..."
+                                    />
+                                    <div className="flex justify-end mt-1">
+                                        <span className={`text-[10px] font-medium ${formData.especificacao_contratacao_correlata.length > 0 && formData.especificacao_contratacao_correlata.length < 20 ? 'text-rose-500' : 'text-slate-500'}`}>
+                                            {formData.especificacao_contratacao_correlata.length} / 200 caracteres {formData.especificacao_contratacao_correlata.length > 0 && formData.especificacao_contratacao_correlata.length < 20 && '(Faltam caracteres)'}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* 3.4 QUAL O GRAU DE PRIORIDADE? */}
+                        <div>
+                            <label className="block text-xs font-bold text-slate-800 uppercase mb-2">3.4 QUAL O GRAU DE PRIORIDADE?</label>
+                            <select
+                                name="grau_prioridade"
+                                value={formData.grau_prioridade}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="Baixa">Baixa</option>
+                                <option value="Média">Média</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Urgente">Urgente / Calamidade</option>
+                            </select>
+                        </div>
+
+                        {/* 3.5 / 3.6 Previsões de Início e Término */}
+                        <div>
+                            <label className="flex items-center justify-between text-xs font-bold text-slate-800 uppercase mb-2">
+                                <span>3.5 QUAL A PREVISÃO DE INÍCIO DA EXECUÇÃO DO OBJETO?</span>
+                                <Calendar className="h-4 w-4 text-emerald-600 ml-2 shrink-0" />
+                            </label>
+                            <input
+                                type="date"
+                                name="previsao_inicio_execucao"
+                                value={formData.previsao_inicio_execucao}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-700"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="flex items-center justify-between text-xs font-bold text-slate-800 uppercase mb-2">
+                                <span>3.6 QUAL A PREVISÃO DE TÉRMINO DA EXECUÇÃO DO OBJETO?</span>
+                                <Calendar className="h-4 w-4 text-rose-600 ml-2 shrink-0" />
+                            </label>
+                            <input
+                                type="date"
+                                name="previsao_termino_execucao"
+                                value={formData.previsao_termino_execucao}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 text-slate-700"
+                            />
+                        </div>
+
+                        {/* Campos complementares da contratação */}
+                        <div className="md:col-span-2">
+                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Descrição Detalhada do Objeto</label>
+                            <textarea
+                                name="descricao_objeto"
+                                rows={3}
+                                maxLength={1000}
+                                value={formData.descricao_objeto}
+                                onChange={handleInputChange}
+                                className={`w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${formData.descricao_objeto.length > 0 && formData.descricao_objeto.length < 50 ? 'border-rose-300 focus:ring-rose-500' : 'border-slate-300'}`}
+                                placeholder="Descreva o que será contratado..."
+                            />
+                            <div className="flex justify-end mt-1">
+                                <span className={`text-[10px] font-medium ${formData.descricao_objeto.length > 0 && formData.descricao_objeto.length < 50 ? 'text-rose-500' : 'text-slate-500'}`}>
+                                    {formData.descricao_objeto.length} / 1000 caracteres {formData.descricao_objeto.length > 0 && formData.descricao_objeto.length < 50 && '(Mínimo de 50 caracteres)'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="md:col-span-2 bg-amber-50/40 p-4 rounded-md border border-amber-100">
+                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">
+                                Justificativa do Quantitativo Solicitado
+                            </label>
+                            <textarea
+                                name="justificativa_quantidades"
+                                rows={3}
+                                value={formData.justificativa_quantidades}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                                placeholder="Justifique como as quantidades foram estimadas..."
+                            />
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <label className="flex items-center justify-between text-xs font-semibold text-slate-600 uppercase mb-1">
+                                <span>Data Pretendida p/ Conclusão</span>
+                                <Calendar className="h-4 w-4 text-blue-600 ml-2 shrink-0" />
+                            </label>
+                            <input
+                                type="date"
+                                name="data_pretendida_conclusao"
+                                value={formData.data_pretendida_conclusao}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* 4. EQUIPE DE PLANEJAMENTO DA CONTRATAÇÃO */}
                 <div className="border-l-4 border-emerald-500 pl-4 py-1">
                     <h3 className="text-sm font-bold text-slate-800 uppercase mb-1 flex items-center">
-                        <Users className="h-4 w-4 mr-2 text-emerald-600" /> 3. Equipe de Planejamento da Contratação
+                        <Users className="h-4 w-4 mr-2 text-emerald-600" /> 4. EQUIPE DE PLANEJAMENTO DA CONTRATAÇÃO
                     </h3>
                     <p className="text-xs text-slate-500 mb-4">Selecione os integrantes que participarão do planejamento desta contratação.</p>
 
@@ -825,157 +1023,116 @@ export const DfdForm: React.FC<DfdFormProps> = ({ demandaId, onClose, onSuccess 
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+                {/* 5. DA FISCALIZAÇÃO DO OBJETO DA CONTRATAÇÃO */}
+                <div className="border-l-4 border-indigo-500 pl-4 py-1">
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-bold text-slate-800 uppercase flex items-center">
+                            <UserCheck className="h-4 w-4 mr-2 text-indigo-600" /> 5. DA FISCALIZAÇÃO DO OBJETO DA CONTRATAÇÃO
+                        </h3>
 
-                    {/* Natureza do Objeto */}
-                    <div className="md:col-span-2 bg-slate-50 p-4 rounded-md border border-slate-200">
-                        <label className="block text-xs font-bold text-slate-800 uppercase mb-2">Natureza do Objeto</label>
-                        <select
-                            name="natureza_objeto"
-                            value={formData.natureza_objeto}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium text-slate-700 mb-3"
-                        >
-                            <option value="">-- Selecione a Natureza Macro --</option>
-                            <option value="Bens">Bens</option>
-                            <option value="Serviços">Serviços</option>
-                            <option value="Obras e Serviços de Engenharia">Obras e Serviços de Engenharia</option>
-                            <option value="Aquisição de Soluções de TIC">Aquisição de Soluções de TIC</option>
-                        </select>
+                        {/* Seletor Inteligente da Base de Servidores */}
+                        <div className="w-1/2">
+                            <select
+                                onChange={handleFiscalChange}
+                                className="w-full px-3 py-1.5 border border-slate-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-slate-600 bg-indigo-50"
+                                title="Importar dados do servidor da base de RH"
+                            >
+                                <option value="">-- Importar Servidor Fiscal (Base RH) --</option>
+                                {SERVIDORES_FISCAIS.map(s => (
+                                    <option key={s.matricula} value={s.matricula}>{s.nome} ({s.matricula})</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
 
-                        <div className="flex items-center">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-slate-50 border border-slate-200 rounded-md">
+                        <div className="sm:col-span-2">
+                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome*</label>
                             <input
-                                type="checkbox"
-                                id="bens_servicos_continuados"
-                                name="bens_servicos_continuados"
-                                checked={formData.bens_servicos_continuados}
+                                type="text"
+                                name="fiscal_nome"
+                                value={formData.fiscal_nome}
                                 onChange={handleInputChange}
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded cursor-pointer"
-                            />
-                            <label htmlFor="bens_servicos_continuados" className="ml-2 block text-sm text-slate-700 font-medium cursor-pointer">
-                                Bens e Serviços Continuados - Ato PGJ 1415/2024
-                            </label>
-                        </div>
-                    </div>
-
-                    {/* Contratação Correlata */}
-                    <div className="md:col-span-2 bg-slate-50 p-4 rounded-md border border-slate-200">
-                        <label className="block text-xs font-bold text-slate-800 uppercase mb-2">
-                            HÁ A NECESSIDADE DE CONTRATAÇÃO CORRELATA (PROVIDÊNCIAS PRÉVIAS)?
-                        </label>
-                        <div className="flex items-center space-x-6 mb-2">
-                            <label className="flex items-center cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="necessidade_contratacao_correlata"
-                                    checked={formData.necessidade_contratacao_correlata === true}
-                                    onChange={() => setFormData(prev => ({ ...prev, necessidade_contratacao_correlata: true }))}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300"
-                                />
-                                <span className="ml-2 text-sm text-slate-700 font-medium">SIM</span>
-                            </label>
-                            <label className="flex items-center cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="necessidade_contratacao_correlata"
-                                    checked={formData.necessidade_contratacao_correlata === false}
-                                    onChange={() => setFormData(prev => ({ ...prev, necessidade_contratacao_correlata: false, especificacao_contratacao_correlata: '' }))}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300"
-                                />
-                                <span className="ml-2 text-sm text-slate-700 font-medium">NÃO</span>
-                            </label>
-                        </div>
-
-                        {formData.necessidade_contratacao_correlata && (
-                            <div className="mt-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                                <label className="block text-xs font-semibold text-slate-600 mb-1">
-                                    Especifique a contratação correlata exigida
-                                </label>
-                                <textarea
-                                    name="especificacao_contratacao_correlata"
-                                    value={formData.especificacao_contratacao_correlata}
-                                    onChange={handleInputChange}
-                                    maxLength={200}
-                                    rows={2}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Especifique as providências prévias (Mínimo de 20 caracteres)..."
-                                />
-                                <div className="flex justify-end mt-1">
-                                    <span className={`text-[10px] font-medium ${formData.especificacao_contratacao_correlata.length > 0 && formData.especificacao_contratacao_correlata.length < 20 ? 'text-rose-500' : 'text-slate-500'}`}>
-                                        {formData.especificacao_contratacao_correlata.length} / 200 caracteres {formData.especificacao_contratacao_correlata.length > 0 && formData.especificacao_contratacao_correlata.length < 20 && '(Faltam caracteres)'}
-                                    </span>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* 4. Objeto */}
-                    <div className="md:col-span-2">
-                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">4. Descrição Detalhada do Objeto</label>
-                        <textarea
-                            name="descricao_objeto"
-                            rows={3}
-                            maxLength={1000}
-                            value={formData.descricao_objeto}
-                            onChange={handleInputChange}
-                            className={`w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${formData.descricao_objeto.length > 0 && formData.descricao_objeto.length < 50 ? 'border-rose-300 focus:ring-rose-500' : 'border-slate-300'}`}
-                            placeholder="Descreva o que será contratado..."
-                        />
-                        <div className="flex justify-end mt-1">
-                            <span className={`text-[10px] font-medium ${formData.descricao_objeto.length > 0 && formData.descricao_objeto.length < 50 ? 'text-rose-500' : 'text-slate-500'}`}>
-                                {formData.descricao_objeto.length} / 1000 caracteres {formData.descricao_objeto.length > 0 && formData.descricao_objeto.length < 50 && '(Mínimo de 50 caracteres)'}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* 5. Justificativa do Quantitativo Solicitado */}
-                    <div className="md:col-span-2 bg-amber-50/40 p-4 rounded-md border border-amber-100">
-                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">
-                            5. Justificativa do Quantitativo Solicitado
-                        </label>
-                        <textarea
-                            name="justificativa_quantidades"
-                            rows={3}
-                            value={formData.justificativa_quantidades}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
-                            placeholder="Justifique como as quantidades foram estimadas..."
-                        />
-                    </div>
-
-                    {/* 9. Necessidade e Fundamentação */}
-                    <div className="md:col-span-2 border-l-4 border-rose-500 bg-slate-50 p-4 rounded-md">
-                        <div className="mb-4">
-                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">
-                                9.1 Qual a necessidade da contratação? (Problema a ser resolvido)
-                            </label>
-                            <textarea
-                                name="necessidade_mppi"
-                                rows={3}
-                                value={formData.necessidade_mppi}
-                                onChange={handleInputChange}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white"
-                                placeholder="Descreva o problema que gerou a necessidade..."
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
                         </div>
-                        
+
                         <div>
-                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">
-                                9.2 Por que fazer a contratação? (Motivação / Justificativa Legal e Interesse Público)
-                            </label>
-                            <textarea
-                                name="fundamentacao_motivacao"
-                                rows={4}
-                                value={formData.fundamentacao_motivacao}
+                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Matrícula</label>
+                            <input
+                                type="text"
+                                name="fiscal_matricula"
+                                value={formData.fiscal_matricula}
                                 onChange={handleInputChange}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white"
-                                placeholder="Explique a motivação, base legal e os benefícios para o MPPI..."
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
                         </div>
-                    </div>
 
-                    {/* 6. IDENTIFICAÇÃO DA DEMANDA (Tabela de Itens) */}
-                    <div className="md:col-span-2 border-l-4 border-amber-500 pl-4 py-1 mt-2">
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Ramal</label>
+                            <input
+                                type="text"
+                                name="fiscal_ramal"
+                                value={formData.fiscal_ramal}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            />
+                        </div>
+
+                        <div className="sm:col-span-2">
+                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">E-mail</label>
+                            <input
+                                type="email"
+                                name="fiscal_email"
+                                value={formData.fiscal_email}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            />
+                        </div>
+
+                        <div className="sm:col-span-2">
+                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-2">Perfil da Fiscalização</label>
+                            <div className="flex flex-wrap items-center gap-4">
+                                <label className="flex items-center cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="fiscal_perfil"
+                                        value="Técnico"
+                                        checked={formData.fiscal_perfil === 'Técnico'}
+                                        onChange={handleInputChange}
+                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300"
+                                    />
+                                    <span className="ml-2 text-sm text-slate-700 font-medium">TÉCNICO</span>
+                                </label>
+                                <label className="flex items-center cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="fiscal_perfil"
+                                        value="Administrativo"
+                                        checked={formData.fiscal_perfil === 'Administrativo'}
+                                        onChange={handleInputChange}
+                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300"
+                                    />
+                                    <span className="ml-2 text-sm text-slate-700 font-medium">ADMINISTRATIVO</span>
+                                </label>
+                                <label className="flex items-center cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="fiscal_perfil"
+                                        value="Setorial"
+                                        checked={formData.fiscal_perfil === 'Setorial'}
+                                        onChange={handleInputChange}
+                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300"
+                                    />
+                                    <span className="ml-2 text-sm text-slate-700 font-medium">SETORIAL</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 6. IDENTIFICAÇÃO DA DEMANDA (Tabela de Itens) */}
+                <div className="border-l-4 border-amber-500 pl-4 py-1 mt-2">
                         <h3 className="text-sm font-bold text-slate-800 uppercase mb-1">
                             6. IDENTIFICAÇÃO DA DEMANDA
                         </h3>
@@ -1242,8 +1399,8 @@ export const DfdForm: React.FC<DfdFormProps> = ({ demandaId, onClose, onSuccess 
                         </div>
                     </div>
 
-                    {/* 7. IDENTIFICAÇÃO DA UNIDADE BENEFICIÁRIA */}
-                    <div className="md:col-span-2 border-l-4 border-teal-500 pl-4 py-1 mt-2">
+                {/* 7. IDENTIFICAÇÃO DA UNIDADE BENEFICIÁRIA */}
+                <div className="border-l-4 border-teal-500 pl-4 py-1 mt-2">
                         <h3 className="text-sm font-bold text-slate-800 uppercase mb-1 flex items-center">
                             <Building2 className="h-4 w-4 mr-2 text-teal-600" /> 7. IDENTIFICAÇÃO DA UNIDADE BENEFICIÁRIA
                         </h3>
@@ -1355,24 +1512,8 @@ export const DfdForm: React.FC<DfdFormProps> = ({ demandaId, onClose, onSuccess 
                         </div>
                     </div>
 
-                    {/* 12. Prioridade */}
-                    <div>
-                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">12. Grau de Prioridade</label>
-                        <select
-                            name="grau_prioridade"
-                            value={formData.grau_prioridade}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="Baixa">Baixa</option>
-                            <option value="Média">Média</option>
-                            <option value="Alta">Alta</option>
-                            <option value="Urgente">Urgente / Calamidade</option>
-                        </select>
-                    </div>
-
-                    {/* 8. Alinhamento Estratégico (PEI e PDTIC) */}
-                    <div className="md:col-span-2 bg-slate-50 p-4 rounded-md border border-slate-200 space-y-4">
+                {/* 8. ALINHAMENTO AOS PLANOS ESTRATÉGICOS */}
+                <div className="bg-slate-50 p-4 rounded-md border border-slate-200 space-y-4">
                         <h4 className="flex items-center text-sm font-bold text-slate-800 uppercase mb-2 border-b border-slate-200 pb-2">
                             <Target className="h-4 w-4 mr-2 text-blue-600" />
                             8. Alinhamento aos Planos Estratégicos
@@ -1380,7 +1521,7 @@ export const DfdForm: React.FC<DfdFormProps> = ({ demandaId, onClose, onSuccess 
 
                         <div>
                             <label className="block text-xs font-semibold text-slate-700 mb-1">
-                                Qual(is) o(s) objetivos estratégicos, conforme redação do PEI vigente?
+                                8.1 Qual(is) o(s) objetivos estratégicos, conforme redação do PCA vigente?
                             </label>
                             <textarea
                                 name="alinhamento_pei"
@@ -1394,7 +1535,7 @@ export const DfdForm: React.FC<DfdFormProps> = ({ demandaId, onClose, onSuccess 
 
                         <div>
                             <label className="block text-xs font-semibold text-slate-700 mb-1">
-                                Alinhamento ao PDTIC (Caso aplicável à TI)
+                                8.2 Alinhamento ao PDTIC (apenas quando aplicável)
                             </label>
                             <input
                                 type="text"
@@ -1405,175 +1546,159 @@ export const DfdForm: React.FC<DfdFormProps> = ({ demandaId, onClose, onSuccess 
                                 placeholder="Informe a Ação e a Meta do PDTIC (ex: ID X - Meta Y)..."
                             />
                         </div>
+
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                8.3 Quais os itens do PCA vigente?
+                            </label>
+                            <textarea
+                                name="itens_pca_vigente"
+                                rows={2}
+                                value={formData.itens_pca_vigente}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Informe o(s) item(ns) do PCA vigente relacionados a esta demanda..."
+                            />
+                        </div>
                     </div>
 
-                    {/* 10. Resultados Alcançados */}
-                    <div className="md:col-span-2">
-                        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">10. Resultado(s) a ser(em) alcançado(s)</label>
-                        <textarea
-                            name="resultados_esperados"
-                            rows={2}
-                            value={formData.resultados_esperados}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Descreva a meta e os indicadores de resultado alcançados com a contratação..."
-                        />
-                    </div>
+                {/* 9. FUNDAMENTAÇÃO DA CONTRATAÇÃO */}
+                <div className="border-l-4 border-rose-500 pl-4 py-1">
+                        <h3 className="text-sm font-bold text-slate-800 uppercase mb-3 flex items-center">
+                            9. FUNDAMENTAÇÃO DA CONTRATAÇÃO
+                        </h3>
+                        <div className="bg-slate-50 p-4 rounded-md border border-slate-200 space-y-4">
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">
+                                    9.1 Qual a necessidade da contratação? (Problema a ser resolvido)
+                                </label>
+                                <textarea
+                                    name="necessidade_mppi"
+                                    rows={3}
+                                    value={formData.necessidade_mppi}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white"
+                                    placeholder="Descreva o problema que gerou a necessidade..."
+                                />
+                            </div>
 
-                    {/* 11. Fiscalização do Objeto */}
-                    <div className="md:col-span-2 border-l-4 border-indigo-500 pl-4 py-1 mt-2">
-                        <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-sm font-bold text-slate-800 uppercase flex items-center">
-                                <UserCheck className="h-4 w-4 mr-2 text-indigo-600" /> 11. DA FISCALIZAÇÃO DO OBJETO DA CONTRATAÇÃO
-                            </h3>
-
-                            {/* Seletor Inteligente da Base de Servidores */}
-                            <div className="w-1/2">
-                                <select
-                                    onChange={handleFiscalChange}
-                                    className="w-full px-3 py-1.5 border border-slate-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-slate-600 bg-indigo-50"
-                                    title="Importar dados do servidor da base de RH"
-                                >
-                                    <option value="">-- Importar Servidor Fiscal (Base RH) --</option>
-                                    {SERVIDORES_FISCAIS.map(s => (
-                                        <option key={s.matricula} value={s.matricula}>{s.nome} ({s.matricula})</option>
-                                    ))}
-                                </select>
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">
+                                    9.2 Por que fazer a contratação? (Motivação / Justificativa Legal e Interesse Público)
+                                </label>
+                                <textarea
+                                    name="fundamentacao_motivacao"
+                                    rows={4}
+                                    value={formData.fundamentacao_motivacao}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white"
+                                    placeholder="Explique a motivação, base legal e os benefícios para o MPPI..."
+                                />
                             </div>
                         </div>
+                    </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-slate-50 border border-slate-200 rounded-md">
+                {/* 10. RESULTADO(S) A SER(EM) ALCANÇADO(S) COM A CONTRATAÇÃO */}
+                <div className="space-y-4">
+                        <h3 className="text-sm font-bold text-slate-800 uppercase">10. RESULTADO(S) A SER(EM) ALCANÇADO(S) COM A CONTRATAÇÃO</h3>
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">10.1 Qual o objetivo da contratação?</label>
+                            <textarea
+                                name="objetivo_contratacao"
+                                rows={2}
+                                value={formData.objetivo_contratacao}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Descreva o objetivo a ser alcançado com a contratação..."
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">10.2 Qual a meta a ser alcançada para a contratação (o quanto eu vou alcançar com a contratação)?</label>
+                            <textarea
+                                name="meta_contratacao"
+                                rows={2}
+                                value={formData.meta_contratacao}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Descreva a meta quantitativa/qualitativa pretendida..."
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">10.3 Qual o indicador (resultado alcançado)?</label>
+                            <textarea
+                                name="indicador_contratacao"
+                                rows={2}
+                                value={formData.indicador_contratacao}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Informe o indicador que medirá o resultado alcançado..."
+                            />
+                        </div>
+                    </div>
+
+                {/* 11. RESPONSÁVEL TÉCNICO OU ADMINISTRATIVO PELO PREENCHIMENTO DO DFD */}
+                <div className="border-l-4 border-slate-500 pl-4 py-1 mt-2">
+                        <h3 className="text-sm font-bold text-slate-800 uppercase mb-3">11. RESPONSÁVEL TÉCNICO OU ADMINISTRATIVO PELO PREENCHIMENTO DO DFD</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-slate-50 border border-slate-200 rounded-md">
                             <div className="sm:col-span-2">
                                 <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome*</label>
                                 <input
                                     type="text"
-                                    name="fiscal_nome"
-                                    value={formData.fiscal_nome}
+                                    name="preenchimento_responsavel_nome"
+                                    value={formData.preenchimento_responsavel_nome}
                                     onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
                                 />
                             </div>
-
                             <div>
-                                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Matrícula</label>
-                                <input
-                                    type="text"
-                                    name="fiscal_matricula"
-                                    value={formData.fiscal_matricula}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Ramal</label>
-                                <input
-                                    type="text"
-                                    name="fiscal_ramal"
-                                    value={formData.fiscal_ramal}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                />
-                            </div>
-
-                            <div className="sm:col-span-2">
                                 <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">E-mail</label>
                                 <input
                                     type="email"
-                                    name="fiscal_email"
-                                    value={formData.fiscal_email}
+                                    name="preenchimento_responsavel_email"
+                                    value={formData.preenchimento_responsavel_email}
                                     onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
                                 />
                             </div>
-
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Data do Preenchimento</label>
+                                <input
+                                    type="date"
+                                    name="preenchimento_responsavel_data"
+                                    value={formData.preenchimento_responsavel_data}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                                />
+                            </div>
                             <div className="sm:col-span-2">
-                                <label className="block text-xs font-semibold text-slate-600 uppercase mb-2">Perfil da Fiscalização</label>
+                                <label className="block text-xs font-semibold text-slate-600 uppercase mb-2">Perfil do Responsável</label>
                                 <div className="flex flex-wrap items-center gap-4">
                                     <label className="flex items-center cursor-pointer">
                                         <input
                                             type="radio"
-                                            name="fiscal_perfil"
+                                            name="preenchimento_responsavel_perfil"
                                             value="Técnico"
-                                            checked={formData.fiscal_perfil === 'Técnico'}
+                                            checked={formData.preenchimento_responsavel_perfil === 'Técnico'}
                                             onChange={handleInputChange}
-                                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300"
+                                            className="h-4 w-4 text-slate-600 focus:ring-slate-500 border-slate-300"
                                         />
                                         <span className="ml-2 text-sm text-slate-700 font-medium">TÉCNICO</span>
                                     </label>
                                     <label className="flex items-center cursor-pointer">
                                         <input
                                             type="radio"
-                                            name="fiscal_perfil"
+                                            name="preenchimento_responsavel_perfil"
                                             value="Administrativo"
-                                            checked={formData.fiscal_perfil === 'Administrativo'}
+                                            checked={formData.preenchimento_responsavel_perfil === 'Administrativo'}
                                             onChange={handleInputChange}
-                                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300"
+                                            className="h-4 w-4 text-slate-600 focus:ring-slate-500 border-slate-300"
                                         />
                                         <span className="ml-2 text-sm text-slate-700 font-medium">ADMINISTRATIVO</span>
-                                    </label>
-                                    <label className="flex items-center cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            name="fiscal_perfil"
-                                            value="Setorial"
-                                            checked={formData.fiscal_perfil === 'Setorial'}
-                                            onChange={handleInputChange}
-                                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300"
-                                        />
-                                        <span className="ml-2 text-sm text-slate-700 font-medium">SETORIAL</span>
                                     </label>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    {/* Seção de Prazos e Cronograma (Data Pretendida, Início e Término) */}
-                    <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-md border border-slate-200 mt-2">
-                        <div>
-                            <label className="flex items-center justify-between text-[11px] font-bold text-slate-700 uppercase mb-1.5" title="13. Data Pretendida p/ Conclusão">
-                                <span>13. Data Pretendida p/ Conclusão</span>
-                                <Calendar className="h-4 w-4 text-blue-600" />
-                            </label>
-                            <input
-                                type="date"
-                                name="data_pretendida_conclusao"
-                                value={formData.data_pretendida_conclusao}
-                                onChange={handleInputChange}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="flex items-center justify-between text-[11px] font-bold text-slate-700 uppercase mb-1.5" title="QUAL A PREVISÃO DE INÍCIO DA EXECUÇÃO DO OBJETO?">
-                                <span>Previsão de Início (Execução)</span>
-                                <Calendar className="h-4 w-4 text-emerald-600" />
-                            </label>
-                            <input
-                                type="date"
-                                name="previsao_inicio_execucao"
-                                value={formData.previsao_inicio_execucao}
-                                onChange={handleInputChange}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-700"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="flex items-center justify-between text-[11px] font-bold text-slate-700 uppercase mb-1.5" title="QUAL A PREVISÃO DE TÉRMINO DA EXECUÇÃO DO OBJETO?">
-                                <span>Previsão de Término (Execução)</span>
-                                <Calendar className="h-4 w-4 text-rose-600" />
-                            </label>
-                            <input
-                                type="date"
-                                name="previsao_termino_execucao"
-                                value={formData.previsao_termino_execucao}
-                                onChange={handleInputChange}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 text-slate-700"
-                            />
-                        </div>
-                    </div>
-
-                </div>
 
             </div>
 

@@ -139,6 +139,11 @@ const App = () => {
                     <Relatorios />
                   </ProtectedRoute>
                 } />
+                <Route path="/artefatos" element={
+                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
+                    <Artefatos />
+                  </ProtectedRoute>
+                } />
                 <Route path="/artefatos/:id" element={
                   <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
                     <Artefatos />
