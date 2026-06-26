@@ -203,8 +203,12 @@ const GerenciamentoUsuarios = () => {
 
   async function handleEditSave() {
     if (!editTarget) return;
-    if (!editSetor) {
-      toast.error("É obrigatório selecionar um setor para o usuário.");
+    if (editExerciciosPermitidos.includes(2026) && !editSetor) {
+      toast.error("É obrigatório selecionar um Setor Demandante para o PCA 2026.");
+      return;
+    }
+    if (editExerciciosPermitidos.includes(2027) && (!editUnidadeId || editUnidadeId === "none")) {
+      toast.error("É obrigatório selecionar uma Unidade Requisitante para o PCA 2027.");
       return;
     }
     if (!editExerciciosPermitidos || editExerciciosPermitidos.length === 0) {
@@ -219,12 +223,12 @@ const GerenciamentoUsuarios = () => {
       const payload = {
         user_id: editTarget.id,
         nome_completo: editNome,
-        setor: editSetor,
+        setor: editExerciciosPermitidos.includes(2026) ? editSetor : null,
         setores_adicionais: editSetoresAdicionais,
         cargo: editCargo,
         role: editRole,
         exercicios_permitidos: editExerciciosPermitidos,
-        unidade_requisitante_id: editUnidadeId === "none" ? null : editUnidadeId,
+        unidade_requisitante_id: editExerciciosPermitidos.includes(2027) && editUnidadeId !== "none" ? editUnidadeId : null,
       };
       
       console.log("[Gerenciamento] Chamando admin-update-user com payload:", payload);
@@ -277,8 +281,12 @@ const GerenciamentoUsuarios = () => {
       toast.error("Preencha nome, e-mail e perfil de acesso.");
       return;
     }
-    if (!newSetor) {
-      toast.error("É obrigatório selecionar um setor para o novo usuário.");
+    if (newExerciciosPermitidos.includes(2026) && !newSetor) {
+      toast.error("É obrigatório selecionar um Setor Demandante para o PCA 2026.");
+      return;
+    }
+    if (newExerciciosPermitidos.includes(2027) && (!newUnidadeId || newUnidadeId === "none")) {
+      toast.error("É obrigatório selecionar uma Unidade Requisitante para o PCA 2027.");
       return;
     }
     if (!newProvisionalPassword || newProvisionalPassword.length < 8) {
@@ -297,13 +305,13 @@ const GerenciamentoUsuarios = () => {
       const payload = {
         email: newEmail,
         nome_completo: newNome,
-        setor: newSetor,
+        setor: newExerciciosPermitidos.includes(2026) ? newSetor : null,
         setores_adicionais: newSetoresAdicionais,
         cargo: newCargo,
         role: newRole,
         provisional_password: newProvisionalPassword,
         exercicios_permitidos: newExerciciosPermitidos,
-        unidade_requisitante_id: newUnidadeId === "none" ? null : newUnidadeId,
+        unidade_requisitante_id: newExerciciosPermitidos.includes(2027) && newUnidadeId !== "none" ? newUnidadeId : null,
       };
       
       console.log("[Gerenciamento] Chamando admin-create-user com payload:", payload);
@@ -647,32 +655,35 @@ const GerenciamentoUsuarios = () => {
                   <label className="text-sm text-muted-foreground">E-mail</label>
                   <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="usuario@mppi.mp.br" />
                 </div>
-                <div>
-                  <label className="text-sm text-muted-foreground">Setor Demandante (PCA 2026) *</label>
-                  <Select value={newSetor} onValueChange={setNewSetor}>
-                    <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
-                    <SelectContent>
-                      {SETORES_REQUISITANTES.map((s) => (
-                        <SelectItem key={s} value={s}>{s === "PLANEJAMENTO" ? "PLAN" : s}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm text-muted-foreground flex justify-between">
-                    <span>Unidade Requisitante (PCA 2027)</span>
-                    <Badge variant="outline" className="text-[9px]">Opcional</Badge>
-                  </label>
-                  <Select value={newUnidadeId} onValueChange={setNewUnidadeId}>
-                    <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione (Opcional)" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhum / Não aplicável</SelectItem>
-                      {unidades.map(u => (
-                        <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {newExerciciosPermitidos.includes(2026) && (
+                  <div>
+                    <label className="text-sm text-muted-foreground">Setor Demandante (PCA 2026) *</label>
+                    <Select value={newSetor} onValueChange={setNewSetor}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
+                      <SelectContent>
+                        {SETORES_REQUISITANTES.map((s) => (
+                          <SelectItem key={s} value={s}>{s === "PLANEJAMENTO" ? "PLAN" : s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {newExerciciosPermitidos.includes(2027) && (
+                  <div>
+                    <label className="text-sm text-muted-foreground flex justify-between">
+                      <span>Unidade Requisitante (PCA 2027) *</span>
+                    </label>
+                    <Select value={newUnidadeId} onValueChange={setNewUnidadeId}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione a Unidade" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Nenhum / Não aplicável</SelectItem>
+                        {unidades.map(u => (
+                          <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <div className="md:col-span-2">
                   <label className="text-sm text-muted-foreground">Setores Adicionais</label>
                   <Popover>
@@ -753,6 +764,7 @@ const GerenciamentoUsuarios = () => {
                             setNewExerciciosPermitidos([...newExerciciosPermitidos, 2026]);
                           } else {
                             setNewExerciciosPermitidos(newExerciciosPermitidos.filter((y) => y !== 2026));
+                            setNewSetor("");
                           }
                         }}
                       />
@@ -769,6 +781,7 @@ const GerenciamentoUsuarios = () => {
                             setNewExerciciosPermitidos([...newExerciciosPermitidos, 2027]);
                           } else {
                             setNewExerciciosPermitidos(newExerciciosPermitidos.filter((y) => y !== 2027));
+                            setNewUnidadeId("none");
                           }
                         }}
                       />
@@ -801,32 +814,35 @@ const GerenciamentoUsuarios = () => {
                   <label className="text-sm text-muted-foreground">Nome completo</label>
                   <Input value={editNome} onChange={(e) => setEditNome(e.target.value)} />
                 </div>
-                <div>
-                  <label className="text-sm text-muted-foreground">Setor Demandante (PCA 2026) *</label>
-                  <Select value={editSetor} onValueChange={setEditSetor}>
-                    <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
-                    <SelectContent>
-                      {SETORES_REQUISITANTES.map((s) => (
-                        <SelectItem key={s} value={s}>{s === "PLANEJAMENTO" ? "PLAN" : s}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm text-muted-foreground flex justify-between">
-                    <span>Unidade Requisitante (PCA 2027)</span>
-                    <Badge variant="outline" className="text-[9px]">Opcional</Badge>
-                  </label>
-                  <Select value={editUnidadeId} onValueChange={setEditUnidadeId}>
-                    <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione (Opcional)" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhum / Não aplicável</SelectItem>
-                      {unidades.map(u => (
-                        <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {editExerciciosPermitidos.includes(2026) && (
+                  <div>
+                    <label className="text-sm text-muted-foreground">Setor Demandante (PCA 2026) *</label>
+                    <Select value={editSetor} onValueChange={setEditSetor}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
+                      <SelectContent>
+                        {SETORES_REQUISITANTES.map((s) => (
+                          <SelectItem key={s} value={s}>{s === "PLANEJAMENTO" ? "PLAN" : s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {editExerciciosPermitidos.includes(2027) && (
+                  <div>
+                    <label className="text-sm text-muted-foreground flex justify-between">
+                      <span>Unidade Requisitante (PCA 2027) *</span>
+                    </label>
+                    <Select value={editUnidadeId} onValueChange={setEditUnidadeId}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione a Unidade" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Nenhum / Não aplicável</SelectItem>
+                        {unidades.map(u => (
+                          <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <div className="md:col-span-2">
                   <label className="text-sm text-muted-foreground">Setores Adicionais</label>
                   <Popover>
@@ -903,6 +919,7 @@ const GerenciamentoUsuarios = () => {
                             setEditExerciciosPermitidos([...editExerciciosPermitidos, 2026]);
                           } else {
                             setEditExerciciosPermitidos(editExerciciosPermitidos.filter((y) => y !== 2026));
+                            setEditSetor("");
                           }
                         }}
                       />
@@ -919,6 +936,7 @@ const GerenciamentoUsuarios = () => {
                             setEditExerciciosPermitidos([...editExerciciosPermitidos, 2027]);
                           } else {
                             setEditExerciciosPermitidos(editExerciciosPermitidos.filter((y) => y !== 2027));
+                            setEditUnidadeId("none");
                           }
                         }}
                       />
