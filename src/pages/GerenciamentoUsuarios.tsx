@@ -75,6 +75,7 @@ type Profile = {
   setores_adicionais: string[] | null;
   cargo: string | null;
   exercicios_permitidos?: number[] | null;
+  unidade_requisitante_id?: string | null;
 };
 
 type UserWithRoles = Profile & { roles: PerfilAcesso[] };
@@ -100,6 +101,7 @@ const GerenciamentoUsuarios = () => {
   const [newRole, setNewRole] = useState<PerfilAcesso | undefined>(undefined);
   const [newProvisionalPassword, setNewProvisionalPassword] = useState("");
   const [newExerciciosPermitidos, setNewExerciciosPermitidos] = useState<number[]>([2026]);
+  const [newUnidadeId, setNewUnidadeId] = useState<string>("none");
 
   // Edit user
   const [editTarget, setEditTarget] = useState<UserWithRoles | null>(null);
@@ -110,6 +112,7 @@ const GerenciamentoUsuarios = () => {
   const [editCargo, setEditCargo] = useState("");
   const [editRole, setEditRole] = useState<PerfilAcesso | undefined>(undefined);
   const [editExerciciosPermitidos, setEditExerciciosPermitidos] = useState<number[]>([2026]);
+  const [editUnidadeId, setEditUnidadeId] = useState<string>("none");
   const [saving, setSaving] = useState(false);
 
   // Delete user
@@ -123,7 +126,7 @@ const GerenciamentoUsuarios = () => {
       const end = start + pageSize - 1;
       const { data: profiles, error, count } = await supabase
         .from("profiles")
-        .select("id, nome_completo, email, setor, setores_adicionais, cargo, exercicios_permitidos", { count: "exact" })
+        .select("id, nome_completo, email, setor, setores_adicionais, cargo, exercicios_permitidos, unidade_requisitante_id", { count: "exact" })
         .order("nome_completo", { ascending: true })
         .range(start, end);
       if (error) throw error;
@@ -151,6 +154,7 @@ const GerenciamentoUsuarios = () => {
         setores_adicionais: (p as any).setores_adicionais || [],
         cargo: p.cargo,
         exercicios_permitidos: p.exercicios_permitidos || [2026],
+        unidade_requisitante_id: (p as any).unidade_requisitante_id,
         roles: rolesMap.get(p.id) || [],
       }));
       setUsuarios(merged);
@@ -161,10 +165,15 @@ const GerenciamentoUsuarios = () => {
     }
   }
 
+  const [unidades, setUnidades] = useState<any[]>([]);
+
   useEffect(() => {
     loadUsers();
     supabase.auth.getSession().then(({ data }) => {
       setCurrentUserId(data.session?.user?.id || null);
+    });
+    supabase.from("unidades_requisitantes").select("id, nome").eq("ativo", true).then(({ data }) => {
+      if (data) setUnidades(data);
     });
   }, [page, pageSize]);
 
@@ -188,6 +197,7 @@ const GerenciamentoUsuarios = () => {
     setEditCargo(u.cargo || "");
     setEditRole(u.roles[0] || undefined);
     setEditExerciciosPermitidos(u.exercicios_permitidos || [2026]);
+    setEditUnidadeId(u.unidade_requisitante_id || "none");
     setShowEdit(true);
   }
 
@@ -214,6 +224,7 @@ const GerenciamentoUsuarios = () => {
         cargo: editCargo,
         role: editRole,
         exercicios_permitidos: editExerciciosPermitidos,
+        unidade_requisitante_id: editUnidadeId === "none" ? null : editUnidadeId,
       };
       
       console.log("[Gerenciamento] Chamando admin-update-user com payload:", payload);
@@ -290,8 +301,9 @@ const GerenciamentoUsuarios = () => {
         setores_adicionais: newSetoresAdicionais,
         cargo: newCargo,
         role: newRole,
-        provisional_password: newProvisionalPassword || undefined,
+        provisional_password: newProvisionalPassword,
         exercicios_permitidos: newExerciciosPermitidos,
+        unidade_requisitante_id: newUnidadeId === "none" ? null : newUnidadeId,
       };
       
       console.log("[Gerenciamento] Chamando admin-create-user com payload:", payload);
@@ -327,6 +339,7 @@ const GerenciamentoUsuarios = () => {
         setNewSetoresAdicionais([]);
         setNewRole(undefined); setNewProvisionalPassword("");
         setNewExerciciosPermitidos([2026]);
+        setNewUnidadeId("none");
         
         await loadUsers();
       } else {
@@ -545,8 +558,13 @@ const GerenciamentoUsuarios = () => {
                     <TableCell className="font-medium text-left">{u.nome_completo || "—"}</TableCell>
                     <TableCell className="text-left">{u.email || "—"}</TableCell>
                     <TableCell className="text-left">
-                      <div className="flex flex-wrap gap-1">
-                        <Badge variant="outline" title="Lotação Principal">{u.setor || "—"}</Badge>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        <Badge variant="outline" title="Setor Demandante (2026)">{u.setor || "—"}</Badge>
+                        {u.unidade_requisitante_id && (
+                          <Badge variant="outline" className="border-primary text-primary" title="Unidade Requisitante (2027)">
+                            {unidades.find(un => un.id === u.unidade_requisitante_id)?.nome || "Unidade"}
+                          </Badge>
+                        )}
                         {u.setores_adicionais?.map((s) => (
                           <Badge key={s} variant="secondary" className="text-[10px]" title="Acesso Adicional">{s}</Badge>
                         ))}
@@ -630,12 +648,27 @@ const GerenciamentoUsuarios = () => {
                   <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="usuario@mppi.mp.br" />
                 </div>
                 <div>
-                  <label className="text-sm text-muted-foreground">Setor *</label>
+                  <label className="text-sm text-muted-foreground">Setor Demandante (PCA 2026) *</label>
                   <Select value={newSetor} onValueChange={setNewSetor}>
                     <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
                     <SelectContent>
                       {SETORES_REQUISITANTES.map((s) => (
                         <SelectItem key={s} value={s}>{s === "PLANEJAMENTO" ? "PLAN" : s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground flex justify-between">
+                    <span>Unidade Requisitante (PCA 2027)</span>
+                    <Badge variant="outline" className="text-[9px]">Opcional</Badge>
+                  </label>
+                  <Select value={newUnidadeId} onValueChange={setNewUnidadeId}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione (Opcional)" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhum / Não aplicável</SelectItem>
+                      {unidades.map(u => (
+                        <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -769,12 +802,27 @@ const GerenciamentoUsuarios = () => {
                   <Input value={editNome} onChange={(e) => setEditNome(e.target.value)} />
                 </div>
                 <div>
-                  <label className="text-sm text-muted-foreground">Setor *</label>
+                  <label className="text-sm text-muted-foreground">Setor Demandante (PCA 2026) *</label>
                   <Select value={editSetor} onValueChange={setEditSetor}>
                     <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
                     <SelectContent>
                       {SETORES_REQUISITANTES.map((s) => (
                         <SelectItem key={s} value={s}>{s === "PLANEJAMENTO" ? "PLAN" : s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground flex justify-between">
+                    <span>Unidade Requisitante (PCA 2027)</span>
+                    <Badge variant="outline" className="text-[9px]">Opcional</Badge>
+                  </label>
+                  <Select value={editUnidadeId} onValueChange={setEditUnidadeId}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione (Opcional)" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhum / Não aplicável</SelectItem>
+                      {unidades.map(u => (
+                        <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

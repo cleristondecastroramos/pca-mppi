@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
     }
 
     const payload = await req.json();
-    const { user_id, nome_completo, setor, setores_adicionais, cargo, role, exercicios_permitidos } = payload;
+    const { user_id, nome_completo, setor, setores_adicionais, cargo, role, exercicios_permitidos, unidade_requisitante_id } = payload;
 
     if (!user_id) {
       console.error("user_id ausente no payload");
@@ -63,6 +63,7 @@ Deno.serve(async (req) => {
     if (setores_adicionais !== undefined) profileUpdate.setores_adicionais = setores_adicionais;
     if (cargo !== undefined) profileUpdate.cargo = cargo;
     if (exercicios_permitidos !== undefined) profileUpdate.exercicios_permitidos = exercicios_permitidos;
+    if (unidade_requisitante_id !== undefined) profileUpdate.unidade_requisitante_id = unidade_requisitante_id;
 
     if (Object.keys(profileUpdate).length > 0) {
       console.log("Atualizando dados do perfil:", Object.keys(profileUpdate));

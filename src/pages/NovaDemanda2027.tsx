@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Plus, ArrowLeft, BookOpen } from "lucide-react";
-import { SETORES_REQUISITANTES } from "@/lib/auth";
 import { CatmatCatserSearch } from "@/components/CatmatCatserSearch";
 import type { ItemCatalogo } from "@/hooks/useCatmatCatser";
 
@@ -19,7 +18,10 @@ export default function NovaDemanda2027() {
   const [loading, setLoading] = useState(false);
 
   // Campos do formulário
-  const [unidadeDemandante, setUnidadeDemandante] = useState("");
+  const [unidadeId, setUnidadeId] = useState("");
+  const [unidades, setUnidades] = useState<any[]>([]);
+  const [isLocked, setIsLocked] = useState(false);
+  const [isAdminOrGestor, setIsAdminOrGestor] = useState(false);
   const [prioridade, setPrioridade] = useState<"Alta" | "Média" | "Baixa">("Média");
   const [justificativa, setJustificativa] = useState("");
   const [quantidade, setQuantidade] = useState<number>(1);
@@ -31,21 +33,36 @@ export default function NovaDemanda2027() {
 
   const valorTotal = quantidade * valorUnitario;
 
-  // Pre-seleciona o setor do usuário logado
+  // Pre-seleciona a unidade do usuário logado
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data?.user?.id) {
+        // Verifica permissoes
+        supabase.rpc("has_role", { _user_id: data.user.id, _role: "administrador" }).then((res1) => {
+          supabase.rpc("has_role", { _user_id: data.user.id, _role: "gestor" }).then((res2) => {
+            const admin = !!res1.data;
+            const gestor = !!res2.data;
+            setIsAdminOrGestor(admin || gestor);
+          });
+        });
+
+        // Busca profile
         supabase
           .from("profiles")
-          .select("setor")
+          .select("unidade_requisitante_id")
           .eq("id", data.user.id)
           .single()
           .then(({ data: profile }) => {
-            if (profile?.setor && SETORES_REQUISITANTES.includes(profile.setor as any)) {
-              setUnidadeDemandante(profile.setor);
+            if (profile?.unidade_requisitante_id) {
+              setUnidadeId(profile.unidade_requisitante_id);
+              setIsLocked(true);
             }
           });
       }
+    });
+
+    supabase.from("unidades_requisitantes").select("*").eq("ativo", true).eq("exercicio", 2027).then(({ data }) => {
+      if (data) setUnidades(data);
     });
   }, []);
 
@@ -63,8 +80,8 @@ export default function NovaDemanda2027() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!unidadeDemandante) {
-      toast.error("Por favor, selecione a unidade demandante");
+    if (!unidadeId) {
+      toast.error("Por favor, selecione a unidade requisitante");
       return;
     }
 
@@ -91,11 +108,15 @@ export default function NovaDemanda2027() {
       const classeMap =
         itemCatalogo.tipo === "CATMAT" ? "Material de Consumo" : "Serviço";
 
+      const unidadeSelecionada = unidades.find(u => u.id === unidadeId);
+      const nomeUnidade = unidadeSelecionada?.nome || "";
+
       const insertData = {
         exercicio: 2027,
-        unidade_demandante: unidadeDemandante,
-        unidade_orcamentaria: unidadeDemandante,
-        setor_requisitante: unidadeDemandante,
+        unidade_requisitante_id: unidadeId,
+        setor_requisitante: nomeUnidade,
+        unidade_demandante: nomeUnidade,
+        unidade_orcamentaria: nomeUnidade,
         // Descrição vem exclusivamente do catálogo selecionado
         descricao: itemCatalogo.descricaoItem,
         catmat_catser_tipo: itemCatalogo.tipo,
@@ -173,14 +194,14 @@ export default function NovaDemanda2027() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="unidade">Unidade Demandante *</Label>
-                  <Select value={unidadeDemandante} onValueChange={setUnidadeDemandante}>
+                  <Label htmlFor="unidade">Unidade Requisitante *</Label>
+                  <Select value={unidadeId} onValueChange={setUnidadeId} disabled={isLocked && !isAdminOrGestor}>
                     <SelectTrigger id="unidade" className="bg-slate-50/50 border dark:bg-slate-900">
                       <SelectValue placeholder="Selecione a Unidade" />
                     </SelectTrigger>
                     <SelectContent>
-                      {SETORES_REQUISITANTES.map((s) => (
-                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                      {unidades.map((u) => (
+                        <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

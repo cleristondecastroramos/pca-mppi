@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, Plus, Settings, LogOut, BarChart3, Users, CheckSquare, ClipboardList, Gauge, BadgeCheck, Clock, TrendingUp, AlertTriangle, HelpCircle, Terminal, BellRing, BookOpen, Gavel, Calculator, ListTodo, PauseCircle } from "lucide-react";
+import { LayoutDashboard, FileText, Plus, Settings, LogOut, BarChart3, Users, CheckSquare, ClipboardList, Gauge, BadgeCheck, Clock, TrendingUp, AlertTriangle, HelpCircle, Terminal, BellRing, BookOpen, Gavel, Calculator, ListTodo, PauseCircle, Building2 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useUserRoles, useAuthSession, type PerfilAcesso } from "@/lib/auth";
 import { useExercise } from "@/hooks/useExercise";
@@ -62,6 +62,7 @@ const menuItems2027: MenuItem[] = [
   { title: "Nova Demanda 2027", url: "/nova-demanda-2027", icon: Plus, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
   
   { title: "Gerenciamento de Usuários", url: "/gerenciamento-usuarios", icon: Users, allowedRoles: ["administrador"] },
+  { title: "Unidades Requisitantes", url: "/gerenciamento-unidades", icon: Building2, allowedRoles: ["administrador"] },
   { title: "Tutorial", url: "/tutorial-2027", icon: BookOpen, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
   { title: "FAQ / Dúvidas", url: "/faq-2027", icon: HelpCircle, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
   { title: "Minha Conta", url: "/minha-conta", icon: Settings, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },

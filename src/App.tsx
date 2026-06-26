@@ -24,6 +24,7 @@ const ResultadosAlcancados = lazy(() => import("./pages/ResultadosAlcancados"));
 const Relatorios = lazy(() => import("./pages/Relatorios"));
 const Artefatos = lazy(() => import("./pages/Artefatos"));
 const GerenciamentoUsuarios = lazy(() => import("./pages/GerenciamentoUsuarios"));
+const GerenciamentoUnidades = lazy(() => import("./pages/GerenciamentoUnidades"));
 const MinhaConta = lazy(() => import("./pages/MinhaConta"));
 const EsqueciSenha = lazy(() => import("./pages/EsqueciSenha"));
 const RedefinirSenha = lazy(() => import("./pages/RedefinirSenha"));
@@ -91,6 +92,14 @@ const App = () => {
                     <SelecaoExercicio />
                   </ProtectedRoute>
                 } />
+                <Route
+                  path="/gerenciamento-unidades"
+                  element={
+                    <ProtectedRoute allowed={["administrador"]}>
+                      <GerenciamentoUnidades />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route path="/planejamento-2027" element={
                   <ProtectedRoute allowed={["administrador", "gestor", "consulta"]}>
                     <Planejamento2027 />

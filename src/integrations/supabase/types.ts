@@ -18,6 +18,9 @@ export type Database = {
         Row: {
           ajuste_orcamentario: number | null
           alinhamento_estrategico: boolean | null
+          categoria_material_ou_servico: string | null
+          catmat_catser_codigo: string | null
+          catmat_catser_tipo: string | null
           classe: string
           codigo: string | null
           codigo_pca: string | null
@@ -70,6 +73,7 @@ export type Database = {
           unidade_demandante: string | null
           unidade_fornecimento: string | null
           unidade_orcamentaria: string
+          unidade_requisitante_id: string | null
           updated_at: string | null
           valor_ativo: number | null
           valor_contratado: number | null
@@ -82,6 +86,9 @@ export type Database = {
         Insert: {
           ajuste_orcamentario?: number | null
           alinhamento_estrategico?: boolean | null
+          categoria_material_ou_servico?: string | null
+          catmat_catser_codigo?: string | null
+          catmat_catser_tipo?: string | null
           classe: string
           codigo?: string | null
           codigo_pca?: string | null
@@ -134,6 +141,7 @@ export type Database = {
           unidade_demandante?: string | null
           unidade_fornecimento?: string | null
           unidade_orcamentaria: string
+          unidade_requisitante_id?: string | null
           updated_at?: string | null
           valor_ativo?: number | null
           valor_contratado?: number | null
@@ -146,6 +154,9 @@ export type Database = {
         Update: {
           ajuste_orcamentario?: number | null
           alinhamento_estrategico?: boolean | null
+          categoria_material_ou_servico?: string | null
+          catmat_catser_codigo?: string | null
+          catmat_catser_tipo?: string | null
           classe?: string
           codigo?: string | null
           codigo_pca?: string | null
@@ -198,6 +209,7 @@ export type Database = {
           unidade_demandante?: string | null
           unidade_fornecimento?: string | null
           unidade_orcamentaria?: string
+          unidade_requisitante_id?: string | null
           updated_at?: string | null
           valor_ativo?: number | null
           valor_contratado?: number | null
@@ -579,6 +591,7 @@ export type Database = {
           ramal: string | null
           setor: string | null
           setores_adicionais: string[] | null
+          unidade_requisitante_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -592,6 +605,7 @@ export type Database = {
           ramal?: string | null
           setor?: string | null
           setores_adicionais?: string[] | null
+          unidade_requisitante_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -605,6 +619,7 @@ export type Database = {
           ramal?: string | null
           setor?: string | null
           setores_adicionais?: string[] | null
+          unidade_requisitante_id?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -1532,6 +1547,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      unidades_requisitantes: {
+        Row: {
+          id: string
+          nome: string
+          tipo: string
+          exercicio: number
+          ativo: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          nome: string
+          tipo: string
+          exercicio?: number
+          ativo?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          nome?: string
+          tipo?: string
+          exercicio?: number
+          ativo?: boolean
+          created_at?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
