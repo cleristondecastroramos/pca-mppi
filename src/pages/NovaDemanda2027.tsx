@@ -94,6 +94,7 @@ export default function NovaDemanda2027() {
       const insertData = {
         exercicio: 2027,
         unidade_demandante: unidadeDemandante,
+        unidade_orcamentaria: unidadeDemandante,
         setor_requisitante: unidadeDemandante,
         // Descrição vem exclusivamente do catálogo selecionado
         descricao: itemCatalogo.descricaoItem,

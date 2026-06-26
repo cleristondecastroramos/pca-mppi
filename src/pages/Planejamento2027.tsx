@@ -29,7 +29,6 @@ export default function Planejamento2027() {
   const [partialQuantity, setPartialQuantity] = useState<number>(1);
   const [partialValorUnit, setPartialValorUnit] = useState<number>(0);
 
-  const { data: session } = supabase.auth.useSession ? { data: { session: null } } : { data: { session: null } };
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { data: profile } = useUserProfile(currentUserId ?? undefined);
   const { data: roles } = useUserRoles(currentUserId ?? undefined);

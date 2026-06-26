@@ -40,7 +40,11 @@ export function prefetchPage(path: string) {
       import("@/pages/MinhaConta");
       break;
     case "/faq":
-      import("@/pages/Faq");
+    case "/faq-2026":
+      import("@/pages/Faq2026");
+      break;
+    case "/faq-2027":
+      import("@/pages/Faq2027");
       break;
     default:
       break;
