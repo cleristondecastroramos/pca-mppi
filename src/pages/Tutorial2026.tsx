@@ -4,7 +4,7 @@ import { FileDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { generateTutorialPdf } from "@/utils/tutorialPdf";
 
-export default function Tutorial() {
+export default function Tutorial2026() {
   const [generating, setGenerating] = useState(false);
 
   const handleExportPdf = async () => {

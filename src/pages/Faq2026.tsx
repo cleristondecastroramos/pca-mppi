@@ -3,12 +3,12 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Mail, Phone, Building2, UserCircle, MessageSquare } from "lucide-react";
 
-const Faq = () => {
+const Faq2026 = () => {
   return (
     <Layout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-xl font-bold text-foreground">FAQ / Dúvidas</h1>
+          <h1 className="text-xl font-bold text-foreground">FAQ / Dúvidas — PCA 2026</h1>
           <p className="text-sm text-muted-foreground">Perguntas frequentes sobre o sistema, funcionalidades e canais de contato.</p>
         </div>
 
@@ -161,4 +161,4 @@ const Faq = () => {
   );
 };
 
-export default Faq;
+export default Faq2026;

@@ -27,12 +27,27 @@ const GerenciamentoUsuarios = lazy(() => import("./pages/GerenciamentoUsuarios")
 const MinhaConta = lazy(() => import("./pages/MinhaConta"));
 const EsqueciSenha = lazy(() => import("./pages/EsqueciSenha"));
 const RedefinirSenha = lazy(() => import("./pages/RedefinirSenha"));
-const Faq = lazy(() => import("./pages/Faq"));
-
 const Notificacoes = lazy(() => import("./pages/Notificacoes"));
 const OrcamentoPlanejado = lazy(() => import("./pages/OrcamentoPlanejado"));
-const Tutorial = lazy(() => import("./pages/Tutorial"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const SelecaoExercicio = lazy(() => import("./pages/SelecaoExercicio"));
+const Planejamento2027 = lazy(() => import("./pages/Planejamento2027"));
+const NovaDemanda2027 = lazy(() => import("./pages/NovaDemanda2027"));
+const Tutorial2026 = lazy(() => import("./pages/Tutorial2026"));
+const Tutorial2027 = lazy(() => import("./pages/Tutorial2027"));
+const Faq2026 = lazy(() => import("./pages/Faq2026"));
+const Faq2027 = lazy(() => import("./pages/Faq2027"));
+const AcessoNegado = lazy(() => import("./pages/AcessoNegado"));
+
+const RedirectFaq = () => {
+  const ex = localStorage.getItem("pca_exercicio") || "2026";
+  return <Navigate to={`/faq-${ex}`} replace />;
+};
+
+const RedirectTutorial = () => {
+  const ex = localStorage.getItem("pca_exercicio") || "2026";
+  return <Navigate to={`/tutorial-${ex}`} replace />;
+};
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -71,6 +86,21 @@ const App = () => {
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/esqueci-senha" element={<EsqueciSenha />} />
                 <Route path="/redefinir-senha" element={<RedefinirSenha />} />
+                <Route path="/selecao-exercicio" element={
+                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
+                    <SelecaoExercicio />
+                  </ProtectedRoute>
+                } />
+                <Route path="/planejamento-2027" element={
+                  <ProtectedRoute allowed={["administrador", "gestor", "consulta"]}>
+                    <Planejamento2027 />
+                  </ProtectedRoute>
+                } />
+                <Route path="/nova-demanda-2027" element={
+                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante"]}>
+                    <NovaDemanda2027 />
+                  </ProtectedRoute>
+                } />
                 <Route path="/home" element={
                   <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
                     <Home />
@@ -161,7 +191,22 @@ const App = () => {
                 } />
                 <Route path="/faq" element={
                   <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
-                    <Faq />
+                    <RedirectFaq />
+                  </ProtectedRoute>
+                } />
+                <Route path="/faq-2026" element={
+                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
+                    <Faq2026 />
+                  </ProtectedRoute>
+                } />
+                <Route path="/faq-2027" element={
+                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
+                    <Faq2027 />
+                  </ProtectedRoute>
+                } />
+                <Route path="/acesso-negado" element={
+                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
+                    <AcessoNegado />
                   </ProtectedRoute>
                 } />
 
@@ -178,7 +223,17 @@ const App = () => {
                 } />
                 <Route path="/tutorial" element={
                   <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
-                    <Tutorial />
+                    <RedirectTutorial />
+                  </ProtectedRoute>
+                } />
+                <Route path="/tutorial-2026" element={
+                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
+                    <Tutorial2026 />
+                  </ProtectedRoute>
+                } />
+                <Route path="/tutorial-2027" element={
+                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
+                    <Tutorial2027 />
                   </ProtectedRoute>
                 } />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

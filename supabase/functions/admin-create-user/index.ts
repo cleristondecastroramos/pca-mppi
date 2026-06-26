@@ -85,6 +85,7 @@ Deno.serve(async (req) => {
     const cargo: string | undefined = payload?.cargo;
     const role: string | undefined = payload?.role;
     const provisional_password: string | undefined = payload?.provisional_password;
+    const exercicios_permitidos: number[] | undefined = payload?.exercicios_permitidos || [2026];
 
     console.log(`Iniciando processamento para ${email}. Role: ${role}. Senha: ${!!provisional_password}`);
 
@@ -151,7 +152,7 @@ Deno.serve(async (req) => {
     console.log("Atualizando perfil na tabela 'profiles'...");
     const { error: profileErr } = await supabaseAdmin
       .from("profiles")
-      .update({ nome_completo, setor, setores_adicionais, cargo, email })
+      .update({ nome_completo, setor, setores_adicionais, cargo, email, exercicios_permitidos })
       .eq("id", newUser.id);
     
     if (profileErr) {

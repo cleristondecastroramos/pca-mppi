@@ -1,6 +1,7 @@
 import { LayoutDashboard, FileText, Plus, Settings, LogOut, BarChart3, Users, CheckSquare, ClipboardList, Gauge, BadgeCheck, Clock, TrendingUp, AlertTriangle, HelpCircle, Terminal, BellRing, BookOpen, Gavel, Calculator, ListTodo, PauseCircle } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useUserRoles, useAuthSession, type PerfilAcesso } from "@/lib/auth";
+import { useExercise } from "@/hooks/useExercise";
 import {
   Sidebar,
   SidebarContent,
@@ -51,8 +52,18 @@ const menuItems: MenuItem[] = [
   { title: "Gerenciamento de Usuários", url: "/gerenciamento-usuarios", icon: Users, allowedRoles: ["administrador"] },
   { title: "Notificações", url: "/notificacoes", icon: BellRing, allowedRoles: ["administrador"] },
 
-  { title: "Tutorial", url: "/tutorial", icon: BookOpen, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
-  { title: "FAQ / Dúvidas", url: "/faq", icon: HelpCircle, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
+  { title: "Tutorial", url: "/tutorial-2026", icon: BookOpen, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
+  { title: "FAQ / Dúvidas", url: "/faq-2026", icon: HelpCircle, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
+  { title: "Minha Conta", url: "/minha-conta", icon: Settings, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
+];
+
+const menuItems2027: MenuItem[] = [
+  { title: "Painel Planejamento 2027", url: "/planejamento-2027", icon: ClipboardList, allowedRoles: ["administrador", "gestor", "consulta"] },
+  { title: "Nova Demanda 2027", url: "/nova-demanda-2027", icon: Plus, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
+  
+  { title: "Gerenciamento de Usuários", url: "/gerenciamento-usuarios", icon: Users, allowedRoles: ["administrador"] },
+  { title: "Tutorial", url: "/tutorial-2027", icon: BookOpen, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
+  { title: "FAQ / Dúvidas", url: "/faq-2027", icon: HelpCircle, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
   { title: "Minha Conta", url: "/minha-conta", icon: Settings, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
 ];
 
@@ -62,10 +73,11 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { exercise } = useExercise();
   const { data: session } = useAuthSession();
   const { data: roles } = useUserRoles(session?.user?.id);
 
-  const visibleItems = menuItems.filter((item) => {
+  const visibleItems = (exercise === 2027 ? menuItems2027 : menuItems).filter((item) => {
     if (!roles || roles.length === 0) return false;
     return item.allowedRoles.some((r) => roles.includes(r));
   });
@@ -101,7 +113,7 @@ export function AppSidebar() {
       <SidebarHeader className="h-16 flex items-center border-b border-border px-4">
         {!collapsed && (
           <div>
-            <h2 className="text-lg font-bold text-sidebar-foreground">PCA 2026</h2>
+            <h2 className="text-lg font-bold text-sidebar-foreground">PCA {exercise}</h2>
             <p className="text-[10px] font-bold text-sidebar-foreground/60">MINISTÉRIO PÚBLICO DO ESTADO DO PIAUÍ</p>
           </div>
         )}

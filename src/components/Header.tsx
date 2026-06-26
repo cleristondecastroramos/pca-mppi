@@ -10,14 +10,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useTheme } from "@/components/theme-provider";
+import { useExercise } from "@/hooks/useExercise";
 
 function HeaderBase() {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  const { exercise, setExercise } = useExercise();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState<string>("?");
   const [userName, setUserName] = useState<string | null>(null);
@@ -201,12 +203,33 @@ function HeaderBase() {
     <header className="h-16 border-b border-border bg-card flex items-center px-6 justify-between">
       <div className="flex items-center gap-4">
         <SidebarTrigger />
-        <h1 className="text-xl font-semibold text-foreground">
-          Sistema de Gerenciamento PCA MPPI 2026
+        <h1 className="text-xl font-semibold text-foreground flex items-center gap-1.5">
+          Sistema de Gerenciamento PCA MPPI <span className="text-primary font-extrabold">{exercise}</span>
         </h1>
       </div>
 
       <div className="flex items-center gap-2">
+        {/* Exercício Switcher */}
+        <div className="flex items-center border rounded-full px-2.5 py-0.5 bg-muted/40 text-xs font-semibold mr-1 gap-1.5">
+          <span className="text-muted-foreground">Exercício:</span>
+          <select
+            value={exercise}
+            onChange={(e) => {
+              const year = parseInt(e.target.value, 10);
+              setExercise(year);
+              if (year === 2026) {
+                navigate("/visao-geral");
+              } else {
+                navigate("/planejamento-2027");
+              }
+            }}
+            className="bg-transparent border-none text-foreground font-bold focus:ring-0 focus:outline-none cursor-pointer p-0.5"
+          >
+            <option value={2026} className="bg-background text-foreground">2026</option>
+            <option value={2027} className="bg-background text-foreground">2027</option>
+          </select>
+        </div>
+
         <div className="flex items-center gap-0.5 border rounded-full p-0.5 bg-muted/30 mr-1">
           <Button
             variant="ghost"

@@ -1,0 +1,197 @@
+import { useNavigate } from "react-router-dom";
+import { useExercise } from "@/hooks/useExercise";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar, PlayCircle, BarChart3, LogOut, ArrowRight, User, Lock, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useUserProfile } from "@/lib/auth";
+import { toast } from "sonner";
+
+export default function SelecaoExercicio() {
+  const navigate = useNavigate();
+  const { setExercise } = useExercise();
+  const [userId, setUserId] = useState<string | null>(null);
+  const { data: profile, isLoading: isProfileLoading } = useUserProfile(userId ?? undefined);
+
+  const exerciciosPermitidos = (profile as any)?.exercicios_permitidos || [2026];
+  const hasAccess2026 = exerciciosPermitidos.includes(2026);
+  const hasAccess2027 = exerciciosPermitidos.includes(2027);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user) {
+        setUserId(data.session.user.id);
+      } else {
+        navigate("/auth");
+      }
+    });
+  }, [navigate]);
+
+  useEffect(() => {
+    if (profile && !isProfileLoading) {
+      const exercicios = (profile as any)?.exercicios_permitidos || [2026];
+      if (exercicios.length === 1) {
+        const unicoExercicio = exercicios[0];
+        setExercise(unicoExercicio);
+        if (unicoExercicio === 2026) {
+          navigate("/visao-geral", { replace: true });
+        } else {
+          navigate("/planejamento-2027", { replace: true });
+        }
+      }
+    }
+  }, [profile, isProfileLoading, navigate, setExercise]);
+
+  if (isProfileLoading || !profile || !userId) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-slate-500 dark:text-slate-400">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+        Carregando seu perfil...
+      </div>
+    );
+  }
+
+  const handleSelect = (year: number) => {
+    if (year === 2026 && !hasAccess2026) {
+      toast.error("Módulo Restrito", {
+        description: "Seu usuário não possui permissão para acessar o PCA 2026."
+      });
+      return;
+    }
+    if (year === 2027 && !hasAccess2027) {
+      toast.error("Módulo Restrito", {
+        description: "Seu usuário não possui permissão para acessar o PCA 2027."
+      });
+      return;
+    }
+    setExercise(year);
+    if (year === 2026) {
+      navigate("/visao-geral");
+    } else {
+      navigate("/planejamento-2027");
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    localStorage.clear();
+    sessionStorage.clear();
+    navigate("/auth");
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Background blobs for premium glassmorphic feel */}
+      <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-red-500/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-rose-500/10 rounded-full blur-3xl" />
+
+      <div className="w-full max-w-4xl space-y-8 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="text-center space-y-3">
+          <div className="flex justify-center transition-transform hover:scale-105 duration-300">
+            <img src="/logo-mppi.png" alt="MPPI" className="h-16 w-auto object-contain" />
+          </div>
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            Selecione o Exercício
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+            Olá, <span className="font-semibold text-primary">{profile?.nome_completo || "Usuário"}</span>. Escolha o ambiente de trabalho que deseja acessar:
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Card PCA 2026 */}
+          <Card 
+            className={`group cursor-pointer border backdrop-blur-md shadow-md transition-all duration-300 transform ${
+              hasAccess2026 
+                ? "border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 hover:shadow-xl hover:border-primary/50 hover:-translate-y-1" 
+                : "border-slate-200/40 dark:border-slate-800/40 bg-white/30 dark:bg-slate-900/30 opacity-60 cursor-not-allowed select-none"
+            }`}
+            onClick={() => handleSelect(2026)}
+          >
+            <CardHeader className="space-y-1 pb-4">
+              <div className="flex items-center justify-between">
+                <div className="p-3 bg-rose-500/10 rounded-xl text-primary group-hover:scale-110 transition-transform duration-300">
+                  <PlayCircle className="h-6 w-6" />
+                </div>
+                {hasAccess2026 ? (
+                  <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 rounded-full">
+                    Em Execução
+                  </span>
+                ) : (
+                  <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-red-500/10 text-red-500 rounded-full flex items-center gap-1">
+                    <Lock className="h-3 w-3" /> Bloqueado
+                  </span>
+                )}
+              </div>
+              <CardTitle className="text-2xl font-bold pt-4 text-slate-800 dark:text-white group-hover:text-primary transition-colors">
+                PCA 2026
+              </CardTitle>
+              <CardDescription className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
+                Gestão e acompanhamento das contratações do ano corrente. Acesso aos dashboards, conformidade, orçamentos e relatórios vigentes.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex items-center text-sm font-bold text-primary gap-1 group-hover:gap-2 transition-all">
+              {hasAccess2026 ? (
+                <>Acessar Exercício <ArrowRight className="h-4 w-4" /></>
+              ) : (
+                <span className="text-muted-foreground flex items-center gap-1"><Lock className="h-4 w-4" /> Acesso Indisponível</span>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Card PCA 2027 */}
+          <Card 
+            className={`group cursor-pointer border backdrop-blur-md shadow-md transition-all duration-300 transform ${
+              hasAccess2027 
+                ? "border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 hover:shadow-xl hover:border-primary/50 hover:-translate-y-1" 
+                : "border-slate-200/40 dark:border-slate-800/40 bg-white/30 dark:bg-slate-900/30 opacity-60 cursor-not-allowed select-none"
+            }`}
+            onClick={() => handleSelect(2027)}
+          >
+            <CardHeader className="space-y-1 pb-4">
+              <div className="flex items-center justify-between">
+                <div className="p-3 bg-amber-500/10 rounded-xl text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform duration-300">
+                  <Calendar className="h-6 w-6" />
+                </div>
+                {hasAccess2027 ? (
+                  <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full">
+                    Planejamento
+                  </span>
+                ) : (
+                  <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-red-500/10 text-red-500 rounded-full flex items-center gap-1">
+                    <Lock className="h-3 w-3" /> Bloqueado
+                  </span>
+                )}
+              </div>
+              <CardTitle className="text-2xl font-bold pt-4 text-slate-800 dark:text-white group-hover:text-primary transition-colors">
+                PCA 2027
+              </CardTitle>
+              <CardDescription className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
+                Cadastro e coleta de novas demandas, vinculação ao CATMAT/CATSER e análises de contratação do exercício subsequente.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex items-center text-sm font-bold text-primary gap-1 group-hover:gap-2 transition-all">
+              {hasAccess2027 ? (
+                <>Acessar Exercício <ArrowRight className="h-4 w-4" /></>
+              ) : (
+                <span className="text-muted-foreground flex items-center gap-1"><Lock className="h-4 w-4" /> Acesso Indisponível</span>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex justify-center pt-4">
+          <Button 
+            variant="ghost" 
+            className="text-slate-500 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400 font-semibold"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sair do Sistema
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

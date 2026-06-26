@@ -74,6 +74,7 @@ type Profile = {
   setor: string | null;
   setores_adicionais: string[] | null;
   cargo: string | null;
+  exercicios_permitidos?: number[] | null;
 };
 
 type UserWithRoles = Profile & { roles: PerfilAcesso[] };
@@ -98,6 +99,7 @@ const GerenciamentoUsuarios = () => {
   const [newCargo, setNewCargo] = useState("");
   const [newRole, setNewRole] = useState<PerfilAcesso | undefined>(undefined);
   const [newProvisionalPassword, setNewProvisionalPassword] = useState("");
+  const [newExerciciosPermitidos, setNewExerciciosPermitidos] = useState<number[]>([2026]);
 
   // Edit user
   const [editTarget, setEditTarget] = useState<UserWithRoles | null>(null);
@@ -107,6 +109,7 @@ const GerenciamentoUsuarios = () => {
   const [editSetoresAdicionais, setEditSetoresAdicionais] = useState<string[]>([]);
   const [editCargo, setEditCargo] = useState("");
   const [editRole, setEditRole] = useState<PerfilAcesso | undefined>(undefined);
+  const [editExerciciosPermitidos, setEditExerciciosPermitidos] = useState<number[]>([2026]);
   const [saving, setSaving] = useState(false);
 
   // Delete user
@@ -120,7 +123,7 @@ const GerenciamentoUsuarios = () => {
       const end = start + pageSize - 1;
       const { data: profiles, error, count } = await supabase
         .from("profiles")
-        .select("id, nome_completo, email, setor, setores_adicionais, cargo", { count: "exact" })
+        .select("id, nome_completo, email, setor, setores_adicionais, cargo, exercicios_permitidos", { count: "exact" })
         .order("nome_completo", { ascending: true })
         .range(start, end);
       if (error) throw error;
@@ -147,6 +150,7 @@ const GerenciamentoUsuarios = () => {
         setor: p.setor,
         setores_adicionais: (p as any).setores_adicionais || [],
         cargo: p.cargo,
+        exercicios_permitidos: p.exercicios_permitidos || [2026],
         roles: rolesMap.get(p.id) || [],
       }));
       setUsuarios(merged);
@@ -183,6 +187,7 @@ const GerenciamentoUsuarios = () => {
     setEditSetoresAdicionais(u.setores_adicionais || []);
     setEditCargo(u.cargo || "");
     setEditRole(u.roles[0] || undefined);
+    setEditExerciciosPermitidos(u.exercicios_permitidos || [2026]);
     setShowEdit(true);
   }
 
@@ -190,6 +195,10 @@ const GerenciamentoUsuarios = () => {
     if (!editTarget) return;
     if (!editSetor) {
       toast.error("É obrigatório selecionar um setor para o usuário.");
+      return;
+    }
+    if (!editExerciciosPermitidos || editExerciciosPermitidos.length === 0) {
+      toast.error("É obrigatório selecionar pelo menos um exercício.");
       return;
     }
     
@@ -204,6 +213,7 @@ const GerenciamentoUsuarios = () => {
         setores_adicionais: editSetoresAdicionais,
         cargo: editCargo,
         role: editRole,
+        exercicios_permitidos: editExerciciosPermitidos,
       };
       
       console.log("[Gerenciamento] Chamando admin-update-user com payload:", payload);
@@ -264,6 +274,10 @@ const GerenciamentoUsuarios = () => {
       toast.error("A senha provisória é obrigatória e deve ter pelo menos 8 caracteres.");
       return;
     }
+    if (!newExerciciosPermitidos || newExerciciosPermitidos.length === 0) {
+      toast.error("É obrigatório selecionar pelo menos um exercício.");
+      return;
+    }
     
     const toastId = toast.loading("Cadastrando novo usuário...");
     setCreating(true);
@@ -277,6 +291,7 @@ const GerenciamentoUsuarios = () => {
         cargo: newCargo,
         role: newRole,
         provisional_password: newProvisionalPassword || undefined,
+        exercicios_permitidos: newExerciciosPermitidos,
       };
       
       console.log("[Gerenciamento] Chamando admin-create-user com payload:", payload);
@@ -311,6 +326,7 @@ const GerenciamentoUsuarios = () => {
         setNewEmail(""); setNewNome(""); setNewSetor(""); setNewCargo("");
         setNewSetoresAdicionais([]);
         setNewRole(undefined); setNewProvisionalPassword("");
+        setNewExerciciosPermitidos([2026]);
         
         await loadUsers();
       } else {
@@ -537,7 +553,16 @@ const GerenciamentoUsuarios = () => {
                       </div>
                     </TableCell>
                     <TableCell className="text-left">{u.cargo || "—"}</TableCell>
-                    <TableCell className="text-left">{u.roles.length ? u.roles.map(roleLabel).join(", ") : "—"}</TableCell>
+                    <TableCell className="text-left">
+                      <div>{u.roles.length ? u.roles.map(roleLabel).join(", ") : "—"}</div>
+                      <div className="flex gap-1 mt-1">
+                        {u.exercicios_permitidos?.map((y) => (
+                          <Badge key={y} variant="outline" className="text-[9px] px-1.5 py-0 bg-slate-50 dark:bg-slate-800 text-muted-foreground border-slate-200">
+                            {y}
+                          </Badge>
+                        ))}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-center space-x-1">
                       <Button size="xs" variant="outline" onClick={() => openEdit(u)} title="Editar usuário">
                         <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
@@ -683,6 +708,43 @@ const GerenciamentoUsuarios = () => {
                   <label className="text-sm text-muted-foreground">Senha provisória (obrigatória, mín. 8 caracteres)</label>
                   <Input type="password" value={newProvisionalPassword} onChange={(e) => setNewProvisionalPassword(e.target.value)} placeholder="Mínimo 8 caracteres" />
                 </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm font-semibold text-muted-foreground block mb-2">Exercícios Autorizados</label>
+                  <div className="flex gap-4 items-center">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="new-exercicio-2026"
+                        checked={newExerciciosPermitidos.includes(2026)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setNewExerciciosPermitidos([...newExerciciosPermitidos, 2026]);
+                          } else {
+                            setNewExerciciosPermitidos(newExerciciosPermitidos.filter((y) => y !== 2026));
+                          }
+                        }}
+                      />
+                      <label htmlFor="new-exercicio-2026" className="text-sm font-medium leading-none">
+                        PCA 2026
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="new-exercicio-2027"
+                        checked={newExerciciosPermitidos.includes(2027)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setNewExerciciosPermitidos([...newExerciciosPermitidos, 2027]);
+                          } else {
+                            setNewExerciciosPermitidos(newExerciciosPermitidos.filter((y) => y !== 2027));
+                          }
+                        }}
+                      />
+                      <label htmlFor="new-exercicio-2027" className="text-sm font-medium leading-none">
+                        PCA 2027
+                      </label>
+                    </div>
+                  </div>
+                </div>
               </div>
               <DialogFooter className="mt-4">
                 <Button onClick={handleCreate} disabled={creating}>{creating ? "Cadastrando..." : "Cadastrar"}</Button>
@@ -780,6 +842,43 @@ const GerenciamentoUsuarios = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm font-semibold text-muted-foreground block mb-2">Exercícios Autorizados</label>
+                  <div className="flex gap-4 items-center">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="edit-exercicio-2026"
+                        checked={editExerciciosPermitidos.includes(2026)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setEditExerciciosPermitidos([...editExerciciosPermitidos, 2026]);
+                          } else {
+                            setEditExerciciosPermitidos(editExerciciosPermitidos.filter((y) => y !== 2026));
+                          }
+                        }}
+                      />
+                      <label htmlFor="edit-exercicio-2026" className="text-sm font-medium leading-none">
+                        PCA 2026
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="edit-exercicio-2027"
+                        checked={editExerciciosPermitidos.includes(2027)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setEditExerciciosPermitidos([...editExerciciosPermitidos, 2027]);
+                          } else {
+                            setEditExerciciosPermitidos(editExerciciosPermitidos.filter((y) => y !== 2027));
+                          }
+                        }}
+                      />
+                      <label htmlFor="edit-exercicio-2027" className="text-sm font-medium leading-none">
+                        PCA 2027
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
               <DialogFooter className="mt-4">

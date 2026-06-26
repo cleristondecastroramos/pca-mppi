@@ -14,6 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      etapas_pca: {
+        Row: {
+          id: string
+          exercicio: number
+          nome: string
+          data_inicio: string
+          data_fim: string
+          obrigatorio: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          exercicio: number
+          nome: string
+          data_inicio: string
+          data_fim: string
+          obrigatorio?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          exercicio?: number
+          nome?: string
+          data_inicio?: string
+          data_fim?: string
+          obrigatorio?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      etapas_status: {
+        Row: {
+          id: string
+          contratacao_id: string
+          etapa_id: string
+          status: string
+          data_conclusao: string | null
+          observacao: string | null
+          responsavel_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          contratacao_id: string
+          etapa_id: string
+          status?: string
+          data_conclusao?: string | null
+          observacao?: string | null
+          responsavel_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          contratacao_id?: string
+          etapa_id?: string
+          status?: string
+          data_conclusao?: string | null
+          observacao?: string | null
+          responsavel_id?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "etapas_status_contratacao_id_fkey"
+            columns: ["contratacao_id"]
+            isOneToOne: false
+            referencedRelation: "contratacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "etapas_status_etapa_id_fkey"
+            columns: ["etapa_id"]
+            isOneToOne: false
+            referencedRelation: "etapas_pca"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       contratacoes: {
         Row: {
           ajuste_orcamentario: number | null
@@ -71,6 +149,19 @@ export type Database = {
           valor_licitado: number | null
           valor_sobrestado: number | null
           valor_unitario: number | null
+          exercicio: number | null
+          codigo_pca: string | null
+          unidade_demandante: string | null
+          catmat_catser_codigo: string | null
+          catmat_catser_tipo: string | null
+          categoria_material_ou_servico: string | null
+          quantidade: number | null
+          valor_total: number | null
+          prioridade: string | null
+          status_planejamento: string | null
+          status_aprovacao: string | null
+          justificativa_nao_aprovacao: string | null
+          updated_by: string | null
         }
         Insert: {
           ajuste_orcamentario?: number | null
@@ -128,6 +219,19 @@ export type Database = {
           valor_licitado?: number | null
           valor_sobrestado?: number | null
           valor_unitario?: number | null
+          exercicio?: number | null
+          codigo_pca?: string | null
+          unidade_demandante?: string | null
+          catmat_catser_codigo?: string | null
+          catmat_catser_tipo?: string | null
+          categoria_material_ou_servico?: string | null
+          quantidade?: number | null
+          valor_total?: number | null
+          prioridade?: string | null
+          status_planejamento?: string | null
+          status_aprovacao?: string | null
+          justificativa_nao_aprovacao?: string | null
+          updated_by?: string | null
         }
         Update: {
           ajuste_orcamentario?: number | null
@@ -185,6 +289,19 @@ export type Database = {
           valor_licitado?: number | null
           valor_sobrestado?: number | null
           valor_unitario?: number | null
+          exercicio?: number | null
+          codigo_pca?: string | null
+          unidade_demandante?: string | null
+          catmat_catser_codigo?: string | null
+          catmat_catser_tipo?: string | null
+          categoria_material_ou_servico?: string | null
+          quantidade?: number | null
+          valor_total?: number | null
+          prioridade?: string | null
+          status_planejamento?: string | null
+          status_aprovacao?: string | null
+          justificativa_nao_aprovacao?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {

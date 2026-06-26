@@ -36,7 +36,7 @@ export default function Auth() {
 
       const { data, error } = await supabase.auth.getUser();
       if (data?.user && !error) {
-        navigate("/home", { replace: true });
+        navigate("/selecao-exercicio", { replace: true });
       } else {
         await supabase.auth.signOut();
       }
@@ -56,7 +56,7 @@ export default function Auth() {
 
       if (error) throw error;
       toast.success("Login realizado com sucesso!");
-      navigate("/home", { replace: true });
+      navigate("/selecao-exercicio", { replace: true });
     } catch (error: any) {
       const errorMessage = translateError(error.message || "Erro ao fazer login");
       toast.error(errorMessage);

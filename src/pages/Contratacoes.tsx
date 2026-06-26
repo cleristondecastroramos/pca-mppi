@@ -161,9 +161,11 @@ export default function Contratacoes() {
   const fetchContratacoes = async () => {
     setLoading(true);
     try {
+      const activeExercise = parseInt(localStorage.getItem("pca_exercicio") || "2026", 10);
       let query = supabase
         .from("contratacoes")
         .select("id, codigo, descricao, setor_requisitante, unidade_orcamentaria, classe, valor_estimado, valor_contratado, valor_licitado, etapa_processo, sobrestado, tipo_sobrestamento, quantidade_sobrestada, valor_sobrestado, quantidade_ativa, valor_ativo, grau_prioridade, justificativa, data_prevista_contratacao, data_entrada_clc, numero_sei_contratacao, pdm_catser, created_at, quantidade_itens, valor_unitario, unidade_fornecimento, tipo_recurso, tipo_contratacao, modalidade, normativo, srp, valor_executado")
+        .eq("exercicio", activeExercise)
         .neq("srp", true)
         .neq("sobrestado", true)
         .order("created_at", { ascending: false });

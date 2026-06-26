@@ -137,6 +137,7 @@ const VisaoGeral = () => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
+      const activeExercise = parseInt(localStorage.getItem("pca_exercicio") || "2026", 10);
       let query = supabase
         .from("contratacoes")
         .select(
@@ -230,9 +231,11 @@ const VisaoGeral = () => {
   useEffect(() => {
     if (roles === undefined || (isSetorRequisitante && profile === undefined)) return;
     const fetchDistinct = async () => {
+      const activeExercise = parseInt(localStorage.getItem("pca_exercicio") || "2026", 10);
       let query = supabase
         .from("contratacoes")
         .select("unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, etapa_processo")
+        .eq("exercicio", activeExercise)
         .neq("srp", true);
       
       if (isSetorRequisitante) {
