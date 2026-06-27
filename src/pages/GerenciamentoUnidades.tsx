@@ -184,11 +184,11 @@ export default function GerenciamentoUnidades() {
                 Nova Unidade
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>{editingId ? "Editar Unidade" : "Nova Unidade Requisitante"}</DialogTitle>
+            <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden [&>button]:text-white">
+              <DialogHeader className="bg-sidebar p-6">
+                <DialogTitle className="text-white">{editingId ? "Editar Unidade" : "Nova Unidade Requisitante"}</DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+              <form onSubmit={handleSubmit} className="space-y-4 p-6 pt-2">
                 <div className="space-y-2">
                   <Label htmlFor="nome">Nome da Unidade *</Label>
                   <Input 
