@@ -1,44 +1,79 @@
+import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
-import { HelpCircle, ClipboardList, PlusCircle, CheckCircle, XCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { HelpCircle, ClipboardList, PlusCircle, CheckCircle, FileDown, Loader2, Database, Building2 } from "lucide-react";
+import { generateTutorialPdf } from "@/utils/tutorialPdf";
 
 export default function Tutorial2027() {
+  const [generating, setGenerating] = useState(false);
+
+  const handleExportPdf = async () => {
+    setGenerating(true);
+    try {
+      await generateTutorialPdf();
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   return (
     <Layout>
-      <div className="space-y-6 max-w-4xl">
-        <div>
-          <h1 className="text-xl font-bold text-foreground">📖 Tutorial de Planejamento — PCA 2027</h1>
-          <p className="text-sm text-muted-foreground">
-            Instruções de fluxo, cadastro de demandas, revisão, aprovação e rejeição técnica do Plano Anual de Contratações para o exercício 2027.
-          </p>
+      <div className="space-y-6 max-w-4xl pb-12">
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">📖 Tutorial de Planejamento — PCA 2027</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Guia oficial de operação do módulo de planejamento, abrangendo o cadastro estruturado, integração com o catálogo federal e regras de revisão técnica.
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleExportPdf}
+            disabled={generating}
+            title="Exportar Tutorial em PDF"
+            className="h-10 w-10 text-muted-foreground hover:text-primary flex-shrink-0"
+          >
+            {generating ? <Loader2 className="h-5 w-5 animate-spin" /> : <FileDown className="h-5 w-5" />}
+          </Button>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <ClipboardList className="h-5 w-5 text-primary" />
-              1. Visão Geral do Fluxo do PCA 2027
+              1. Visão Geral do Fluxo de Planejamento
             </CardTitle>
             <CardDescription>
-              O ciclo do PCA 2027 é focado na captação inicial de demandas e consolidação técnica para o ano de 2027.
+              Compreendendo o novo ciclo de captação estruturada de demandas para o ano de 2027.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
             <p>
-              Diferente do exercício de 2026 (que se encontra em fase de execução), o **PCA 2027** está na fase de **Planejamento**. O fluxo consiste nas seguintes etapas:
+              Diferente do exercício de 2026, o módulo do <strong>PCA 2027</strong> introduz um modelo avançado de planejamento que foca na qualidade, padronização e estruturação dos dados desde o momento da captação. O fluxo é composto por três etapas fundamentais:
             </p>
-            <ol className="list-decimal pl-5 space-y-2">
-              <li>
-                <strong>Captação de Demandas:</strong> Os setores requisitantes identificam suas necessidades de contratação e cadastram as demandas no sistema.
+            <ul className="space-y-4 mt-4">
+              <li className="flex gap-3">
+                <div className="flex-shrink-0 mt-1"><Building2 className="h-5 w-5 text-slate-400" /></div>
+                <div>
+                  <strong>Captação via Unidades Requisitantes:</strong> As unidades (Promotorias, Coordenadorias, etc.) identificam e registram suas necessidades institucionais de bens e serviços.
+                </div>
               </li>
-              <li>
-                <strong>Revisão Técnica (Gestor/Admin):</strong> A equipe técnica analisa as demandas enviadas, verificando a corretude das informações, especificações e códigos CATMAT/CATSER.
+              <li className="flex gap-3">
+                <div className="flex-shrink-0 mt-1"><Database className="h-5 w-5 text-slate-400" /></div>
+                <div>
+                  <strong>Padronização Federal (CATMAT/CATSER):</strong> Todas as demandas agora são obrigatoriamente vinculadas ao catálogo de materiais e serviços do Governo Federal, impedindo a inserção de textos livres genéricos.
+                </div>
               </li>
-              <li>
-                <strong>Aprovação ou Rejeição:</strong> As demandas que atendem aos requisitos técnicos são aprovadas e integradas ao Plano. Demandas com inconsistências podem ser rejeitadas ou enviadas para suspensão parcial para ajustes.
+              <li className="flex gap-3">
+                <div className="flex-shrink-0 mt-1"><CheckCircle className="h-5 w-5 text-slate-400" /></div>
+                <div>
+                  <strong>Revisão e Consolidação Técnica:</strong> A equipe técnica e os administradores analisam as solicitações em um painel dedicado, podendo aprová-las (consolidando no Plano) ou rejeitá-las com devida justificativa para correção.
+                </div>
               </li>
-            </ol>
+            </ul>
           </CardContent>
         </Card>
 
@@ -46,23 +81,33 @@ export default function Tutorial2027() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <PlusCircle className="h-5 w-5 text-primary" />
-              2. Cadastro de Nova Demanda 2027
+              2. Cadastro de Nova Demanda (Integração CATMAT/CATSER)
             </CardTitle>
+            <CardDescription>
+              Passo a passo para inserir uma nova necessidade de contratação com busca assistida.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
             <p>
-              Para incluir uma nova demanda no PCA 2027:
+              O formulário de <strong>Nova Demanda 2027</strong> foi redesenhado para garantir que os dados cheguem à equipe de licitações já padronizados. Siga os passos:
             </p>
-            <ol className="list-decimal pl-5 space-y-2">
-              <li>No menu lateral, selecione <strong>Nova Demanda 2027</strong>.</li>
-              <li>Preencha a <strong>Descrição</strong> detalhada do item ou serviço desejado.</li>
+            <ol className="list-decimal pl-5 space-y-3">
+              <li>No menu principal (à esquerda), selecione <strong>Nova Demanda 2027</strong>.</li>
               <li>
-                Selecione o tipo de identificação: <strong>CATMAT</strong> (para materiais) ou <strong>CATSER</strong> (para serviços) e insira o respectivo código catalogado.
+                <strong>Unidade Requisitante:</strong> Caso seu perfil já esteja vinculado a uma unidade, este campo será preenchido e bloqueado automaticamente. Administradores podem selecionar em nome de qualquer unidade.
               </li>
-              <li>Preencha a **Justificativa** da contratação, detalhando a necessidade institucional.</li>
-              <li>Informe a **Quantidade**, a **Unidade de Fornecimento** e o **Valor Unitário Estimado**.</li>
-              <li>Defina a **Prioridade** (Alta, Média ou Baixa) para fins de classificação estratégica.</li>
-              <li>Clique em **Cadastrar Demanda**.</li>
+              <li>
+                <strong>Busca no Catálogo (Obrigatório):</strong>
+                <ul className="list-disc pl-5 mt-2 space-y-1 text-slate-500">
+                  <li>Selecione a base desejada (Materiais - CATMAT ou Serviços - CATSER).</li>
+                  <li>Escolha o <strong>Grupo/Classe</strong> correspondente ao item.</li>
+                  <li>O sistema fará uma conexão com a base de dados do Governo Federal e listará os itens padronizados.</li>
+                  <li>Filtre pelo nome e selecione o item desejado. A descrição técnica e o código PDM serão preenchidos automaticamente.</li>
+                </ul>
+              </li>
+              <li>Descreva detalhadamente a <strong>Justificativa</strong> (por que o Ministério Público necessita dessa contratação).</li>
+              <li>Insira a <strong>Quantidade</strong>, a <strong>Unidade de Medida</strong> (ex: Unidade, Pacote, Mês) e o <strong>Valor Unitário Estimado</strong>.</li>
+              <li>Defina a <strong>Prioridade</strong> estratégica (Alta, Média ou Baixa) e clique em <strong>Cadastrar Demanda</strong>.</li>
             </ol>
           </CardContent>
         </Card>
@@ -71,22 +116,25 @@ export default function Tutorial2027() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-600" />
-              3. Painel de Planejamento (Gestão e Análise)
+              3. Painel de Planejamento (Aprovação e Análise)
             </CardTitle>
+            <CardDescription>
+              Como a equipe gestora realiza a consolidação das solicitações.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-slate-600 dark:text-slate-300">
             <p>
-              A rota <strong>Painel Planejamento 2027</strong> centraliza as demandas enviadas pelos setores e está disponível para administradores, gestores e consultas:
+              Através do <strong>Painel Planejamento 2027</strong>, os usuários com permissão de Gestor ou Administrador possuem uma visão analítica de todas as demandas solicitadas.
             </p>
-            <ul className="list-disc pl-5 space-y-2">
+            <ul className="list-disc pl-5 space-y-3">
               <li>
-                <strong>Filtro e Busca:</strong> Permite filtrar demandas por setor requisitante, classe de material/serviço ou status técnico.
+                <strong>Análise Detalhada:</strong> É possível visualizar o valor total estimado, a unidade requisitante, a justificativa e os dados extraídos do catálogo (CATMAT/CATSER).
               </li>
               <li>
-                <strong>Aprovação Rápida:</strong> Gestores e Administradores podem validar e aprovar demandas diretamente, alterando o status técnico para consolidado.
+                <strong>Aprovação Rápida:</strong> Demandas que estão corretas podem ser aprovadas com um único clique. O status muda para "Consolidado" e o item entra oficialmente para o planejamento do ano.
               </li>
               <li>
-                <strong>Rejeição Técnica:</strong> Ao rejeitar uma demanda, é obrigatório registrar uma justificativa técnica clara. O setor requisitante será notificado para realizar as adequações.
+                <strong>Devolução / Rejeição:</strong> Se um item foi selecionado incorretamente ou se a justificativa for insuficiente, o avaliador pode rejeitar o pedido. O sistema exigirá que um motivo (justificativa técnica) seja digitado, orientando a unidade requisitante sobre o que precisa ser ajustado.
               </li>
             </ul>
           </CardContent>
@@ -96,27 +144,27 @@ export default function Tutorial2027() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <HelpCircle className="h-5 w-5 text-amber-600" />
-              4. Dúvidas Frequentes do Ciclo
+              4. Dúvidas Frequentes e Suporte
             </CardTitle>
           </CardHeader>
           <CardContent>
             <Accordion type="single" collapsible className="w-full text-sm">
               <AccordionItem value="item-1">
-                <AccordionTrigger>Quem pode cadastrar demandas no PCA 2027?</AccordionTrigger>
-                <AccordionContent>
-                  Todos os usuários com os perfis de Administrador, Gestor e Setor Requisitante têm permissão para cadastrar novas demandas direcionadas ao exercício de 2027.
+                <AccordionTrigger>Não consigo digitar livremente o objeto que desejo contratar. Por quê?</AccordionTrigger>
+                <AccordionContent className="text-slate-500">
+                  Para o ano de 2027, o MPPI adotou a padronização obrigatória com o catálogo oficial do Governo Federal (Compras.gov.br). Isso evita duplicação de itens, erros de descrição técnica e facilita a consolidação das licitações (compras em lote). Você deve encontrar o item mais próximo no catálogo.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-2">
-                <AccordionTrigger>Como posso alterar uma demanda que já foi cadastrada?</AccordionTrigger>
-                <AccordionContent>
-                  Se a demanda ainda não foi aprovada pelo Gestor, o setor requisitante pode editá-la a partir do Painel de Planejamento. Demandas já consolidadas necessitam de intervenção direta da equipe técnica da CLC ou da Assessoria de Planejamento.
+                <AccordionTrigger>Como faço para corrigir uma demanda que cadastrei errado?</AccordionTrigger>
+                <AccordionContent className="text-slate-500">
+                  Enquanto a demanda estiver com status de "Pendente", você pode acessá-la no painel e fazer as edições necessárias. Caso ela já tenha sido "Consolidada", você não poderá editá-la e deverá entrar em contato com a equipe de licitações.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-3">
-                <AccordionTrigger>O que acontece se uma demanda for rejeitada?</AccordionTrigger>
-                <AccordionContent>
-                  A demanda é marcada com o status de "Rejeitada" e o motivo da rejeição ficará visível no histórico do registro. O usuário requisitante poderá ajustar as informações e reenviar para nova avaliação.
+                <AccordionTrigger>Fui notificado que minha demanda foi rejeitada. O que devo fazer?</AccordionTrigger>
+                <AccordionContent className="text-slate-500">
+                  Acesse o painel e localize sua demanda. Lá haverá a mensagem escrita pelo Gestor com o motivo da devolução (ex: "Favor escolher o item na classe 3020 e melhorar a justificativa"). Acesse a edição da demanda, faça as correções e salve para que ela seja avaliada novamente.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
