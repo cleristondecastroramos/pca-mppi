@@ -208,6 +208,9 @@ export default function GerenciamentoUnidades() {
                     <SelectContent>
                       <SelectItem value="Promotoria">Promotoria</SelectItem>
                       <SelectItem value="Procuradoria">Procuradoria</SelectItem>
+                      <SelectItem value="Centro de Apoio">Centro de Apoio</SelectItem>
+                      <SelectItem value="Grupo Especial">Grupo Especial</SelectItem>
+                      <SelectItem value="Núcleo de Promotorias">Núcleo de Promotorias</SelectItem>
                       <SelectItem value="Sede">Sede</SelectItem>
                       <SelectItem value="Unidade Administrativa">Unidade Administrativa</SelectItem>
                       <SelectItem value="Outros">Outros</SelectItem>
