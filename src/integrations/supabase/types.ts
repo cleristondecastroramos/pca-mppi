@@ -227,6 +227,13 @@ export type Database = {
             referencedRelation: "contratacoes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "contratacoes_unidade_requisitante_id_fkey"
+            columns: ["unidade_requisitante_id"]
+            isOneToOne: false
+            referencedRelation: "unidades_requisitantes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       contratacoes_conformidade: {
@@ -622,7 +629,15 @@ export type Database = {
           unidade_requisitante_id?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_unidade_requisitante_id_fkey"
+            columns: ["unidade_requisitante_id"]
+            isOneToOne: false
+            referencedRelation: "unidades_requisitantes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       relacao_sobrestamento: {
         Row: {
@@ -1550,28 +1565,28 @@ export type Database = {
       }
       unidades_requisitantes: {
         Row: {
+          ativo: boolean
+          created_at: string
+          exercicio: number
           id: string
           nome: string
           tipo: string
-          exercicio: number
-          ativo: boolean
-          created_at: string
         }
         Insert: {
+          ativo?: boolean
+          created_at?: string
+          exercicio?: number
           id?: string
           nome: string
           tipo: string
-          exercicio?: number
-          ativo?: boolean
-          created_at?: string
         }
         Update: {
+          ativo?: boolean
+          created_at?: string
+          exercicio?: number
           id?: string
           nome?: string
           tipo?: string
-          exercicio?: number
-          ativo?: boolean
-          created_at?: string
         }
         Relationships: []
       }
