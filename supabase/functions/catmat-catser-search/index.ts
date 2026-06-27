@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
       if (tipo === "CATSER") {
         // Tenta a API de serviços; se falhar, usa o fallback manual
         try {
-          const apiUrl = `${BASE_URL}/modulo-servico/1_consultarGrupoServico`;
+          const apiUrl = `${BASE_URL}/modulo-servico/3_consultarGrupoServico`;
           const res = await fetchWithTimeout(apiUrl, TIMEOUT_MS);
           if (res.ok) {
             const json = await res.json();
@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
       let apiUrl: string;
       if (tipo === "CATSER") {
         // Tenta endpoint de itens de serviço
-        apiUrl = `${BASE_URL}/modulo-servico/4_consultarItemServico?codigoGrupo=${codigoGrupo}&pagina=${pagina}&tamanhoPagina=${tamanhoPagina}`;
+        apiUrl = `${BASE_URL}/modulo-servico/6_consultarItemServico?codigoGrupo=${codigoGrupo}&pagina=${pagina}&tamanhoPagina=${tamanhoPagina}`;
       } else {
         apiUrl = `${BASE_URL}/modulo-material/4_consultarItemMaterial?codigoGrupo=${codigoGrupo}&pagina=${pagina}&tamanhoPagina=${tamanhoPagina}`;
       }
@@ -166,7 +166,7 @@ Deno.serve(async (req) => {
 
       let apiUrl: string;
       if (tipo === "CATSER") {
-        apiUrl = `${BASE_URL}/modulo-servico/4_consultarItemServico?codigoItem=${codigoItem}`;
+        apiUrl = `${BASE_URL}/modulo-servico/6_consultarItemServico?codigoItem=${codigoItem}`;
       } else {
         apiUrl = `${BASE_URL}/modulo-material/4_consultarItemMaterial?codigoItem=${codigoItem}`;
       }
