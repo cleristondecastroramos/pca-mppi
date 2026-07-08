@@ -39,6 +39,7 @@ const Tutorial2027 = lazy(() => import("./pages/Tutorial2027"));
 const Faq2026 = lazy(() => import("./pages/Faq2026"));
 const Faq2027 = lazy(() => import("./pages/Faq2027"));
 const AcessoNegado = lazy(() => import("./pages/AcessoNegado"));
+const AdminCatalogo = lazy(() => import("./pages/AdminCatalogo"));
 
 const RedirectFaq = () => {
   const ex = localStorage.getItem("pca_exercicio") || "2026";
@@ -97,6 +98,14 @@ const App = () => {
                   element={
                     <ProtectedRoute allowed={["administrador"]}>
                       <GerenciamentoUnidades />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin-catalogo"
+                  element={
+                    <ProtectedRoute allowed={["administrador"]}>
+                      <AdminCatalogo />
                     </ProtectedRoute>
                   }
                 />

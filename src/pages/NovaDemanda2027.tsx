@@ -10,8 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Plus, ArrowLeft, BookOpen } from "lucide-react";
-import { CatmatCatserSearch } from "@/components/CatmatCatserSearch";
-import type { ItemCatalogo } from "@/hooks/useCatmatCatser";
+import { CatalogoInternoSearch, type ItemCatalogoInterno } from "@/components/CatalogoInternoSearch";
 
 export default function NovaDemanda2027() {
   const navigate = useNavigate();
@@ -29,7 +28,7 @@ export default function NovaDemanda2027() {
   const [valorUnitario, setValorUnitario] = useState<number>(0);
 
   // Item do catálogo selecionado (obrigatório)
-  const [itemCatalogo, setItemCatalogo] = useState<ItemCatalogo | null>(null);
+  const [itemCatalogo, setItemCatalogo] = useState<ItemCatalogoInterno | null>(null);
 
   const valorTotal = quantidade * valorUnitario;
 
@@ -66,10 +65,10 @@ export default function NovaDemanda2027() {
     });
   }, []);
 
-  const handleSelectItem = (item: ItemCatalogo) => {
+  const handleSelectItem = (item: ItemCatalogoInterno) => {
     setItemCatalogo(item);
     toast.success("Item do catálogo selecionado!", {
-      description: `${item.tipo} ${item.codigoItem} — ${item.descricaoItem.substring(0, 80)}${item.descricaoItem.length > 80 ? "..." : ""}`,
+      description: `${item.tipo.toUpperCase()} — ${item.nome.substring(0, 80)}${item.nome.length > 80 ? "..." : ""}`,
     });
   };
 
@@ -89,7 +88,7 @@ export default function NovaDemanda2027() {
     if (!itemCatalogo) {
       toast.error("Seleção do catálogo obrigatória", {
         description:
-          "É necessário selecionar um item do catálogo CATMAT ou CATSER antes de enviar a demanda.",
+          "É necessário selecionar um item do catálogo interno antes de enviar a demanda.",
       });
       return;
     }
@@ -106,7 +105,7 @@ export default function NovaDemanda2027() {
 
       // Mapeamento de classe legada baseado no tipo do catálogo
       const classeMap =
-        itemCatalogo.tipo === "CATMAT" ? "Material de Consumo" : "Serviço";
+        itemCatalogo.tipo === "material" ? "Material de Consumo" : "Serviço";
 
       const unidadeSelecionada = unidades.find(u => u.id === unidadeId);
       const nomeUnidade = unidadeSelecionada?.nome || "";
@@ -118,11 +117,10 @@ export default function NovaDemanda2027() {
         unidade_demandante: nomeUnidade,
         unidade_orcamentaria: nomeUnidade,
         // Descrição vem exclusivamente do catálogo selecionado
-        descricao: itemCatalogo.descricaoItem,
-        catmat_catser_tipo: itemCatalogo.tipo,
-        catmat_catser_codigo: String(itemCatalogo.codigoItem),
+        descricao: itemCatalogo.descricao || itemCatalogo.nome,
         // Categoria preenchida com o grupo do catálogo
-        categoria_material_ou_servico: itemCatalogo.nomeGrupo || itemCatalogo.nomeClasse || "",
+        categoria_material_ou_servico: itemCatalogo.grupo || "",
+        catalogo_interno_id: itemCatalogo.id,
         justificativa,
         quantidade,
         quantidade_itens: quantidade,
@@ -141,11 +139,9 @@ export default function NovaDemanda2027() {
         created_by: userData.user.id,
         // Dados adicionais do catálogo para rastreabilidade
         observacoes: [
-          `Catálogo: ${itemCatalogo.tipo}`,
-          `Código: ${itemCatalogo.codigoItem}`,
-          itemCatalogo.nomeGrupo ? `Grupo: ${itemCatalogo.nomeGrupo}` : null,
-          itemCatalogo.nomeClasse ? `Classe: ${itemCatalogo.nomeClasse}` : null,
-          itemCatalogo.nomePdm ? `PDM: ${itemCatalogo.nomePdm}` : null,
+          `Catálogo Interno: ${itemCatalogo.tipo}`,
+          itemCatalogo.codigo ? `Código: ${itemCatalogo.codigo}` : null,
+          itemCatalogo.grupo ? `Grupo: ${itemCatalogo.grupo}` : null,
         ]
           .filter(Boolean)
           .join(" | "),
@@ -166,7 +162,7 @@ export default function NovaDemanda2027() {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-500">
+      <div className="w-full space-y-6 animate-in fade-in duration-500">
         {/* Cabeçalho */}
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate("/planejamento-2027")}>
@@ -183,18 +179,12 @@ export default function NovaDemanda2027() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Card 1: Identificação */}
+          {/* Card 1: Identificação (Compacto) */}
           <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md">
-            <CardHeader>
-              <CardTitle>Identificação da Demanda</CardTitle>
-              <CardDescription>
-                Informe a unidade demandante e a prioridade desta necessidade.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="unidade">Unidade Requisitante *</Label>
+                  <Label htmlFor="unidade" className="text-slate-500">Unidade Requisitante (Lotação)</Label>
                   <Select value={unidadeId} onValueChange={setUnidadeId} disabled={isLocked && !isAdminOrGestor}>
                     <SelectTrigger id="unidade" className="bg-slate-50/50 border dark:bg-slate-900">
                       <SelectValue placeholder="Selecione a Unidade" />
@@ -208,7 +198,7 @@ export default function NovaDemanda2027() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="prioridade">Prioridade da Demanda</Label>
+                  <Label htmlFor="prioridade" className="text-slate-500">Prioridade da Demanda</Label>
                   <Select value={prioridade} onValueChange={(v: any) => setPrioridade(v)}>
                     <SelectTrigger id="prioridade" className="bg-slate-50/50 border dark:bg-slate-900">
                       <SelectValue />
@@ -224,49 +214,41 @@ export default function NovaDemanda2027() {
             </CardContent>
           </Card>
 
-          {/* Card 2: Catálogo CATMAT/CATSER (obrigatório) */}
-          <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-primary" />
-                <div>
-                  <CardTitle>
-                    Objeto da Contratação — Catálogo Oficial *
-                  </CardTitle>
-                  <CardDescription className="mt-0.5">
-                    Selecione obrigatoriamente um item do catálogo CATMAT (material) ou CATSER
-                    (serviço). A descrição do objeto virá exclusivamente da seleção catalogada.
-                  </CardDescription>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Coluna 1: Catálogo */}
+            <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md flex flex-col">
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-primary" />
+                  <div>
+                    <CardTitle className="text-lg">Objeto da Contratação</CardTitle>
+                    <CardDescription className="mt-0.5 text-xs">
+                      Selecione um item do catálogo.
+                    </CardDescription>
+                  </div>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <CatmatCatserSearch
-                onSelect={handleSelectItem}
-                itemSelecionado={itemCatalogo}
-                onClear={handleClearItem}
-              />
+              </CardHeader>
+              <CardContent className="flex-1">
+                <CatalogoInternoSearch
+                  onSelect={handleSelectItem}
+                  itemSelecionado={itemCatalogo}
+                  onClear={handleClearItem}
+                />
+                {!itemCatalogo && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 flex items-center gap-1">
+                    <span className="font-bold">⚠</span>
+                    A demanda exige seleção de um item do catálogo.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
 
-              {/* Aviso de obrigatoriedade quando não há seleção */}
-              {!itemCatalogo && (
-                <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 flex items-center gap-1">
-                  <span className="font-bold">⚠</span>
-                  A demanda não poderá ser enviada sem a seleção de um item do catálogo.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Card 3: Quantitativos e Valores */}
-          <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md">
-            <CardHeader>
-              <CardTitle>Quantitativos e Estimativa de Valor</CardTitle>
-              <CardDescription>
-                Informe a quantidade estimada, a unidade de fornecimento e o valor unitário aproximado.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Coluna 2: Quantitativos e Valores */}
+            <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md flex flex-col">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Quantitativos e Estimativa de Valor</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="quantidade">Quantidade Estimada *</Label>
                   <Input
@@ -306,7 +288,7 @@ export default function NovaDemanda2027() {
                   />
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 pt-2">
                   <Label>Valor Total Estimado (R$)</Label>
                   <Input
                     readOnly
@@ -314,30 +296,27 @@ export default function NovaDemanda2027() {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}
-                    className="bg-slate-100 dark:bg-slate-800 border font-bold text-primary cursor-not-allowed"
+                    className="bg-slate-100 dark:bg-slate-800 border font-bold text-primary cursor-not-allowed text-lg h-12"
                   />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Card 4: Justificativa */}
           <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md">
-            <CardHeader>
-              <CardTitle>Justificativa da Demanda</CardTitle>
-              <CardDescription>
-                Descreva detalhadamente a necessidade que origina esta demanda de contratação.
-              </CardDescription>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Justificativa da Demanda</CardTitle>
             </CardHeader>
             <CardContent>
               <Textarea
                 id="justificativa"
-                placeholder="Justifique detalhadamente a necessidade desta contratação, indicando a finalidade, a urgência e o impacto para a unidade..."
+                placeholder="Justifique detalhadamente a necessidade desta contratação..."
                 value={justificativa}
                 onChange={(e) => setJustificativa(e.target.value)}
                 required
                 rows={4}
-                className="bg-slate-50/50 border dark:bg-slate-900"
+                className="bg-slate-50/50 border dark:bg-slate-900 resize-none"
               />
             </CardContent>
           </Card>

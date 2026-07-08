@@ -14,10 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
+      catalogo_interno: {
+        Row: {
+          id: string
+          nome: string
+          descricao: string | null
+          tipo: string
+          codigo: string | null
+          grupo: string | null
+          ativo: boolean
+          exercicio: number | null
+          ordem_exibicao: number | null
+          created_at: string
+          updated_at: string
+          created_by: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          nome: string
+          descricao?: string | null
+          tipo: string
+          codigo?: string | null
+          grupo?: string | null
+          ativo?: boolean
+          exercicio?: number | null
+          ordem_exibicao?: number | null
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          nome?: string
+          descricao?: string | null
+          tipo?: string
+          codigo?: string | null
+          grupo?: string | null
+          ativo?: boolean
+          exercicio?: number | null
+          ordem_exibicao?: number | null
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalogo_interno_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "catalogo_interno_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       contratacoes: {
         Row: {
           ajuste_orcamentario: number | null
           alinhamento_estrategico: boolean | null
+          catalogo_interno_id: string | null
           categoria_material_ou_servico: string | null
           catmat_catser_codigo: string | null
           catmat_catser_tipo: string | null
@@ -86,6 +150,7 @@ export type Database = {
         Insert: {
           ajuste_orcamentario?: number | null
           alinhamento_estrategico?: boolean | null
+          catalogo_interno_id?: string | null
           categoria_material_ou_servico?: string | null
           catmat_catser_codigo?: string | null
           catmat_catser_tipo?: string | null
@@ -154,6 +219,7 @@ export type Database = {
         Update: {
           ajuste_orcamentario?: number | null
           alinhamento_estrategico?: boolean | null
+          catalogo_interno_id?: string | null
           categoria_material_ou_servico?: string | null
           catmat_catser_codigo?: string | null
           catmat_catser_tipo?: string | null

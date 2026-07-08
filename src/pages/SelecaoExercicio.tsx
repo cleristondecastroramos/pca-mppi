@@ -81,20 +81,20 @@ export default function SelecaoExercicio() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-100 via-blue-50 to-slate-50 dark:from-slate-900 dark:via-slate-950 dark:to-black flex flex-col items-center justify-center p-6 relative overflow-hidden">
       {/* Background blobs for premium glassmorphic feel */}
-      <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-red-500/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-rose-500/10 rounded-full blur-3xl" />
+      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl animate-pulse duration-10000" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full blur-3xl animate-pulse duration-10000" />
 
-      <div className="w-full max-w-4xl space-y-8 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="w-full max-w-4xl space-y-8 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <div className="text-center space-y-3">
           <div className="flex justify-center transition-transform hover:scale-105 duration-300">
-            <img src="/logo-mppi.png" alt="MPPI" className="h-16 w-auto object-contain" />
+            <img src="/logo-mppi.png" alt="MPPI" className="h-20 w-auto object-contain drop-shadow-md" />
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white drop-shadow-sm">
             Selecione o Exercício
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+          <p className="text-slate-600 dark:text-slate-300 max-w-md mx-auto text-lg">
             Olá, <span className="font-semibold text-primary">{profile?.nome_completo || "Usuário"}</span>. Escolha o ambiente de trabalho que deseja acessar:
           </p>
         </div>
@@ -102,10 +102,10 @@ export default function SelecaoExercicio() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Card PCA 2026 */}
           <Card 
-            className={`group cursor-pointer border backdrop-blur-md shadow-md transition-all duration-300 transform ${
+            className={`group cursor-pointer border backdrop-blur-xl shadow-lg transition-all duration-500 transform ${
               hasAccess2026 
-                ? "border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 hover:shadow-xl hover:border-primary/50 hover:-translate-y-1" 
-                : "border-slate-200/40 dark:border-slate-800/40 bg-white/30 dark:bg-slate-900/30 opacity-60 cursor-not-allowed select-none"
+                ? "border-white/40 dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/80 hover:shadow-2xl hover:border-primary/60 hover:-translate-y-2" 
+                : "border-slate-200/30 dark:border-slate-800/30 bg-white/40 dark:bg-slate-900/40 opacity-60 cursor-not-allowed select-none"
             }`}
             onClick={() => handleSelect(2026)}
           >
@@ -142,10 +142,10 @@ export default function SelecaoExercicio() {
 
           {/* Card PCA 2027 */}
           <Card 
-            className={`group cursor-pointer border backdrop-blur-md shadow-md transition-all duration-300 transform ${
+            className={`group cursor-pointer border backdrop-blur-xl shadow-lg transition-all duration-500 transform ${
               hasAccess2027 
-                ? "border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 hover:shadow-xl hover:border-primary/50 hover:-translate-y-1" 
-                : "border-slate-200/40 dark:border-slate-800/40 bg-white/30 dark:bg-slate-900/30 opacity-60 cursor-not-allowed select-none"
+                ? "border-white/40 dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/80 hover:shadow-2xl hover:border-primary/60 hover:-translate-y-2" 
+                : "border-slate-200/30 dark:border-slate-800/30 bg-white/40 dark:bg-slate-900/40 opacity-60 cursor-not-allowed select-none"
             }`}
             onClick={() => handleSelect(2027)}
           >
