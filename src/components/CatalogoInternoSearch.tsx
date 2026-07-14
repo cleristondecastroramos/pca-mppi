@@ -23,9 +23,10 @@ interface CatalogoInternoSearchProps {
   onSelect: (item: ItemCatalogoInterno) => void;
   itemSelecionado: ItemCatalogoInterno | null;
   onClear: () => void;
+  filtroGrupo?: string;
 }
 
-export function CatalogoInternoSearch({ onSelect, itemSelecionado, onClear }: CatalogoInternoSearchProps) {
+export function CatalogoInternoSearch({ onSelect, itemSelecionado, onClear, filtroGrupo }: CatalogoInternoSearchProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [items, setItems] = useState<ItemCatalogoInterno[]>([]);
   const [loading, setLoading] = useState(false);
@@ -36,12 +37,18 @@ export function CatalogoInternoSearch({ onSelect, itemSelecionado, onClear }: Ca
   useEffect(() => {
     const fetchInitial = async () => {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from("catalogo_interno")
         .select("*")
         .eq("ativo", true)
         .order("nome", { ascending: true })
         .limit(50);
+      
+      if (filtroGrupo) {
+        query = query.eq("grupo", filtroGrupo);
+      }
+      
+      const { data, error } = await query;
       
       if (!error && data) {
         setItems(data);
@@ -49,7 +56,7 @@ export function CatalogoInternoSearch({ onSelect, itemSelecionado, onClear }: Ca
       setLoading(false);
     };
     fetchInitial();
-  }, []);
+  }, [filtroGrupo]);
 
   const handleSearch = async (term: string) => {
     setLoading(true);
@@ -59,6 +66,10 @@ export function CatalogoInternoSearch({ onSelect, itemSelecionado, onClear }: Ca
       .eq("ativo", true)
       .order("nome", { ascending: true })
       .limit(50);
+
+    if (filtroGrupo) {
+      query = query.eq("grupo", filtroGrupo);
+    }
 
     if (term.trim()) {
       query = query.or(`nome.ilike.%${term}%,codigo.ilike.%${term}%`);
@@ -80,7 +91,7 @@ export function CatalogoInternoSearch({ onSelect, itemSelecionado, onClear }: Ca
     }, 400);
 
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchTerm, filtroGrupo]);
 
   if (itemSelecionado) {
     return (

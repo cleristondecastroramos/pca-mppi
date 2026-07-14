@@ -30,6 +30,9 @@ export default function NovaDemanda2027() {
   // Item do catálogo selecionado (obrigatório)
   const [itemCatalogo, setItemCatalogo] = useState<ItemCatalogoInterno | null>(null);
 
+  const [gruposUnicos, setGruposUnicos] = useState<string[]>([]);
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState<string>("Todas");
+
   const valorTotal = quantidade * valorUnitario;
 
   // Pre-seleciona a unidade do usuário logado
@@ -63,10 +66,20 @@ export default function NovaDemanda2027() {
     supabase.from("unidades_requisitantes").select("*").eq("ativo", true).eq("exercicio", 2027).then(({ data }) => {
       if (data) setUnidades(data);
     });
+
+    supabase.from("catalogo_interno").select("grupo").eq("ativo", true).then(({ data }) => {
+      if (data) {
+        const unique = Array.from(new Set(data.map(d => d.grupo).filter(Boolean))).sort();
+        setGruposUnicos(unique as string[]);
+      }
+    });
   }, []);
 
   const handleSelectItem = (item: ItemCatalogoInterno) => {
     setItemCatalogo(item);
+    if (item.grupo) {
+      setCategoriaSelecionada(item.grupo);
+    }
     toast.success("Item do catálogo selecionado!", {
       description: `${item.tipo.toUpperCase()} — ${item.nome.substring(0, 80)}${item.nome.length > 80 ? "..." : ""}`,
     });
@@ -74,6 +87,7 @@ export default function NovaDemanda2027() {
 
   const handleClearItem = () => {
     setItemCatalogo(null);
+    setCategoriaSelecionada("Todas");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -109,42 +123,37 @@ export default function NovaDemanda2027() {
 
       const unidadeSelecionada = unidades.find(u => u.id === unidadeId);
       const nomeUnidade = unidadeSelecionada?.nome || "";
+      const siglaMatch = nomeUnidade.match(/\(([^)]+)\)/);
+      const siglaSetor = siglaMatch ? siglaMatch[1] : nomeUnidade;
 
       const insertData = {
         exercicio: 2027,
         unidade_requisitante_id: unidadeId,
-        setor_requisitante: nomeUnidade,
+        setor_requisitante: siglaSetor,
         unidade_demandante: nomeUnidade,
-        unidade_orcamentaria: nomeUnidade,
+        unidade_orcamentaria: "PGJ",
         // Descrição vem exclusivamente do catálogo selecionado
         descricao: itemCatalogo.descricao || itemCatalogo.nome,
-        // Categoria preenchida com o grupo do catálogo
-        categoria_material_ou_servico: itemCatalogo.grupo || "",
+        // Categoria preenchida com o grupo do catálogo ou com o que estiver no dropdown
+        categoria_material_ou_servico: itemCatalogo.grupo || (categoriaSelecionada !== "Todas" ? categoriaSelecionada : ""),
         catalogo_interno_id: itemCatalogo.id,
-        justificativa,
-        quantidade,
-        quantidade_itens: quantidade,
-        unidade_fornecimento: unidadeFornecimento,
-        valor_unitario: valorUnitario,
-        valor_total: valorTotal,
-        valor_estimado: valorTotal,
-        prioridade,
-        grau_prioridade: prioridade,
-        status_planejamento: "Pendente",
-        status_aprovacao: "Pendente de análise",
-        classe: classeMap,
-        tipo_contratacao: "Nova Contratação",
-        tipo_recurso: "Custeio",
-        modalidade: "Pregão Eletrônico",
-        created_by: userData.user.id,
-        // Dados adicionais do catálogo para rastreabilidade
-        observacoes: [
+        justificativa: `${justificativa}\n\n[Informações do Catálogo]\n` + [
           `Catálogo Interno: ${itemCatalogo.tipo}`,
           itemCatalogo.codigo ? `Código: ${itemCatalogo.codigo}` : null,
           itemCatalogo.grupo ? `Grupo: ${itemCatalogo.grupo}` : null,
         ]
           .filter(Boolean)
           .join(" | "),
+        quantidade_itens: quantidade,
+        unidade_fornecimento: unidadeFornecimento,
+        valor_unitario: valorUnitario,
+        valor_estimado: valorTotal,
+        grau_prioridade: prioridade,
+        classe: classeMap,
+        tipo_contratacao: "Nova Contratação",
+        tipo_recurso: "Custeio",
+        modalidade: "Pregão Eletrônico",
+        created_by: userData.user.id,
       };
 
       const { error } = await supabase.from("contratacoes").insert([insertData]);
@@ -182,7 +191,7 @@ export default function NovaDemanda2027() {
           {/* Card 1: Identificação (Compacto) */}
           <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md">
             <CardContent className="p-4 sm:p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="unidade" className="text-slate-500">Unidade Requisitante (Lotação)</Label>
                   <Select value={unidadeId} onValueChange={setUnidadeId} disabled={isLocked && !isAdminOrGestor}>
@@ -192,6 +201,20 @@ export default function NovaDemanda2027() {
                     <SelectContent>
                       {unidades.map((u) => (
                         <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="categoria" className="text-slate-500">Categoria / Grupo</Label>
+                  <Select value={categoriaSelecionada} onValueChange={(v) => { setCategoriaSelecionada(v); setItemCatalogo(null); }}>
+                    <SelectTrigger id="categoria" className="bg-slate-50/50 border dark:bg-slate-900">
+                      <SelectValue placeholder="Todos os grupos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Todas">Todos os grupos</SelectItem>
+                      {gruposUnicos.map((g) => (
+                        <SelectItem key={g} value={g}>{g}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -233,6 +256,7 @@ export default function NovaDemanda2027() {
                   onSelect={handleSelectItem}
                   itemSelecionado={itemCatalogo}
                   onClear={handleClearItem}
+                  filtroGrupo={categoriaSelecionada !== "Todas" ? categoriaSelecionada : undefined}
                 />
                 {!itemCatalogo && (
                   <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 flex items-center gap-1">

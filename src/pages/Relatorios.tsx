@@ -13,6 +13,7 @@ import { Calendar as CalendarIcon, FileText, BarChart3, ClipboardList, BadgeChec
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { TipoContratacaoFilter } from "@/components/TipoContratacaoFilter";
 
 import { useAuthSession, useUserRoles, useUserProfile, hasAnyRole } from "@/lib/auth";
 
@@ -1756,7 +1757,8 @@ const Relatorios = () => {
           if (col === "Descrição") return "col-Descrição";
           if (col === "Setor") return "col-Setor";
           if (col === "Setor Requisitante") return "col-Descrição"; // Para deixar mais largo no relatório setorial
-          if (col === "Prioridade") return "col-Prioridade";
+          if (col === "Prioridade" || col === "Prior.") return "col-Prioridade";
+          if (col === "Mod." || col === "Modalidade") return "col-Modalidade";
           if (col === "Status" || col === "Situação") return "col-Status";
           if (col.includes("Data")) return "col-Data";
           if (col === "SEI") return "col-SEI";
@@ -1982,6 +1984,7 @@ const Relatorios = () => {
               .col-Valor-Estimado{width: 12%}
               .col-Valor-Executado{width: 12%}
               .col-Prioridade{width: 8%}
+              .col-Modalidade{width: 8%}
               .col-Status{width: 8%}
               .col-Data{width: 8%}
               .col-SEI{width: 15%}
@@ -1990,11 +1993,14 @@ const Relatorios = () => {
               /* Ajustes específicos para orientação Paisagem */
               ${isLandscape ? `
                 .col-ID { width: 6%; }
-                .col-Descrição { width: 44%; }
-                .col-Setor { width: 14%; }
-                .col-Status { width: 10%; }
-                .col-Valor-Estimado { width: 13%; }
-                .col-Valor-Executado { width: 13%; }
+                .col-Descrição { width: 22%; }
+                .col-Setor { width: 12%; }
+                .col-Prioridade { width: 6%; }
+                .col-Modalidade { width: 10%; }
+                .col-Status { width: 8%; }
+                .col-Valor-Estimado { width: 12%; }
+                .col-Valor-Executado { width: 12%; }
+                .col-Valor { width: 12%; }
                 td, th { font-size: 11px; padding: 5px 8px; }
               ` : ""}
 
@@ -2106,13 +2112,10 @@ const Relatorios = () => {
               </div>
               <div className="w-[160px] shrink-0 -ml-1">
                 <div className="text-[10px] font-medium text-muted-foreground px-1">Tipo de Contratação:</div>
-                <Select value={filtros.tipo_contratacao} onValueChange={(v) => setFiltros((f: any) => ({ ...f, tipo_contratacao: v }))}>
-                  <SelectTrigger className="h-9 w-full truncate px-3 text-sm"><SelectValue placeholder="" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem className="text-xs" value="__all__">Todos</SelectItem>
-                    {distinctOptions.tipo_contratacao.map((opt) => <SelectItem className="text-xs" key={opt} value={opt}>{opt}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <TipoContratacaoFilter
+                  value={filtros.tipo_contratacao || "__all__"}
+                  onValueChange={(v) => setFiltros((f: any) => ({ ...f, tipo_contratacao: v }))}
+                />
               </div>
               <div className="w-[130px] shrink-0">
                 <div className="text-[10px] font-medium text-muted-foreground px-1">Tipo de Recurso:</div>

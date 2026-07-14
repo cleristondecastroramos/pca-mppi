@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserProfile, useUserRoles } from "@/lib/auth";
@@ -45,13 +46,22 @@ export default function Planejamento2027() {
     });
   }, [navigate]);
 
+  const [filterUnidade, setFilterUnidade] = useState("Todas");
+  const [filterCategoria, setFilterCategoria] = useState("Todas");
+  const [filterPrioridade, setFilterPrioridade] = useState("Todas");
+
   const loadDemands = async () => {
+    if (!profile || !roles) return;
     setLoading(true);
     try {
       let query = supabase
         .from("contratacoes")
         .select("*")
         .eq("exercicio", 2027);
+
+      if (!isManagerOrAdmin && profile.unidade_requisitante_id) {
+        query = query.eq("unidade_requisitante_id", profile.unidade_requisitante_id);
+      }
 
       const { data, error } = await query;
       if (error) throw error;
@@ -65,10 +75,10 @@ export default function Planejamento2027() {
   };
 
   useEffect(() => {
-    if (currentUserId) {
+    if (currentUserId && profile && roles) {
       loadDemands();
     }
-  }, [currentUserId]);
+  }, [currentUserId, profile, roles]);
 
   const handleApproveIntegral = async (id: string) => {
     try {
@@ -149,21 +159,35 @@ export default function Planejamento2027() {
     }
   };
 
-  // Metrics
-  const totalSubmitted = demands.length;
-  const totalValue = demands.reduce((acc, d) => acc + (Number(d.valor_total) || 0), 0);
-  const totalApproved = demands.filter(d => d.status_aprovacao?.startsWith("Aprovada")).length;
-  const totalPending = demands.filter(d => d.status_aprovacao === "Pendente de análise").length;
-  const totalRejected = demands.filter(d => d.status_aprovacao === "Não aprovada").length;
+  // Métricas baseadas apenas nas demandas filtradas (não no total geral se houver filtro)
+  // Mas espera, se demands for usado aqui antes de filteredDemands ser declarado, teremos erro.
+  // Vou mover isso para baixo de filteredDemands.
+
+  // Extraction for dropdowns
+  const uniqueUnidades = Array.from(new Set(demands.map(d => d.unidade_demandante).filter(Boolean))).sort();
+  const uniqueCategorias = Array.from(new Set(demands.map(d => d.categoria_material_ou_servico).filter(Boolean))).sort();
 
   const filteredDemands = demands.filter((d) => {
     const term = search.toLowerCase();
-    return (
+    const matchesSearch = (
       d.descricao?.toLowerCase().includes(term) ||
       d.unidade_demandante?.toLowerCase().includes(term) ||
       d.catmat_catser_codigo?.toLowerCase().includes(term)
     );
+
+    const matchesUnidade = filterUnidade === "Todas" || d.unidade_demandante === filterUnidade;
+    const matchesCategoria = filterCategoria === "Todas" || d.categoria_material_ou_servico === filterCategoria;
+    const matchesPrioridade = filterPrioridade === "Todas" || (d.grau_prioridade || d.prioridade) === filterPrioridade;
+
+    return matchesSearch && matchesUnidade && matchesCategoria && matchesPrioridade;
   });
+
+  // Metrics
+  const totalSubmitted = filteredDemands.length;
+  const totalValue = filteredDemands.reduce((acc, d) => acc + (Number(d.valor_estimado || d.valor_total) || 0), 0);
+  const totalApproved = filteredDemands.filter(d => d.status_aprovacao?.startsWith("Aprovada")).length;
+  const totalPending = filteredDemands.filter(d => d.status_aprovacao === "Pendente de análise").length;
+  const totalRejected = filteredDemands.filter(d => d.status_aprovacao === "Não aprovada").length;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -253,6 +277,40 @@ export default function Planejamento2027() {
               />
             </div>
           </CardHeader>
+          <div className="px-6 pb-4 pt-0 grid grid-cols-1 md:grid-cols-3 gap-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Unidade Requisitante</Label>
+              <Select value={filterUnidade} onValueChange={setFilterUnidade}>
+                <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Todas" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Todas">Todas as unidades</SelectItem>
+                  {uniqueUnidades.map(u => <SelectItem key={u as string} value={u as string}>{u as string}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Categoria / Grupo</Label>
+              <Select value={filterCategoria} onValueChange={setFilterCategoria}>
+                <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Todas" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Todas">Todas as categorias</SelectItem>
+                  {uniqueCategorias.map(c => <SelectItem key={c as string} value={c as string}>{c as string}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Grau de Prioridade</Label>
+              <Select value={filterPrioridade} onValueChange={setFilterPrioridade}>
+                <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Todas" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Todas">Todas as prioridades</SelectItem>
+                  <SelectItem value="Alta">Alta</SelectItem>
+                  <SelectItem value="Média">Média</SelectItem>
+                  <SelectItem value="Baixa">Baixa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
@@ -260,7 +318,7 @@ export default function Planejamento2027() {
                   <TableRow className="bg-slate-100/50 dark:bg-slate-800/30">
                     <TableHead className="font-bold">Unidade</TableHead>
                     <TableHead className="font-bold">Objeto / Descrição</TableHead>
-                    <TableHead className="font-bold">CATMAT/SER</TableHead>
+                    <TableHead className="font-bold">Categoria / Grupo</TableHead>
                     <TableHead className="font-bold text-right">Qtd</TableHead>
                     <TableHead className="font-bold text-right">Valor Unitário</TableHead>
                     <TableHead className="font-bold text-right">Valor Total</TableHead>
@@ -295,27 +353,29 @@ export default function Planejamento2027() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="font-semibold">
-                            {row.catmat_catser_tipo}: {row.catmat_catser_codigo}
-                          </Badge>
-                          {row.categoria_material_ou_servico && (
-                            <div className="text-[10px] text-muted-foreground mt-0.5">{row.categoria_material_ou_servico}</div>
+                          <div className="font-medium text-slate-700 dark:text-slate-300">
+                            {row.categoria_material_ou_servico || "—"}
+                          </div>
+                          {row.catmat_catser_codigo && (
+                            <Badge variant="outline" className="mt-1.5 text-[10px] text-slate-500 font-mono">
+                              {row.catmat_catser_tipo}: {row.catmat_catser_codigo}
+                            </Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-right font-mono">{row.quantidade} {row.unidade_fornecimento}</TableCell>
+                        <TableCell className="text-right font-mono">{row.quantidade_itens || row.quantidade || 0} {row.unidade_fornecimento}</TableCell>
                         <TableCell className="text-right font-mono">
-                          {Number(row.valor_unitario).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                          {Number(row.valor_unitario || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                         </TableCell>
                         <TableCell className="text-right font-bold font-mono">
-                          {Number(row.valor_total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                          {Number(row.valor_estimado || row.valor_total || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                         </TableCell>
                         <TableCell className="text-center">
                           <Badge variant="secondary" className={`font-semibold ${
-                            row.prioridade === "Alta" ? "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400" :
-                            row.prioridade === "Baixa" ? "bg-slate-100 text-slate-700 dark:bg-slate-850 dark:text-slate-400" :
+                            (row.grau_prioridade || row.prioridade) === "Alta" ? "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400" :
+                            (row.grau_prioridade || row.prioridade) === "Baixa" ? "bg-slate-100 text-slate-700 dark:bg-slate-850 dark:text-slate-400" :
                             "bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400"
                           }`}>
-                            {row.prioridade}
+                            {row.grau_prioridade || row.prioridade}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-center">{getStatusBadge(row.status_aprovacao)}</TableCell>
@@ -339,8 +399,8 @@ export default function Planejamento2027() {
                                   title="Aprovar Parcialmente"
                                   onClick={() => {
                                     setSelectedDemand(row);
-                                    setPartialQuantity(row.quantidade);
-                                    setPartialValorUnit(row.valor_unitario);
+                                    setPartialQuantity(row.quantidade_itens || row.quantidade || 1);
+                                    setPartialValorUnit(row.valor_unitario || 0);
                                     setIsPartialOpen(true);
                                   }}
                                 >

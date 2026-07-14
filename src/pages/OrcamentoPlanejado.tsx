@@ -48,6 +48,8 @@ export default function OrcamentoPlanejado() {
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [auditOpen, setAuditOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [saldosDisponiveis, setSaldosDisponiveis] = useState<Record<string, number>>({});
+  const [totalSaldoGeral, setTotalSaldoGeral] = useState<number>(0);
 
   useEffect(() => {
     fetchOrcamentos();
@@ -129,6 +131,33 @@ export default function OrcamentoPlanejado() {
 
       setOrcamentos(loadedOrcamentos);
       setEditValues(localEdits);
+
+      // Fetch contratacoes for the "Saldo Disponível" column
+      const { data: contratacoesData, error: contratacoesError } = await supabase
+        .from("contratacoes")
+        .select("setor_requisitante, valor_estimado, valor_executado")
+        .neq("etapa_processo", "Cancelada")
+        .neq("srp", true);
+
+      if (contratacoesError) throw contratacoesError;
+
+      const saldos: Record<string, number> = {};
+      setoresObj.forEach((s) => (saldos[s] = 0));
+      let saldoTotalAcumulado = 0;
+
+      (contratacoesData || []).forEach((c) => {
+        const setor = c.setor_requisitante;
+        if (setor && saldos[setor] !== undefined) {
+          const estimado = Number(c.valor_estimado) || 0;
+          const executado = Number(c.valor_executado) || 0;
+          const saldoDemanda = estimado - executado;
+          saldos[setor] += saldoDemanda;
+          saldoTotalAcumulado += saldoDemanda;
+        }
+      });
+
+      setSaldosDisponiveis(saldos);
+      setTotalSaldoGeral(saldoTotalAcumulado);
     } catch (err: any) {
       console.error(err);
       toast.error("Erro ao carregar orçamentos", { description: translateError(err.message || String(err)) });
@@ -417,6 +446,7 @@ export default function OrcamentoPlanejado() {
                     <TableHead className="text-center">FMMP (R$)</TableHead>
                     <TableHead className="text-center">FEPDC (R$)</TableHead>
                     <TableHead className="text-right">Total Setor (R$)</TableHead>
+                    <TableHead className="text-right">Saldo Disponível (R$)</TableHead>
                     <TableHead className="text-center">Trava Ativa?</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -456,6 +486,9 @@ export default function OrcamentoPlanejado() {
                         <TableCell className="align-middle text-right font-medium py-1 px-2">
                           {formatCurrency(totalSetor)}
                         </TableCell>
+                        <TableCell className={`align-middle text-right font-medium py-1 px-2 ${saldosDisponiveis[setor] < 0 ? 'text-destructive' : 'text-primary'}`}>
+                          {formatCurrency(saldosDisponiveis[setor] || 0)}
+                        </TableCell>
                         <TableCell className="text-center align-middle py-1 px-2">
                           <div className="flex items-center justify-center">
                             <Switch
@@ -478,6 +511,9 @@ export default function OrcamentoPlanejado() {
                     <TableCell className="text-right font-bold pr-5">{formatCurrency(totalGeralFmmp)}</TableCell>
                     <TableCell className="text-right font-bold pr-5">{formatCurrency(totalGeralFepdc)}</TableCell>
                     <TableCell className="text-right font-bold text-primary">{formatCurrency(totalGeralAll)}</TableCell>
+                    <TableCell className={`text-right font-bold ${totalSaldoGeral < 0 ? 'text-destructive' : 'text-primary'}`}>
+                      {formatCurrency(totalSaldoGeral)}
+                    </TableCell>
                     <TableCell></TableCell>
                   </TableRow>
                 </TableFooter>

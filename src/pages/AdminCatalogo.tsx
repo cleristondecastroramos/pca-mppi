@@ -152,9 +152,14 @@ export default function AdminCatalogo() {
   // Extrair grupos únicos para o dropdown
   const grupos = Array.from(new Set(items.map(i => i.grupo).filter(Boolean))).sort();
 
+  const removeAccents = (str: string) => {
+    return str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
+  };
+
   const filteredItems = items.filter((item) => {
-    const matchesSearch = item.nome.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          (item.codigo && item.codigo.toLowerCase().includes(searchQuery.toLowerCase()));
+    const normalizedQuery = removeAccents(searchQuery.toLowerCase());
+    const matchesSearch = removeAccents(item.nome.toLowerCase()).includes(normalizedQuery) || 
+                          (item.codigo && removeAccents(item.codigo.toLowerCase()).includes(normalizedQuery));
     const matchesTipo = filterTipo === "todos" || item.tipo === filterTipo;
     const matchesGrupo = filterGrupo === "todos" || item.grupo === filterGrupo;
     return matchesSearch && matchesTipo && matchesGrupo;
