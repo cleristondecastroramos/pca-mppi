@@ -16,66 +16,51 @@ export type Database = {
     Tables: {
       catalogo_interno: {
         Row: {
+          ativo: boolean
+          codigo: string | null
+          created_at: string
+          created_by: string | null
+          descricao: string | null
+          exercicio: number | null
+          grupo: string | null
           id: string
           nome: string
-          descricao: string | null
-          tipo: string
-          codigo: string | null
-          grupo: string | null
-          ativo: boolean
-          exercicio: number | null
           ordem_exibicao: number | null
-          created_at: string
+          tipo: string
           updated_at: string
-          created_by: string | null
           updated_by: string | null
         }
         Insert: {
+          ativo?: boolean
+          codigo?: string | null
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          exercicio?: number | null
+          grupo?: string | null
           id?: string
           nome: string
-          descricao?: string | null
-          tipo: string
-          codigo?: string | null
-          grupo?: string | null
-          ativo?: boolean
-          exercicio?: number | null
           ordem_exibicao?: number | null
-          created_at?: string
+          tipo: string
           updated_at?: string
-          created_by?: string | null
           updated_by?: string | null
         }
         Update: {
+          ativo?: boolean
+          codigo?: string | null
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          exercicio?: number | null
+          grupo?: string | null
           id?: string
           nome?: string
-          descricao?: string | null
-          tipo?: string
-          codigo?: string | null
-          grupo?: string | null
-          ativo?: boolean
-          exercicio?: number | null
           ordem_exibicao?: number | null
-          created_at?: string
+          tipo?: string
           updated_at?: string
-          created_by?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "catalogo_interno_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "catalogo_interno_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
+        Relationships: []
       }
       contratacoes: {
         Row: {
@@ -107,6 +92,7 @@ export type Database = {
           id: string
           justificativa: string
           justificativa_alteracao: string | null
+          justificativa_nao_aprovacao: string | null
           mes_estimado: number | null
           modalidade: string
           modo_prestacao: string | null
@@ -117,6 +103,8 @@ export type Database = {
           numero_sei_licitacao: string | null
           parent_id: string | null
           pdm_catser: string | null
+          prioridade: string | null
+          quantidade: number | null
           quantidade_ativa: number | null
           quantidade_devolucoes: number | null
           quantidade_itens: number | null
@@ -127,8 +115,10 @@ export type Database = {
           situacao: string | null
           sobrestado: boolean | null
           srp: boolean | null
+          status_aprovacao: string | null
           status_conclusao: string | null
           status_inicio: string | null
+          status_planejamento: string | null
           tipo_contratacao: string
           tipo_material_servico: string | null
           tipo_recurso: string
@@ -139,12 +129,14 @@ export type Database = {
           unidade_orcamentaria: string
           unidade_requisitante_id: string | null
           updated_at: string | null
+          updated_by: string | null
           valor_ativo: number | null
           valor_contratado: number | null
           valor_estimado: number
           valor_executado: number | null
           valor_licitado: number | null
           valor_sobrestado: number | null
+          valor_total: number | null
           valor_unitario: number | null
         }
         Insert: {
@@ -176,6 +168,7 @@ export type Database = {
           id?: string
           justificativa: string
           justificativa_alteracao?: string | null
+          justificativa_nao_aprovacao?: string | null
           mes_estimado?: number | null
           modalidade: string
           modo_prestacao?: string | null
@@ -186,6 +179,8 @@ export type Database = {
           numero_sei_licitacao?: string | null
           parent_id?: string | null
           pdm_catser?: string | null
+          prioridade?: string | null
+          quantidade?: number | null
           quantidade_ativa?: number | null
           quantidade_devolucoes?: number | null
           quantidade_itens?: number | null
@@ -196,8 +191,10 @@ export type Database = {
           situacao?: string | null
           sobrestado?: boolean | null
           srp?: boolean | null
+          status_aprovacao?: string | null
           status_conclusao?: string | null
           status_inicio?: string | null
+          status_planejamento?: string | null
           tipo_contratacao: string
           tipo_material_servico?: string | null
           tipo_recurso: string
@@ -208,12 +205,14 @@ export type Database = {
           unidade_orcamentaria: string
           unidade_requisitante_id?: string | null
           updated_at?: string | null
+          updated_by?: string | null
           valor_ativo?: number | null
           valor_contratado?: number | null
           valor_estimado: number
           valor_executado?: number | null
           valor_licitado?: number | null
           valor_sobrestado?: number | null
+          valor_total?: number | null
           valor_unitario?: number | null
         }
         Update: {
@@ -245,6 +244,7 @@ export type Database = {
           id?: string
           justificativa?: string
           justificativa_alteracao?: string | null
+          justificativa_nao_aprovacao?: string | null
           mes_estimado?: number | null
           modalidade?: string
           modo_prestacao?: string | null
@@ -255,6 +255,8 @@ export type Database = {
           numero_sei_licitacao?: string | null
           parent_id?: string | null
           pdm_catser?: string | null
+          prioridade?: string | null
+          quantidade?: number | null
           quantidade_ativa?: number | null
           quantidade_devolucoes?: number | null
           quantidade_itens?: number | null
@@ -265,8 +267,10 @@ export type Database = {
           situacao?: string | null
           sobrestado?: boolean | null
           srp?: boolean | null
+          status_aprovacao?: string | null
           status_conclusao?: string | null
           status_inicio?: string | null
+          status_planejamento?: string | null
           tipo_contratacao?: string
           tipo_material_servico?: string | null
           tipo_recurso?: string
@@ -277,15 +281,24 @@ export type Database = {
           unidade_orcamentaria?: string
           unidade_requisitante_id?: string | null
           updated_at?: string | null
+          updated_by?: string | null
           valor_ativo?: number | null
           valor_contratado?: number | null
           valor_estimado?: number
           valor_executado?: number | null
           valor_licitado?: number | null
           valor_sobrestado?: number | null
+          valor_total?: number | null
           valor_unitario?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "contratacoes_catalogo_interno_id_fkey"
+            columns: ["catalogo_interno_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_interno"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "contratacoes_parent_id_fkey"
             columns: ["parent_id"]
