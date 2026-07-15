@@ -37,7 +37,7 @@ export default function SelecaoExercicio() {
         if (unicoExercicio === 2026) {
           navigate("/visao-geral", { replace: true });
         } else {
-          navigate("/planejamento-2027", { replace: true });
+          navigate("/nova-demanda-2027", { replace: true });
         }
       }
     }
@@ -69,7 +69,7 @@ export default function SelecaoExercicio() {
     if (year === 2026) {
       navigate("/visao-geral");
     } else {
-      navigate("/planejamento-2027");
+      navigate("/nova-demanda-2027");
     }
   };
 

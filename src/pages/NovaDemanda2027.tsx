@@ -25,7 +25,7 @@ export default function NovaDemanda2027() {
   const [justificativa, setJustificativa] = useState("");
   const [quantidade, setQuantidade] = useState<number>(1);
   const [unidadeFornecimento, setUnidadeFornecimento] = useState("Unidade");
-  const [valorUnitario, setValorUnitario] = useState<number>(0);
+  const [valorUnitario, setValorUnitario] = useState<number | "">(0);
 
   // Item do catálogo selecionado (obrigatório)
   const [itemCatalogo, setItemCatalogo] = useState<ItemCatalogoInterno | null>(null);
@@ -33,7 +33,7 @@ export default function NovaDemanda2027() {
   const [gruposUnicos, setGruposUnicos] = useState<string[]>([]);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState<string>("Todas");
 
-  const valorTotal = quantidade * valorUnitario;
+  const valorTotal = quantidade * (valorUnitario || 0);
 
   // Pre-seleciona a unidade do usuário logado
   useEffect(() => {
@@ -51,19 +51,32 @@ export default function NovaDemanda2027() {
         // Busca profile
         supabase
           .from("profiles")
-          .select("unidade_requisitante_id")
+          .select("unidade_requisitante_id, setor")
           .eq("id", data.user.id)
           .single()
           .then(({ data: profile }) => {
             if (profile?.unidade_requisitante_id) {
               setUnidadeId(profile.unidade_requisitante_id);
               setIsLocked(true);
+            } else if (profile?.setor) {
+              // Tentativa de vínculo pelo nome do setor caso o ID não esteja preenchido
+              supabase
+                .from("unidades_requisitantes")
+                .select("id")
+                .ilike("nome", profile.setor)
+                .single()
+                .then(({ data: uni }) => {
+                  if (uni?.id) {
+                    setUnidadeId(uni.id);
+                    setIsLocked(true);
+                  }
+                });
             }
           });
       }
     });
 
-    supabase.from("unidades_requisitantes").select("*").eq("ativo", true).eq("exercicio", 2027).then(({ data }) => {
+    supabase.from("unidades_requisitantes").select("*").eq("ativo", true).then(({ data }) => {
       if (data) setUnidades(data);
     });
 
@@ -179,49 +192,85 @@ export default function NovaDemanda2027() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-              Apresentar Demanda — PCA 2027
+              Formulário de Apresentação de Demanda — PCA 2027
             </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Coleta e planejamento de contratações para o próximo exercício
-            </p>
+            {isAdminOrGestor || !unidadeId ? (
+              <div className="mt-1">
+                <Select value={unidadeId} onValueChange={setUnidadeId}>
+                  <SelectTrigger className="bg-transparent border-none text-primary dark:text-primary-light h-auto p-0 font-semibold shadow-none focus:ring-0 text-sm focus:ring-offset-0 hover:opacity-80 [&>svg]:ml-1">
+                    <SelectValue placeholder="Selecione a Unidade Requisitante" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {unidades.map((u) => (
+                      <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <p className="text-sm font-semibold text-primary dark:text-primary-light mt-1">
+                {unidades.find(u => u.id === unidadeId)?.nome || (unidadeId ? "Carregando unidade..." : "Unidade não identificada")}
+              </p>
+            )}
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Card 1: Identificação (Compacto) */}
-          <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md">
-            <CardContent className="p-4 sm:p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="unidade" className="text-slate-500">Unidade Requisitante (Lotação)</Label>
-                  <Select value={unidadeId} onValueChange={setUnidadeId} disabled={isLocked && !isAdminOrGestor}>
-                    <SelectTrigger id="unidade" className="bg-slate-50/50 border dark:bg-slate-900">
-                      <SelectValue placeholder="Selecione a Unidade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {unidades.map((u) => (
-                        <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="categoria" className="text-slate-500">Categoria / Grupo</Label>
-                  <Select value={categoriaSelecionada} onValueChange={(v) => { setCategoriaSelecionada(v); setItemCatalogo(null); }}>
-                    <SelectTrigger id="categoria" className="bg-slate-50/50 border dark:bg-slate-900">
-                      <SelectValue placeholder="Todos os grupos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Todas">Todos os grupos</SelectItem>
-                      {gruposUnicos.map((g) => (
-                        <SelectItem key={g} value={g}>{g}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Coluna 1: Catálogo */}
+            <Card className="lg:col-span-3 border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md flex flex-col">
+              <CardContent className="p-4 sm:p-6 flex-1 flex flex-col">
+                <CatalogoInternoSearch
+                  onSelect={handleSelectItem}
+                  itemSelecionado={itemCatalogo}
+                  onClear={handleClearItem}
+                  filtroGrupo={categoriaSelecionada !== "Todas" ? categoriaSelecionada : undefined}
+                  headerElement={
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="h-5 w-5 text-primary" />
+                        <div>
+                          <CardTitle className="text-lg">Objeto da Contratação</CardTitle>
+                          <CardDescription className="mt-0.5 text-xs">
+                            Selecione um item do catálogo.
+                          </CardDescription>
+                        </div>
+                      </div>
+                      <div className="w-[350px]">
+                        <Select value={categoriaSelecionada} onValueChange={(v) => { setCategoriaSelecionada(v); setItemCatalogo(null); }}>
+                          <SelectTrigger id="categoria" className="bg-slate-50/50 border dark:bg-slate-900 h-10">
+                            <SelectValue placeholder="Todos os grupos" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Todas">Todos os grupos</SelectItem>
+                            {gruposUnicos.map((g) => (
+                              <SelectItem key={g} value={g}>{g}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  }
+                  rightElement={
+                    !itemCatalogo ? (
+                      <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                        <span className="font-bold">⚠</span>
+                        A demanda exige seleção de um item do catálogo.
+                      </p>
+                    ) : undefined
+                  }
+                />
+              </CardContent>
+            </Card>
 
+            {/* Coluna 2: Quantitativos e Valores */}
+            <Card className="lg:col-span-1 border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md flex flex-col">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Quantitativos e Estimativa de Valor</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 space-y-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="prioridade" className="text-slate-500">Prioridade da Demanda</Label>
+                  <Label htmlFor="prioridade">Prioridade da Demanda</Label>
                   <Select value={prioridade} onValueChange={(v: any) => setPrioridade(v)}>
                     <SelectTrigger id="prioridade" className="bg-slate-50/50 border dark:bg-slate-900">
                       <SelectValue />
@@ -233,46 +282,7 @@ export default function NovaDemanda2027() {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Coluna 1: Catálogo */}
-            <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md flex flex-col">
-              <CardHeader className="pb-4">
-                <div className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5 text-primary" />
-                  <div>
-                    <CardTitle className="text-lg">Objeto da Contratação</CardTitle>
-                    <CardDescription className="mt-0.5 text-xs">
-                      Selecione um item do catálogo.
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-1">
-                <CatalogoInternoSearch
-                  onSelect={handleSelectItem}
-                  itemSelecionado={itemCatalogo}
-                  onClear={handleClearItem}
-                  filtroGrupo={categoriaSelecionada !== "Todas" ? categoriaSelecionada : undefined}
-                />
-                {!itemCatalogo && (
-                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 flex items-center gap-1">
-                    <span className="font-bold">⚠</span>
-                    A demanda exige seleção de um item do catálogo.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Coluna 2: Quantitativos e Valores */}
-            <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md flex flex-col">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg">Quantitativos e Estimativa de Valor</CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="quantidade">Quantidade Estimada *</Label>
                   <Input
@@ -306,7 +316,19 @@ export default function NovaDemanda2027() {
                     step="0.01"
                     min="0"
                     value={valorUnitario}
-                    onChange={(e) => setValorUnitario(Math.max(0, parseFloat(e.target.value) || 0))}
+                    onFocus={() => {
+                      if (valorUnitario === 0) setValorUnitario("");
+                    }}
+                    onBlur={(e) => {
+                      if (e.target.value === "") setValorUnitario(0);
+                    }}
+                    onChange={(e) => {
+                      if (e.target.value === "") {
+                        setValorUnitario("");
+                      } else {
+                        setValorUnitario(Math.max(0, parseFloat(e.target.value) || 0));
+                      }
+                    }}
                     required
                     className="bg-slate-50/50 border dark:bg-slate-900"
                   />
@@ -325,49 +347,49 @@ export default function NovaDemanda2027() {
                 </div>
               </CardContent>
             </Card>
-          </div>
+            {/* Card 4: Justificativa (agora na mesma grid, ocupando 3 colunas) */}
+            <Card className="lg:col-span-3 border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Justificativa da Demanda</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Textarea
+                  id="justificativa"
+                  placeholder="Justifique detalhadamente a necessidade desta contratação..."
+                  value={justificativa}
+                  onChange={(e) => setJustificativa(e.target.value)}
+                  required
+                  rows={4}
+                  className="bg-slate-50/50 border dark:bg-slate-900 resize-none"
+                />
+              </CardContent>
+            </Card>
 
-          {/* Card 4: Justificativa */}
-          <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Justificativa da Demanda</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                id="justificativa"
-                placeholder="Justifique detalhadamente a necessidade desta contratação..."
-                value={justificativa}
-                onChange={(e) => setJustificativa(e.target.value)}
-                required
-                rows={4}
-                className="bg-slate-50/50 border dark:bg-slate-900 resize-none"
-              />
-            </CardContent>
-          </Card>
-
-          {/* Ações */}
-          <div className="flex justify-end gap-3 pb-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate("/planejamento-2027")}
-              disabled={loading}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading || !itemCatalogo}
-              className="bg-primary text-primary-foreground min-w-[200px]"
-              title={!itemCatalogo ? "Selecione um item do catálogo para continuar" : undefined}
-            >
-              {loading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Plus className="mr-2 h-4 w-4" />
-              )}
-              {loading ? "Registrando..." : "Apresentar Demanda"}
-            </Button>
+            {/* Ações (na mesma grid, ocupando 1 coluna à direita) */}
+            <div className="lg:col-span-1 flex flex-col justify-end gap-3">
+              <Button
+                type="submit"
+                disabled={loading || !itemCatalogo}
+                className="bg-primary text-primary-foreground w-full h-12 text-base"
+                title={!itemCatalogo ? "Selecione um item do catálogo para continuar" : undefined}
+              >
+                {loading ? (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                ) : (
+                  <Plus className="mr-2 h-5 w-5" />
+                )}
+                {loading ? "Registrando..." : "Apresentar Demanda"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => navigate("/planejamento-2027")}
+                disabled={loading}
+              >
+                Cancelar
+              </Button>
+            </div>
           </div>
         </form>
       </div>
