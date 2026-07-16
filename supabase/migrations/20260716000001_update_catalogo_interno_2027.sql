@@ -6,8 +6,8 @@
 ALTER TABLE public.catalogo_interno 
 ADD COLUMN IF NOT EXISTS valor_estimado NUMERIC(14, 2);
 
--- 2. Remover todos os itens do exercício 2027 (substituição completa)
-DELETE FROM public.catalogo_interno WHERE exercicio = 2027;
+-- 2. Inativar os itens do exercício 2027 em vez de excluir, para evitar erro de Foreign Key (dados já utilizados em demandas)
+UPDATE public.catalogo_interno SET ativo = false WHERE exercicio = 2027;
 
 -- 3. Inserir os novos itens do catálogo 2027
 INSERT INTO public.catalogo_interno (nome, descricao, tipo, codigo, grupo, ativo, exercicio, ordem_exibicao, valor_estimado) VALUES
