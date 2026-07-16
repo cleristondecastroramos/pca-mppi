@@ -83,9 +83,19 @@ export default function ProtectedRoute({ children, allowed, redirectTo = "/auth"
     return <>{children}</>;
   }
 
-  // Se não houver exercício selecionado, redirecionar para a tela de escolha
+  // Se não houver exercício selecionado, verifica se pode auto-selecionar
   const exerciseSelected = localStorage.getItem("pca_exercicio");
   if (!exerciseSelected) {
+    const exerciciosDoUsuario: number[] = (profile as any)?.exercicios_permitidos ?? [];
+
+    // Usuário com acesso a apenas UM exercício: auto-seleciona e redireciona direto
+    if (exerciciosDoUsuario.length === 1) {
+      const unico = exerciciosDoUsuario[0];
+      localStorage.setItem("pca_exercicio", String(unico));
+      return <Navigate to={unico === 2026 ? "/visao-geral" : "/nova-demanda"} replace />;
+    }
+
+    // Múltiplos exercícios: exibe tela de seleção
     return <Navigate to="/selecao-exercicio" replace />;
   }
 
