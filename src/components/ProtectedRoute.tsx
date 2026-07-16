@@ -70,7 +70,8 @@ export default function ProtectedRoute({ children, allowed, redirectTo = "/auth"
   }
 
   if (mustChangePassword) {
-    return <ForcePasswordChange onSuccess={() => window.location.reload()} userId={userId!} />;
+    const isSetorRequisitante = roles?.includes("setor_requisitante") && !roles?.includes("administrador") && !roles?.includes("gestor");
+    return <ForcePasswordChange onSuccess={() => window.location.reload()} userId={userId!} isSetorRequisitante={isSetorRequisitante} />;
   }
 
   // Tem sessão mas sem permissão de role

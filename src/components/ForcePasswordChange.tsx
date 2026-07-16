@@ -4,12 +4,13 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, ShieldCheck, LogOut } from "lucide-react";
+import { Loader2, ShieldCheck, LogOut, Info, BookOpen, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { InfiniteGrid } from "@/components/ui/the-infinite-grid";
 interface ForcePasswordChangeProps {
   onSuccess: () => void;
   userId: string;
+  isSetorRequisitante?: boolean;
 }
 
 const loginThemeVars = {
@@ -17,10 +18,11 @@ const loginThemeVars = {
   ["--primary-foreground" as any]: "0 0% 100%",
 };
 
-export function ForcePasswordChange({ onSuccess, userId }: ForcePasswordChangeProps) {
+export function ForcePasswordChange({ onSuccess, userId, isSetorRequisitante }: ForcePasswordChangeProps) {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -60,13 +62,57 @@ export function ForcePasswordChange({ onSuccess, userId }: ForcePasswordChangePr
       }
 
       toast.success("Senha atualizada com sucesso!");
-      onSuccess();
+      if (isSetorRequisitante) {
+        setShowWelcome(true);
+      } else {
+        onSuccess();
+      }
     } catch (error: any) {
       toast.error("Falha ao atualizar senha: " + error.message);
     } finally {
       setLoading(false);
     }
   };
+
+  if (showWelcome) {
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-50 dark:bg-slate-950 overflow-hidden" style={loginThemeVars as any}>
+        <InfiniteGrid className="absolute inset-0 z-0" />
+        
+        <div className="z-10 w-full max-w-xl p-10 bg-white dark:bg-slate-900 border shadow-2xl rounded-3xl animate-in fade-in zoom-in duration-500 relative">
+          <div className="flex flex-col items-center text-center space-y-5 mb-10">
+            <div className="h-20 w-20 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-2">
+              <Info className="h-10 w-10" />
+            </div>
+            <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">Bem-vindo(a) ao PCA MPPI 2027!</h2>
+            <p className="text-slate-500 text-lg leading-relaxed">
+              O sistema de coleta de demandas para o Plano de Contratações Anual (PCA) permite a contribuição de todas as unidades para a construção do orçamento do próximo ano. Apresente suas demandas para que sejam analisadas e componham a programação orçamentária de 2027.
+            </p>
+          </div>
+
+          <div className="grid gap-5 mb-10 text-left text-base text-slate-700 dark:text-slate-300">
+            <div className="flex items-start gap-4 bg-slate-50 dark:bg-slate-800/50 p-5 rounded-xl border border-slate-100 dark:border-slate-800">
+              <CheckCircle className="h-6 w-6 text-primary mt-0.5 shrink-0" />
+              <p className="leading-snug">Você deve <strong>selecionar no catálogo</strong> os itens que necessita, definindo o grau de prioridade, as quantidades e fornecendo a justificativa para compor as demandas da sua unidade.</p>
+            </div>
+            <div className="flex items-start gap-4 bg-slate-50 dark:bg-slate-800/50 p-5 rounded-xl border border-slate-100 dark:border-slate-800">
+              <BookOpen className="h-6 w-6 text-primary mt-0.5 shrink-0" />
+              <p className="leading-snug">No menu lateral esquerdo, você encontrará um <strong>Tutorial</strong> e uma seção de <strong>FAQ / Dúvidas</strong>. Qualquer necessidade adicional pode ser esclarecida entrando em contato com a equipe da Coordenadoria de Licitações e Contratos (CLC).</p>
+            </div>
+          </div>
+
+          <div className="pt-4">
+            <Button 
+              onClick={onSuccess}
+              className="w-full bg-[#D9415D] hover:bg-[#C0354E] text-white font-bold h-14 transition-all text-lg tracking-wide uppercase rounded-xl hover:scale-[1.02] active:scale-[0.98] shadow-xl hover:shadow-primary/25"
+            >
+              Avançar para o Sistema
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-50 dark:bg-slate-950 overflow-hidden" style={loginThemeVars as any}>

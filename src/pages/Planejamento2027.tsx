@@ -70,8 +70,13 @@ export default function Planejamento2027() {
         .select("*")
         .eq("exercicio", 2027);
 
-      if (!isManagerOrAdmin && (profile as any).unidade_requisitante_id) {
-        query = query.eq("unidade_requisitante_id", (profile as any).unidade_requisitante_id);
+      if (!isManagerOrAdmin) {
+        if ((profile as any).unidade_requisitante_id) {
+          query = query.eq("unidade_requisitante_id", (profile as any).unidade_requisitante_id);
+        } else {
+          // Se não for admin e não tiver unidade vinculada, exibe apenas as que ele mesmo criou
+          query = query.eq("created_by", currentUserId);
+        }
       }
 
       const { data, error } = await query;
@@ -267,9 +272,9 @@ export default function Planejamento2027() {
   const getStatusBadge = (status: string, isAdmin: boolean) => {
     switch (status) {
       case "Aprovada integralmente":
-        return <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white border-none font-bold">Aprovada Integral</Badge>;
+        return <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white border-none font-bold">Aprovada Integralmente</Badge>;
       case "Aprovada parcialmente":
-        return <Badge className="bg-blue-500 hover:bg-blue-600 text-white border-none font-bold">Aprovada Parcial</Badge>;
+        return <Badge className="bg-blue-500 hover:bg-blue-600 text-white border-none font-bold">Aprovada Parcialmente</Badge>;
       case "Não aprovada":
         return <Badge className="bg-rose-500 hover:bg-rose-600 text-white border-none font-bold">Não Aprovada</Badge>;
       default:
@@ -471,16 +476,18 @@ export default function Planejamento2027() {
             </div>
           </CardHeader>
           <div className="px-6 pb-4 pt-0 grid grid-cols-1 md:grid-cols-4 gap-4 border-b border-slate-100 dark:border-slate-800">
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Unidade Requisitante</Label>
-              <Select value={filterUnidade} onValueChange={setFilterUnidade}>
-                <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Todas" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Todas">Todas as unidades</SelectItem>
-                  {uniqueUnidades.map(u => <SelectItem key={u as string} value={u as string}>{u as string}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            {isManagerOrAdmin && (
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Unidade Requisitante</Label>
+                <Select value={filterUnidade} onValueChange={setFilterUnidade}>
+                  <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Todas" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Todas">Todas as unidades</SelectItem>
+                    {uniqueUnidades.map(u => <SelectItem key={u as string} value={u as string}>{u as string}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Categoria / Grupo</Label>
               <Select value={filterCategoria} onValueChange={setFilterCategoria}>
@@ -509,8 +516,8 @@ export default function Planejamento2027() {
                 <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Todas" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Todas">Todas</SelectItem>
-                  <SelectItem value="Aprovada integralmente">Aprovada Integral</SelectItem>
-                  <SelectItem value="Aprovada parcialmente">Aprovada Parcial</SelectItem>
+                  <SelectItem value="Aprovada integralmente">Aprovada Integralmente</SelectItem>
+                  <SelectItem value="Aprovada parcialmente">Aprovada Parcialmente</SelectItem>
                   <SelectItem value="Não aprovada">Não Aprovada</SelectItem>
                   <SelectItem value="Pendente de análise">
                     {isManagerOrAdmin ? "Pendente" : "Aguardando Análise"}
@@ -524,7 +531,7 @@ export default function Planejamento2027() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-primary hover:bg-primary/90">
-                    <TableHead className="font-bold text-white text-center">Unidade</TableHead>
+                    {isManagerOrAdmin && <TableHead className="font-bold text-white text-center">Unidade</TableHead>}
                     <TableHead className="font-bold text-white text-center">Objeto / Descrição</TableHead>
                     <TableHead className="font-bold text-white text-center">Categoria / Grupo</TableHead>
                     <TableHead className="font-bold text-white text-center">Qtd</TableHead>
@@ -532,26 +539,26 @@ export default function Planejamento2027() {
                     <TableHead className="font-bold text-white text-center">Valor Total</TableHead>
                     <TableHead className="font-bold text-white text-center">Prioridade</TableHead>
                     <TableHead className="font-bold text-white text-center">Aprovação</TableHead>
-                    <TableHead className="font-bold text-white text-center">Ações de Análise</TableHead>
+                    <TableHead className="font-bold text-white text-center">{isManagerOrAdmin ? "Ações de Análise" : "Ações"}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-10 text-slate-500">
+                      <TableCell colSpan={isManagerOrAdmin ? 9 : 8} className="text-center py-10 text-slate-500">
                         <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" /> Carregando demandas...
                       </TableCell>
                     </TableRow>
                   ) : filteredDemands.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-10 text-slate-500">
+                      <TableCell colSpan={isManagerOrAdmin ? 9 : 8} className="text-center py-10 text-slate-500">
                         Nenhuma demanda encontrada.
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredDemands.map((row) => (
                       <TableRow key={row.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
-                        <TableCell className="font-semibold">{row.unidade_demandante}</TableCell>
+                        {isManagerOrAdmin && <TableCell className="font-semibold">{row.unidade_demandante}</TableCell>}
                         <TableCell className="max-w-xs">
                           <div className="font-medium text-slate-900 dark:text-white line-clamp-2">{row.descricao}</div>
                           {row.status_aprovacao === "Não aprovada" && row.justificativa_nao_aprovacao && (
@@ -657,9 +664,8 @@ export default function Planejamento2027() {
                             ) : (
                               (row.status_aprovacao === "Aprovada parcialmente" || row.status_aprovacao === "Não aprovada") ? (
                                 <Button
-                                  variant="ghost"
                                   size="sm"
-                                  className="h-8 text-[11px] text-primary"
+                                  className="h-8 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                                   onClick={() => handleViewReason(row)}
                                 >
                                   <Eye className="h-3 w-3 mr-1" /> Ver Motivo
