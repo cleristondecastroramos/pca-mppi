@@ -151,7 +151,7 @@ export default function Auth() {
           />
           <div className="space-y-2">
             <ShimmerText 
-              text="PLANO DE CONTRATAÇÕES ANUAL - PCA 2026" 
+              text="PLANO DE CONTRATAÇÕES ANUAL - PCA" 
               className="text-2xl font-extrabold tracking-tight uppercase drop-shadow-md"
             />
             <p className="text-white/90 text-sm font-medium tracking-widest uppercase border-t border-white/20 pt-2">
