@@ -100,7 +100,7 @@ const GerenciamentoUsuarios = () => {
   const [newCargo, setNewCargo] = useState("");
   const [newRole, setNewRole] = useState<PerfilAcesso | undefined>(undefined);
   const [newProvisionalPassword, setNewProvisionalPassword] = useState("");
-  const [newExerciciosPermitidos, setNewExerciciosPermitidos] = useState<number[]>([2026]);
+  const [newExerciciosPermitidos, setNewExerciciosPermitidos] = useState<number[]>([2027]);
   const [newUnidadeId, setNewUnidadeId] = useState<string>("none");
 
   // Edit user
@@ -111,7 +111,7 @@ const GerenciamentoUsuarios = () => {
   const [editSetoresAdicionais, setEditSetoresAdicionais] = useState<string[]>([]);
   const [editCargo, setEditCargo] = useState("");
   const [editRole, setEditRole] = useState<PerfilAcesso | undefined>(undefined);
-  const [editExerciciosPermitidos, setEditExerciciosPermitidos] = useState<number[]>([2026]);
+  const [editExerciciosPermitidos, setEditExerciciosPermitidos] = useState<number[]>([2027]);
   const [editUnidadeId, setEditUnidadeId] = useState<string>("none");
   const [saving, setSaving] = useState(false);
 
