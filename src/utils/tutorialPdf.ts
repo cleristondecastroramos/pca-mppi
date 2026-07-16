@@ -317,6 +317,7 @@ export async function generateTutorialPdf(
   doc.setFont("helvetica", "bold");
   doc.setFontSize(20);
   doc.setTextColor(...BLACK);
+  const year = (filename.match(/20\d{2}/)?.[0]) || "2026";
   doc.text(`Tutorial Completo do Sistema | PCA ${year}`, PAGE_W / 2, 88, { align: "center" });
   
   // Linha decorativa abaixo do título
