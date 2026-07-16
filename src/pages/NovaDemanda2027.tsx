@@ -179,7 +179,7 @@ export default function NovaDemanda2027() {
           .join(" | "),
         quantidade_itens: quantidade,
         unidade_fornecimento: unidadeFornecimento,
-        valor_unitario: valorUnitario,
+        valor_unitario: Number(valorUnitario) || 0,
         valor_estimado: valorTotal,
         grau_prioridade: prioridade,
         classe: classeMap,

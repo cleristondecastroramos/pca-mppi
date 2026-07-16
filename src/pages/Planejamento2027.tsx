@@ -70,8 +70,8 @@ export default function Planejamento2027() {
         .select("*")
         .eq("exercicio", 2027);
 
-      if (!isManagerOrAdmin && profile.unidade_requisitante_id) {
-        query = query.eq("unidade_requisitante_id", profile.unidade_requisitante_id);
+      if (!isManagerOrAdmin && (profile as any).unidade_requisitante_id) {
+        query = query.eq("unidade_requisitante_id", (profile as any).unidade_requisitante_id);
       }
 
       const { data, error } = await query;
@@ -309,7 +309,7 @@ export default function Planejamento2027() {
       }
       doc.setFontSize(12);
       doc.setTextColor(50, 50, 50);
-      const title = isManagerOrAdmin ? "Planejamento PCA 2027 - Geral" : `Planejamento PCA 2027 - ${profile?.unidades_requisitantes?.nome || "Unidade"}`;
+      const title = isManagerOrAdmin ? "Planejamento PCA 2027 - Geral" : `Planejamento PCA 2027 - ${(profile as any)?.unidades_requisitantes?.nome || "Unidade"}`;
       doc.text(title, pageWidth / 2, 16, { align: "center" });
       
       doc.setFontSize(9);
@@ -394,7 +394,7 @@ export default function Planejamento2027() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-              {isManagerOrAdmin ? "Planejamento PCA 2027" : `Minhas Demandas - ${profile?.unidades_requisitantes?.nome || "Unidade"}`}
+              {isManagerOrAdmin ? "Planejamento PCA 2027" : `Minhas Demandas - ${(profile as any)?.unidades_requisitantes?.nome || "Unidade"}`}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400">
               {isManagerOrAdmin 
