@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -13,7 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { supabase } from "@/integrations/supabase/client";
 import { useUserProfile, useUserRoles } from "@/lib/auth";
 import { toast } from "sonner";
-import { Loader2, Plus, Search, Check, AlertTriangle, X, CheckSquare, RefreshCw, FileText } from "lucide-react";
+import { Loader2, Plus, Search, Check, AlertTriangle, X, CheckSquare, RefreshCw, FileText, Pencil, Trash2, Eye } from "lucide-react";
 
 export default function Planejamento2027() {
   const navigate = useNavigate();
@@ -29,6 +31,14 @@ export default function Planejamento2027() {
   const [isPartialOpen, setIsPartialOpen] = useState(false);
   const [partialQuantity, setPartialQuantity] = useState<number>(1);
   const [partialValorUnit, setPartialValorUnit] = useState<number>(0);
+  const [partialReason, setPartialReason] = useState("");
+
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editQuantity, setEditQuantity] = useState<number>(1);
+  const [editValorUnit, setEditValorUnit] = useState<number>(0);
+  const [editJustificativa, setEditJustificativa] = useState("");
+
+  const [isReasonOpen, setIsReasonOpen] = useState(false);
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { data: profile } = useUserProfile(currentUserId ?? undefined);
@@ -49,6 +59,7 @@ export default function Planejamento2027() {
   const [filterUnidade, setFilterUnidade] = useState("Todas");
   const [filterCategoria, setFilterCategoria] = useState("Todas");
   const [filterPrioridade, setFilterPrioridade] = useState("Todas");
+  const [filterAprovacao, setFilterAprovacao] = useState("Todas");
 
   const loadDemands = async () => {
     if (!profile || !roles) return;
@@ -102,6 +113,10 @@ export default function Planejamento2027() {
 
   const handleApprovePartialSubmit = async () => {
     if (!selectedDemand) return;
+    if (!partialReason.trim()) {
+      toast.error("É necessário informar o motivo da aprovação parcial.");
+      return;
+    }
     try {
       const valTotal = partialQuantity * partialValorUnit;
       const { error } = await supabase
@@ -114,6 +129,7 @@ export default function Planejamento2027() {
           valor_unitario: partialValorUnit,
           valor_total: valTotal,
           valor_estimado: valTotal,
+          motivo_analise: partialReason,
           updated_at: new Date().toISOString(),
           updated_by: currentUserId
         })
@@ -143,6 +159,7 @@ export default function Planejamento2027() {
           status_aprovacao: "Não aprovada",
           status_planejamento: "Recusado",
           justificativa_nao_aprovacao: rejectReason,
+          motivo_analise: rejectReason,
           updated_at: new Date().toISOString(),
           updated_by: currentUserId
         })
@@ -157,6 +174,63 @@ export default function Planejamento2027() {
     } catch (e: any) {
       toast.error("Erro ao reprovar demanda: " + e.message);
     }
+  };
+
+  const handleEditDemand = (row: any) => {
+    setSelectedDemand(row);
+    setEditQuantity(row.quantidade_itens || row.quantidade || 1);
+    setEditValorUnit(row.valor_unitario || 0);
+    setEditJustificativa(row.justificativa || "");
+    setIsEditOpen(true);
+  };
+
+  const handleEditSubmit = async () => {
+    if (!selectedDemand) return;
+    try {
+      const valTotal = editQuantity * editValorUnit;
+      const { error } = await supabase
+        .from("contratacoes")
+        .update({
+          quantidade: editQuantity,
+          quantidade_itens: editQuantity,
+          valor_unitario: editValorUnit,
+          valor_total: valTotal,
+          valor_estimado: valTotal,
+          justificativa: editJustificativa,
+          updated_at: new Date().toISOString(),
+          updated_by: currentUserId
+        })
+        .eq("id", selectedDemand.id);
+
+      if (error) throw error;
+      toast.success("Demanda atualizada com sucesso!");
+      setIsEditOpen(false);
+      setSelectedDemand(null);
+      loadDemands();
+    } catch (e: any) {
+      toast.error("Erro ao atualizar demanda: " + e.message);
+    }
+  };
+
+  const handleDeleteDemand = async (row: any) => {
+    if (window.confirm("Tem certeza que deseja excluir esta demanda? Esta ação não pode ser desfeita.")) {
+      try {
+        const { error } = await supabase
+          .from("contratacoes")
+          .delete()
+          .eq("id", row.id);
+        if (error) throw error;
+        toast.success("Demanda excluída com sucesso.");
+        loadDemands();
+      } catch (e: any) {
+        toast.error("Erro ao excluir demanda: " + e.message);
+      }
+    }
+  };
+
+  const handleViewReason = (row: any) => {
+    setSelectedDemand(row);
+    setIsReasonOpen(true);
   };
 
   // Métricas baseadas apenas nas demandas filtradas (não no total geral se houver filtro)
@@ -178,8 +252,9 @@ export default function Planejamento2027() {
     const matchesUnidade = filterUnidade === "Todas" || d.unidade_demandante === filterUnidade;
     const matchesCategoria = filterCategoria === "Todas" || d.categoria_material_ou_servico === filterCategoria;
     const matchesPrioridade = filterPrioridade === "Todas" || (d.grau_prioridade || d.prioridade) === filterPrioridade;
+    const matchesAprovacao = filterAprovacao === "Todas" || d.status_aprovacao === filterAprovacao;
 
-    return matchesSearch && matchesUnidade && matchesCategoria && matchesPrioridade;
+    return matchesSearch && matchesUnidade && matchesCategoria && matchesPrioridade && matchesAprovacao;
   });
 
   // Metrics
@@ -189,7 +264,7 @@ export default function Planejamento2027() {
   const totalPending = filteredDemands.filter(d => d.status_aprovacao === "Pendente de análise").length;
   const totalRejected = filteredDemands.filter(d => d.status_aprovacao === "Não aprovada").length;
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, isAdmin: boolean) => {
     switch (status) {
       case "Aprovada integralmente":
         return <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white border-none font-bold">Aprovada Integral</Badge>;
@@ -198,8 +273,119 @@ export default function Planejamento2027() {
       case "Não aprovada":
         return <Badge className="bg-rose-500 hover:bg-rose-600 text-white border-none font-bold">Não Aprovada</Badge>;
       default:
-        return <Badge className="bg-amber-500 hover:bg-amber-600 text-white border-none font-bold">Pendente</Badge>;
+        return isAdmin 
+          ? <Badge className="bg-amber-500 hover:bg-amber-600 text-white border-none font-bold">Pendente</Badge>
+          : <Badge className="bg-amber-500 hover:bg-amber-600 text-white border-none font-bold text-center leading-tight py-1">Demanda Enviada.<br/>Aguardando Análise</Badge>;
     }
+  };
+
+  const handleExportPdf = () => {
+    const doc = new jsPDF({ orientation: "landscape" });
+
+    // Logo (if available, we simulate header)
+    const logoImg = new Image();
+    logoImg.src = "/logo-mppi.png";
+    
+    logoImg.onload = () => {
+      generatePdf(doc, logoImg);
+    };
+
+    logoImg.onerror = () => {
+      // Fallback without logo
+      generatePdf(doc, null);
+    };
+  };
+
+  const generatePdf = (doc: jsPDF, logoImg: HTMLImageElement | null) => {
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    
+    const addHeaderFooter = (pageNumber: number, totalPages: number) => {
+      if (logoImg) {
+        doc.addImage(logoImg, "PNG", 14, 10, 80, 16);
+      } else {
+        doc.setFontSize(14);
+        doc.text("MPPI", 14, 20);
+      }
+      doc.setFontSize(12);
+      doc.setTextColor(50, 50, 50);
+      const title = isManagerOrAdmin ? "Planejamento PCA 2027 - Geral" : `Planejamento PCA 2027 - ${profile?.unidades_requisitantes?.nome || "Unidade"}`;
+      doc.text(title, pageWidth / 2, 16, { align: "center" });
+      
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      doc.text("Relatório de consolidação de aquisições pretendidas", pageWidth / 2, 22, { align: "center" });
+      
+      // Footer
+      doc.setFontSize(8);
+      doc.text(`Página ${pageNumber} de ${totalPages}`, pageWidth - 20, pageHeight - 10, { align: "right" });
+      doc.text("Gerado pelo Sistema PCA MPPI", 14, pageHeight - 10);
+    };
+
+    // Group by unidade
+    const grouped = filteredDemands.reduce((acc, curr) => {
+      const unidade = curr.unidade_demandante || "Unidade Não Informada";
+      if (!acc[unidade]) acc[unidade] = [];
+      acc[unidade].push(curr);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    let startY = 35;
+    const sortedUnidades = Object.keys(grouped).sort();
+
+    sortedUnidades.forEach((unidade, index) => {
+      const items = grouped[unidade];
+      
+      if (startY > pageHeight - 40) {
+        doc.addPage();
+        startY = 35;
+      }
+      
+      doc.setFontSize(11);
+      doc.setTextColor(217, 65, 93);
+      doc.text(`Unidade Requisitante: ${unidade}`, 14, startY);
+      startY += 5;
+
+      const tableBody = items.map(d => [
+        d.descricao || "-",
+        d.categoria_material_ou_servico || "-",
+        d.quantidade || 0,
+        (d.valor_unitario || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+        (d.valor_estimado || d.valor_total || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+        d.grau_prioridade || d.prioridade || "-",
+        d.status_aprovacao || "Pendente"
+      ]);
+
+      autoTable(doc, {
+        head: [["Objeto / Descrição", "Categoria / Grupo", "Qtd", "Valor Unit.", "Valor Total", "Prioridade", "Situação"]],
+        body: tableBody,
+        startY: startY,
+        theme: "grid",
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [217, 65, 93], textColor: [255, 255, 255], fontStyle: "bold", halign: "center" },
+        columnStyles: {
+          0: { cellWidth: "auto" },
+          1: { cellWidth: 35 },
+          2: { cellWidth: 15, halign: "right" },
+          3: { cellWidth: 25, halign: "right" },
+          4: { cellWidth: 25, halign: "right" },
+          5: { cellWidth: 20, halign: "center" },
+          6: { cellWidth: 30, halign: "center" }
+        },
+        margin: { bottom: 20 }
+      });
+
+      startY = (doc as any).lastAutoTable.finalY + 15;
+    });
+
+    const pageCount = (doc.internal as any).getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      addHeaderFooter(i, pageCount);
+    }
+
+    doc.save("Relatorio_PCA_2027.pdf");
+    toast.success("Relatório PDF exportado com sucesso!");
   };
 
   return (
@@ -208,17 +394,22 @@ export default function Planejamento2027() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-              Planejamento PCA 2027
+              {isManagerOrAdmin ? "Planejamento PCA 2027" : `Minhas Demandas - ${profile?.unidades_requisitantes?.nome || "Unidade"}`}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              Coleta de demandas e consolidação das aquisições pretendidas para 2027
+              {isManagerOrAdmin 
+                ? "Painel relata todas as demandas recebidas para consolidação." 
+                : "Acompanhe a lista de aquisições pretendidas enviadas ao PCA 2027."}
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" onClick={handleExportPdf} title="Exportar PDF" disabled={loading || filteredDemands.length === 0}>
+              <FileText className="h-4 w-4" />
+            </Button>
             <Button variant="outline" size="icon" onClick={loadDemands} title="Recarregar" disabled={loading}>
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             </Button>
-            <Button onClick={() => navigate("/nova-demanda-2027")} className="bg-[#D9415D] hover:bg-[#C0354E] text-white font-bold shadow-md">
+            <Button onClick={() => navigate("/nova-demanda")} className="bg-[#D9415D] hover:bg-[#C0354E] text-white font-bold shadow-md">
               <Plus className="mr-2 h-4.5 w-4.5" /> Apresentar Demanda
             </Button>
           </div>
@@ -277,7 +468,7 @@ export default function Planejamento2027() {
               />
             </div>
           </CardHeader>
-          <div className="px-6 pb-4 pt-0 grid grid-cols-1 md:grid-cols-3 gap-4 border-b border-slate-100 dark:border-slate-800">
+          <div className="px-6 pb-4 pt-0 grid grid-cols-1 md:grid-cols-4 gap-4 border-b border-slate-100 dark:border-slate-800">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Unidade Requisitante</Label>
               <Select value={filterUnidade} onValueChange={setFilterUnidade}>
@@ -310,33 +501,48 @@ export default function Planejamento2027() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Aprovação</Label>
+              <Select value={filterAprovacao} onValueChange={setFilterAprovacao}>
+                <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Todas" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Todas">Todas</SelectItem>
+                  <SelectItem value="Aprovada integralmente">Aprovada Integral</SelectItem>
+                  <SelectItem value="Aprovada parcialmente">Aprovada Parcial</SelectItem>
+                  <SelectItem value="Não aprovada">Não Aprovada</SelectItem>
+                  <SelectItem value="Pendente de análise">
+                    {isManagerOrAdmin ? "Pendente" : "Aguardando Análise"}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-slate-100/50 dark:bg-slate-800/30">
-                    <TableHead className="font-bold">Unidade</TableHead>
-                    <TableHead className="font-bold">Objeto / Descrição</TableHead>
-                    <TableHead className="font-bold">Categoria / Grupo</TableHead>
-                    <TableHead className="font-bold text-right">Qtd</TableHead>
-                    <TableHead className="font-bold text-right">Valor Unitário</TableHead>
-                    <TableHead className="font-bold text-right">Valor Total</TableHead>
-                    <TableHead className="font-bold text-center">Prioridade</TableHead>
-                    <TableHead className="font-bold text-center">Aprovação</TableHead>
-                    {isManagerOrAdmin && <TableHead className="font-bold text-center">Ações de Análise</TableHead>}
+                  <TableRow className="bg-primary hover:bg-primary/90">
+                    <TableHead className="font-bold text-white text-center">Unidade</TableHead>
+                    <TableHead className="font-bold text-white text-center">Objeto / Descrição</TableHead>
+                    <TableHead className="font-bold text-white text-center">Categoria / Grupo</TableHead>
+                    <TableHead className="font-bold text-white text-center">Qtd</TableHead>
+                    <TableHead className="font-bold text-white text-center">Valor Unitário</TableHead>
+                    <TableHead className="font-bold text-white text-center">Valor Total</TableHead>
+                    <TableHead className="font-bold text-white text-center">Prioridade</TableHead>
+                    <TableHead className="font-bold text-white text-center">Aprovação</TableHead>
+                    <TableHead className="font-bold text-white text-center">Ações de Análise</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={isManagerOrAdmin ? 9 : 8} className="text-center py-10 text-slate-500">
+                      <TableCell colSpan={9} className="text-center py-10 text-slate-500">
                         <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" /> Carregando demandas...
                       </TableCell>
                     </TableRow>
                   ) : filteredDemands.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={isManagerOrAdmin ? 9 : 8} className="text-center py-10 text-slate-500">
+                      <TableCell colSpan={9} className="text-center py-10 text-slate-500">
                         Nenhuma demanda encontrada.
                       </TableCell>
                     </TableRow>
@@ -378,10 +584,10 @@ export default function Planejamento2027() {
                             {row.grau_prioridade || row.prioridade}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-center">{getStatusBadge(row.status_aprovacao)}</TableCell>
-                        {isManagerOrAdmin && (
-                          <TableCell className="text-center">
-                            {row.status_aprovacao === "Pendente de análise" ? (
+                        <TableCell className="text-center">{getStatusBadge(row.status_aprovacao, isManagerOrAdmin || false)}</TableCell>
+                        <TableCell className="text-center">
+                          {isManagerOrAdmin ? (
+                            row.status_aprovacao === "Pendente de análise" ? (
                               <div className="flex items-center justify-center gap-1.5">
                                 <Button 
                                   variant="ghost" 
@@ -401,6 +607,7 @@ export default function Planejamento2027() {
                                     setSelectedDemand(row);
                                     setPartialQuantity(row.quantidade_itens || row.quantidade || 1);
                                     setPartialValorUnit(row.valor_unitario || 0);
+                                    setPartialReason("");
                                     setIsPartialOpen(true);
                                   }}
                                 >
@@ -422,9 +629,45 @@ export default function Planejamento2027() {
                               </div>
                             ) : (
                               <span className="text-[11px] text-muted-foreground font-semibold">Análise Concluída</span>
-                            )}
-                          </TableCell>
-                        )}
+                            )
+                          ) : (
+                            row.status_aprovacao === "Pendente de análise" ? (
+                              <div className="flex items-center justify-center gap-1.5">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                                  title="Editar Demanda"
+                                  onClick={() => handleEditDemand(row)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                                  title="Excluir Demanda"
+                                  onClick={() => handleDeleteDemand(row)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              (row.status_aprovacao === "Aprovada parcialmente" || row.status_aprovacao === "Não aprovada") ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 text-[11px] text-primary"
+                                  onClick={() => handleViewReason(row)}
+                                >
+                                  <Eye className="h-3 w-3 mr-1" /> Ver Motivo
+                                </Button>
+                              ) : (
+                                <span className="text-[11px] text-muted-foreground font-semibold">Análise Concluída</span>
+                              )
+                            )
+                          )}
+                        </TableCell>
                       </TableRow>
                     ))
                   )}
@@ -436,14 +679,14 @@ export default function Planejamento2027() {
 
         {/* Modal: Approve Partially */}
         <Dialog open={isPartialOpen} onOpenChange={setIsPartialOpen}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Aprovação Parcial de Demanda</DialogTitle>
-              <DialogDescription>
+          <DialogContent className="max-w-md p-0 overflow-hidden">
+            <DialogHeader className="bg-primary px-6 py-4">
+              <DialogTitle className="text-white">Aprovação Parcial de Demanda</DialogTitle>
+              <DialogDescription className="text-slate-100">
                 Ajuste os valores ou quantidades da demanda que foram validados.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-3">
+            <div className="space-y-4 px-6 py-3">
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Objeto</Label>
                 <div className="text-sm font-semibold p-2.5 bg-muted/30 rounded border">{selectedDemand?.descricao}</div>
@@ -471,11 +714,22 @@ export default function Planejamento2027() {
                   />
                 </div>
               </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="partial_reason">Motivo da Aprovação Parcial</Label>
+                <Textarea
+                  id="partial_reason"
+                  placeholder="Justifique a alteração da quantidade ou valor..."
+                  value={partialReason}
+                  onChange={(e) => setPartialReason(e.target.value)}
+                  rows={3}
+                  required
+                />
+              </div>
               <div className="text-right font-bold text-primary pt-1">
                 Novo Total: {(partialQuantity * partialValorUnit).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="px-6 py-4 bg-slate-50 border-t">
               <Button variant="outline" onClick={() => setIsPartialOpen(false)}>Cancelar</Button>
               <Button onClick={handleApprovePartialSubmit} className="bg-primary text-primary-foreground">Salvar Aprovação Parcial</Button>
             </DialogFooter>
@@ -484,16 +738,16 @@ export default function Planejamento2027() {
 
         {/* Modal: Reject Demand */}
         <Dialog open={isRejectOpen} onOpenChange={setIsRejectOpen}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-rose-500">
+          <DialogContent className="max-w-md p-0 overflow-hidden">
+            <DialogHeader className="bg-primary px-6 py-4">
+              <DialogTitle className="flex items-center gap-2 text-white">
                 <AlertTriangle className="h-5 w-5" /> Reprovar Demanda
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-slate-100">
                 Ao recusar a incorporação da demanda ao PCA 2027, você deve registrar uma justificativa formal obrigatória.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-3 py-3">
+            <div className="space-y-3 px-6 py-3">
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Objeto</Label>
                 <div className="text-sm font-semibold p-2.5 bg-muted/30 rounded border line-clamp-2">{selectedDemand?.descricao}</div>
@@ -510,7 +764,7 @@ export default function Planejamento2027() {
                 />
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="px-6 py-4 bg-slate-50 border-t">
               <Button variant="outline" onClick={() => setIsRejectOpen(false)}>Cancelar</Button>
               <Button onClick={handleRejectSubmit} className="bg-rose-600 hover:bg-rose-700 text-white font-bold">
                 Confirmar Não Aprovação

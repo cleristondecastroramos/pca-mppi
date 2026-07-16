@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, Plus, Pencil, Building2, ShieldAlert } from "lucide-react";
+import { Loader2, Plus, Pencil, Building2, ShieldAlert, Trash2 } from "lucide-react";
 import { useAuthSession } from "@/lib/auth";
 
 type UnidadeRequisitante = {
@@ -93,6 +93,24 @@ export default function GerenciamentoUnidades() {
     setAtivo(unidade.ativo);
     setEditingId(unidade.id);
     setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string, nome: string) => {
+    if (window.confirm(`Tem certeza que deseja excluir a unidade "${nome}"?\n\nAtenção: Essa ação não poderá ser desfeita e pode falhar se houver demandas vinculadas a ela.`)) {
+      try {
+        const { error } = await supabase
+          .from("unidades_requisitantes")
+          .delete()
+          .eq("id", id);
+          
+        if (error) throw error;
+        toast.success("Unidade excluída com sucesso!");
+        fetchUnidades();
+      } catch (error: any) {
+        console.error(error);
+        toast.error("Erro ao excluir unidade: " + error.message);
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -256,13 +274,13 @@ export default function GerenciamentoUnidades() {
 
         <div className="rounded-md border bg-white dark:bg-slate-900 overflow-hidden">
           <Table>
-            <TableHeader className="bg-slate-50 dark:bg-slate-800/50">
-              <TableRow>
-                <TableHead>Unidade</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Exercício</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+            <TableHeader className="bg-primary">
+              <TableRow className="hover:bg-primary">
+                <TableHead className="text-white text-center w-full">Unidade</TableHead>
+                <TableHead className="text-white text-center w-[250px]">Tipo</TableHead>
+                <TableHead className="text-white text-center w-[120px]">Exercício</TableHead>
+                <TableHead className="text-white text-center w-[120px]">Status</TableHead>
+                <TableHead className="text-white text-center w-[100px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -275,14 +293,14 @@ export default function GerenciamentoUnidades() {
               ) : (
                 unidades.map((unidade) => (
                   <TableRow key={unidade.id}>
-                    <TableCell className="font-medium">{unidade.nome}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="font-normal text-xs">
+                    <TableCell className="font-medium max-w-[500px] truncate" title={unidade.nome}>{unidade.nome}</TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant="outline" className="font-normal text-xs whitespace-nowrap">
                         {unidade.tipo}
                       </Badge>
                     </TableCell>
-                    <TableCell>{unidade.exercicio}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-center">{unidade.exercicio}</TableCell>
+                    <TableCell className="text-center">
                       {unidade.ativo ? (
                         <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400">
                           Ativa
@@ -293,15 +311,27 @@ export default function GerenciamentoUnidades() {
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(unidade)}
-                        className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                    <TableCell className="text-center">
+                      <div className="flex justify-center items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(unidade)}
+                          className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          title="Editar Unidade"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(unidade.id, unidade.nome)}
+                          className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          title="Excluir Unidade"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

@@ -25,6 +25,7 @@ export interface ItemCatalogoInterno {
   tipo: string;
   codigo: string | null;
   grupo: string | null;
+  valor_estimado?: number;
 }
 
 interface CatalogoInternoSearchProps {

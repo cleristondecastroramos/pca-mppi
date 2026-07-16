@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getTutorialSections, TOC, type PdfBlock } from "./tutorialPdfData";
+import { getTutorialSections2027, TOC2027 } from "./tutorialPdfData2027";
 
 // Sidebar red: hsl(349, 67%, 55%) => #D9415D
 const RED: [number, number, number] = [217, 65, 93];
@@ -33,7 +34,7 @@ function loadImage(src: string): Promise<HTMLImageElement | null> {
   });
 }
 
-function addHeaderFooter(doc: jsPDF, logo: HTMLImageElement | null, page: number, total: number) {
+function addHeaderFooter(doc: jsPDF, logo: HTMLImageElement | null, page: number, total: number, footerTitle: string) {
   if (logo) {
     const h = 12;
     const w = (logo.width / logo.height) * h;
@@ -46,7 +47,7 @@ function addHeaderFooter(doc: jsPDF, logo: HTMLImageElement | null, page: number
   doc.setFontSize(8);
   doc.setTextColor(...GRAY_TEXT);
   doc.setFontSize(6);
-  doc.text("Tutorial do Sistema de Gerenciamento do Plano de Contratações Anual", ML, FOOTER_Y + 2);
+  doc.text(footerTitle, ML, FOOTER_Y + 2);
   doc.setFontSize(8);
   doc.text(`${page} / ${total}`, PAGE_W - MR, FOOTER_Y + 2, { align: "right" });
 }
@@ -277,10 +278,15 @@ function renderBlock(doc: jsPDF, block: PdfBlock, y: number): number {
   }
 }
 
-export async function generateTutorialPdf() {
+export async function generateTutorialPdf(
+  filename = "Tutorial_PCA_MPPI_2026.pdf",
+  footerTitle = "Tutorial do Sistema de Gerenciamento do Plano de Contratações Anual",
+  sectionsData = getTutorialSections(),
+  tocData = TOC
+) {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const logo = await loadImage("/logo-mppi.png");
-  const sections = getTutorialSections();
+  const sections = sectionsData;
 
   // ===== COVER PAGE =====
   const coverImage = await loadImage("/22933-removebg-preview.png");
@@ -306,12 +312,12 @@ export async function generateTutorialPdf() {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
   doc.setTextColor(...RED);
-  doc.text("Sistema de Gerenciamento do Plano de Contratações Anual", PAGE_W / 2, 70, { align: "center" });
+  doc.text("Gerenciamento do PCA", PAGE_W / 2, 70, { align: "center" });
   
   doc.setFont("helvetica", "bold");
   doc.setFontSize(20);
   doc.setTextColor(...BLACK);
-  doc.text("Tutorial Completo do Sistema | PCA 2026", PAGE_W / 2, 88, { align: "center" });
+  doc.text(`Tutorial Completo do Sistema | PCA ${year}`, PAGE_W / 2, 88, { align: "center" });
   
   // Linha decorativa abaixo do título
   doc.setDrawColor(...RED);
@@ -452,7 +458,7 @@ export async function generateTutorialPdf() {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.setTextColor(...BLACK);
-  TOC.forEach((item, i) => {
+  tocData.forEach((item, i) => {
     y = checkPage(doc, y, 6);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(...RED);
@@ -526,7 +532,7 @@ export async function generateTutorialPdf() {
   const docInternal = (doc as any).internal;
   if (typeof doc.outline !== "undefined") {
     // jsPDF 2.x+ supports outline
-    TOC.forEach((item, i) => {
+    tocData.forEach((item, i) => {
       if (i < sectionPageNumbers.length) {
         (doc.outline as any).add(null, `${i + 1}. ${item}`, { pageNumber: sectionPageNumbers[i] });
       }
@@ -539,9 +545,18 @@ export async function generateTutorialPdf() {
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
     if (i >= tocPageNum) {
-      addHeaderFooter(doc, logo, i, totalPages);
+      addHeaderFooter(doc, logo, i, totalPages, footerTitle);
     }
   }
 
-  doc.save("Tutorial_PCA_MPPI_2026.pdf");
+  doc.save(filename);
+}
+
+export async function generateTutorialPdf2027() {
+  await generateTutorialPdf(
+    "Tutorial_PCA_MPPI_2027.pdf",
+    "Tutorial do Sistema PCA 2027",
+    getTutorialSections2027(),
+    TOC2027
+  );
 }

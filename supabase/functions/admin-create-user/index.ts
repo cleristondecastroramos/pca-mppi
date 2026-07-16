@@ -153,7 +153,16 @@ Deno.serve(async (req) => {
     console.log("Atualizando perfil na tabela 'profiles'...");
     const { error: profileErr } = await supabaseAdmin
       .from("profiles")
-      .update({ nome_completo, setor, setores_adicionais, cargo, email, exercicios_permitidos, unidade_requisitante_id })
+      .update({ 
+        nome_completo, 
+        setor, 
+        setores_adicionais, 
+        cargo, 
+        email, 
+        exercicios_permitidos, 
+        unidade_requisitante_id,
+        must_change_password: !!(provisional_password && provisional_password.length >= 8)
+      })
       .eq("id", newUser.id);
     
     if (profileErr) {

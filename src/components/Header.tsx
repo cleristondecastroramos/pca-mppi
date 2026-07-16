@@ -220,7 +220,7 @@ function HeaderBase() {
               if (year === 2026) {
                 navigate("/visao-geral");
               } else {
-                navigate("/nova-demanda-2027");
+                navigate("/nova-demanda");
               }
             }}
             className="bg-transparent border-none text-foreground font-bold focus:ring-0 focus:outline-none cursor-pointer p-0.5"

@@ -93,6 +93,7 @@ export default function NovaDemanda2027() {
     if (item.grupo) {
       setCategoriaSelecionada(item.grupo);
     }
+    setValorUnitario(item.valor_estimado || 0);
     toast.success("Item do catálogo selecionado!", {
       description: `${item.tipo.toUpperCase()} — ${item.nome.substring(0, 80)}${item.nome.length > 80 ? "..." : ""}`,
     });
@@ -101,6 +102,7 @@ export default function NovaDemanda2027() {
   const handleClearItem = () => {
     setItemCatalogo(null);
     setCategoriaSelecionada("Todas");
+    setValorUnitario(0);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -129,6 +131,24 @@ export default function NovaDemanda2027() {
     try {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData?.user) throw new Error("Usuário não autenticado");
+
+      // Verificação de duplicação
+      const { data: existingDemands, error: checkError } = await supabase
+        .from("contratacoes")
+        .select("id")
+        .eq("unidade_requisitante_id", unidadeId)
+        .eq("catalogo_interno_id", itemCatalogo.id)
+        .eq("exercicio", 2027);
+
+      if (checkError) throw checkError;
+      
+      if (existingDemands && existingDemands.length > 0) {
+        toast.error("Item já inserido", {
+          description: "Sua unidade já registrou uma demanda para este mesmo item do catálogo no PCA 2027. Se precisar alterar a quantidade, edite a demanda existente."
+        });
+        setLoading(false);
+        return;
+      }
 
       // Mapeamento de classe legada baseado no tipo do catálogo
       const classeMap =
@@ -173,7 +193,7 @@ export default function NovaDemanda2027() {
       if (error) throw error;
 
       toast.success("Demanda registrada com sucesso no planejamento 2027!");
-      navigate("/planejamento-2027");
+      navigate("/planejamento");
     } catch (error: any) {
       console.error(error);
       toast.error("Erro ao registrar demanda: " + (error.message || error));
@@ -187,7 +207,7 @@ export default function NovaDemanda2027() {
       <div className="w-full space-y-6 animate-in fade-in duration-500">
         {/* Cabeçalho */}
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/planejamento-2027")}>
+          <Button variant="ghost" size="icon" onClick={() => navigate("/planejamento")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
@@ -312,26 +332,19 @@ export default function NovaDemanda2027() {
                   <Label htmlFor="valor_unit">Valor Unitário Estimado (R$)</Label>
                   <Input
                     id="valor_unit"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={valorUnitario}
-                    onFocus={() => {
-                      if (valorUnitario === 0) setValorUnitario("");
-                    }}
-                    onBlur={(e) => {
-                      if (e.target.value === "") setValorUnitario(0);
-                    }}
-                    onChange={(e) => {
-                      if (e.target.value === "") {
-                        setValorUnitario("");
-                      } else {
-                        setValorUnitario(Math.max(0, parseFloat(e.target.value) || 0));
-                      }
-                    }}
-                    required
-                    className="bg-slate-50/50 border dark:bg-slate-900"
+                    readOnly
+                    value={Number(valorUnitario || 0).toLocaleString("pt-BR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                    className="bg-slate-100 dark:bg-slate-800 border font-bold text-slate-700 dark:text-slate-300 cursor-not-allowed"
+                    title="Valor definido no catálogo"
                   />
+                  {valorUnitario === 0 && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                      * Valor provisório. Será ajustado pela Administração.
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5 pt-2">
@@ -384,7 +397,7 @@ export default function NovaDemanda2027() {
                 type="button"
                 variant="outline"
                 className="w-full"
-                onClick={() => navigate("/planejamento-2027")}
+                onClick={() => navigate("/planejamento")}
                 disabled={loading}
               >
                 Cancelar

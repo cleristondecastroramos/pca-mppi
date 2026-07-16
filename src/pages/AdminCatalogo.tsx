@@ -49,6 +49,7 @@ export default function AdminCatalogo() {
   const [codigo, setCodigo] = useState("");
   const [grupo, setGrupo] = useState("");
   const [ativo, setAtivo] = useState(true);
+  const [valorEstimado, setValorEstimado] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -79,6 +80,7 @@ export default function AdminCatalogo() {
       setCodigo(item.codigo || "");
       setGrupo(item.grupo || "");
       setAtivo(item.ativo);
+      setValorEstimado(item.valor_estimado ? item.valor_estimado.toString() : "");
     } else {
       setEditingItem(null);
       setNome("");
@@ -87,6 +89,7 @@ export default function AdminCatalogo() {
       setCodigo("");
       setGrupo("");
       setAtivo(true);
+      setValorEstimado("");
     }
     setIsDialogOpen(true);
   };
@@ -95,6 +98,14 @@ export default function AdminCatalogo() {
     e.preventDefault();
     if (!nome.trim()) {
       toast.error("O nome é obrigatório.");
+      return;
+    }
+    if (!descricao.trim()) {
+      toast.error("A descrição é obrigatória.");
+      return;
+    }
+    if (!grupo.trim()) {
+      toast.error("O grupo / categoria é obrigatório.");
       return;
     }
 
@@ -106,6 +117,7 @@ export default function AdminCatalogo() {
       codigo,
       grupo,
       ativo,
+      valor_estimado: valorEstimado ? parseFloat(valorEstimado.replace(",", ".")) : 0,
     };
 
     try {
@@ -217,14 +229,15 @@ export default function AdminCatalogo() {
 
           <div className="rounded-md border overflow-hidden">
             <Table>
-              <TableHeader className="bg-slate-50 dark:bg-slate-800/50">
-                <TableRow>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Código</TableHead>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Grupo</TableHead>
-                  <TableHead className="text-center">Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+              <TableHeader className="bg-primary">
+                <TableRow className="hover:bg-primary">
+                  <TableHead className="text-white text-center w-[120px]">Tipo</TableHead>
+                  <TableHead className="text-white text-center w-[100px]">Código</TableHead>
+                  <TableHead className="text-white text-center w-full">Nome</TableHead>
+                  <TableHead className="text-white text-center w-[150px]">Grupo</TableHead>
+                  <TableHead className="text-white text-center w-[150px]">Valor estimado</TableHead>
+                  <TableHead className="text-white text-center w-[100px]">Status</TableHead>
+                  <TableHead className="text-white text-center w-[100px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -254,11 +267,14 @@ export default function AdminCatalogo() {
                         </div>
                       </TableCell>
                       <TableCell className="font-mono text-xs">{item.codigo || "-"}</TableCell>
-                      <TableCell className="font-medium max-w-[300px] truncate" title={item.nome}>
+                      <TableCell className="font-medium max-w-[600px] truncate" title={item.nome}>
                         {item.nome}
                         {item.descricao && <p className="text-xs text-slate-500 truncate mt-0.5">{item.descricao}</p>}
                       </TableCell>
                       <TableCell className="text-sm">{item.grupo || "-"}</TableCell>
+                      <TableCell className="text-right text-sm font-medium text-slate-700 dark:text-slate-300">
+                        {Number(item.valor_estimado || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                      </TableCell>
                       <TableCell className="text-center">
                         <span className={`text-xs font-bold px-2 py-1 rounded-full ${
                           item.ativo ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
@@ -288,11 +304,11 @@ export default function AdminCatalogo() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>{editingItem ? 'Editar Item do Catálogo' : 'Novo Item do Catálogo'}</DialogTitle>
+        <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden [&>button]:text-white [&>button]:hover:text-white/80">
+          <DialogHeader className="bg-primary p-6 pb-4">
+            <DialogTitle className="text-white">{editingItem ? 'Editar Item do Catálogo' : 'Novo Item do Catálogo'}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSave} className="space-y-4 pt-4">
+          <form onSubmit={handleSave} className="space-y-4 px-6 pb-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="tipo">Tipo</Label>
@@ -318,13 +334,41 @@ export default function AdminCatalogo() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="descricao">Descrição (Opcional)</Label>
-              <Input id="descricao" value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Detalhes adicionais..." />
+              <Label htmlFor="descricao">Descrição *</Label>
+              <Input id="descricao" required value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Detalhes adicionais..." />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="grupo">Grupo / Categoria (Opcional)</Label>
-              <Input id="grupo" value={grupo} onChange={(e) => setGrupo(e.target.value)} placeholder="Ex: Material de Expediente" />
+              <Label htmlFor="grupo">Grupo / Categoria *</Label>
+              <Select required value={grupo} onValueChange={setGrupo}>
+                <SelectTrigger id="grupo">
+                  <SelectValue placeholder="Selecione um grupo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {grupos.length > 0 ? (
+                    grupos.map((g) => (
+                      <SelectItem key={g as string} value={g as string}>
+                        {g as string}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="Geral">Geral</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="valorEstimado">Valor Estimado (R$)</Label>
+              <Input 
+                id="valorEstimado" 
+                type="number" 
+                step="0.01" 
+                min="0"
+                value={valorEstimado} 
+                onChange={(e) => setValorEstimado(e.target.value)} 
+                placeholder="0.00" 
+              />
             </div>
 
             <div className="flex items-center space-x-2 pt-2">

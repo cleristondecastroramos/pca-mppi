@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useUserRoles, hasAnyRole, PerfilAcesso, useAuthSession, useUserProfile } from "@/lib/auth";
 import { Loader2 } from "lucide-react";
+import { ForcePasswordChange } from "./ForcePasswordChange";
 
 type ProtectedRouteProps = {
   children: React.ReactNode;
@@ -38,6 +39,12 @@ export default function ProtectedRoute({ children, allowed, redirectTo = "/auth"
         Carregando permissões...
       </div>
     );
+  }
+
+  // Verifica se o usuário precisa trocar a senha provisória
+  // Isso sobrepõe qualquer navegação (exceto login/logout)
+  if (profile?.must_change_password) {
+    return <ForcePasswordChange onSuccess={() => window.location.reload()} userId={userId!} />;
   }
 
   // Tem sessão mas sem permissão de role

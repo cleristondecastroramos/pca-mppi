@@ -58,8 +58,8 @@ const menuItems: MenuItem[] = [
 ];
 
 const menuItems2027: MenuItem[] = [
-  { title: "Nova Demanda 2027", url: "/nova-demanda-2027", icon: Plus, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
-  { title: "Painel Planejamento 2027", url: "/planejamento-2027", icon: ClipboardList, allowedRoles: ["administrador", "gestor", "consulta"] },
+  { title: "Nova Demanda", url: "/nova-demanda", icon: Plus, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
+  { title: "Painel Planejamento", url: "/planejamento", icon: ClipboardList, allowedRoles: ["administrador", "gestor", "consulta"] },
   
   { title: "Gerenciamento de Usuários", url: "/gerenciamento-usuarios", icon: Users, allowedRoles: ["administrador"] },
   { title: "Unidades Requisitantes", url: "/gerenciamento-unidades", icon: Building2, allowedRoles: ["administrador"] },

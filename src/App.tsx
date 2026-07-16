@@ -109,12 +109,12 @@ const App = () => {
                     </ProtectedRoute>
                   }
                 />
-                <Route path="/planejamento-2027" element={
+                <Route path="/planejamento" element={
                   <ProtectedRoute allowed={["administrador", "gestor", "consulta"]}>
                     <Planejamento2027 />
                   </ProtectedRoute>
                 } />
-                <Route path="/nova-demanda-2027" element={
+                <Route path="/nova-demanda" element={
                   <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante"]}>
                     <NovaDemanda2027 />
                   </ProtectedRoute>
