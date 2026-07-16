@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
     if (!url || !anonKey || !serviceKey) {
       return new Response(
         JSON.stringify({ error: "Missing Supabase environment configuration" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     const requester = userData?.user;
     if (!requester) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
     });
     if (!isAdmin) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
     const user_id: string | undefined = payload?.user_id;
     if (!user_id) {
       return new Response(JSON.stringify({ error: "Missing user_id" }), {
-        status: 400,
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
     const { error: delError } = await supabaseAdmin.auth.admin.deleteUser(user_id);
     if (delError) {
       return new Response(JSON.stringify({ error: delError.message }), {
-        status: 400,
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
     });
   } catch (e: any) {
     return new Response(JSON.stringify({ error: e?.message || String(e) }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
