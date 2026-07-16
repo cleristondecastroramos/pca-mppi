@@ -409,9 +409,11 @@ export default function Planejamento2027() {
             <Button variant="outline" size="icon" onClick={loadDemands} title="Recarregar" disabled={loading}>
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             </Button>
-            <Button onClick={() => navigate("/nova-demanda")} className="bg-[#D9415D] hover:bg-[#C0354E] text-white font-bold shadow-md">
-              <Plus className="mr-2 h-4.5 w-4.5" /> Apresentar Demanda
-            </Button>
+            {isManagerOrAdmin || roles?.includes("setor_requisitante") ? (
+              <Button onClick={() => navigate("/nova-demanda")} className="bg-[#D9415D] hover:bg-[#C0354E] text-white font-bold shadow-md">
+                <Plus className="mr-2 h-4.5 w-4.5" /> Apresentar Demanda
+              </Button>
+            ) : null}
           </div>
         </div>
 

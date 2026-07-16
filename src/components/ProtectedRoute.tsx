@@ -92,7 +92,9 @@ export default function ProtectedRoute({ children, allowed, redirectTo = "/auth"
     if (exerciciosDoUsuario.length === 1) {
       const unico = exerciciosDoUsuario[0];
       localStorage.setItem("pca_exercicio", String(unico));
-      return <Navigate to={unico === 2026 ? "/visao-geral" : "/nova-demanda"} replace />;
+      const isSetorRequisitante = roles?.includes("setor_requisitante") && !roles?.includes("administrador") && !roles?.includes("gestor");
+      const dest2027 = isSetorRequisitante ? "/nova-demanda" : "/planejamento";
+      return <Navigate to={unico === 2026 ? "/visao-geral" : dest2027} replace />;
     }
 
     // Múltiplos exercícios: exibe tela de seleção
