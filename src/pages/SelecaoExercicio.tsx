@@ -2,48 +2,61 @@ import { useNavigate } from "react-router-dom";
 import { useExercise } from "@/hooks/useExercise";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, PlayCircle, BarChart3, LogOut, ArrowRight, User, Lock, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Calendar, PlayCircle, LogOut, ArrowRight, Lock, Loader2 } from "lucide-react";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useUserProfile } from "@/lib/auth";
+import { useAuthSession, useUserProfile } from "@/lib/auth";
+import { ForcePasswordChange } from "@/components/ForcePasswordChange";
 import { toast } from "sonner";
 
 export default function SelecaoExercicio() {
   const navigate = useNavigate();
   const { setExercise } = useExercise();
-  const [userId, setUserId] = useState<string | null>(null);
-  const { data: profile, isLoading: isProfileLoading } = useUserProfile(userId ?? undefined);
 
-  const exerciciosPermitidos = (profile as any)?.exercicios_permitidos || [2026];
+  // Usa o cache centralizado da sessão (sem useEffect extra para buscar userId)
+  const { data: session, isLoading: isSessionLoading } = useAuthSession();
+  const userId = session?.user?.id;
+  const { data: profile, isLoading: isProfileLoading } = useUserProfile(userId);
+
+  const exerciciosPermitidos: number[] = (profile as any)?.exercicios_permitidos ?? [];
   const hasAccess2026 = exerciciosPermitidos.includes(2026);
   const hasAccess2027 = exerciciosPermitidos.includes(2027);
 
+  // Redireciona para /auth se não houver sessão
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.user) {
-        setUserId(data.session.user.id);
-      } else {
-        navigate("/auth");
-      }
-    });
-  }, [navigate]);
+    if (!isSessionLoading && !session) {
+      navigate("/auth");
+    }
+  }, [isSessionLoading, session, navigate]);
 
+  // Auto-seleciona exercício se o usuário tiver acesso a apenas um
   useEffect(() => {
-    if (profile && !isProfileLoading) {
-      const exercicios = (profile as any)?.exercicios_permitidos || [2026];
-      if (exercicios.length === 1) {
-        const unicoExercicio = exercicios[0];
-        setExercise(unicoExercicio);
-        if (unicoExercicio === 2026) {
-          navigate("/visao-geral", { replace: true });
-        } else {
-          navigate("/nova-demanda", { replace: true });
-        }
+    if (!isProfileLoading && profile && exerciciosPermitidos.length === 1) {
+      const unico = exerciciosPermitidos[0];
+      setExercise(unico);
+      if (unico === 2026) {
+        navigate("/visao-geral", { replace: true });
+      } else {
+        navigate("/nova-demanda", { replace: true });
       }
     }
-  }, [profile, isProfileLoading, navigate, setExercise]);
+  }, [profile, isProfileLoading, exerciciosPermitidos, navigate, setExercise]);
 
-  if (isProfileLoading || !profile || !userId) {
+  // -----------------------------------------------------------------------
+  // Verificação de troca de senha obrigatória
+  // (dupla: JWT user_metadata + profiles.must_change_password)
+  // -----------------------------------------------------------------------
+  const mustChangeFromJwt = session?.user?.user_metadata?.must_change_password === true;
+  const mustChangeFromProfile = (profile as any)?.must_change_password === true;
+  const mustChangePassword = mustChangeFromJwt || mustChangeFromProfile;
+
+  if (mustChangePassword && userId) {
+    return <ForcePasswordChange onSuccess={() => window.location.reload()} userId={userId} />;
+  }
+
+  // Loading: aguarda sessão e perfil
+  // Não trava em !profile (pode ser null por erro) — só aguarda o loading
+  if (isSessionLoading || isProfileLoading) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-slate-500 dark:text-slate-400">
         <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
