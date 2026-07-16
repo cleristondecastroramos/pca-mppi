@@ -41,9 +41,35 @@ export default function ProtectedRoute({ children, allowed, redirectTo = "/auth"
     );
   }
 
-  // Verifica se o usuário precisa trocar a senha provisória
-  // Isso sobrepõe qualquer navegação (exceto login/logout)
-  if (profile?.must_change_password) {
+  // -----------------------------------------------------------------------
+  // VERIFICAÇÃO DUPLA de troca de senha obrigatória:
+  //
+  // Fonte 1: JWT (user_metadata) — gravado pela Edge Function admin-create-user
+  //          Disponível IMEDIATAMENTE, sem depender de query ao banco.
+  //
+  // Fonte 2: profiles.must_change_password — gravado pelo admin via SQL
+  //          ou pela própria Edge Function na tabela profiles.
+  //
+  // Se QUALQUER UMA das fontes indicar must_change_password = true,
+  // o acesso é bloqueado até que a senha seja trocada.
+  // -----------------------------------------------------------------------
+  const mustChangeFromJwt = session?.user?.user_metadata?.must_change_password === true;
+  const mustChangeFromProfile = profile?.must_change_password === true;
+  const mustChangePassword = mustChangeFromJwt || mustChangeFromProfile;
+
+  // Log de diagnóstico (remover após confirmar o funcionamento)
+  if (import.meta.env.DEV) {
+    console.log("[ProtectedRoute] must_change_password check:", {
+      userId,
+      mustChangeFromJwt,
+      mustChangeFromProfile,
+      mustChangePassword,
+      userMetadata: session?.user?.user_metadata,
+      profileData: profile,
+    });
+  }
+
+  if (mustChangePassword) {
     return <ForcePasswordChange onSuccess={() => window.location.reload()} userId={userId!} />;
   }
 

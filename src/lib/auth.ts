@@ -82,7 +82,7 @@ export async function fetchUserProfile(userId?: string) {
     if (!id) return null;
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, nome_completo, setor, setores_adicionais, cargo, email, exercicios_permitidos")
+      .select("id, nome_completo, setor, setores_adicionais, cargo, email, exercicios_permitidos, must_change_password")
       .eq("id", id)
       .single();
     if (error) return null;
@@ -96,7 +96,10 @@ export function useUserProfile(userId?: string) {
   return useQuery({
     queryKey: ["auth", "profile", userId ?? "anonymous"],
     queryFn: () => fetchUserProfile(userId),
-    staleTime: 120_000,
+    // staleTime baixo para garantir que a flag must_change_password
+    // seja sempre lida do banco, especialmente no primeiro acesso.
+    staleTime: 0,
+    refetchOnMount: "always",
     enabled: !!userId,
   });
 }

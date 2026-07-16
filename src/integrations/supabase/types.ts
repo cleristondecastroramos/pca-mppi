@@ -673,6 +673,7 @@ export type Database = {
           email: string | null
           exercicios_permitidos: number[]
           id: string
+          must_change_password: boolean | null
           nome_completo: string | null
           ramal: string | null
           setor: string | null
@@ -687,6 +688,7 @@ export type Database = {
           email?: string | null
           exercicios_permitidos?: number[]
           id: string
+          must_change_password?: boolean | null
           nome_completo?: string | null
           ramal?: string | null
           setor?: string | null
@@ -701,6 +703,7 @@ export type Database = {
           email?: string | null
           exercicios_permitidos?: number[]
           id?: string
+          must_change_password?: boolean | null
           nome_completo?: string | null
           ramal?: string | null
           setor?: string | null
