@@ -29,6 +29,7 @@ export type Database = {
           tipo: string
           updated_at: string
           updated_by: string | null
+          valor_estimado: number | null
         }
         Insert: {
           ativo?: boolean
@@ -44,6 +45,7 @@ export type Database = {
           tipo: string
           updated_at?: string
           updated_by?: string | null
+          valor_estimado?: number | null
         }
         Update: {
           ativo?: boolean
@@ -59,6 +61,7 @@ export type Database = {
           tipo?: string
           updated_at?: string
           updated_by?: string | null
+          valor_estimado?: number | null
         }
         Relationships: []
       }
@@ -96,6 +99,7 @@ export type Database = {
           mes_estimado: number | null
           modalidade: string
           modo_prestacao: string | null
+          motivo_analise: string | null
           motivo_devolucao: string | null
           normativo: string | null
           numero_contrato: string | null
@@ -172,6 +176,7 @@ export type Database = {
           mes_estimado?: number | null
           modalidade: string
           modo_prestacao?: string | null
+          motivo_analise?: string | null
           motivo_devolucao?: string | null
           normativo?: string | null
           numero_contrato?: string | null
@@ -248,6 +253,7 @@ export type Database = {
           mes_estimado?: number | null
           modalidade?: string
           modo_prestacao?: string | null
+          motivo_analise?: string | null
           motivo_devolucao?: string | null
           normativo?: string | null
           numero_contrato?: string | null
