@@ -380,8 +380,13 @@ const GerenciamentoUsuarios = () => {
       setDeleteTarget(null);
       loadUsers();
     } catch (e: any) {
-      console.error(e);
-      toast.error("Falha ao excluir usuário", { description: translateError(e.message || e.toString()) });
+      console.error("[Gerenciamento] Erro no delete:", e);
+      let errorMsg = e?.message || String(e);
+      // Se for um objeto e não for Error, tentar stringify
+      if (typeof e === 'object' && e !== null && !(e instanceof Error)) {
+        try { errorMsg = JSON.stringify(e); } catch(err) {}
+      }
+      toast.error("Falha ao excluir usuário", { description: translateError(errorMsg) });
     } finally {
       setDeleting(false);
     }
