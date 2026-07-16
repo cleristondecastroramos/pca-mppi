@@ -80,6 +80,43 @@ type Profile = {
 
 type UserWithRoles = Profile & { roles: PerfilAcesso[] };
 
+async function extractFunctionError(error: any): Promise<string> {
+  if (!error) return "Erro desconhecido";
+
+  const context = error?.context;
+  if (context && typeof context.json === "function") {
+    try {
+      const payload = await context.json();
+      if (payload?.error) return String(payload.error);
+      if (payload?.message) return String(payload.message);
+      return JSON.stringify(payload);
+    } catch {
+      try {
+        const text = await context.text();
+        if (text) return text;
+      } catch {
+        // Mantém o tratamento padrão abaixo.
+      }
+    }
+  }
+
+  if (typeof error === "string") return error;
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === "object") {
+    const parts = [error.message, error.details, error.hint, error.code]
+      .filter(Boolean)
+      .map(String);
+    if (parts.length) return parts.join(" | ");
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return "Erro desconhecido";
+    }
+  }
+
+  return String(error);
+}
+
 const GerenciamentoUsuarios = () => {
   const [usuarios, setUsuarios] = useState<UserWithRoles[]>([]);
   const [search, setSearch] = useState("");
@@ -368,25 +405,36 @@ const GerenciamentoUsuarios = () => {
   async function handleDelete() {
     if (!deleteTarget) return;
     setDeleting(true);
+    const toastId = toast.loading("Excluindo usuário...");
     try {
       const { data, error } = await supabase.functions.invoke("admin-delete-user", {
         body: { user_id: deleteTarget.id },
       });
-      if (error) throw error;
-      const parsed = typeof data === "string" ? JSON.parse(data) : data;
-      if (parsed?.error) throw new Error(parsed.error);
-      toast.success("Usuário excluído com sucesso.");
+
+      if (error) {
+        throw new Error(await extractFunctionError(error));
+      }
+
+      let parsed: any = data;
+      if (typeof data === "string") {
+        try {
+          parsed = JSON.parse(data);
+        } catch {
+          parsed = { error: data };
+        }
+      }
+
+      if (parsed?.error) throw new Error(String(parsed.error));
+      if (!parsed?.ok) throw new Error("O servidor não confirmou a exclusão do usuário.");
+
+      toast.success("Usuário excluído com sucesso.", { id: toastId });
       setShowDelete(false);
       setDeleteTarget(null);
       loadUsers();
     } catch (e: any) {
       console.error("[Gerenciamento] Erro no delete:", e);
-      let errorMsg = e?.message || String(e);
-      // Se for um objeto e não for Error, tentar stringify
-      if (typeof e === 'object' && e !== null && !(e instanceof Error)) {
-        try { errorMsg = JSON.stringify(e); } catch(err) {}
-      }
-      toast.error("Falha ao excluir usuário", { description: translateError(errorMsg) });
+      const errorMsg = await extractFunctionError(e);
+      toast.error("Falha ao excluir usuário", { id: toastId, description: translateError(errorMsg) });
     } finally {
       setDeleting(false);
     }
