@@ -120,6 +120,7 @@ export function ForcePasswordChange({ onSuccess, userId, isSetorRequisitante }: 
       
       <div className="z-10 w-full max-w-md p-8 bg-white dark:bg-slate-900 border shadow-2xl rounded-2xl animate-in fade-in zoom-in duration-500 relative">
         <div className="flex flex-col items-center text-center space-y-4 mb-8">
+          <img src="/logo-mppi.png" alt="Logo MPPI" className="h-16 w-auto mb-2 object-contain" />
           <div className="h-16 w-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-2">
             <ShieldCheck className="h-8 w-8" />
           </div>

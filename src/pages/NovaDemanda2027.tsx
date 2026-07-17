@@ -271,14 +271,6 @@ export default function NovaDemanda2027() {
                       </div>
                     </div>
                   }
-                  rightElement={
-                    !itemCatalogo ? (
-                      <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                        <span className="font-bold">⚠</span>
-                        A demanda exige seleção de um item do catálogo.
-                      </p>
-                    ) : undefined
-                  }
                 />
               </CardContent>
             </Card>

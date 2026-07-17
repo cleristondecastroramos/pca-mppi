@@ -158,11 +158,11 @@ export function CatalogoInternoSearch({ onSelect, itemSelecionado, onClear, filt
           </div>
         )}
         <div className="flex flex-col md:flex-row items-center gap-4 flex-1 justify-end">
-          <div className="relative flex items-center transition-all duration-300 ring-1 ring-slate-200 dark:ring-slate-800 rounded-lg focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 overflow-hidden bg-white dark:bg-slate-900 shadow-sm w-full max-w-2xl">
+          <div className="relative flex items-center transition-all duration-300 border-2 border-red-500 rounded-lg focus-within:ring-2 focus-within:ring-red-500 focus-within:ring-offset-2 overflow-hidden bg-white dark:bg-slate-900 shadow-sm w-full max-w-full">
             <Search className="absolute left-3 h-5 w-5 text-slate-400" />
             <Input 
-              placeholder="Digite o nome ou código para buscar..." 
-              className="pl-10 border-0 focus-visible:ring-0 shadow-none h-10 bg-transparent text-sm"
+              placeholder="Digite aqui o nome do item que deseja procurar" 
+              className="pl-10 border-0 focus-visible:ring-0 shadow-none h-12 bg-transparent text-base"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
