@@ -21,7 +21,7 @@ export default function NovaDemanda2027() {
   const [unidades, setUnidades] = useState<any[]>([]);
   const [isLocked, setIsLocked] = useState(false);
   const [isAdminOrGestor, setIsAdminOrGestor] = useState(false);
-  const [prioridade, setPrioridade] = useState<"Alta" | "Média" | "Baixa">("Média");
+  const [prioridade, setPrioridade] = useState<"Alta" | "Média" | "Baixa" | "">("");
   const [justificativa, setJustificativa] = useState("");
   const [quantidade, setQuantidade] = useState<number>(1);
   const [unidadeFornecimento, setUnidadeFornecimento] = useState("Unidade");
@@ -122,6 +122,11 @@ export default function NovaDemanda2027() {
       return;
     }
 
+    if (!prioridade) {
+      toast.error("Por favor, selecione a prioridade da demanda.");
+      return;
+    }
+
     if (!justificativa.trim()) {
       toast.error("Por favor, informe a justificativa da demanda.");
       return;
@@ -165,8 +170,8 @@ export default function NovaDemanda2027() {
         setor_requisitante: siglaSetor,
         unidade_demandante: nomeUnidade,
         unidade_orcamentaria: "PGJ",
-        // Descrição vem exclusivamente do catálogo selecionado
-        descricao: itemCatalogo.descricao || itemCatalogo.nome,
+        // Descrição vem do catálogo: Nome + Descrição
+        descricao: itemCatalogo.descricao ? `${itemCatalogo.nome} - ${itemCatalogo.descricao}` : itemCatalogo.nome,
         // Categoria preenchida com o grupo do catálogo ou com o que estiver no dropdown
         categoria_material_ou_servico: itemCatalogo.grupo || (categoriaSelecionada !== "Todas" ? categoriaSelecionada : ""),
         catalogo_interno_id: itemCatalogo.id,
@@ -285,7 +290,7 @@ export default function NovaDemanda2027() {
                   <Label htmlFor="prioridade">Prioridade da Demanda</Label>
                   <Select value={prioridade} onValueChange={(v: any) => setPrioridade(v)}>
                     <SelectTrigger id="prioridade" className="bg-slate-50/50 border dark:bg-slate-900">
-                      <SelectValue />
+                      <SelectValue placeholder="Selecione a prioridade" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Alta">Alta</SelectItem>

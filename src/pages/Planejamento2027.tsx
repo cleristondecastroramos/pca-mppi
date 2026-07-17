@@ -134,7 +134,7 @@ export default function Planejamento2027() {
           valor_unitario: partialValorUnit,
           valor_total: valTotal,
           valor_estimado: valTotal,
-          motivo_analise: partialReason,
+          justificativa_alteracao: partialReason,
           updated_at: new Date().toISOString(),
           updated_by: currentUserId
         })
@@ -164,7 +164,6 @@ export default function Planejamento2027() {
           status_aprovacao: "Não aprovada",
           status_planejamento: "Recusado",
           justificativa_nao_aprovacao: rejectReason,
-          motivo_analise: rejectReason,
           updated_at: new Date().toISOString(),
           updated_by: currentUserId
         })
@@ -307,7 +306,7 @@ export default function Planejamento2027() {
     
     const addHeaderFooter = (pageNumber: number, totalPages: number) => {
       if (logoImg) {
-        doc.addImage(logoImg, "PNG", 14, 10, 80, 16);
+        doc.addImage(logoImg, "PNG", 14, 10, 55, 14);
       } else {
         doc.setFontSize(14);
         doc.text("MPPI", 14, 20);
@@ -315,11 +314,11 @@ export default function Planejamento2027() {
       doc.setFontSize(12);
       doc.setTextColor(50, 50, 50);
       const title = isManagerOrAdmin ? "Planejamento PCA 2027 - Geral" : `Planejamento PCA 2027 - ${(profile as any)?.unidades_requisitantes?.nome || "Unidade"}`;
-      doc.text(title, pageWidth / 2, 16, { align: "center" });
+      doc.text(title, pageWidth / 2, 30, { align: "center" });
       
       doc.setFontSize(9);
       doc.setTextColor(100, 100, 100);
-      doc.text("Relatório de consolidação de aquisições pretendidas", pageWidth / 2, 22, { align: "center" });
+      doc.text("Relatório de consolidação de aquisições pretendidas", pageWidth / 2, 36, { align: "center" });
       
       // Footer
       doc.setFontSize(8);
@@ -335,7 +334,7 @@ export default function Planejamento2027() {
       return acc;
     }, {} as Record<string, any[]>);
 
-    let startY = 35;
+    let startY = 46;
     const sortedUnidades = Object.keys(grouped).sort();
 
     sortedUnidades.forEach((unidade, index) => {
@@ -343,7 +342,7 @@ export default function Planejamento2027() {
       
       if (startY > pageHeight - 40) {
         doc.addPage();
-        startY = 35;
+        startY = 46;
       }
       
       doc.setFontSize(11);
@@ -354,7 +353,7 @@ export default function Planejamento2027() {
       const tableBody = items.map(d => [
         d.descricao || "-",
         d.categoria_material_ou_servico || "-",
-        d.quantidade || 0,
+        d.quantidade_itens || d.quantidade || 0,
         (d.valor_unitario || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
         (d.valor_estimado || d.valor_total || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
         d.grau_prioridade || d.prioridade || "-",
@@ -780,6 +779,87 @@ export default function Planejamento2027() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Modal: Edit Demand */}
+        <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+          <DialogContent className="max-w-md p-0 overflow-hidden">
+            <DialogHeader className="bg-primary px-6 py-4">
+              <DialogTitle className="flex items-center gap-2 text-white">
+                <Pencil className="h-5 w-5" /> Editar Demanda
+              </DialogTitle>
+              <DialogDescription className="text-slate-100">
+                Altere os quantitativos e valores da demanda pendente.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 px-6 py-3">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Objeto</Label>
+                <div className="text-sm font-semibold p-2.5 bg-muted/30 rounded border line-clamp-2">{selectedDemand?.descricao}</div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit_qty">Quantidade</Label>
+                  <Input
+                    id="edit_qty"
+                    type="number"
+                    min={1}
+                    value={editQuantity}
+                    onChange={(e) => setEditQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit_unit">Valor Unitário (R$)</Label>
+                  <Input
+                    id="edit_unit"
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    value={editValorUnit}
+                    onChange={(e) => setEditValorUnit(Math.max(0, parseFloat(e.target.value) || 0))}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit_justificativa">Justificativa</Label>
+                <Textarea
+                  id="edit_justificativa"
+                  placeholder="Justificativa da demanda..."
+                  value={editJustificativa}
+                  onChange={(e) => setEditJustificativa(e.target.value)}
+                  rows={3}
+                />
+              </div>
+              <div className="text-right font-bold text-primary pt-1">
+                Novo Total: {(editQuantity * editValorUnit).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+              </div>
+            </div>
+            <DialogFooter className="px-6 py-4 bg-slate-50 border-t">
+              <Button variant="outline" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
+              <Button onClick={handleEditSubmit} className="bg-primary text-primary-foreground">Salvar Alterações</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal: View Reason */}
+        <Dialog open={isReasonOpen} onOpenChange={setIsReasonOpen}>
+          <DialogContent className="max-w-md p-0 overflow-hidden">
+            <DialogHeader className="bg-primary px-6 py-4">
+              <DialogTitle className="text-white">Motivo da Análise</DialogTitle>
+              <DialogDescription className="text-slate-100">
+                Justificativa para a decisão tomada pela Administração.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 px-6 py-4">
+              <div className="text-sm font-medium bg-muted/30 p-4 rounded-lg border">
+                {selectedDemand?.justificativa_alteracao || selectedDemand?.justificativa_nao_aprovacao || "Nenhum motivo registrado."}
+              </div>
+            </div>
+            <DialogFooter className="px-6 py-4 bg-slate-50 border-t">
+              <Button variant="outline" onClick={() => setIsReasonOpen(false)}>Fechar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
       </div>
     </Layout>
   );
