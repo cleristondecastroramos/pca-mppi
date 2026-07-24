@@ -184,6 +184,10 @@ export default function SelecaoExercicio() {
                   <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full">
                     Planejamento
                   </span>
+                ) : pca2027Locked ? (
+                  <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full flex items-center gap-1">
+                    <CalendarClock className="h-3 w-3" /> Em breve
+                  </span>
                 ) : (
                   <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-red-500/10 text-red-500 rounded-full flex items-center gap-1">
                     <Lock className="h-3 w-3" /> Bloqueado
@@ -200,6 +204,10 @@ export default function SelecaoExercicio() {
             <CardContent className="flex items-center text-sm font-bold text-primary gap-1 group-hover:gap-2 transition-all">
               {hasAccess2027 ? (
                 <>Acessar Exercício <ArrowRight className="h-4 w-4" /></>
+              ) : pca2027Locked ? (
+                <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                  <CalendarClock className="h-4 w-4" /> Disponível em {PCA_2027_UNLOCK_LABEL}
+                </span>
               ) : (
                 <span className="text-muted-foreground flex items-center gap-1"><Lock className="h-4 w-4" /> Acesso Indisponível</span>
               )}
