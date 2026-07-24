@@ -2,12 +2,13 @@ import { useNavigate } from "react-router-dom";
 import { useExercise } from "@/hooks/useExercise";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, PlayCircle, LogOut, ArrowRight, Lock, Loader2 } from "lucide-react";
+import { Calendar, PlayCircle, LogOut, ArrowRight, Lock, Loader2, CalendarClock } from "lucide-react";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuthSession, useUserProfile } from "@/lib/auth";
+import { useAuthSession, useUserProfile, useUserRoles } from "@/lib/auth";
 import { ForcePasswordChange } from "@/components/ForcePasswordChange";
 import { toast } from "sonner";
+import { isPca2027LockedForRoles, PCA_2027_UNLOCK_LABEL } from "@/config/pca2027Lock";
 
 export default function SelecaoExercicio() {
   const navigate = useNavigate();
@@ -17,10 +18,12 @@ export default function SelecaoExercicio() {
   const { data: session, isLoading: isSessionLoading } = useAuthSession();
   const userId = session?.user?.id;
   const { data: profile, isLoading: isProfileLoading } = useUserProfile(userId);
+  const { data: roles } = useUserRoles(userId);
 
   const exerciciosPermitidos: number[] = (profile as any)?.exercicios_permitidos ?? [];
   const hasAccess2026 = exerciciosPermitidos.includes(2026);
-  const hasAccess2027 = exerciciosPermitidos.includes(2027);
+  const pca2027Locked = isPca2027LockedForRoles(roles);
+  const hasAccess2027 = exerciciosPermitidos.includes(2027) && !pca2027Locked;
 
   // Redireciona para /auth se não houver sessão
   useEffect(() => {
@@ -33,6 +36,10 @@ export default function SelecaoExercicio() {
   useEffect(() => {
     if (!isProfileLoading && profile && exerciciosPermitidos.length === 1) {
       const unico = exerciciosPermitidos[0];
+      if (unico === 2027 && pca2027Locked) {
+        navigate("/pca-2027-indisponivel", { replace: true });
+        return;
+      }
       setExercise(unico);
       if (unico === 2026) {
         navigate("/visao-geral", { replace: true });
@@ -40,7 +47,7 @@ export default function SelecaoExercicio() {
         navigate("/nova-demanda", { replace: true });
       }
     }
-  }, [profile, isProfileLoading, exerciciosPermitidos, navigate, setExercise]);
+  }, [profile, isProfileLoading, exerciciosPermitidos, navigate, setExercise, pca2027Locked]);
 
   // -----------------------------------------------------------------------
   // Verificação de troca de senha obrigatória
@@ -72,11 +79,17 @@ export default function SelecaoExercicio() {
       });
       return;
     }
-    if (year === 2027 && !hasAccess2027) {
-      toast.error("Módulo Restrito", {
-        description: "Seu usuário não possui permissão para acessar o PCA 2027."
-      });
-      return;
+    if (year === 2027) {
+      if (pca2027Locked) {
+        navigate("/pca-2027-indisponivel");
+        return;
+      }
+      if (!hasAccess2027) {
+        toast.error("Módulo Restrito", {
+          description: "Seu usuário não possui permissão para acessar o PCA 2027."
+        });
+        return;
+      }
     }
     setExercise(year);
     if (year === 2026) {
@@ -171,6 +184,10 @@ export default function SelecaoExercicio() {
                   <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full">
                     Planejamento
                   </span>
+                ) : pca2027Locked ? (
+                  <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full flex items-center gap-1">
+                    <CalendarClock className="h-3 w-3" /> Em breve
+                  </span>
                 ) : (
                   <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-red-500/10 text-red-500 rounded-full flex items-center gap-1">
                     <Lock className="h-3 w-3" /> Bloqueado
@@ -187,6 +204,10 @@ export default function SelecaoExercicio() {
             <CardContent className="flex items-center text-sm font-bold text-primary gap-1 group-hover:gap-2 transition-all">
               {hasAccess2027 ? (
                 <>Acessar Exercício <ArrowRight className="h-4 w-4" /></>
+              ) : pca2027Locked ? (
+                <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                  <CalendarClock className="h-4 w-4" /> Disponível em {PCA_2027_UNLOCK_LABEL}
+                </span>
               ) : (
                 <span className="text-muted-foreground flex items-center gap-1"><Lock className="h-4 w-4" /> Acesso Indisponível</span>
               )}
