@@ -2,12 +2,13 @@ import { useNavigate } from "react-router-dom";
 import { useExercise } from "@/hooks/useExercise";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, PlayCircle, LogOut, ArrowRight, Lock, Loader2 } from "lucide-react";
+import { Calendar, PlayCircle, LogOut, ArrowRight, Lock, Loader2, CalendarClock } from "lucide-react";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuthSession, useUserProfile } from "@/lib/auth";
+import { useAuthSession, useUserProfile, useUserRoles } from "@/lib/auth";
 import { ForcePasswordChange } from "@/components/ForcePasswordChange";
 import { toast } from "sonner";
+import { isPca2027LockedForRoles, PCA_2027_UNLOCK_LABEL } from "@/config/pca2027Lock";
 
 export default function SelecaoExercicio() {
   const navigate = useNavigate();
