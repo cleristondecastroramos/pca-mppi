@@ -228,6 +228,11 @@ const App = () => {
                     <AcessoNegado />
                   </ProtectedRoute>
                 } />
+                <Route path="/pca-2027-indisponivel" element={
+                  <ProtectedRoute allowed={["administrador", "gestor", "setor_requisitante", "consulta"]}>
+                    <Pca2027Indisponivel />
+                  </ProtectedRoute>
+                } />
 
                 <Route path="/notificacoes" element={
                   <ProtectedRoute allowed={["administrador"]}>
