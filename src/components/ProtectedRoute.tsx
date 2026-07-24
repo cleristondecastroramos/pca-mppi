@@ -2,6 +2,9 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useUserRoles, hasAnyRole, PerfilAcesso, useAuthSession, useUserProfile } from "@/lib/auth";
 import { Loader2 } from "lucide-react";
 import { ForcePasswordChange } from "./ForcePasswordChange";
+import { isPca2027LockedForRoles } from "@/config/pca2027Lock";
+
+const PCA_2027_ROUTES = ["/planejamento", "/nova-demanda"];
 
 type ProtectedRouteProps = {
   children: React.ReactNode;
