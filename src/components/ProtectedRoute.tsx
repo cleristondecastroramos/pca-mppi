@@ -87,6 +87,9 @@ export default function ProtectedRoute({ children, allowed, redirectTo = "/auth"
     return <>{children}</>;
   }
 
+  // Trava provisória do módulo PCA 2027 (ver src/config/pca2027Lock.ts)
+  const pca2027Locked = isPca2027LockedForRoles(roles);
+
   // Se não houver exercício selecionado, verifica se pode auto-selecionar
   const exerciseSelected = localStorage.getItem("pca_exercicio");
   if (!exerciseSelected) {
@@ -95,6 +98,9 @@ export default function ProtectedRoute({ children, allowed, redirectTo = "/auth"
     // Usuário com acesso a apenas UM exercício: auto-seleciona e redireciona direto
     if (exerciciosDoUsuario.length === 1) {
       const unico = exerciciosDoUsuario[0];
+      if (unico === 2027 && pca2027Locked) {
+        return <Navigate to="/pca-2027-indisponivel" replace />;
+      }
       localStorage.setItem("pca_exercicio", String(unico));
       const isSetorRequisitante = roles?.includes("setor_requisitante") && !roles?.includes("administrador") && !roles?.includes("gestor");
       const dest2027 = isSetorRequisitante ? "/nova-demanda" : "/planejamento";
@@ -111,6 +117,11 @@ export default function ProtectedRoute({ children, allowed, redirectTo = "/auth"
 
   if (!exerciciosPermitidos.includes(activeExercise)) {
     return <Navigate to="/acesso-negado" replace />;
+  }
+
+  // Bloqueio de rotas 2027 durante a trava provisória
+  if (pca2027Locked && PCA_2027_ROUTES.includes(location.pathname)) {
+    return <Navigate to="/pca-2027-indisponivel" replace />;
   }
 
   return <>{children}</>;
