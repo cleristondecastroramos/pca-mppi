@@ -79,11 +79,17 @@ export default function SelecaoExercicio() {
       });
       return;
     }
-    if (year === 2027 && !hasAccess2027) {
-      toast.error("Módulo Restrito", {
-        description: "Seu usuário não possui permissão para acessar o PCA 2027."
-      });
-      return;
+    if (year === 2027) {
+      if (pca2027Locked) {
+        navigate("/pca-2027-indisponivel");
+        return;
+      }
+      if (!hasAccess2027) {
+        toast.error("Módulo Restrito", {
+          description: "Seu usuário não possui permissão para acessar o PCA 2027."
+        });
+        return;
+      }
     }
     setExercise(year);
     if (year === 2026) {
