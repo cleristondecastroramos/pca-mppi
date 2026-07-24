@@ -36,6 +36,10 @@ export default function SelecaoExercicio() {
   useEffect(() => {
     if (!isProfileLoading && profile && exerciciosPermitidos.length === 1) {
       const unico = exerciciosPermitidos[0];
+      if (unico === 2027 && pca2027Locked) {
+        navigate("/pca-2027-indisponivel", { replace: true });
+        return;
+      }
       setExercise(unico);
       if (unico === 2026) {
         navigate("/visao-geral", { replace: true });
@@ -43,7 +47,7 @@ export default function SelecaoExercicio() {
         navigate("/nova-demanda", { replace: true });
       }
     }
-  }, [profile, isProfileLoading, exerciciosPermitidos, navigate, setExercise]);
+  }, [profile, isProfileLoading, exerciciosPermitidos, navigate, setExercise, pca2027Locked]);
 
   // -----------------------------------------------------------------------
   // Verificação de troca de senha obrigatória
