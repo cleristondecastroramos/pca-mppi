@@ -18,10 +18,12 @@ export default function SelecaoExercicio() {
   const { data: session, isLoading: isSessionLoading } = useAuthSession();
   const userId = session?.user?.id;
   const { data: profile, isLoading: isProfileLoading } = useUserProfile(userId);
+  const { data: roles } = useUserRoles(userId);
 
   const exerciciosPermitidos: number[] = (profile as any)?.exercicios_permitidos ?? [];
   const hasAccess2026 = exerciciosPermitidos.includes(2026);
-  const hasAccess2027 = exerciciosPermitidos.includes(2027);
+  const pca2027Locked = isPca2027LockedForRoles(roles);
+  const hasAccess2027 = exerciciosPermitidos.includes(2027) && !pca2027Locked;
 
   // Redireciona para /auth se não houver sessão
   useEffect(() => {
