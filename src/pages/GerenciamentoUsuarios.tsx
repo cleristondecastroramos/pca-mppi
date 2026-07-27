@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Shield, UserCog, ClipboardList, Eye, Info, Pencil, Trash2, Users, ChevronDown } from "lucide-react";
+import { Shield, UserCog, ClipboardList, Eye, Info, Pencil, Trash2, Users, ChevronDown, KeyRound } from "lucide-react";
 
 const ROLE_DEFINITIONS = {
   administrador: {
@@ -156,6 +156,12 @@ const GerenciamentoUsuarios = () => {
   const [deleteTarget, setDeleteTarget] = useState<UserWithRoles | null>(null);
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Reset provisional password
+  const [resetPasswordTarget, setResetPasswordTarget] = useState<UserWithRoles | null>(null);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [provisionalPassword, setProvisionalPassword] = useState("");
+  const [resettingPassword, setResettingPassword] = useState(false);
 
   async function loadUsers() {
     try {
@@ -440,6 +446,47 @@ const GerenciamentoUsuarios = () => {
     }
   }
 
+  function openResetPassword(u: UserWithRoles) {
+    setResetPasswordTarget(u);
+    setProvisionalPassword("");
+    setShowResetPassword(true);
+  }
+
+  async function handleResetPassword() {
+    if (!resetPasswordTarget) return;
+    if (!provisionalPassword || provisionalPassword.length < 8) {
+      toast.error("A senha provisória é obrigatória e deve ter pelo menos 8 caracteres.");
+      return;
+    }
+    setResettingPassword(true);
+    const toastId = toast.loading("Redefinindo senha do usuário...");
+    try {
+      const { data, error: invokeError } = await supabase.functions.invoke("admin-update-user", {
+        body: {
+          user_id: resetPasswordTarget.id,
+          provisional_password: provisionalPassword,
+        },
+      });
+
+      if (invokeError) throw invokeError;
+      const response = typeof data === "string" ? JSON.parse(data) : data;
+      if (response?.error) throw new Error(response.error);
+
+      toast.success("Senha provisória cadastrada com sucesso! O usuário deverá alterá-la no próximo acesso.", { id: toastId });
+      setShowResetPassword(false);
+      setResetPasswordTarget(null);
+      setProvisionalPassword("");
+    } catch (e: any) {
+      console.error("[Gerenciamento] Erro no reset password:", e);
+      toast.error("Falha ao redefinir senha", {
+        id: toastId,
+        description: translateError(e.message || "Erro desconhecido"),
+      });
+    } finally {
+      setResettingPassword(false);
+    }
+  }
+
   const roleLabel = (r: PerfilAcesso) => ROLE_DEFINITIONS[r]?.label || r;
 
   return (
@@ -645,6 +692,15 @@ const GerenciamentoUsuarios = () => {
                     <TableCell className="text-center space-x-1">
                       <Button size="xs" variant="outline" onClick={() => openEdit(u)} title="Editar usuário">
                         <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
+                      </Button>
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        onClick={() => openResetPassword(u)}
+                        title="Redefinir senha provisória"
+                        className="border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-950/30"
+                      >
+                        <KeyRound className="h-3.5 w-3.5 mr-1" /> Senha
                       </Button>
                       <Button
                         size="xs"
@@ -1029,6 +1085,47 @@ const GerenciamentoUsuarios = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Reset Provisional Password Dialog */}
+        <Dialog open={showResetPassword} onOpenChange={setShowResetPassword}>
+          <DialogContent className="p-0 overflow-hidden [&>button]:text-white sm:max-w-md">
+            <DialogHeader className="bg-sidebar p-6">
+              <DialogTitle className="text-white flex items-center gap-2">
+                <KeyRound className="h-5 w-5 text-amber-400" /> Redefinir Senha Provisória
+              </DialogTitle>
+              <DialogDescription className="text-white/80">
+                Cadastre uma nova senha temporária para <strong>{resetPasswordTarget?.nome_completo || resetPasswordTarget?.email}</strong>.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="p-6 space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Nova Senha Provisória *</label>
+                <Input
+                  type="text"
+                  value={provisionalPassword}
+                  onChange={(e) => setProvisionalPassword(e.target.value)}
+                  placeholder="Mínimo 8 caracteres (Ex: Mppi@2027Temp)"
+                  className="font-mono"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Ao realizar o próximo login com esta senha provisória, o usuário será obrigado a cadastrar uma nova senha pessoal definitiva para acessar o PCA 2026/2027.
+                </p>
+              </div>
+              <DialogFooter className="pt-2">
+                <Button variant="outline" onClick={() => setShowResetPassword(false)} disabled={resettingPassword}>
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleResetPassword}
+                  disabled={resettingPassword || provisionalPassword.length < 8}
+                  className="bg-amber-600 hover:bg-amber-700 text-white font-medium"
+                >
+                  {resettingPassword ? "Salvando..." : "Salvar Senha Provisória"}
+                </Button>
+              </DialogFooter>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );

@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
     }
 
     const payload = await req.json();
-    const { user_id, nome_completo, setor, setores_adicionais, cargo, role, exercicios_permitidos, unidade_requisitante_id } = payload;
+    const { user_id, nome_completo, setor, setores_adicionais, cargo, role, exercicios_permitidos, unidade_requisitante_id, provisional_password } = payload;
 
     if (!user_id) {
       console.error("user_id ausente no payload");
@@ -55,6 +55,29 @@ Deno.serve(async (req) => {
     }
 
     console.log(`Iniciando atualização para usuário ${user_id}...`);
+
+    // Atualiza senha provisória se fornecida
+    if (provisional_password && provisional_password.length >= 8) {
+      console.log(`Definindo nova senha provisória para usuário ${user_id}...`);
+      const { error: pwdError } = await supabaseAdmin.auth.admin.updateUserById(user_id, {
+        password: provisional_password,
+        user_metadata: { must_change_password: true },
+      });
+      if (pwdError) {
+        console.error("Erro ao atualizar senha no Auth Admin:", pwdError.message);
+        throw pwdError;
+      }
+
+      const { error: profMustChangeError } = await supabaseAdmin
+        .from("profiles")
+        .update({ must_change_password: true })
+        .eq("id", user_id);
+
+      if (profMustChangeError) {
+        console.warn("Erro ao atualizar must_change_password no profile:", profMustChangeError.message);
+      }
+      console.log("Senha provisória definida e must_change_password ativado.");
+    }
 
     // Update profile
     const profileUpdate: Record<string, any> = {};

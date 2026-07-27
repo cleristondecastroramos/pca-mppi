@@ -16,12 +16,21 @@ const RedefinirSenha = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") setIsRecovery(true);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
+        if (session) setIsRecovery(true);
+      }
     });
+
+    const hasHashToken = window.location.hash.includes("access_token") || window.location.hash.includes("type=recovery");
+    const hasSearchCode = window.location.search.includes("code=");
+
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setIsRecovery(true);
+      if (data.session || hasHashToken || hasSearchCode) {
+        setIsRecovery(true);
+      }
     });
+
     return () => subscription.unsubscribe();
   }, []);
 
@@ -41,8 +50,19 @@ const RedefinirSenha = () => {
     }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      const { data, error } = await supabase.auth.updateUser({
+        password,
+        data: { must_change_password: false },
+      });
       if (error) throw error;
+
+      if (data.user?.id) {
+        await supabase
+          .from("profiles")
+          .update({ must_change_password: false })
+          .eq("id", data.user.id);
+      }
+
       toast.success("Senha redefinida com sucesso. Faça login novamente.");
       navigate("/auth", { replace: true });
     } catch (err: any) {
