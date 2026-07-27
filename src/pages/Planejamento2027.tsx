@@ -686,7 +686,17 @@ export default function Planejamento2027() {
                                 </Button>
                               </div>
                             ) : (
-                              <span className="text-[11px] text-muted-foreground font-semibold">Análise Concluída</span>
+                              (row.status_aprovacao === "Aprovada parcialmente" || row.status_aprovacao === "Não aprovada") ? (
+                                <Button
+                                  size="sm"
+                                  className="h-8 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                                  onClick={() => handleViewReason(row)}
+                                >
+                                  <Eye className="h-3 w-3 mr-1" /> Ver Motivo
+                                </Button>
+                              ) : (
+                                <span className="text-[11px] text-emerald-600 font-semibold">Aprovada</span>
+                              )
                             )
                           ) : (
                             row.status_aprovacao === "Pendente de análise" ? (
@@ -720,7 +730,7 @@ export default function Planejamento2027() {
                                   <Eye className="h-3 w-3 mr-1" /> Ver Motivo
                                 </Button>
                               ) : (
-                                <span className="text-[11px] text-muted-foreground font-semibold">Análise Concluída</span>
+                                <span className="text-[11px] text-emerald-600 font-semibold">Aprovada</span>
                               )
                             )
                           )}
@@ -911,13 +921,35 @@ export default function Planejamento2027() {
             <DialogHeader className="bg-primary px-6 py-4">
               <DialogTitle className="text-white">Motivo da Análise</DialogTitle>
               <DialogDescription className="text-slate-100">
-                Justificativa para a decisão tomada pela Administração.
+                Justificativa registrada para a decisão da Administração.
               </DialogDescription>
             </DialogHeader>
-            <div className="p-6">
-              <div className="p-3 bg-muted/40 rounded-lg text-sm border text-foreground">
-                {selectedDemand?.justificativa_alteracao || selectedDemand?.justificativa_nao_aprovacao || "Nenhum motivo registrado."}
+            <div className="p-6 space-y-4">
+              {selectedDemand?.status_aprovacao === "Aprovada parcialmente" && (
+                <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg text-sm text-blue-900 dark:text-blue-100 font-medium">
+                  <strong>Decisão:</strong> Aprovação Parcial
+                </div>
+              )}
+              {selectedDemand?.status_aprovacao === "Não aprovada" && (
+                <div className="p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 rounded-lg text-sm text-rose-900 dark:text-rose-100 font-medium">
+                  <strong>Decisão:</strong> Demanda Não Aprovada
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Justificativa da Administração</Label>
+                <div className="p-3.5 bg-muted/40 rounded-lg text-sm border text-foreground leading-relaxed">
+                  {selectedDemand?.justificativa_alteracao || selectedDemand?.justificativa_nao_aprovacao || "Nenhum motivo registrado."}
+                </div>
               </div>
+
+              {selectedDemand?.status_aprovacao === "Aprovada parcialmente" && (
+                <div className="p-3 bg-slate-50 dark:bg-slate-900 border rounded-lg text-xs space-y-1 text-slate-700 dark:text-slate-300">
+                  <div className="flex justify-between"><span>Qtd. Aprovada:</span> <strong>{selectedDemand?.quantidade_itens || selectedDemand?.quantidade}</strong></div>
+                  <div className="flex justify-between"><span>Valor Unit. Aprovado:</span> <strong>{Number(selectedDemand?.valor_unitario || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong></div>
+                  <div className="flex justify-between border-t pt-1 font-semibold text-primary"><span>Valor Total Aprovado:</span> <strong>{Number(selectedDemand?.valor_estimado || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong></div>
+                </div>
+              )}
             </div>
             <DialogFooter className="px-6 py-3 bg-slate-50 border-t">
               <Button onClick={() => setIsReasonOpen(false)}>Fechar</Button>
