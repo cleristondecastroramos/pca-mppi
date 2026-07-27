@@ -30,13 +30,13 @@ export default function Planejamento2027() {
   const [rejectReason, setRejectReason] = useState("");
 
   const [isPartialOpen, setIsPartialOpen] = useState(false);
-  const [partialQuantity, setPartialQuantity] = useState<number>(1);
-  const [partialValorUnit, setPartialValorUnit] = useState<number>(0);
+  const [partialQuantity, setPartialQuantity] = useState<number | string>(1);
+  const [partialValorUnit, setPartialValorUnit] = useState<number | string>(0);
   const [partialReason, setPartialReason] = useState("");
 
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editQuantity, setEditQuantity] = useState<number>(1);
-  const [editValorUnit, setEditValorUnit] = useState<number>(0);
+  const [editQuantity, setEditQuantity] = useState<number | string>(1);
+  const [editValorUnit, setEditValorUnit] = useState<number | string>(0);
   const [editJustificativa, setEditJustificativa] = useState("");
 
   const [isReasonOpen, setIsReasonOpen] = useState(false);
@@ -124,15 +124,18 @@ export default function Planejamento2027() {
       return;
     }
     try {
-      const valTotal = partialQuantity * partialValorUnit;
+      const parsedQty = Math.max(1, parseInt(String(partialQuantity), 10) || 1);
+      const parsedUnit = Math.max(0, parseFloat(String(partialValorUnit)) || 0);
+      const valTotal = parsedQty * parsedUnit;
+
       const { error } = await supabase
         .from("contratacoes")
         .update({
           status_aprovacao: "Aprovada parcialmente",
           status_planejamento: "Aprovado",
-          quantidade: partialQuantity,
-          quantidade_itens: partialQuantity,
-          valor_unitario: partialValorUnit,
+          quantidade: parsedQty,
+          quantidade_itens: parsedQty,
+          valor_unitario: parsedUnit,
           valor_estimado: valTotal,
           justificativa_alteracao: partialReason,
           updated_at: new Date().toISOString(),
@@ -194,13 +197,16 @@ export default function Planejamento2027() {
     if (!selectedDemand) return;
     setEditSaving(true);
     try {
-      const valTotal = editQuantity * editValorUnit;
+      const parsedQty = Math.max(1, parseInt(String(editQuantity), 10) || 1);
+      const parsedUnit = Math.max(0, parseFloat(String(editValorUnit)) || 0);
+      const valTotal = parsedQty * parsedUnit;
+
       const { error } = await supabase
         .from("contratacoes")
         .update({
-          quantidade: editQuantity,
-          quantidade_itens: editQuantity,
-          valor_unitario: editValorUnit,
+          quantidade: parsedQty,
+          quantidade_itens: parsedQty,
+          valor_unitario: parsedUnit,
           valor_estimado: valTotal,
           justificativa: editJustificativa,
           updated_at: new Date().toISOString(),
@@ -750,7 +756,10 @@ export default function Planejamento2027() {
                     type="number"
                     min={1}
                     value={partialQuantity}
-                    onChange={(e) => setPartialQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                    onChange={(e) => setPartialQuantity(e.target.value)}
+                    onBlur={() => {
+                      if (partialQuantity === "" || Number(partialQuantity) < 1) setPartialQuantity(1);
+                    }}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -761,7 +770,10 @@ export default function Planejamento2027() {
                     step="0.01"
                     min={0}
                     value={partialValorUnit}
-                    onChange={(e) => setPartialValorUnit(Math.max(0, parseFloat(e.target.value) || 0))}
+                    onChange={(e) => setPartialValorUnit(e.target.value)}
+                    onBlur={() => {
+                      if (partialValorUnit === "" || Number(partialValorUnit) < 0) setPartialValorUnit(0);
+                    }}
                   />
                 </div>
               </div>
@@ -777,7 +789,7 @@ export default function Planejamento2027() {
                 />
               </div>
               <div className="text-right font-bold text-primary pt-1">
-                Novo Total: {(partialQuantity * partialValorUnit).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                Novo Total: {((Math.max(1, parseInt(String(partialQuantity), 10) || 1)) * (Math.max(0, parseFloat(String(partialValorUnit)) || 0))).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
               </div>
             </div>
             <DialogFooter className="px-6 py-4 bg-slate-50 border-t">
@@ -848,7 +860,10 @@ export default function Planejamento2027() {
                     type="number"
                     min={1}
                     value={editQuantity}
-                    onChange={(e) => setEditQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                    onChange={(e) => setEditQuantity(e.target.value)}
+                    onBlur={() => {
+                      if (editQuantity === "" || Number(editQuantity) < 1) setEditQuantity(1);
+                    }}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -859,15 +874,18 @@ export default function Planejamento2027() {
                     step="0.01"
                     min={0}
                     value={editValorUnit}
-                    onChange={(e) => setEditValorUnit(Math.max(0, parseFloat(e.target.value) || 0))}
+                    onChange={(e) => setEditValorUnit(e.target.value)}
+                    onBlur={() => {
+                      if (editValorUnit === "" || Number(editValorUnit) < 0) setEditValorUnit(0);
+                    }}
                   />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="edit_justificativa">Justificativa</Label>
+                <Label htmlFor="edit_justificativa">Justificativa da Demanda</Label>
                 <Textarea
                   id="edit_justificativa"
-                  placeholder="Justificativa da demanda..."
+                  placeholder="Descreva a justificativa para esta contratação..."
                   value={editJustificativa}
                   onChange={(e) => setEditJustificativa(e.target.value)}
                   rows={5}
@@ -875,7 +893,7 @@ export default function Planejamento2027() {
                 />
               </div>
               <div className="text-right font-bold text-primary pt-1">
-                Novo Total: {(editQuantity * editValorUnit).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                Novo Total: {((Math.max(1, parseInt(String(editQuantity), 10) || 1)) * (Math.max(0, parseFloat(String(editValorUnit)) || 0))).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
               </div>
             </div>
             <DialogFooter className="px-6 py-4 bg-slate-50 border-t">
