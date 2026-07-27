@@ -16,7 +16,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { supabase } from "@/integrations/supabase/client";
 import { useUserProfile, useUserRoles } from "@/lib/auth";
 import { toast } from "sonner";
-import { Loader2, Plus, Search, Check, AlertTriangle, X, CheckSquare, RefreshCw, FileText, Pencil, Trash2, Eye } from "lucide-react";
+import { Loader2, Plus, Search, Check, AlertTriangle, X, CheckSquare, RefreshCw, FileText, Pencil, Trash2, Eye, RotateCcw } from "lucide-react";
 
 export default function Planejamento2027() {
   const navigate = useNavigate();
@@ -114,6 +114,29 @@ export default function Planejamento2027() {
       loadDemands();
     } catch (e: any) {
       toast.error("Erro ao aprovar demanda: " + e.message);
+    }
+  };
+
+  const handleResetToPending = async (demandId: string) => {
+    try {
+      const { error } = await supabase
+        .from("contratacoes")
+        .update({
+          status_aprovacao: "Pendente de análise",
+          status_planejamento: "Em análise",
+          justificativa_alteracao: null,
+          justificativa_nao_aprovacao: null,
+          updated_at: new Date().toISOString(),
+          updated_by: currentUserId || profile?.id || undefined,
+        })
+        .eq("id", demandId);
+
+      if (error) throw error;
+      toast.success("Demanda revertida para 'Pendente de análise' com sucesso.");
+      await loadDemands();
+    } catch (e: any) {
+      console.error("[Planejamento2027] Erro ao reverter decisão:", e);
+      toast.error("Erro ao reverter decisão: " + (e.message || String(e)));
     }
   };
 
@@ -627,77 +650,85 @@ export default function Planejamento2027() {
                         <TableCell className="text-center">{getStatusBadge(row.status_aprovacao, isManagerOrAdmin || false)}</TableCell>
                         <TableCell className="text-center">
                           {isManagerOrAdmin ? (
-                            row.status_aprovacao === "Pendente de análise" ? (
-                              <div className="flex items-center justify-center gap-1">
+                            <div className="flex items-center justify-center gap-1 flex-wrap">
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                                title="Aprovar Integralmente"
+                                onClick={() => handleApproveIntegral(row.id)}
+                              >
+                                <Check className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                                title="Aprovar Parcialmente"
+                                onClick={() => {
+                                  setSelectedDemand(row);
+                                  setPartialQuantity(row.quantidade_itens || row.quantidade || 1);
+                                  setPartialValorUnit(row.valor_unitario || 0);
+                                  setPartialReason(row.justificativa_alteracao || "");
+                                  setIsPartialOpen(true);
+                                }}
+                              >
+                                <CheckSquare className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+                                title="Editar Demanda"
+                                onClick={() => handleEditDemand(row)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                                title="Não Aprovar"
+                                onClick={() => {
+                                  setSelectedDemand(row);
+                                  setRejectReason(row.justificativa_nao_aprovacao || "");
+                                  setIsRejectOpen(true);
+                                }}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                              {row.status_aprovacao !== "Pendente de análise" && (
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
-                                  className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
-                                  title="Aprovar Integralmente"
-                                  onClick={() => handleApproveIntegral(row.id)}
+                                  className="h-8 w-8 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/30"
+                                  title="Reverter decisão (Voltar para Pendente de Análise)"
+                                  onClick={() => handleResetToPending(row.id)}
                                 >
-                                  <Check className="h-4 w-4" />
+                                  <RotateCcw className="h-4 w-4" />
                                 </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30"
-                                  title="Aprovar Parcialmente"
-                                  onClick={() => {
-                                    setSelectedDemand(row);
-                                    setPartialQuantity(row.quantidade_itens || row.quantidade || 1);
-                                    setPartialValorUnit(row.valor_unitario || 0);
-                                    setPartialReason("");
-                                    setIsPartialOpen(true);
-                                  }}
-                                >
-                                  <CheckSquare className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/30"
-                                  title="Editar Demanda"
-                                  onClick={() => handleEditDemand(row)}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="h-8 w-8 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-                                  title="Não Aprovar"
-                                  onClick={() => {
-                                    setSelectedDemand(row);
-                                    setRejectReason("");
-                                    setIsRejectOpen(true);
-                                  }}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
+                              )}
+                              {(row.status_aprovacao === "Aprovada parcialmente" || row.status_aprovacao === "Não aprovada") && (
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                                  title="Excluir Demanda"
-                                  onClick={() => openDeleteDemand(row)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ) : (
-                              (row.status_aprovacao === "Aprovada parcialmente" || row.status_aprovacao === "Não aprovada") ? (
-                                <Button
-                                  size="sm"
-                                  className="h-8 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                                  className="h-8 w-8 text-sky-600 hover:text-sky-700 hover:bg-sky-50 dark:hover:bg-sky-950/30"
+                                  title="Ver Motivo da Análise"
                                   onClick={() => handleViewReason(row)}
                                 >
-                                  <Eye className="h-3 w-3 mr-1" /> Ver Motivo
+                                  <Eye className="h-4 w-4" />
                                 </Button>
-                              ) : (
-                                <span className="text-[11px] text-emerald-600 font-semibold">Aprovada</span>
-                              )
-                            )
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                                title="Excluir Demanda"
+                                onClick={() => openDeleteDemand(row)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           ) : (
                             row.status_aprovacao === "Pendente de análise" ? (
                               <div className="flex items-center justify-center gap-1.5">
