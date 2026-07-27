@@ -81,8 +81,9 @@ export function ForcePasswordChange({ onSuccess, userId, isSetorRequisitante }: 
         
         <div className="z-10 w-full max-w-xl p-10 bg-white dark:bg-slate-900 border shadow-2xl rounded-3xl animate-in fade-in zoom-in duration-500 relative">
           <div className="flex flex-col items-center text-center space-y-5 mb-10">
-            <div className="h-20 w-20 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-2">
-              <Info className="h-10 w-10" />
+            <img src="/logo-mppi.png" alt="Logo MPPI" className="h-16 w-auto mb-2 object-contain" />
+            <div className="h-16 w-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-1">
+              <Info className="h-8 w-8" />
             </div>
             <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">Bem-vindo(a) ao PCA MPPI 2027!</h2>
             <p className="text-slate-500 text-lg leading-relaxed">
