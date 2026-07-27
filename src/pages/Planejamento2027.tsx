@@ -132,11 +132,10 @@ export default function Planejamento2027() {
           quantidade: partialQuantity,
           quantidade_itens: partialQuantity,
           valor_unitario: partialValorUnit,
-          valor_total: valTotal,
           valor_estimado: valTotal,
           justificativa_alteracao: partialReason,
           updated_at: new Date().toISOString(),
-          updated_by: currentUserId
+          updated_by: currentUserId || profile?.id || undefined,
         })
         .eq("id", selectedDemand.id);
 
@@ -188,8 +187,11 @@ export default function Planejamento2027() {
     setIsEditOpen(true);
   };
 
+  const [editSaving, setEditSaving] = useState(false);
+
   const handleEditSubmit = async () => {
     if (!selectedDemand) return;
+    setEditSaving(true);
     try {
       const valTotal = editQuantity * editValorUnit;
       const { error } = await supabase
@@ -198,11 +200,10 @@ export default function Planejamento2027() {
           quantidade: editQuantity,
           quantidade_itens: editQuantity,
           valor_unitario: editValorUnit,
-          valor_total: valTotal,
           valor_estimado: valTotal,
           justificativa: editJustificativa,
           updated_at: new Date().toISOString(),
-          updated_by: currentUserId
+          updated_by: currentUserId || profile?.id || undefined,
         })
         .eq("id", selectedDemand.id);
 
@@ -210,9 +211,12 @@ export default function Planejamento2027() {
       toast.success("Demanda atualizada com sucesso!");
       setIsEditOpen(false);
       setSelectedDemand(null);
-      loadDemands();
+      await loadDemands();
     } catch (e: any) {
-      toast.error("Erro ao atualizar demanda: " + e.message);
+      console.error("[Planejamento2027] Erro ao atualizar demanda:", e);
+      toast.error("Erro ao atualizar demanda: " + (e.message || String(e)));
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -835,8 +839,10 @@ export default function Planejamento2027() {
               </div>
             </div>
             <DialogFooter className="px-6 py-4 bg-slate-50 border-t">
-              <Button variant="outline" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
-              <Button onClick={handleEditSubmit} className="bg-primary text-primary-foreground">Salvar Alterações</Button>
+              <Button variant="outline" onClick={() => setIsEditOpen(false)} disabled={editSaving}>Cancelar</Button>
+              <Button onClick={handleEditSubmit} disabled={editSaving} className="bg-primary text-primary-foreground">
+                {editSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Salvando...</> : "Salvar Alterações"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
