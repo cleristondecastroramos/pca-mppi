@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserProfile, useUserRoles } from "@/lib/auth";
 import { toast } from "sonner";
@@ -220,19 +221,35 @@ export default function Planejamento2027() {
     }
   };
 
-  const handleDeleteDemand = async (row: any) => {
-    if (window.confirm("Tem certeza que deseja excluir esta demanda? Esta ação não pode ser desfeita.")) {
-      try {
-        const { error } = await supabase
-          .from("contratacoes")
-          .delete()
-          .eq("id", row.id);
-        if (error) throw error;
-        toast.success("Demanda excluída com sucesso.");
-        loadDemands();
-      } catch (e: any) {
-        toast.error("Erro ao excluir demanda: " + e.message);
-      }
+  // Delete demand dialog state
+  const [deleteTargetDemand, setDeleteTargetDemand] = useState<any | null>(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [deletingDemand, setDeletingDemand] = useState(false);
+
+  function openDeleteDemand(row: any) {
+    setDeleteTargetDemand(row);
+    setIsDeleteOpen(true);
+  }
+
+  const confirmDeleteDemand = async () => {
+    if (!deleteTargetDemand) return;
+    setDeletingDemand(true);
+    try {
+      const { error } = await supabase
+        .from("contratacoes")
+        .delete()
+        .eq("id", deleteTargetDemand.id);
+
+      if (error) throw error;
+      toast.success("Demanda excluída com sucesso.");
+      setIsDeleteOpen(false);
+      setDeleteTargetDemand(null);
+      await loadDemands();
+    } catch (e: any) {
+      console.error("[Planejamento2027] Erro ao excluir demanda:", e);
+      toast.error("Erro ao excluir demanda: " + (e.message || String(e)));
+    } finally {
+      setDeletingDemand(false);
     }
   };
 
@@ -600,7 +617,7 @@ export default function Planejamento2027() {
                         <TableCell className="text-center">
                           {isManagerOrAdmin ? (
                             row.status_aprovacao === "Pendente de análise" ? (
-                              <div className="flex items-center justify-center gap-1.5">
+                              <div className="flex items-center justify-center gap-1">
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
@@ -628,6 +645,15 @@ export default function Planejamento2027() {
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
+                                  className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+                                  title="Editar Demanda"
+                                  onClick={() => handleEditDemand(row)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
                                   className="h-8 w-8 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30"
                                   title="Não Aprovar"
                                   onClick={() => {
@@ -637,6 +663,15 @@ export default function Planejamento2027() {
                                   }}
                                 >
                                   <X className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                                  title="Excluir Demanda"
+                                  onClick={() => openDeleteDemand(row)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
                             ) : (
@@ -659,7 +694,7 @@ export default function Planejamento2027() {
                                   size="icon"
                                   className="h-8 w-8 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30"
                                   title="Excluir Demanda"
-                                  onClick={() => handleDeleteDemand(row)}
+                                  onClick={() => openDeleteDemand(row)}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -856,16 +891,38 @@ export default function Planejamento2027() {
                 Justificativa para a decisão tomada pela Administração.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 px-6 py-4">
-              <div className="text-sm font-medium bg-muted/30 p-4 rounded-lg border">
+            <div className="p-6">
+              <div className="p-3 bg-muted/40 rounded-lg text-sm border text-foreground">
                 {selectedDemand?.justificativa_alteracao || selectedDemand?.justificativa_nao_aprovacao || "Nenhum motivo registrado."}
               </div>
             </div>
-            <DialogFooter className="px-6 py-4 bg-slate-50 border-t">
-              <Button variant="outline" onClick={() => setIsReasonOpen(false)}>Fechar</Button>
+            <DialogFooter className="px-6 py-3 bg-slate-50 border-t">
+              <Button onClick={() => setIsReasonOpen(false)}>Fechar</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Modal: Delete Demand Confirmation */}
+        <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir Demanda</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir esta demanda? Esta ação é permanente e removerá o item do planejamento 2027.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deletingDemand}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={confirmDeleteDemand}
+                disabled={deletingDemand}
+              >
+                {deletingDemand ? "Excluindo..." : "Confirmar exclusão"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
       </div>
     </Layout>
