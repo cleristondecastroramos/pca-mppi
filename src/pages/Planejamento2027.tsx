@@ -235,12 +235,17 @@ export default function Planejamento2027() {
     if (!deleteTargetDemand) return;
     setDeletingDemand(true);
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("contratacoes")
         .delete()
-        .eq("id", deleteTargetDemand.id);
+        .eq("id", deleteTargetDemand.id)
+        .select();
 
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("Não foi possível excluir a demanda. Verifique se você possui permissão para excluí-la.");
+      }
+
       toast.success("Demanda excluída com sucesso.");
       setIsDeleteOpen(false);
       setDeleteTargetDemand(null);
