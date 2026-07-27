@@ -210,13 +210,33 @@ const GerenciamentoUsuarios = () => {
 
   const [unidades, setUnidades] = useState<any[]>([]);
 
+  async function loadUnidades() {
+    try {
+      const { data, error } = await supabase
+        .from("unidades_requisitantes")
+        .select("id, nome, ativo")
+        .order("nome", { ascending: true });
+
+      if (error) {
+        console.error("[GerenciamentoUsuarios] Erro ao carregar unidades:", error);
+        return;
+      }
+
+      if (data) {
+        // Filtra ativas (ou mantém se ativo for undefined/null) e garante ordenação
+        const activeUnidades = data.filter((u) => u.ativo !== false);
+        setUnidades(activeUnidades);
+      }
+    } catch (err) {
+      console.error("[GerenciamentoUsuarios] Exceção ao carregar unidades:", err);
+    }
+  }
+
   useEffect(() => {
     loadUsers();
+    loadUnidades();
     supabase.auth.getSession().then(({ data }) => {
       setCurrentUserId(data.session?.user?.id || null);
-    });
-    supabase.from("unidades_requisitantes").select("id, nome").eq("ativo", true).then(({ data }) => {
-      if (data) setUnidades(data);
     });
   }, [page, pageSize]);
 
@@ -233,6 +253,7 @@ const GerenciamentoUsuarios = () => {
   }, [usuarios, search, roleFilter, sectorFilter]);
 
   function openEdit(u: UserWithRoles) {
+    loadUnidades();
     setEditTarget(u);
     setEditNome(u.nome_completo || "");
     setEditSetor(u.setor || "");
@@ -609,7 +630,7 @@ const GerenciamentoUsuarios = () => {
                 </DialogContent>
               </Dialog>
 
-              <Button onClick={() => setShowCreate(true)}>Cadastrar usuário</Button>
+              <Button onClick={() => { loadUnidades(); setShowCreate(true); }}>Cadastrar usuário</Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
