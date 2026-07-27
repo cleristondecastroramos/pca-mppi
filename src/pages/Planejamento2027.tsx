@@ -462,8 +462,16 @@ export default function Planejamento2027() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={handleExportPdf} title="Exportar PDF" disabled={loading || filteredDemands.length === 0}>
-              <FileText className="h-4 w-4" />
+            <Button 
+              variant="outline" 
+              onClick={handleExportPdf} 
+              disabled={loading || filteredDemands.length === 0}
+              title="Exportar Relatório em PDF"
+              className="border-red-200 bg-red-50/60 dark:bg-red-950/30 text-red-700 dark:text-red-300 hover:bg-red-100 hover:text-red-800 dark:hover:bg-red-900/50 font-bold shadow-sm flex items-center gap-2 px-3.5 transition-all"
+            >
+              <FileText className="h-4.5 w-4.5 text-red-600 dark:text-red-400 shrink-0" />
+              <span className="font-extrabold text-[11px] tracking-wider uppercase text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/60 px-1.5 py-0.5 rounded border border-red-200/80 dark:border-red-800/80">PDF</span>
+              <span className="text-sm font-bold">Exportar PDF</span>
             </Button>
             <Button variant="outline" size="icon" onClick={loadDemands} title="Recarregar" disabled={loading}>
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
