@@ -14,29 +14,16 @@ export async function getSession() {
   return data.session;
 }
 
-/**
- * Validates the session server-side using getUser().
- * Returns the session only if the token is still valid on the server.
- */
-async function getValidatedSession(): Promise<Session | null> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return null;
-
-  // Confirma com o servidor que o token é válido
-  const { error } = await supabase.auth.getUser();
-  if (error) {
-    await supabase.auth.signOut();
-    return null;
-  }
-
-  return session;
-}
-
 export function useAuthSession() {
   const queryClient = useQueryClient();
 
-  // Listen for auth state changes and update the query cache reactively
   useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        queryClient.setQueryData(["auth", "session"], data.session);
+      }
+    });
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         queryClient.setQueryData(["auth", "session"], session);
@@ -47,10 +34,11 @@ export function useAuthSession() {
 
   return useQuery({
     queryKey: ["auth", "session"],
-    queryFn: () => getValidatedSession(),
-    staleTime: 30_000, // revalidate every 30s
-    refetchOnMount: "always",
-    refetchOnReconnect: true,
+    queryFn: async () => {
+      const { data } = await supabase.auth.getSession();
+      return data.session;
+    },
+    staleTime: 60_000,
     retry: false,
   });
 }
@@ -78,15 +66,28 @@ export function useUserRoles(userId?: string) {
 
 export async function fetchUserProfile(userId?: string) {
   try {
-    const id = userId ?? (await getSession())?.user?.id;
+    let id = userId;
+    if (!id) {
+      const { data } = await supabase.auth.getSession();
+      id = data.session?.user?.id;
+    }
     if (!id) return null;
+
     const { data, error } = await supabase
       .from("profiles")
       .select("id, nome_completo, setor, setores_adicionais, cargo, email, exercicios_permitidos, must_change_password, unidade_requisitante_id, unidades_requisitantes(nome)")
       .eq("id", id)
-      .single();
-    if (error) return null;
-    return data;
+      .maybeSingle();
+
+    if (!error && data) return data;
+
+    const { data: fallbackData } = await supabase
+      .from("profiles")
+      .select("id, nome_completo, setor, setores_adicionais, cargo, email, exercicios_permitidos, must_change_password, unidade_requisitante_id")
+      .eq("id", id)
+      .maybeSingle();
+
+    return fallbackData;
   } catch {
     return null;
   }
@@ -96,8 +97,6 @@ export function useUserProfile(userId?: string) {
   return useQuery({
     queryKey: ["auth", "profile", userId ?? "anonymous"],
     queryFn: () => fetchUserProfile(userId),
-    // staleTime baixo para garantir que a flag must_change_password
-    // seja sempre lida do banco, especialmente no primeiro acesso.
     staleTime: 0,
     refetchOnMount: "always",
     enabled: !!userId,

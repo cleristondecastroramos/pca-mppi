@@ -22,8 +22,8 @@ export default function ProtectedRoute({ children, allowed, redirectTo = "/auth"
   // Ainda carregando sessão
   if (sessionLoading) {
     return (
-      <div className="flex items-center justify-center h-full py-10 text-muted-foreground">
-        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-slate-500 dark:text-slate-400">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
         Carregando...
       </div>
     );
@@ -37,8 +37,8 @@ export default function ProtectedRoute({ children, allowed, redirectTo = "/auth"
   // Sessão existe, aguardando roles e perfil
   if (rolesLoading || profileLoading) {
     return (
-      <div className="flex items-center justify-center h-full py-10 text-muted-foreground">
-        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-slate-500 dark:text-slate-400">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
         Carregando permissões...
       </div>
     );
