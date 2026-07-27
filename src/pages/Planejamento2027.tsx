@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserProfile, useUserRoles } from "@/lib/auth";
 import { toast } from "sonner";
@@ -623,6 +624,26 @@ export default function Planejamento2027() {
                         {isManagerOrAdmin && <TableCell className="font-semibold">{row.unidade_demandante}</TableCell>}
                         <TableCell className="max-w-xs">
                           <div className="font-medium text-slate-900 dark:text-white line-clamp-2">{row.descricao}</div>
+                          {row.justificativa && (
+                            <TooltipProvider>
+                              <Tooltip delayDuration={150}>
+                                <TooltipTrigger asChild>
+                                  <div className="mt-1.5 inline-flex items-center gap-1.5 text-[11px] text-amber-900 dark:text-amber-300 bg-amber-50/90 dark:bg-amber-950/50 border border-amber-200/80 dark:border-amber-800/60 px-2 py-0.5 rounded-md cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/70 transition-colors max-w-full">
+                                    <FileText className="h-3 w-3 text-amber-600 dark:text-amber-400 shrink-0" />
+                                    <span className="font-medium truncate max-w-[220px]">Justificativa: {row.justificativa}</span>
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" align="start" className="max-w-md p-3.5 bg-slate-900 text-slate-100 border border-slate-700 shadow-2xl rounded-xl z-[999]">
+                                  <p className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                                    <FileText className="h-3.5 w-3.5 text-amber-400" /> Justificativa do Setor Requisitante
+                                  </p>
+                                  <p className="text-xs leading-relaxed text-slate-200 whitespace-pre-wrap font-normal">
+                                    {row.justificativa}
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
                           {row.status_aprovacao === "Não aprovada" && row.justificativa_nao_aprovacao && (
                             <div className="text-xs text-rose-500 mt-1.5 p-2 bg-rose-500/5 border border-rose-500/10 rounded">
                               <span className="font-bold">Motivo Rejeição:</span> {row.justificativa_nao_aprovacao}
