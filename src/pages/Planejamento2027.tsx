@@ -782,7 +782,7 @@ export default function Planejamento2027() {
 
         {/* Modal: Edit Demand */}
         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-          <DialogContent className="max-w-md p-0 overflow-hidden">
+          <DialogContent className="max-w-lg p-0 overflow-hidden">
             <DialogHeader className="bg-primary px-6 py-4">
               <DialogTitle className="flex items-center gap-2 text-white">
                 <Pencil className="h-5 w-5" /> Editar Demanda
@@ -791,7 +791,7 @@ export default function Planejamento2027() {
                 Altere os quantitativos e valores da demanda pendente.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 px-6 py-3">
+            <div className="space-y-4 px-6 py-4">
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Objeto</Label>
                 <div className="text-sm font-semibold p-2.5 bg-muted/30 rounded border line-clamp-2">{selectedDemand?.descricao}</div>
@@ -826,7 +826,8 @@ export default function Planejamento2027() {
                   placeholder="Justificativa da demanda..."
                   value={editJustificativa}
                   onChange={(e) => setEditJustificativa(e.target.value)}
-                  rows={3}
+                  rows={5}
+                  className="min-h-[140px] resize-y"
                 />
               </div>
               <div className="text-right font-bold text-primary pt-1">
