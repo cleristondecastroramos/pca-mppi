@@ -14,7 +14,7 @@
 import type { PerfilAcesso } from "@/lib/auth";
 
 /** Liga/desliga a trava manualmente. Definir como `false` libera o acesso. */
-export const PCA_2027_LOCK_ENABLED = true;
+export const PCA_2027_LOCK_ENABLED = false;
 
 /** Data/hora (horário local) em que o módulo passa a ficar disponível. */
 export const PCA_2027_UNLOCK_AT = new Date("2026-07-27T00:00:00");
