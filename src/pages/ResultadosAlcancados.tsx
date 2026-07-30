@@ -27,11 +27,20 @@ const ResultadosAlcancados = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
+        const activeExercise = parseInt(localStorage.getItem("pca_exercicio") || "2026", 10);
+        let query = supabase
           .from("contratacoes")
           .select("id, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, classe, etapa_processo, valor_executado, valor_contratado")
           .neq("srp", true)
           .order("created_at", { ascending: false });
+
+        if (activeExercise === 2026) {
+          query = query.or("exercicio.eq.2026,exercicio.is.null");
+        } else {
+          query = query.eq("exercicio", activeExercise);
+        }
+
+        const { data, error } = await query;
         if (error) throw error;
         if (mounted) setRows((data as any) || []);
       } catch (e: any) {

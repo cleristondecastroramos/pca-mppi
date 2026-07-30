@@ -165,6 +165,13 @@ const VisaoGeral = () => {
           ].join(","),
            { count: "exact" }
         );
+
+      if (activeExercise === 2026) {
+        query = query.or("exercicio.eq.2026,exercicio.is.null");
+      } else {
+        query = query.eq("exercicio", activeExercise);
+      }
+
       // Setor requisitante: filter by their setor and additional sectors
       if (isSetorRequisitante) {
         const allowedSectors = [profile?.setor, ...(profile?.setores_adicionais || [])].filter(Boolean) as string[];

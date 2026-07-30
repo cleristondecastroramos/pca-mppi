@@ -98,10 +98,11 @@ export default function OrcamentoPlanejado() {
   const fetchOrcamentos = async () => {
     setLoading(true);
     try {
+      const activeExercise = parseInt(localStorage.getItem("pca_exercicio") || "2026", 10);
       const { data, error } = await (supabase as any)
         .from("orcamento_planejado")
         .select("*")
-        .eq("ano", currentYear);
+        .eq("ano", activeExercise);
         
       if (error) throw error;
 
@@ -133,11 +134,19 @@ export default function OrcamentoPlanejado() {
       setEditValues(localEdits);
 
       // Fetch contratacoes for the "Saldo Disponível" column
-      const { data: contratacoesData, error: contratacoesError } = await supabase
+      let contratacoesQuery = supabase
         .from("contratacoes")
         .select("setor_requisitante, valor_estimado, valor_executado")
         .neq("etapa_processo", "Cancelada")
         .neq("srp", true);
+
+      if (activeExercise === 2026) {
+        contratacoesQuery = contratacoesQuery.or("exercicio.eq.2026,exercicio.is.null");
+      } else {
+        contratacoesQuery = contratacoesQuery.eq("exercicio", activeExercise);
+      }
+
+      const { data: contratacoesData, error: contratacoesError } = await contratacoesQuery;
 
       if (contratacoesError) throw contratacoesError;
 

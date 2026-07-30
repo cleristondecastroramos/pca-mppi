@@ -88,10 +88,17 @@ const PrioridadesAtencao = () => {
     if (roles === undefined || (isSetorRequisitante && !userSetor)) return;
     const load = async () => {
       try {
+        const activeExercise = parseInt(localStorage.getItem("pca_exercicio") || "2026", 10);
         let query = supabase
           .from("contratacoes")
           .select("id, codigo, descricao, setor_requisitante, etapa_processo, sobrestado, data_prevista_contratacao, tipo_contratacao, modalidade")
           .order("data_prevista_contratacao", { ascending: true });
+
+        if (activeExercise === 2026) {
+          query = query.or("exercicio.eq.2026,exercicio.is.null");
+        } else {
+          query = query.eq("exercicio", activeExercise);
+        }
 
         if (isSetorRequisitante && userSetor) {
           const allowedSectors = [userSetor, ...(userProfile?.setores_adicionais || [])];

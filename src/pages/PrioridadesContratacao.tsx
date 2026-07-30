@@ -33,10 +33,17 @@ const PrioridadesContratacao = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
+        const activeExercise = parseInt(localStorage.getItem("pca_exercicio") || "2026", 10);
         let query = supabase
           .from("contratacoes")
           .select("id, descricao, setor_requisitante, grau_prioridade, valor_estimado, etapa_processo, sobrestado")
           .order("created_at", { ascending: false });
+
+        if (activeExercise === 2026) {
+          query = query.or("exercicio.eq.2026,exercicio.is.null");
+        } else {
+          query = query.eq("exercicio", activeExercise);
+        }
 
         if (isSetorRequisitante && userSetor) {
           const allowedSectors = [userSetor, ...(userProfile?.setores_adicionais || [])];

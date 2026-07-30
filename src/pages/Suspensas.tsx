@@ -79,13 +79,22 @@ const Suspensas = () => {
 
   const fetchSuspensas = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const activeExercise = parseInt(localStorage.getItem("pca_exercicio") || "2026", 10);
+    let query = supabase
       .from('contratacoes')
       .select('*, parent_id, parent:parent_id(codigo)')
       .eq('sobrestado', true)
       .neq('srp', true)
       .order('parent_id')
       .order('created_at', { ascending: false });
+
+    if (activeExercise === 2026) {
+      query = query.or("exercicio.eq.2026,exercicio.is.null");
+    } else {
+      query = query.eq("exercicio", activeExercise);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       toast.error("Erro ao carregar demandas suspensas.");

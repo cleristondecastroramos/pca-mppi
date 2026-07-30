@@ -15,9 +15,11 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Badge } from "@/components/ui/badge";
 import { TipoContratacaoFilter } from "@/components/TipoContratacaoFilter";
 
+import { useExercise } from "@/hooks/useExercise";
 import { useAuthSession, useUserRoles, useUserProfile, hasAnyRole } from "@/lib/auth";
 
 const Relatorios = () => {
+  const { exercise } = useExercise();
   const { data: session } = useAuthSession();
   const uid = session?.user?.id;
   const { data: roles } = useUserRoles(uid);
@@ -46,13 +48,19 @@ const Relatorios = () => {
 
   const formatId = (id: any, codigo?: any) => {
     if (!codigo) return String(id).slice(-4).toUpperCase();
-    return String(codigo).toUpperCase().replace(/^PCA-/, "").replace(/-2026$/, "");
+    return String(codigo).toUpperCase().replace(/^PCA-/, "").replace(/-2026$/, "").replace(/-2027$/, "");
   };
   const fetchAllContratacoes = async () => {
     let query = supabase
       .from("contratacoes")
       .select("id, codigo, descricao, unidade_orcamentaria, setor_requisitante, tipo_contratacao, tipo_recurso, classe, grau_prioridade, normativo, modalidade, srp, numero_sei_contratacao, etapa_processo, sobrestado, tipo_sobrestamento, valor_ativo, quantidade_sobrestada, valor_sobrestado, quantidade_ativa, created_at, data_finalizacao_licitacao, valor_estimado, valor_contratado, data_prevista_contratacao, quantidade_itens, valor_unitario, data_conclusao, valor_executado, numero_contrato, updated_at")
       .neq("srp", true);
+
+    if (exercise === 2026) {
+      query = query.or("exercicio.eq.2026,exercicio.is.null");
+    } else {
+      query = query.eq("exercicio", exercise);
+    }
 
     if (isSetorRequisitante) {
       const allowedSectors = [userProfile?.setor, ...(userProfile?.setores_adicionais || [])].filter(Boolean) as string[];
@@ -251,8 +259,8 @@ const Relatorios = () => {
     }
   > = {
     pca_2_0: {
-      label: "Documento — PCA 2026 (Versão 2.0)",
-      description: "Versão anterior do documento oficial do PCA 2026, preservada para fins de histórico, rastreabilidade e comparação com a versão mais recente do plano. Mantém o registro institucional do planejamento originalmente publicado, permitindo verificar a evolução das demandas ao longo da execução anual.",
+      label: `Documento — PCA ${exercise} (Versão 2.0)`,
+      description: `Versão anterior do documento oficial do PCA ${exercise}, preservada para fins de histórico, rastreabilidade e comparação com a versão mais recente do plano. Mantém o registro institucional do planejamento originalmente publicado, permitindo verificar a evolução das demandas ao longo da execução anual.`,
       icon: FileText,
       columns: ["Cod. PCA", "Objeto", "UO", "Qtd", "V. Unit", "Valor Total", "Tipo", "Mod.", "Prior.", "Início", "Concl."],
       csvColumns: ["Cod. PCA", "Descrição", "Unidade Requisitante", "UO", "Quantidade", "Valor Unitário", "Valor Planejado", "Tipo de Contratação", "Modalidade", "Grau de Prioridade", "Data Prevista Inicio", "Data Prevista Conclusão"],
@@ -288,11 +296,11 @@ const Relatorios = () => {
           formatDateStr(r.data_prevista_contratacao),
         ];
       },
-      title: (n) => `Plano de Contratações Anual — PCA 2026 (Lista de ${n} Itens)`,
+      title: (n) => `Plano de Contratações Anual — PCA ${exercise} (Lista de ${n} Itens)`,
     },
     pca_3_0: {
-      label: "Documento — PCA 2026 (Versão 3.0)",
-      description: "Versão consolidada e atualizada do Plano de Contratações Anual do MPPI para 2026, refletindo as demandas vigentes no sistema, com quantidades, valores, prazos e status revisados conforme a execução real do exercício. Este documento reúne a visão formal do planejamento institucional e serve como referência principal para publicação, acompanhamento e consulta oficial.",
+      label: `Documento — PCA ${exercise} (Versão 3.0)`,
+      description: `Versão consolidada e atualizada do Plano de Contratações Anual do MPPI para ${exercise}, refletindo as demandas vigentes no sistema, com quantidades, valores, prazos e status revisados conforme a execução real do exercício. Este documento reúne a visão formal do planejamento institucional e serve como referência principal para publicação, acompanhamento e consulta oficial.`,
       icon: FileText,
       columns: ["Cod. PCA", "Objeto", "UO", "Qtd", "V. Unit", "Valor Total", "Tipo", "Mod.", "Prior.", "Início", "Concl."],
       csvColumns: ["Cod. PCA", "Descrição", "Unidade Requisitante", "UO", "Quantidade", "Valor Unitário", "Valor Planejado", "Tipo de Contratação", "Modalidade", "Grau de Prioridade", "Data Prevista Inicio", "Data Prevista Conclusão"],
@@ -328,7 +336,7 @@ const Relatorios = () => {
           formatDateStr(r.data_prevista_contratacao),
         ];
       },
-      title: (n) => `Plano de Contratações Anual — PCA 2026 (Lista de ${n} Itens)`,
+      title: (n) => `Plano de Contratações Anual — PCA ${exercise} (Lista de ${n} Itens)`,
     },
     gerencial_completo: {
       label: "Gerencial — Base de Dados Completa",
@@ -517,7 +525,7 @@ const Relatorios = () => {
       mounted = false;
       sub.subscription.unsubscribe();
     };
-  }, [roles, userSetor, userProfile?.setores_adicionais]);
+  }, [roles, userSetor, userProfile?.setores_adicionais, exercise]);
 
   // removido filtro legacy; filtros atuais aplicados por applyFilters
 
@@ -953,8 +961,11 @@ const Relatorios = () => {
               .text-center { text-align: center; }
               
                table { width: 100%; border-collapse: collapse; margin-top: 4mm; font-size: 9pt; }
-               th { border: 1px solid #000; padding: 8px; text-align: center; vertical-align: middle; background: #f8fafc; font-weight: 700; }
-               td { border: 1px solid #000; padding: 8px; }
+               thead { display: table-header-group; }
+               tfoot { display: table-footer-group; }
+               tr { break-inside: avoid !important; page-break-inside: avoid !important; }
+               th { border: 1px solid #000; padding: 8px; text-align: center; vertical-align: middle; background: #f8fafc; font-weight: 700; break-inside: avoid !important; page-break-inside: avoid !important; }
+               td { border: 1px solid #000; padding: 8px; break-inside: avoid !important; page-break-inside: avoid !important; }
                .compact-table th, .compact-table td { padding: 4px 6px; }
               
               .report-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 0 !important; border: none !important; }
@@ -1803,9 +1814,9 @@ const Relatorios = () => {
                     : ["Cod. PCA", "Setor", "Prioridade", "Status", "Situação", "Conformidade", "Demandas Ativas", "Demandas"].includes(col) || col.includes("Data")
                       ? "text-center"
                       : "text-left";
-              return `<td class="${align} ${widthClass(col)}">${val}</td>`;
+              return `<td class="${align} ${widthClass(col)}" style="page-break-inside: avoid !important; break-inside: avoid !important;">${val}</td>`;
             });
-            return `<tr>${formatted.join("")}</tr>`;
+            return `<tr style="page-break-inside: avoid !important; break-inside: avoid !important; display: table-row !important;">${formatted.join("")}</tr>`;
           }).join("");
         };
 
@@ -1817,102 +1828,41 @@ const Relatorios = () => {
           
           const cells = def.columns.map((col, i) => {
             if (col === "Valor Planejado") {
-              return `<td class="text-right" style="font-weight: bold; background: #f3f4f6;">${formatCurrency(gEst)}</td>`;
+              return `<td class="text-right" style="font-weight: bold; background: #f3f4f6; page-break-inside: avoid !important; break-inside: avoid !important;">${formatCurrency(gEst)}</td>`;
             }
             if (col === "Valor Executado") {
-              return `<td class="text-right" style="font-weight: bold; background: #f3f4f6;">${formatCurrency(gExec)}</td>`;
+              return `<td class="text-right" style="font-weight: bold; background: #f3f4f6; page-break-inside: avoid !important; break-inside: avoid !important;">${formatCurrency(gExec)}</td>`;
             }
             if (col === "Valor Contratado") {
               const totalContratado = rowsList.reduce((acc, r) => acc + (Number(r.valor_contratado) || 0), 0);
-              return `<td class="text-right" style="font-weight: bold; background: #f3f4f6;">${formatCurrency(totalContratado)}</td>`;
+              return `<td class="text-right" style="font-weight: bold; background: #f3f4f6; page-break-inside: avoid !important; break-inside: avoid !important;">${formatCurrency(totalContratado)}</td>`;
             }
             if (col === "Saldo Restante") {
                const gSaldo = rowsList.reduce((acc, r) => acc + (Number(r.saldo) || 0), 0);
-              return `<td class="text-right" style="font-weight: bold; background: #f3f4f6;">${formatCurrency(gSaldo)}</td>`;
+              return `<td class="text-right" style="font-weight: bold; background: #f3f4f6; page-break-inside: avoid !important; break-inside: avoid !important;">${formatCurrency(gSaldo)}</td>`;
             }
             if (col === "Valor Retido") {
               const totalSobr = rowsList.reduce((acc, r) => acc + (Number(r.valor_estimado) || 0), 0);
-              return `<td class="text-right" style="font-weight: bold; background: #f3f4f6;">${formatCurrency(totalSobr)}</td>`;
+              return `<td class="text-right" style="font-weight: bold; background: #f3f4f6; page-break-inside: avoid !important; break-inside: avoid !important;">${formatCurrency(totalSobr)}</td>`;
             }
             const firstValorIdx = def.columns.findIndex(c => c.toLowerCase().includes("valor"));
             if (i === firstValorIdx - 1 && firstValorIdx > 0) {
-              return `<td class="text-right" style="font-weight: bold; background: #f3f4f6;">TOTAL:</td>`;
+              return `<td class="text-right" style="font-weight: bold; background: #f3f4f6; page-break-inside: avoid !important; break-inside: avoid !important;">TOTAL:</td>`;
             }
-            return `<td style="background: #f3f4f6;"></td>`;
+            return `<td style="background: #f3f4f6; page-break-inside: avoid !important; break-inside: avoid !important;"></td>`;
           }).join("");
-          return `<tr style="border-top: 2px solid #374151;">${cells}</tr>`;
+          return `<tr style="border-top: 2px solid #374151; page-break-inside: avoid !important; break-inside: avoid !important; display: table-row !important;">${cells}</tr>`;
         };
 
         const totalEstimado = sourceRows.reduce((acc, r) => acc + (Number(r.valor_ativo || r.valor_estimado || r.valor_planejado) || 0), 0);
         const totalExecutado = sourceRows.reduce((acc, r) => acc + (Number(r.valor_executado || r.valor_contratado || 0)), 0);
         const formatCurrency = (v: any) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v) || 0);
 
-        let reportContentHtml = "";
-        const isGrouped = false; // Removido isGrouped pois consolidamos em base_dados
         const isLandscape = ["gerencial_completo", "sobrestadas", "orcamento_setorial"].includes(rType);
         const primary = "#D9415D";
-        
-        if (isGrouped) {
-          const groups: Record<string, any[]> = {};
-          sourceRows.forEach(r => {
-            const label = statusLabel(r);
-            const key = rType === "por_status" ? label.charAt(0).toUpperCase() + label.slice(1) : (r.setor_requisitante || "Não Informado");
-            if (!groups[key]) groups[key] = [];
-            groups[key].push(r);
-          });
-          
-          const sortedGroupKeys = Object.keys(groups).sort((a, b) => a.localeCompare(b, "pt-BR"));
-          reportContentHtml = sortedGroupKeys.map(key => `
-            <div class="group-section" style="margin-bottom: 40px;">
-              <h3 style="background: ${primary}08; color: ${primary}; border-left: 4px solid ${primary}; padding: 10px 15px; margin-bottom: 15px; text-transform: uppercase; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; border-radius: 0 4px 4px 0;">
-                ${rType === "por_status" ? "Status" : "Setor"}: ${key.toUpperCase()} (${groups[key].length} itens)
-              </h3>
-              <table>
-                <thead><tr>${headersHtml}</tr></thead>
-                <tbody>
-                  ${generateTableRowsHtml(groups[key])}
-                  ${generateFooterRowHtml(groups[key])}
-                </tbody>
-              </table>
-            </div>
-          `).join("");
-          
-          // Adicionar resumo geral ao final
-          reportContentHtml += `
-              <div style="margin-top: 10mm; padding: 15px; border: 2px solid ${primary}; background: #fef2f2; border-radius: 8px; break-inside: avoid;">
-                <div style="font-size: 14px; font-weight: 700; color: ${primary}; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Resumo Geral do Relatório</div>
-                <p style="font-size: 10px; color: #6b7280; margin-bottom: 10px;">* Valores financeiros consideram apenas a parte ativa das demandas (exclui suspensões).</p>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
-                 <div>
-                   <div style="font-size: 11px; color: #6b7280; font-weight: 600;">TOTAL DE ITENS</div>
-                   <div style="font-size: 20px; font-weight: 700; color: #111;">${sourceRows.length}</div>
-                 </div>
-                 <div>
-                   <div style="font-size: 11px; color: #6b7280; font-weight: 600;">VALOR ATIVO TOTAL</div>
-                   <div style="font-size: 20px; font-weight: 700; color: #111;">${formatCurrency(totalEstimado)}</div>
-                 </div>
-                 <div>
-                   <div style="font-size: 11px; color: #6b7280; font-weight: 600;">VALOR EXECUTADO TOTAL</div>
-                   <div style="font-size: 20px; font-weight: 700; color: #111;">${formatCurrency(totalExecutado)}</div>
-                 </div>
-               </div>
-             </div>
-          `;
-        } else {
-          reportContentHtml = `
-            <table>
-              <thead><tr>${headersHtml}</tr></thead>
-              <tbody>
-                ${generateTableRowsHtml(sourceRows)}
-                ${generateFooterRowHtml(sourceRows)}
-              </tbody>
-            </table>
-          `;
-        }
-
         const today = new Date().toLocaleString('pt-BR');
         const title = REPORT_TYPES[rType].title(sourceRows.length);
-        const brand = "MPPI | PCA 2026";
+        const brand = `MPPI | PCA ${exercise}`;
         const activeFilters = Object.entries(filtros).filter(([_, v]) => v && v !== "__all__");
         const labelMap: Record<string, string> = {
           unidade_orcamentaria: "UO",
@@ -1928,126 +1878,295 @@ const Relatorios = () => {
         };
         const filterHtml =
           activeFilters.length > 0
-            ? `<div class="filters">
-                <div class="filters-title">Filtros aplicados</div>
-                <div class="filters-grid">
+            ? `<div class="filters-summary">
+                <div class="filters-title-text">Filtros aplicados</div>
+                <div class="filters-chips-grid">
                   ${activeFilters
               .map(([key, val]) => {
                 const label = labelMap[key] || key;
                 const displayVal = key === "setor_requisitante" ? mapSetorName(String(val)) : String(val);
-                return `<div class="chip"><span class="k">${label}:</span><span class="v">${displayVal}</span></div>`;
+                return `<div class="filter-chip"><span class="k">${label}:</span><span class="v">${displayVal}</span></div>`;
               })
               .join("")}
                 </div>
               </div>`
             : "";
+
         const html = `<!doctype html>
           <html>
           <head>
             <meta charset="utf-8">
             <title>${title}</title>
             <style>
-              *{box-sizing:border-box}
-              html,body{height:100%}
-              body{font-family:system-ui,Segoe UI,Arial;margin:0;color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-              .page{padding:24px}
-              .header{position:fixed;top:0;left:0;right:0;background:#fff}
-              .header-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 24px}
-              .header .divider{height:3px;background:${primary};}
-              .brand{display:flex;align-items:center;gap:12px}
-              .brand img{height:40px;width:auto;border-radius:4px}
-              .brand .title{font-size:16px;font-weight:700}
-              .brand .meta{font-size:11px;color:#6b7280}
-              .center-title{flex:1;text-align:center;font-size:16px;font-weight:700;color:#111}
-              .center-subtitle{flex:1;text-align:center;font-size:12px;color:#374151;margin-top:2px}
-              .content{margin-top:40mm;margin-bottom:25mm}
-              .content{padding-top:6mm;padding-bottom:6mm}
-              table{width:100%;border-collapse:collapse;margin-top:6mm;margin-bottom:6mm}
-              table{table-layout:fixed}
-              thead{display:table-header-group}
-              tfoot{display:table-footer-group}
-              th{background:#f9fafb;text-align:center;font-weight:700;color:#000;border:1px solid #334155}
-              td,th{border:1px solid #334155;padding:6px 8px;font-size:12px;word-break:break-word}
-              td.text-right{text-align:right}
-              td.text-left{text-align:left}
-              td.text-center{text-align:center}
-              .legend{font-size:11px;color:#6b7280;margin-bottom:8px;text-align:center}
-              .filters{padding:4mm 0 2mm 0}
-              .filters-title{font-size:12px;font-weight:600;color:#111;margin-bottom:2mm;text-align:left}
-              .filters-grid{display:flex;flex-wrap:wrap;gap:6px}
-              .chip{display:inline-flex;align-items:center;gap:4px;border:1px solid #e5e7eb;border-radius:6px;padding:4px 8px;font-size:11px;background:#f9fafb}
-              .chip .k{color:#6b7280}
-              /* Larguras otimizadas para PDF */
-              .col-ID{width: 7%}
-              .col-Descrição{width: 32%}
-              .col-Setor{width: 13%}
-              .col-Valor-Estimado{width: 12%}
-              .col-Valor-Executado{width: 12%}
-              .col-Prioridade{width: 8%}
-              .col-Modalidade{width: 8%}
-              .col-Status{width: 8%}
-              .col-Data{width: 8%}
-              .col-SEI{width: 15%}
-              .col-Valor{width: 10%}
+              * { box-sizing: border-box; }
+              html, body {
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #fff;
+                color: #0f172a;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
 
-              /* Ajustes específicos para orientação Paisagem */
+              @page {
+                size: A4 ${isLandscape ? 'landscape' : 'portrait'};
+                margin: 8mm 8mm 8mm 8mm;
+              }
+
+              /* Tabela Externa Estrutural para Cabeçalho e Rodapé de Impressão Sem Sobreposição */
+              table.outer-report-table {
+                width: 100%;
+                border-collapse: collapse !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+              }
+              table.outer-report-table > thead > tr > td,
+              table.outer-report-table > tbody > tr > td,
+              table.outer-report-table > tfoot > tr > td {
+                border: none !important;
+                padding: 0 !important;
+              }
+              table.outer-report-table > thead { display: table-header-group !important; }
+              table.outer-report-table > tfoot { display: table-footer-group !important; }
+
+              /* Cabeçalho Compacto e Minimalista */
+              .report-header-box {
+                padding-bottom: 4px;
+                margin-bottom: 6px;
+              }
+              .report-header-inner {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                padding-bottom: 4px;
+              }
+              .report-brand-img {
+                height: 26px;
+                width: auto;
+                display: block;
+              }
+              .report-title-box {
+                flex: 1;
+                text-align: center;
+              }
+              .report-main-title {
+                font-size: 12px;
+                font-weight: 700;
+                color: #0f172a;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+                line-height: 1.2;
+              }
+              .report-sub-title {
+                font-size: 9.5px;
+                font-weight: 500;
+                color: #475569;
+                margin-top: 1px;
+              }
+              .report-header-line {
+                height: 2px;
+                background: ${primary};
+                width: 100%;
+              }
+
+              /* Rodapé Compacto e Minimalista */
+              .report-footer-box {
+                padding-top: 4px;
+                margin-top: 6px;
+              }
+              .report-footer-line {
+                height: 1.5px;
+                background: ${primary};
+                width: 100%;
+                margin-bottom: 3px;
+              }
+              .report-footer-inner {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-size: 8.5px;
+                color: #64748b;
+                font-weight: 500;
+              }
+
+              /* Tabela de Dados Compacta e Limpa */
+              table.data-report-table {
+                width: 100%;
+                border-collapse: collapse !important;
+                table-layout: fixed;
+                margin-top: 4px;
+                margin-bottom: 4px;
+              }
+
+              table.data-report-table thead { display: table-header-group !important; }
+              table.data-report-table tfoot { display: table-footer-group !important; }
+
+              table.data-report-table tr {
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+                display: table-row !important;
+              }
+
+              table.data-report-table th {
+                background: #f1f5f9;
+                color: #0f172a;
+                font-weight: 700;
+                font-size: 9.5px;
+                padding: 4px 5px;
+                border: 1px solid #cbd5e1;
+                text-align: center;
+                vertical-align: middle;
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+              }
+
+              table.data-report-table td {
+                border: 1px solid #cbd5e1;
+                padding: 3.5px 5px;
+                font-size: 9px;
+                line-height: 1.25;
+                color: #1e293b;
+                word-break: break-word;
+                vertical-align: middle;
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+              }
+
+              table.data-report-table tbody tr:nth-child(even) {
+                background-color: #f8fafc;
+              }
+
+              td.text-right { text-align: right; }
+              td.text-left { text-align: left; }
+              td.text-center { text-align: center; }
+
+              /* Filtros Compactos */
+              .filters-summary {
+                margin-bottom: 4px;
+                padding: 3px 6px;
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 4px;
+              }
+              .filters-title-text {
+                font-size: 9px;
+                font-weight: 700;
+                color: #334155;
+                margin-bottom: 2px;
+                text-transform: uppercase;
+              }
+              .filters-chips-grid {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+              }
+              .filter-chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 3px;
+                border: 1px solid #cbd5e1;
+                border-radius: 3px;
+                padding: 1px 5px;
+                font-size: 8.5px;
+                background: #fff;
+              }
+              .filter-chip .k { color: #64748b; font-weight: 500; }
+              .filter-chip .v { color: #0f172a; font-weight: 600; }
+
+              /* Larguras otimizadas para PDF */
+              .col-ID { width: 7%; }
+              .col-Descrição { width: 33%; }
+              .col-Setor { width: 12%; }
+              .col-Valor-Estimado { width: 12%; }
+              .col-Valor-Executado { width: 12%; }
+              .col-Prioridade { width: 7%; }
+              .col-Modalidade { width: 9%; }
+              .col-Status { width: 8%; }
+              .col-Data { width: 8%; }
+              .col-SEI { width: 14%; }
+              .col-Valor { width: 10%; }
+
               ${isLandscape ? `
                 .col-ID { width: 6%; }
-                .col-Descrição { width: 22%; }
-                .col-Setor { width: 12%; }
+                .col-Descrição { width: 25%; }
+                .col-Setor { width: 11%; }
                 .col-Prioridade { width: 6%; }
-                .col-Modalidade { width: 10%; }
+                .col-Modalidade { width: 9%; }
                 .col-Status { width: 8%; }
-                .col-Valor-Estimado { width: 12%; }
-                .col-Valor-Executado { width: 12%; }
-                .col-Valor { width: 12%; }
-                td, th { font-size: 11px; padding: 5px 8px; }
+                .col-Valor-Estimado { width: 11%; }
+                .col-Valor-Executado { width: 11%; }
+                .col-Valor { width: 11%; }
+                table.data-report-table th, table.data-report-table td { font-size: 8.5px; padding: 3px 5px; }
               ` : ""}
 
-              /* Quebra de linha aprimorada para descrição */
-              td.col-Descrição{white-space:normal;hyphens:auto;line-height:1.4; font-weight: 500;}
-              .footer{position:fixed;bottom:0;left:0;right:0;background:#fff}
-              .footer .divider{height:2px;background:${primary};}
-              .footer-inner{display:flex;align-items:center;justify-content:space-between;padding:8px 24px;font-size:11px;color:#6b7280}
-              .page-num::after{content: counter(page) " de " counter(pages);}
-              @page{size:A4 ${isLandscape ? 'landscape' : 'portrait'};margin:15mm 10mm 15mm 10mm}
+              td.col-Descrição { white-space: normal; hyphens: auto; line-height: 1.25; font-weight: 500; }
               ${rType === "sei" ? `.col-Descrição{width:40%}.col-SEI{width:24%}` : ""}
               
-              /* Prevenção de quebras orfãs em tabelas curtas */
-              .group-section { page-break-inside: avoid; }
               @media print {
-                tr { page-break-inside: avoid; page-break-after: auto; }
+                html, body { height: auto !important; margin: 0 !important; padding: 0 !important; }
+                table.data-report-table tr { break-inside: avoid !important; page-break-inside: avoid !important; display: table-row !important; }
+                table.data-report-table td, table.data-report-table th { break-inside: avoid !important; page-break-inside: avoid !important; display: table-cell !important; }
               }
             </style>
           </head>
           <body>
-            <div class="header">
-              <div class="header-inner">
-                <div class="brand">
-                  <img src="${logo}" alt="MPPI" />
-                </div>
-                <div style="flex:1">
-                  <div class="center-title">${def.label}</div>
-                  <div class="center-subtitle">Plano de Contratações Anual 2026 - ${title.replace(/Relatório.*?\((.*)\)/, "$1")}</div>
-                </div>
-              </div>
-              <div class="divider"></div>
-            </div>
-            <div class="page">
-              <div class="content">
-                ${filterHtml}
-                ${rType === "por_status" ? `<div class="legend">A coluna "Data de Referência" exibe: se o status for <strong>concluído</strong>, a data de finalização da licitação; caso contrário, a <strong>data de criação</strong> da contratação.</div>` : ""}
-                ${reportContentHtml}
-              </div>
-            </div>
-            <div class="footer">
-              <div class="divider"></div>
-              <div class="footer-inner">
-                <div>${brand}</div>
-                <div>Emitido em ${today}</div>
-                <div class="page-num"></div>
-              </div>
-            </div>
+            <table class="outer-report-table">
+              <thead>
+                <tr>
+                  <td>
+                    <div class="report-header-box">
+                      <div class="report-header-inner">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <img src="${logo}" alt="MPPI" class="report-brand-img" />
+                        </div>
+                        <div class="report-title-box">
+                          <div class="report-main-title">${def.label}</div>
+                          <div class="report-sub-title">Plano de Contratações Anual ${exercise} • ${sourceRows.length} registros</div>
+                        </div>
+                      </div>
+                      <div class="report-header-line"></div>
+                    </div>
+                  </td>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="report-content-body">
+                      ${filterHtml}
+                      ${rType === "por_status" ? `<div style="font-size: 8.5px; color: #64748b; margin-bottom: 4px; text-align: center;">A coluna "Data de Referência" exibe: se o status for <strong>concluído</strong>, a data de finalização da licitação; caso contrário, a <strong>data de criação</strong> da contratação.</div>` : ""}
+                      <table class="data-report-table">
+                        <thead><tr>${headersHtml}</tr></thead>
+                        <tbody>
+                          ${generateTableRowsHtml(sourceRows)}
+                          ${generateFooterRowHtml(sourceRows)}
+                        </tbody>
+                      </table>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+
+              <tfoot>
+                <tr>
+                  <td>
+                    <div class="report-footer-box">
+                      <div class="report-footer-line"></div>
+                      <div class="report-footer-inner">
+                        <div>${brand}</div>
+                        <div>Emitido em ${today}</div>
+                        <div>PCA ${exercise}</div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
             <script>
               window.onload = () => { setTimeout(() => { try { window.print(); } catch (e) {} }, 500); };
             </script>

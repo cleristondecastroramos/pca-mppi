@@ -405,6 +405,7 @@ const SetoresDemandantes = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      const activeExercise = parseInt(localStorage.getItem("pca_exercicio") || "2026", 10);
       let query = supabase
         .from("contratacoes")
         .select([
@@ -427,6 +428,12 @@ const SetoresDemandantes = () => {
           "parent:parent_id(codigo)"
         ].join(","), { count: "exact" })
         .neq("srp", true);
+
+      if (activeExercise === 2026) {
+        query = query.or("exercicio.eq.2026,exercicio.is.null");
+      } else {
+        query = query.eq("exercicio", activeExercise);
+      }
 
       if (filtros.setor_requisitante) query = query.eq("setor_requisitante", filtros.setor_requisitante);
       if (filtros.tipo_contratacao) query = query.eq("tipo_contratacao", filtros.tipo_contratacao);

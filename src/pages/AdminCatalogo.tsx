@@ -16,7 +16,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -29,7 +28,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Plus, Search, Edit2, Package, Wrench, Loader2 } from "lucide-react";
-import { useUserProfile } from "@/lib/auth";
+import { useAuthSession, useUserProfile } from "@/lib/auth";
 
 export default function AdminCatalogo() {
   const [items, setItems] = useState<any[]>([]);
@@ -40,7 +39,8 @@ export default function AdminCatalogo() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any | null>(null);
   
-  const { data: profile } = useUserProfile();
+  const { data: session } = useAuthSession();
+  const { data: profile } = useUserProfile(session?.user?.id);
 
   // Form states
   const [nome, setNome] = useState("");
@@ -48,6 +48,7 @@ export default function AdminCatalogo() {
   const [tipo, setTipo] = useState<"material" | "servico">("material");
   const [codigo, setCodigo] = useState("");
   const [grupo, setGrupo] = useState("");
+  const [isCustomGrupo, setIsCustomGrupo] = useState(false);
   const [ativo, setAtivo] = useState(true);
   const [valorEstimado, setValorEstimado] = useState("");
   const [saving, setSaving] = useState(false);
@@ -58,28 +59,34 @@ export default function AdminCatalogo() {
 
   const fetchItems = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("catalogo_interno")
-      .select("*")
-      .order("created_at", { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from("catalogo_interno")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-    if (error) {
-      toast.error("Erro ao carregar catálogo: " + error.message);
-    } else {
-      setItems(data || []);
+      if (error) {
+        toast.error("Erro ao carregar catálogo: " + error.message);
+      } else {
+        setItems(data || []);
+      }
+    } catch (err: any) {
+      toast.error("Erro ao carregar catálogo: " + err.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleOpenDialog = (item?: any) => {
     if (item) {
       setEditingItem(item);
-      setNome(item.nome);
+      setNome(item.nome || "");
       setDescricao(item.descricao || "");
-      setTipo(item.tipo);
+      setTipo(item.tipo || "material");
       setCodigo(item.codigo || "");
       setGrupo(item.grupo || "");
-      setAtivo(item.ativo);
+      setIsCustomGrupo(false);
+      setAtivo(item.ativo ?? true);
       setValorEstimado(item.valor_estimado ? item.valor_estimado.toString() : "");
     } else {
       setEditingItem(null);
@@ -88,10 +95,23 @@ export default function AdminCatalogo() {
       setTipo("material");
       setCodigo("");
       setGrupo("");
+      setIsCustomGrupo(false);
       setAtivo(true);
       setValorEstimado("");
     }
     setIsDialogOpen(true);
+  };
+
+  const parseValor = (val: string): number => {
+    if (!val) return 0;
+    let cleaned = val.trim();
+    if (cleaned.includes(",") && cleaned.includes(".")) {
+      cleaned = cleaned.replace(/\./g, "").replace(",", ".");
+    } else if (cleaned.includes(",")) {
+      cleaned = cleaned.replace(",", ".");
+    }
+    const parsed = parseFloat(cleaned);
+    return isNaN(parsed) ? 0 : parsed;
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -110,37 +130,47 @@ export default function AdminCatalogo() {
     }
 
     setSaving(true);
-    const payload = {
-      nome,
-      descricao,
+    const currentUserId = session?.user?.id || profile?.id || null;
+
+    const payload: any = {
+      nome: nome.trim(),
+      descricao: descricao.trim(),
       tipo,
-      codigo,
-      grupo,
+      codigo: codigo.trim() || null,
+      grupo: grupo.trim(),
       ativo,
-      valor_estimado: valorEstimado ? parseFloat(valorEstimado.replace(",", ".")) : 0,
+      exercicio: editingItem?.exercicio || 2027,
+      valor_estimado: parseValor(valorEstimado),
     };
 
     try {
       if (editingItem) {
+        const updateData: any = { ...payload };
+        if (currentUserId) updateData.updated_by = currentUserId;
+
         const { error } = await supabase
           .from("catalogo_interno")
-          .update({ ...payload, updated_by: profile?.id })
+          .update(updateData)
           .eq("id", editingItem.id);
         
         if (error) throw error;
         toast.success("Item atualizado com sucesso!");
       } else {
+        const insertData: any = { ...payload };
+        if (currentUserId) insertData.created_by = currentUserId;
+
         const { error } = await supabase
           .from("catalogo_interno")
-          .insert([{ ...payload, created_by: profile?.id }]);
+          .insert([insertData]);
         
         if (error) throw error;
         toast.success("Item cadastrado com sucesso!");
       }
       setIsDialogOpen(false);
-      fetchItems();
+      await fetchItems();
     } catch (error: any) {
-      toast.error("Erro ao salvar item: " + error.message);
+      console.error("Erro ao salvar item no catálogo:", error);
+      toast.error("Erro ao salvar item: " + (error.message || "Tente novamente."));
     } finally {
       setSaving(false);
     }
@@ -170,7 +200,7 @@ export default function AdminCatalogo() {
 
   const filteredItems = items.filter((item) => {
     const normalizedQuery = removeAccents(searchQuery.toLowerCase());
-    const matchesSearch = removeAccents(item.nome.toLowerCase()).includes(normalizedQuery) || 
+    const matchesSearch = removeAccents(item.nome?.toLowerCase() || "").includes(normalizedQuery) || 
                           (item.codigo && removeAccents(item.codigo.toLowerCase()).includes(normalizedQuery));
     const matchesTipo = filterTipo === "todos" || item.tipo === filterTipo;
     const matchesGrupo = filterGrupo === "todos" || item.grupo === filterGrupo;
@@ -220,8 +250,8 @@ export default function AdminCatalogo() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos os grupos</SelectItem>
-                {grupos.map(grupo => (
-                  <SelectItem key={grupo} value={grupo as string}>{grupo}</SelectItem>
+                {grupos.map(g => (
+                  <SelectItem key={g as string} value={g as string}>{g as string}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -243,13 +273,13 @@ export default function AdminCatalogo() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={7} className="text-center py-8">
                       <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
                     </TableCell>
                   </TableRow>
                 ) : filteredItems.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                    <TableCell colSpan={7} className="text-center py-8 text-slate-500">
                       Nenhum item encontrado.
                     </TableCell>
                   </TableRow>
@@ -263,7 +293,7 @@ export default function AdminCatalogo() {
                             : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                         }`}>
                           {item.tipo === 'material' ? <Package className="h-3 w-3" /> : <Wrench className="h-3 w-3" />}
-                          {item.tipo.toUpperCase()}
+                          {item.tipo?.toUpperCase()}
                         </div>
                       </TableCell>
                       <TableCell className="font-mono text-xs">{item.codigo || "-"}</TableCell>
@@ -339,35 +369,57 @@ export default function AdminCatalogo() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="grupo">Grupo / Categoria *</Label>
-              <Select required value={grupo} onValueChange={setGrupo}>
-                <SelectTrigger id="grupo">
-                  <SelectValue placeholder="Selecione um grupo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {grupos.length > 0 ? (
-                    grupos.map((g) => (
-                      <SelectItem key={g as string} value={g as string}>
-                        {g as string}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="Geral">Geral</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+              <div className="flex justify-between items-center">
+                <Label htmlFor="grupo">Grupo / Categoria *</Label>
+                <Button 
+                  type="button" 
+                  variant="link" 
+                  className="h-auto p-0 text-xs text-primary"
+                  onClick={() => {
+                    setIsCustomGrupo(!isCustomGrupo);
+                    if (!isCustomGrupo) setGrupo("");
+                  }}
+                >
+                  {isCustomGrupo ? "Selecionar grupo existente" : "+ Digitar novo grupo"}
+                </Button>
+              </div>
+
+              {isCustomGrupo ? (
+                <Input
+                  id="grupo"
+                  required
+                  value={grupo}
+                  onChange={(e) => setGrupo(e.target.value)}
+                  placeholder="Digite a nova categoria..."
+                />
+              ) : (
+                <Select required value={grupo} onValueChange={setGrupo}>
+                  <SelectTrigger id="grupo">
+                    <SelectValue placeholder="Selecione um grupo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {grupos.length > 0 ? (
+                      grupos.map((g) => (
+                        <SelectItem key={g as string} value={g as string}>
+                          {g as string}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="Material Diverso">Material Diverso</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="valorEstimado">Valor Estimado (R$)</Label>
               <Input 
                 id="valorEstimado" 
-                type="number" 
-                step="0.01" 
-                min="0"
+                type="text" 
                 value={valorEstimado} 
                 onChange={(e) => setValorEstimado(e.target.value)} 
-                placeholder="0.00" 
+                placeholder="Ex: 150,00 ou 150.00" 
               />
             </div>
 
@@ -391,3 +443,4 @@ export default function AdminCatalogo() {
     </Layout>
   );
 }
+
