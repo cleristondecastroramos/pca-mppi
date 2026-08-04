@@ -39,7 +39,7 @@ const menuItems: MenuItem[] = [
   { title: "Visão Geral", url: "/visao-geral", icon: Gauge, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
   { title: "Demandas Ativas", url: "/demandas-ativas", icon: ListTodo, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
   { title: "Demandas Suspensas", url: "/suspensas", icon: PauseCircle, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
-  { title: "Artefatos", url: "/artefatos", icon: FileText, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
+  // { title: "Artefatos", url: "/artefatos", icon: FileText, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] }, // oculto do sidebar
   { title: "Setores Demandantes", url: "/setores-demandantes", icon: ClipboardList, allowedRoles: ["administrador", "gestor"] },
   { title: "Controle de Prazos", url: "/controle-prazos", icon: Clock, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
   { title: "Riscos e Pendências", url: "/riscos-pendencias", icon: AlertTriangle, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
