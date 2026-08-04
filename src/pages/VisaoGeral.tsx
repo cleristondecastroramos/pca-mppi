@@ -721,7 +721,25 @@ const VisaoGeral = () => {
                       <XAxis dataKey="setor" />
                       <YAxis hide domain={[0, 'dataMax + 1']} />
                       <ChartTooltip
-                        content={<ChartTooltipContent formatter={(v: number) => <span>{formatter(v)}</span>} />}
+                        content={({ active, payload }) => {
+                          if (!active || !payload?.length) return null;
+                          const entry = payload[0];
+                          const value = entry.value as number;
+                          const total = chartData.reduce((sum: number, d: any) => sum + (d[dataKey] || 0), 0);
+                          const pct = total > 0 ? ((value / total) * 100).toFixed(1) : "0.0";
+                          return (
+                            <div className="rounded-lg border bg-background px-3 py-2 shadow-md text-xs">
+                              <p className="font-semibold text-foreground mb-1">{entry.payload?.setor}</p>
+                              <p className="text-muted-foreground">
+                                <span className="font-medium text-foreground">{formatter(value)}</span>
+                              </p>
+                              <p className="text-muted-foreground mt-0.5">
+                                <span className="font-semibold text-primary">{pct}%</span>
+                                <span> do total</span>
+                              </p>
+                            </div>
+                          );
+                        }}
                       />
                       <Bar dataKey={dataKey} fill={fillColor}>
                         <LabelList dataKey={dataKey} position="top" formatter={formatter as any} />
