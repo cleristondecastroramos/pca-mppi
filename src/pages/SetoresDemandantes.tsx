@@ -114,9 +114,9 @@ const calculateStartDate = (tipo: string | null | undefined, mod: string | null 
   }
   let days = 120;
   if (tipo === "Nova Contratação") {
-    if (mod === "Pregão Eletrônico" || mod === "Concorrência") {
+    if (mod === "Pregão Eletrônico" || mod === "Concorrência" || mod === "Concurso") {
       days = 150;
-    } else if (mod === "Dispensa" || mod === "Inexigibilidade" || mod === "ARP (própria)" || mod === "ARP (carona)") {
+    } else if (mod === "Dispensa" || mod === "Inexigibilidade" || mod === "ARP (própria)" || mod === "ARP (carona)" || mod === "Credenciamento") {
       days = 90;
     }
   }
@@ -460,6 +460,12 @@ const SetoresDemandantes = () => {
           .from("contratacoes")
           .select("valor_estimado, valor_contratado, valor_executado, etapa_processo, sobrestado")
           .neq("srp", true);
+
+        if (activeExercise === 2026) {
+          kpiQuery = kpiQuery.or("exercicio.eq.2026,exercicio.is.null");
+        } else {
+          kpiQuery = kpiQuery.eq("exercicio", activeExercise);
+        }
         
         if (filtros.setor_requisitante) kpiQuery = kpiQuery.eq("setor_requisitante", filtros.setor_requisitante);
         if (filtros.tipo_contratacao) kpiQuery = kpiQuery.eq("tipo_contratacao", filtros.tipo_contratacao);
@@ -578,7 +584,7 @@ const SetoresDemandantes = () => {
           />
 
           <KPICard 
-            title="Valor Estimado" 
+            title="Valor PCA Ativo" 
             value={formatCurrencyBRL(kpiResumo?.valor_estimado || rows.filter(r => r.sobrestado !== true).reduce((s, r) => s + (r.valor_estimado || 0), 0))} 
             icon={DollarSign} 
           />

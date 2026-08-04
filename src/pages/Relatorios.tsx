@@ -271,8 +271,8 @@ const Relatorios = () => {
           const date = new Date(y, m - 1, d);
           let days = 120;
           if (tipo === "Nova Contratação") {
-            if (mod === "Pregão Eletrônico" || mod === "Concorrência") days = 150;
-            else if (mod === "Dispensa" || mod === "Inexigibilidade" || mod === "ARP (própria)" || mod === "ARP (carona)") days = 90;
+            if (mod === "Pregão Eletrônico" || mod === "Concorrência" || mod === "Concurso") days = 150;
+            else if (mod === "Dispensa" || mod === "Inexigibilidade" || mod === "ARP (própria)" || mod === "ARP (carona)" || mod === "Credenciamento") days = 90;
           }
           date.setDate(date.getDate() - days);
           return date.toLocaleDateString("pt-BR");
@@ -311,8 +311,8 @@ const Relatorios = () => {
           const date = new Date(y, m - 1, d);
           let days = 120;
           if (tipo === "Nova Contratação") {
-            if (mod === "Pregão Eletrônico" || mod === "Concorrência") days = 150;
-            else if (mod === "Dispensa" || mod === "Inexigibilidade" || mod === "ARP (própria)" || mod === "ARP (carona)") days = 90;
+            if (mod === "Pregão Eletrônico" || mod === "Concorrência" || mod === "Concurso") days = 150;
+            else if (mod === "Dispensa" || mod === "Inexigibilidade" || mod === "ARP (própria)" || mod === "ARP (carona)" || mod === "Credenciamento") days = 90;
           }
           date.setDate(date.getDate() - days);
           return date.toLocaleDateString("pt-BR");

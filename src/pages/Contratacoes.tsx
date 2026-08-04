@@ -731,9 +731,9 @@ export default function Contratacoes() {
     let days = 120; // Regra 3: Renovação, Aditivo, etc.
 
     if (tipo === "Nova Contratação") {
-      if (modalidade === "Pregão Eletrônico" || modalidade === "Concorrência") {
+      if (modalidade === "Pregão Eletrônico" || modalidade === "Concorrência" || modalidade === "Concurso") {
         days = 150; // Regra 1
-      } else if (modalidade === "Dispensa" || modalidade === "Inexigibilidade" || modalidade === "Inexibilidade" || modalidade === "ARP (própria)" || modalidade === "ARP (carona)") {
+      } else if (modalidade === "Dispensa" || modalidade === "Inexigibilidade" || modalidade === "Inexibilidade" || modalidade === "ARP (própria)" || modalidade === "ARP (carona)" || modalidade === "Credenciamento") {
         days = 90; // Regra 2
       }
     }
@@ -1393,6 +1393,8 @@ export default function Contratacoes() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Concorrência">Concorrência</SelectItem>
+                        <SelectItem value="Concurso">Concurso</SelectItem>
+                        <SelectItem value="Credenciamento">Credenciamento</SelectItem>
                         <SelectItem value="Pregão Eletrônico">Pregão Eletrônico</SelectItem>
                         <SelectItem value="Dispensa">Dispensa</SelectItem>
                         <SelectItem value="Inexigibilidade">Inexigibilidade</SelectItem>
