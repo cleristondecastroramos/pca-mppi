@@ -50,6 +50,8 @@ export default function OrcamentoPlanejado() {
   const [syncing, setSyncing] = useState(false);
   const [saldosDisponiveis, setSaldosDisponiveis] = useState<Record<string, number>>({});
   const [totalSaldoGeral, setTotalSaldoGeral] = useState<number>(0);
+  const [sobrestadosPorSetor, setSobrestadosPorSetor] = useState<Record<string, number>>({});
+  const [totalSobrestadoGeral, setTotalSobrestadoGeral] = useState<number>(0);
 
   useEffect(() => {
     fetchOrcamentos();
@@ -167,6 +169,39 @@ export default function OrcamentoPlanejado() {
 
       setSaldosDisponiveis(saldos);
       setTotalSaldoGeral(saldoTotalAcumulado);
+
+      // Fetch demandas sobrestadas por setor
+      let sobrestadosQuery = supabase
+        .from("contratacoes")
+        .select("setor_requisitante, valor_estimado")
+        .eq("sobrestado", true)
+        .neq("srp", true);
+
+      if (activeExercise === 2026) {
+        sobrestadosQuery = sobrestadosQuery.or("exercicio.eq.2026,exercicio.is.null");
+      } else {
+        sobrestadosQuery = sobrestadosQuery.eq("exercicio", activeExercise);
+      }
+
+      const { data: sobrestadosData, error: sobrestadosError } = await sobrestadosQuery;
+
+      if (sobrestadosError) throw sobrestadosError;
+
+      const sobrestados: Record<string, number> = {};
+      setoresObj.forEach((s) => (sobrestados[s] = 0));
+      let sobrestadoTotalAcumulado = 0;
+
+      (sobrestadosData || []).forEach((c) => {
+        const setor = c.setor_requisitante;
+        if (setor && sobrestados[setor] !== undefined) {
+          const estimado = Number(c.valor_estimado) || 0;
+          sobrestados[setor] += estimado;
+          sobrestadoTotalAcumulado += estimado;
+        }
+      });
+
+      setSobrestadosPorSetor(sobrestados);
+      setTotalSobrestadoGeral(sobrestadoTotalAcumulado);
     } catch (err: any) {
       console.error(err);
       toast.error("Erro ao carregar orçamentos", { description: translateError(err.message || String(err)) });
@@ -454,7 +489,9 @@ export default function OrcamentoPlanejado() {
                     <TableHead className="text-center">PGJ (R$)</TableHead>
                     <TableHead className="text-center">FMMP (R$)</TableHead>
                     <TableHead className="text-center">FEPDC (R$)</TableHead>
-                    <TableHead className="text-right">Total Setor (R$)</TableHead>
+                    <TableHead className="text-right">Total Planejado (R$)</TableHead>
+                    <TableHead className="text-right">Total Suspenso (R$)</TableHead>
+                    <TableHead className="text-right">Total Ajustado (R$)</TableHead>
                     <TableHead className="text-right">Saldo Disponível (R$)</TableHead>
                     <TableHead className="text-center">Trava Ativa?</TableHead>
                   </TableRow>
@@ -495,6 +532,12 @@ export default function OrcamentoPlanejado() {
                         <TableCell className="align-middle text-right font-medium py-1 px-2">
                           {formatCurrency(totalSetor)}
                         </TableCell>
+                        <TableCell className="align-middle text-right font-medium py-1 px-2 text-amber-600 dark:text-amber-400">
+                          {formatCurrency(sobrestadosPorSetor[setor] || 0)}
+                        </TableCell>
+                        <TableCell className="align-middle text-right font-semibold py-1 px-2 text-blue-600 dark:text-blue-400">
+                          {formatCurrency(totalSetor - (sobrestadosPorSetor[setor] || 0))}
+                        </TableCell>
                         <TableCell className={`align-middle text-right font-medium py-1 px-2 ${saldosDisponiveis[setor] < 0 ? 'text-destructive' : 'text-primary'}`}>
                           {formatCurrency(saldosDisponiveis[setor] || 0)}
                         </TableCell>
@@ -520,6 +563,8 @@ export default function OrcamentoPlanejado() {
                     <TableCell className="text-right font-bold pr-5">{formatCurrency(totalGeralFmmp)}</TableCell>
                     <TableCell className="text-right font-bold pr-5">{formatCurrency(totalGeralFepdc)}</TableCell>
                     <TableCell className="text-right font-bold text-primary">{formatCurrency(totalGeralAll)}</TableCell>
+                    <TableCell className="text-right font-bold text-amber-600 dark:text-amber-400">{formatCurrency(totalSobrestadoGeral)}</TableCell>
+                    <TableCell className="text-right font-bold text-blue-600 dark:text-blue-400">{formatCurrency(totalGeralAll - totalSobrestadoGeral)}</TableCell>
                     <TableCell className={`text-right font-bold ${totalSaldoGeral < 0 ? 'text-destructive' : 'text-primary'}`}>
                       {formatCurrency(totalSaldoGeral)}
                     </TableCell>
