@@ -441,7 +441,16 @@ export default function Planejamento2027() {
     const pageCount = (doc.internal as any).getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
-      addHeaderFooter(i, pageCount);
+      if (i === 1) {
+        // Cabeçalho completo (logo + título) somente na primeira página
+        addHeaderFooter(i, pageCount);
+      } else {
+        // Demais páginas: somente rodapé
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Página ${i} de ${pageCount}`, pageWidth - 20, pageHeight - 10, { align: "right" });
+        doc.text("Gerado pelo Sistema PCA MPPI", 14, pageHeight - 10);
+      }
     }
 
     doc.save("Relatorio_PCA_2027.pdf");
