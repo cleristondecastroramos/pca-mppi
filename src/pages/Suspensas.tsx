@@ -388,15 +388,15 @@ const Suspensas = () => {
             <div className="rounded-md border bg-card">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-muted/50 hover:bg-muted/50">
-                    <TableHead className="w-[120px] font-semibold text-center">Cod. PCA</TableHead>
-                    <TableHead className="font-semibold max-w-[300px]">Descrição Resumida</TableHead>
-                    <TableHead className="w-[100px] font-semibold text-center">Setor</TableHead>
-                    <TableHead className="w-[120px] font-semibold text-center">Tipo</TableHead>
-                    <TableHead className="w-[100px] font-semibold text-center">Unid.</TableHead>
-                    <TableHead className="w-[140px] font-semibold text-right">Valor Retido</TableHead>
-                    <TableHead className="w-[160px] font-semibold text-center">Hierarquia da Origem</TableHead>
-                    <TableHead className="w-[140px] font-semibold text-center">Ações</TableHead>
+                  <TableRow className="hover:bg-[hsl(349,67%,50%)]" style={{ backgroundColor: 'hsl(349,67%,55%)' }}>
+                    <TableHead className="w-[120px] font-semibold text-center text-white">Cod. PCA</TableHead>
+                    <TableHead className="font-semibold max-w-[300px] text-white">Descrição Resumida</TableHead>
+                    <TableHead className="w-[100px] font-semibold text-center text-white">Setor</TableHead>
+                    <TableHead className="w-[120px] font-semibold text-center text-white">Tipo</TableHead>
+                    <TableHead className="w-[100px] font-semibold text-center text-white">Unid.</TableHead>
+                    <TableHead className="w-[140px] font-semibold text-right text-white">Valor Retido</TableHead>
+                    <TableHead className="w-[160px] font-semibold text-center text-white">Hierarquia da Origem</TableHead>
+                    <TableHead className="w-[140px] font-semibold text-center text-white">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
