@@ -69,6 +69,9 @@ export function CatalogoInternoSearch({ onSelect, itemSelecionado, onClear, filt
     fetchInitial();
   }, [filtroGrupo]);
 
+  const normalizeStr = (str: string) =>
+    str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
   const handleSearch = async (term: string) => {
     setLoading(true);
     let query = supabase
@@ -76,14 +79,24 @@ export function CatalogoInternoSearch({ onSelect, itemSelecionado, onClear, filt
       .select("*")
       .eq("ativo", true)
       .order("nome", { ascending: true })
-      .limit(50);
+      .limit(200);
 
     if (filtroGrupo) {
       query = query.eq("grupo", filtroGrupo);
     }
 
+    // Busca no banco com o termo original (ilike padrão)
+    // e também com o termo sem acentos para cobrir variações
     if (term.trim()) {
-      query = query.or(`nome.ilike.%${term}%,codigo.ilike.%${term}%`);
+      const termNorm = normalizeStr(term.trim());
+      // Se o termo normalizado é diferente do original, inclui ambos na busca
+      if (termNorm !== term.trim().toLowerCase()) {
+        query = query.or(
+          `nome.ilike.%${term}%,codigo.ilike.%${term}%,nome.ilike.%${termNorm}%,codigo.ilike.%${termNorm}%`
+        );
+      } else {
+        query = query.or(`nome.ilike.%${term}%,codigo.ilike.%${term}%`);
+      }
     }
 
     const { data, error } = await query;
@@ -91,7 +104,16 @@ export function CatalogoInternoSearch({ onSelect, itemSelecionado, onClear, filt
     if (error) {
       toast.error("Erro ao buscar no catálogo: " + error.message);
     } else {
-      setItems(data || []);
+      // Filtro client-side com normalização de acentos para cobrir casos
+      // onde o banco não possui extensão unaccent
+      const results = (data || []).filter((item) => {
+        if (!term.trim()) return true;
+        const termNorm = normalizeStr(term.trim());
+        const nomeNorm = normalizeStr(item.nome || "");
+        const codigoNorm = normalizeStr(item.codigo || "");
+        return nomeNorm.includes(termNorm) || codigoNorm.includes(termNorm);
+      });
+      setItems(results);
     }
     setLoading(false);
   };
