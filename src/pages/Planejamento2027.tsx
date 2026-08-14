@@ -14,10 +14,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserProfile, useUserRoles } from "@/lib/auth";
 import { toast } from "sonner";
-import { Loader2, Plus, Search, Check, AlertTriangle, X, CheckSquare, RefreshCw, FileText, Pencil, Trash2, Eye, RotateCcw } from "lucide-react";
+import { Loader2, Plus, Search, Check, AlertTriangle, X, CheckSquare, RefreshCw, FileText, Pencil, Trash2, Eye, RotateCcw, Download, FileSpreadsheet } from "lucide-react";
 
 export default function Planejamento2027() {
   const navigate = useNavigate();
@@ -390,7 +391,7 @@ export default function Planejamento2027() {
       return acc;
     }, {} as Record<string, any[]>);
 
-    let startY = 46;
+    let startY = 60; // Aumentado para não cobrir a tabela com a logo e o título
     const sortedUnidades = Object.keys(grouped).sort();
 
     sortedUnidades.forEach((unidade, index) => {
@@ -398,7 +399,7 @@ export default function Planejamento2027() {
       
       if (startY > pageHeight - 40) {
         doc.addPage();
-        startY = 46;
+        startY = 20; // Nas páginas seguintes não há cabeçalho, então começamos mais em cima
       }
       
       doc.setFontSize(11);
@@ -432,7 +433,7 @@ export default function Planejamento2027() {
           5: { cellWidth: 20, halign: "center" },
           6: { cellWidth: 30, halign: "center" }
         },
-        margin: { bottom: 20 }
+        margin: { top: 20, bottom: 20 } // Garante que novas páginas criadas pelo autoTable comecem no topo (Y=20)
       });
 
       startY = (doc as any).lastAutoTable.finalY + 15;
@@ -457,6 +458,59 @@ export default function Planejamento2027() {
     toast.success("Relatório PDF exportado com sucesso!");
   };
 
+  const handleExportCsv = () => {
+    if (filteredDemands.length === 0) return;
+
+    const headers = [
+      "Unidade Requisitante",
+      "Objeto / Descrição",
+      "Categoria / Grupo",
+      "Qtd",
+      "Valor Unit.",
+      "Valor Total",
+      "Prioridade",
+      "Situação"
+    ];
+
+    const rows = filteredDemands.map(d => {
+      const valorUnit = Number(d.valor_unitario || 0);
+      const valorTotal = Number(d.valor_estimado || d.valor_total || 0);
+      
+      return [
+        d.unidade_demandante || "Unidade Não Informada",
+        d.descricao || "-",
+        d.categoria_material_ou_servico || "-",
+        d.quantidade_itens || d.quantidade || 0,
+        valorUnit.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        valorTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        d.grau_prioridade || d.prioridade || "-",
+        d.status_aprovacao || "Pendente"
+      ];
+    });
+
+    const csvContent = [
+      headers.join(";"),
+      ...rows.map(row => row.map(cell => {
+        let cellStr = String(cell);
+        if (cellStr.includes(";") || cellStr.includes("\n") || cellStr.includes("\r") || cellStr.includes('"')) {
+          cellStr = `"${cellStr.replace(/"/g, '""')}"`;
+        }
+        return cellStr;
+      }).join(";"))
+    ].join("\r\n");
+
+    const blob = new Blob(["\uFEFFsep=;\r\n" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "Relatorio_PCA_2027.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success("Relatório CSV exportado com sucesso!");
+  };
+
   return (
     <Layout>
       <div className="space-y-6 animate-in fade-in duration-500">
@@ -472,17 +526,26 @@ export default function Planejamento2027() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              onClick={handleExportPdf} 
-              disabled={loading || filteredDemands.length === 0}
-              title="Exportar Relatório em PDF"
-              className="border-red-200 bg-red-50/60 dark:bg-red-950/30 text-red-700 dark:text-red-300 hover:bg-red-100 hover:text-red-800 dark:hover:bg-red-900/50 font-bold shadow-sm flex items-center gap-2 px-3.5 transition-all"
-            >
-              <FileText className="h-4.5 w-4.5 text-red-600 dark:text-red-400 shrink-0" />
-              <span className="font-extrabold text-[11px] tracking-wider uppercase text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/60 px-1.5 py-0.5 rounded border border-red-200/80 dark:border-red-800/80">PDF</span>
-              <span className="text-sm font-bold">Exportar PDF</span>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  disabled={loading || filteredDemands.length === 0}
+                  className="border-red-200 bg-red-50/60 dark:bg-red-950/30 text-red-700 dark:text-red-300 hover:bg-red-100 hover:text-red-800 dark:hover:bg-red-900/50 font-bold shadow-sm flex items-center gap-2 px-3.5 transition-all"
+                >
+                  <Download className="h-4.5 w-4.5 text-red-600 dark:text-red-400 shrink-0" />
+                  <span className="text-sm font-bold">Exportar</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleExportPdf} className="cursor-pointer flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-red-600" /> Exportar PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportCsv} className="cursor-pointer flex items-center gap-2">
+                  <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> Exportar CSV
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button variant="outline" size="icon" onClick={loadDemands} title="Recarregar" disabled={loading}>
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             </Button>
