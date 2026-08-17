@@ -7,9 +7,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Plus, ArrowLeft, BookOpen } from "lucide-react";
+import { Loader2, Plus, ArrowLeft, BookOpen, AlertCircle } from "lucide-react";
 import { CatalogoInternoSearch, type ItemCatalogoInterno } from "@/components/CatalogoInternoSearch";
 
 export default function NovaDemanda2027() {
@@ -21,6 +30,7 @@ export default function NovaDemanda2027() {
   const [unidades, setUnidades] = useState<any[]>([]);
   const [isLocked, setIsLocked] = useState(false);
   const [isAdminOrGestor, setIsAdminOrGestor] = useState(false);
+  const [showDeadlineModal, setShowDeadlineModal] = useState(false);
   const [prioridade, setPrioridade] = useState<"Alta" | "Média" | "Baixa" | "">("");
   const [justificativa, setJustificativa] = useState("");
   const [quantidade, setQuantidade] = useState<number>(1);
@@ -45,6 +55,9 @@ export default function NovaDemanda2027() {
             const admin = !!res1.data;
             const gestor = !!res2.data;
             setIsAdminOrGestor(admin || gestor);
+            if (!admin && !gestor) {
+              setShowDeadlineModal(true);
+            }
           });
         });
 
@@ -209,6 +222,27 @@ export default function NovaDemanda2027() {
 
   return (
     <Layout>
+      <AlertDialog open={showDeadlineModal} onOpenChange={() => {}}>
+        <AlertDialogContent className="max-w-md border-rose-200 dark:border-rose-900 bg-white dark:bg-slate-900">
+          <AlertDialogHeader>
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-950/30 mb-4 ring-8 ring-rose-50 dark:ring-rose-900/10">
+              <AlertCircle className="h-7 w-7 text-rose-600 dark:text-rose-400" />
+            </div>
+            <AlertDialogTitle className="text-center text-2xl font-bold text-slate-900 dark:text-white">Prazo Encerrado</AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-base text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
+              O prazo para o recebimento de demandas para o PCA 2027 encerrou-se em <strong className="text-slate-900 dark:text-white font-semibold">14 de agosto</strong>.
+              <br /><br />
+              As demandas já recebidas serão analisadas e submetidas à aprovação para consolidação do Plano de Contratações Anual de 2027.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center mt-8">
+            <AlertDialogAction onClick={() => navigate("/planejamento")} className="bg-[#D9415D] hover:bg-[#C0354E] text-white font-bold px-8 h-12 w-full sm:w-auto rounded-lg shadow-md transition-all text-base">
+              Entendi e Voltar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="w-full space-y-6 animate-in fade-in duration-500">
         {/* Cabeçalho */}
         <div className="flex items-center gap-3">
