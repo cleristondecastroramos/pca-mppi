@@ -74,6 +74,32 @@ const FIXED_ORDER_CLASSE = [
   "Obra",
 ];
 
+const FIXED_ORDER_STATUS = [
+  "não iniciado",
+  "iniciado",
+  "retornado para diligência",
+  "em andamento",
+  "concluído"
+];
+
+const STATUS_COLORS: Record<string, string> = {
+  "não iniciado": "hsl(var(--chart-1))", // Vermelho
+  "iniciado": "hsl(var(--chart-2))", // Verde
+  "retornado para diligência": "#94a3b8", // Cinza
+  "em andamento": "hsl(var(--chart-3))", // Amarelo/Laranja
+  "concluído": "#3b82f6", // Azul
+  "Sem dados": "#cbd5e1"
+};
+
+const getStatusCategory = (etapa_processo: string | null) => {
+  if (!etapa_processo || etapa_processo === "Planejamento") return "não iniciado";
+  if (etapa_processo === "Iniciado") return "iniciado";
+  if (etapa_processo === "Retornado para Diligência") return "retornado para diligência";
+  if (etapa_processo === "Em Licitação" || etapa_processo === "Contratado") return "em andamento";
+  if (etapa_processo === "Concluído") return "concluído";
+  return "outro";
+};
+
 type PieItem = { name: string; value: number };
 const sortByFixedOrder = (arr: PieItem[], order: string[]): PieItem[] => {
   const fixed: PieItem[] = [];
@@ -128,7 +154,7 @@ const VisaoGeral = () => {
   const [totalCount, setTotalCount] = useState<number>(0);
   const [distinctOptionsRpc, setDistinctOptionsRpc] = useState<any>(null);
   const [metric, setMetric] = useState<"quantidade" | "valor_estimado">("quantidade");
-  const [metricPieClasse, setMetricPieClasse] = useState<"quantidade" | "valor_estimado">("quantidade");
+  const [metricPieStatus, setMetricPieStatus] = useState<"quantidade" | "valor_estimado">("quantidade");
   const [metricPieUO, setMetricPieUO] = useState<"quantidade" | "valor_estimado">("quantidade");
   const [metricPieTipo, setMetricPieTipo] = useState<"quantidade" | "valor_estimado">("quantidade");
 
@@ -439,25 +465,25 @@ const VisaoGeral = () => {
     return ordered.length > 0 ? ordered : [{ name: "Sem dados", value: 1 }];
   }, [filteredRows]);
 
-  const dadosValoresPorClasse = useMemo(() => {
+  const dadosValoresPorStatus = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.filter(r => r.sobrestado !== true).forEach((r) => {
-      const classe = r.classe || "Não informado";
-      map.set(classe, (map.get(classe) || 0) + (r.valor_estimado || 0));
+      const status = getStatusCategory(r.etapa_processo);
+      map.set(status, (map.get(status) || 0) + (r.valor_estimado || 0));
     });
     const result = Array.from(map.entries()).map(([name, value]) => ({ name, value }));
-    const ordered = sortByFixedOrder(result, FIXED_ORDER_CLASSE);
+    const ordered = sortByFixedOrder(result, FIXED_ORDER_STATUS);
     return ordered.length > 0 ? ordered : [{ name: "Sem dados", value: 1 }];
   }, [filteredRows]);
 
-  const dadosQuantidadePorClasse = useMemo(() => {
+  const dadosQuantidadePorStatus = useMemo(() => {
     const map = new Map<string, number>();
     filteredRows.filter(r => r.sobrestado !== true).forEach((r) => {
-      const classe = r.classe || "Não informado";
-      map.set(classe, (map.get(classe) || 0) + 1);
+      const status = getStatusCategory(r.etapa_processo);
+      map.set(status, (map.get(status) || 0) + 1);
     });
     const result = Array.from(map.entries()).map(([name, value]) => ({ name, value }));
-    const ordered = sortByFixedOrder(result, FIXED_ORDER_CLASSE);
+    const ordered = sortByFixedOrder(result, FIXED_ORDER_STATUS);
     return ordered.length > 0 ? ordered : [{ name: "Sem dados", value: 1 }];
   }, [filteredRows]);
 
@@ -672,89 +698,9 @@ const VisaoGeral = () => {
         </div>
 
 
-        {/* Gráfico único com alternância: Demandas vs Valores por Setor */}
-        <div className="grid gap-6">
-          <Card>
-            <CardHeader className="space-y-0">
-              <div className="flex w-full items-start justify-between">
-                <CardTitle className="text-sm">Distribuição por Setor</CardTitle>
-                <div className="flex flex-col gap-1 items-end">
-                  <Button
-                    size="xs"
-                    className="text-[10px] leading-3 w-[160px]"
-                    variant={metric === "quantidade" ? "default" : "outline"}
-                    onClick={() => setMetric("quantidade")}
-                  >
-                    Número de processos
-                  </Button>
-                  <Button
-                    size="xs"
-                    className="text-[10px] leading-3 w-[160px]"
-                    variant={metric === "valor_estimado" ? "default" : "outline"}
-                    onClick={() => setMetric("valor_estimado")}
-                  >
-                    Valores estimados
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer
-                config={{
-                  demandas: { label: "Demandas", color: "hsl(var(--chart-1))" },
-                  valores: { label: "Valores (R$)", color: "hsl(var(--chart-2))" },
-                }}
-                className="w-full !aspect-auto h-[260px] min-h-[260px] overflow-visible"
-                style={{ height: 260 }}
-              >
-                {(() => {
-                  const chartData = metric === "quantidade" ? dadosQuantidadePorSetor : dadosValoresPorSetor;
-                  const dataKey = metric === "quantidade" ? "quantidade" : "valor_estimado";
-                  const fillColor = metric === "quantidade" ? "var(--color-demandas)" : "var(--color-valores)";
-                  const formatter = (value: number) => (metric === "valor_estimado" ? formatCurrencyBRL(value) : value);
-                  if (!chartData.length) {
-                    return <div className="flex items-center justify-center h-[220px] text-xs text-muted-foreground">Sem dados</div>;
-                  }
-                  return (
-                    <BarChart data={chartData} margin={{ top: 24, right: 16, bottom: 8, left: 8 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="setor" />
-                      <YAxis hide domain={[0, 'dataMax + 1']} />
-                      <ChartTooltip
-                        content={({ active, payload }) => {
-                          if (!active || !payload?.length) return null;
-                          const entry = payload[0];
-                          const value = entry.value as number;
-                          const total = chartData.reduce((sum: number, d: any) => sum + (d[dataKey] || 0), 0);
-                          const pct = total > 0 ? ((value / total) * 100).toFixed(1) : "0.0";
-                          return (
-                            <div className="rounded-lg border bg-background px-3 py-2 shadow-md text-xs">
-                              <p className="font-semibold text-foreground mb-1">{entry.payload?.setor}</p>
-                              <p className="text-muted-foreground">
-                                <span className="font-medium text-foreground">{formatter(value)}</span>
-                              </p>
-                              <p className="text-muted-foreground mt-0.5">
-                                <span className="font-semibold text-primary">{pct}%</span>
-                                <span> do total</span>
-                              </p>
-                            </div>
-                          );
-                        }}
-                      />
-                      <Bar dataKey={dataKey} fill={fillColor}>
-                        <LabelList dataKey={dataKey} position="top" formatter={formatter as any} />
-                      </Bar>
-                    </BarChart>
-                  );
-                })()}
-              </ChartContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Gráficos de Pizza: UO, Tipo de Contratação e Classe */}
+        {/* Gráficos de Pizza: UO, Tipo de Contratação e Status */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {/* Distribuição por Classe (Pizza) */}
+          {/* Distribuição por UO (Pizza) */}
           <Card>
             <CardHeader className="space-y-0">
               <div className="flex w-full items-start justify-between">
@@ -782,8 +728,8 @@ const VisaoGeral = () => {
             <CardContent className="pt-2 pb-2">
               <ChartContainer
                 config={{ uo: { label: "UO", color: "hsl(var(--chart-2))" } }}
-                className="w-full !aspect-auto h-[220px] min-h-[220px] overflow-visible"
-                style={{ height: 220 }}
+                className="w-full !aspect-auto h-[380px] min-h-[380px] overflow-visible"
+                style={{ height: 380 }}
               >
                 {(() => {
                   const chartData = (metricPieUO === "valor_estimado" ? dadosValoresPorUO : dadosQuantidadePorUO) as any[];
@@ -808,8 +754,8 @@ const VisaoGeral = () => {
                         verticalAlign="bottom"
                         align="center"
                         iconType="circle"
-                        iconSize={8}
-                        wrapperStyle={{ fontSize: 10, lineHeight: "12px", marginTop: 6 }}
+                        iconSize={12}
+                        wrapperStyle={{ fontSize: 13, lineHeight: "18px", marginTop: 24 }}
                         formatter={(value: string) => {
                           const short = value.length > 18 ? value.slice(0, 18) + "…" : value
                           return <span title={value}>{short}</span>
@@ -819,8 +765,8 @@ const VisaoGeral = () => {
                         data={data}
                         dataKey="value"
                         nameKey="name"
-                        innerRadius={54}
-                        outerRadius={94}
+                        innerRadius={90}
+                        outerRadius={140}
                         labelLine={false}
                         label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
                           const RADIAN = Math.PI / 180;
@@ -829,7 +775,7 @@ const VisaoGeral = () => {
                           const y = (cy as number) + radius * Math.sin(-(midAngle as number) * RADIAN);
                           const pct = Math.round(((percent as number) || 0) * 100);
                           return (
-                            <text x={x} y={y} fill="#111827" textAnchor="middle" dominantBaseline="central" fontSize={10}>
+                            <text x={x} y={y} fill="#111827" textAnchor="middle" dominantBaseline="central" fontSize={14} fontWeight={600}>
                               {pct}%
                             </text>
                           );
@@ -874,8 +820,8 @@ const VisaoGeral = () => {
             <CardContent className="pt-2 pb-2">
               <ChartContainer
                 config={{ tipo: { label: "Tipo", color: "hsl(var(--chart-3))" } }}
-                className="w-full !aspect-auto h-[220px] min-h-[220px] overflow-visible"
-                style={{ height: 220 }}
+                className="w-full !aspect-auto h-[380px] min-h-[380px] overflow-visible"
+                style={{ height: 380 }}
               >
                 {(() => {
                   const chartData = (metricPieTipo === "valor_estimado" ? dadosValoresPorTipoContratacao : dadosQuantidadePorTipoContratacao) as any[];
@@ -900,8 +846,8 @@ const VisaoGeral = () => {
                         verticalAlign="bottom"
                         align="center"
                         iconType="circle"
-                        iconSize={8}
-                        wrapperStyle={{ fontSize: 10, lineHeight: "12px", marginTop: 6 }}
+                        iconSize={12}
+                        wrapperStyle={{ fontSize: 13, lineHeight: "18px", marginTop: 24 }}
                         formatter={(value: string) => {
                           const short = value.length > 18 ? value.slice(0, 18) + "…" : value;
                           return <span title={value}>{short}</span>
@@ -911,8 +857,8 @@ const VisaoGeral = () => {
                         data={data}
                         dataKey="value"
                         nameKey="name"
-                        innerRadius={54}
-                        outerRadius={94}
+                        innerRadius={90}
+                        outerRadius={140}
                         labelLine={false}
                         label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
                           const RADIAN = Math.PI / 180;
@@ -921,7 +867,7 @@ const VisaoGeral = () => {
                           const y = (cy as number) + radius * Math.sin(-(midAngle as number) * RADIAN);
                           const pct = Math.round(((percent as number) || 0) * 100);
                           return (
-                            <text x={x} y={y} fill="#111827" textAnchor="middle" dominantBaseline="central" fontSize={10}>
+                            <text x={x} y={y} fill="#111827" textAnchor="middle" dominantBaseline="central" fontSize={14} fontWeight={600}>
                               {pct}%
                             </text>
                           );
@@ -938,25 +884,25 @@ const VisaoGeral = () => {
             </CardContent>
           </Card>
 
-          {/* Distribuição por Classe (Pizza) */}
+          {/* Distribuição por Status (Pizza) */}
           <Card>
             <CardHeader className="space-y-0">
               <div className="flex w-full items-start justify-between">
-                <CardTitle className="text-sm">Distribuição por Classe</CardTitle>
+                <CardTitle className="text-sm">Distribuição por Status</CardTitle>
                 <div className="flex flex-col gap-1 items-end">
                   <Button
                     size="xs"
                     className="text-[10px] leading-3 w-[160px]"
-                    variant={metricPieClasse === "quantidade" ? "default" : "outline"}
-                    onClick={() => setMetricPieClasse("quantidade")}
+                    variant={metricPieStatus === "quantidade" ? "default" : "outline"}
+                    onClick={() => setMetricPieStatus("quantidade")}
                   >
                     Número de processos
                   </Button>
                   <Button
                     size="xs"
                     className="text-[10px] leading-3 w-[160px]"
-                    variant={metricPieClasse === "valor_estimado" ? "default" : "outline"}
-                    onClick={() => setMetricPieClasse("valor_estimado")}
+                    variant={metricPieStatus === "valor_estimado" ? "default" : "outline"}
+                    onClick={() => setMetricPieStatus("valor_estimado")}
                   >
                     Valores estimados
                   </Button>
@@ -965,14 +911,14 @@ const VisaoGeral = () => {
             </CardHeader>
             <CardContent className="pt-2 pb-2">
               <ChartContainer
-                config={{ classe: { label: "Classe", color: "hsl(var(--chart-1))" } }}
-                className="w-full !aspect-auto h-[220px] min-h-[220px] overflow-visible"
-                style={{ height: 220 }}
+                config={{ status: { label: "Status", color: "hsl(var(--chart-1))" } }}
+                className="w-full !aspect-auto h-[380px] min-h-[380px] overflow-visible"
+                style={{ height: 380 }}
               >
                 {(() => {
-                  const chartData = (metricPieClasse === "valor_estimado" ? dadosValoresPorClasse : dadosQuantidadePorClasse) as any[];
+                  const chartData = (metricPieStatus === "valor_estimado" ? dadosValoresPorStatus : dadosQuantidadePorStatus) as any[];
                   const data = chartData;
-                  const formatter = (v: number) => (metricPieClasse === "valor_estimado" ? formatCurrencyBRL(v) : v);
+                  const formatter = (v: number) => (metricPieStatus === "valor_estimado" ? formatCurrencyBRL(v) : v);
                   if (!data.length) {
                     return <div className="flex items-center justify-center h-[200px] text-xs text-muted-foreground">Sem dados</div>;
                   }
@@ -992,31 +938,19 @@ const VisaoGeral = () => {
                         verticalAlign="bottom"
                         align="center"
                         iconType="circle"
-                        iconSize={8}
-                        wrapperStyle={{ fontSize: 10, lineHeight: "12px", marginTop: 6 }}
-                        content={({ payload }) => (
-                          <div className="flex items-center justify-center gap-4 pt-3">
-                            {(payload || []).map((item: any) => {
-                              const original = item?.payload?.name ?? item?.value;
-                              let label = abbreviateClasseLabel(original || "");
-                              if (label.length > 18) label = label.slice(0, 18) + "…";
-                              const color = item?.color || item?.payload?.fill;
-                              return (
-                                <div key={original} className="flex items-center gap-1.5">
-                                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: color }} />
-                                  <span title={original}>{label}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
+                        iconSize={12}
+                        wrapperStyle={{ fontSize: 13, lineHeight: "18px", marginTop: 24 }}
+                        formatter={(value: string) => {
+                          const short = value.length > 25 ? value.slice(0, 25) + "…" : value;
+                          return <span title={value} className="capitalize">{short}</span>
+                        }}
                       />
                       <Pie
                         data={data}
                         dataKey="value"
                         nameKey="name"
-                        innerRadius={54}
-                        outerRadius={94}
+                        innerRadius={90}
+                        outerRadius={140}
                         labelLine={false}
                         label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
                           const RADIAN = Math.PI / 180;
@@ -1025,14 +959,14 @@ const VisaoGeral = () => {
                           const y = (cy as number) + radius * Math.sin(-(midAngle as number) * RADIAN);
                           const pct = Math.round(((percent as number) || 0) * 100);
                           return (
-                            <text x={x} y={y} fill="#111827" textAnchor="middle" dominantBaseline="central" fontSize={10}>
+                            <text x={x} y={y} fill="#111827" textAnchor="middle" dominantBaseline="central" fontSize={14} fontWeight={600}>
                               {pct}%
                             </text>
                           );
                         }}
                       >
-                        {data.map((_: any, index: number) => (
-                          <Cell key={`cell-classe-${index}`} fill={pieColors[index % pieColors.length]} />
+                        {data.map((entry: any, index: number) => (
+                          <Cell key={`cell-status-${index}`} fill={STATUS_COLORS[entry.name] || pieColors[index % pieColors.length]} />
                         ))}
                       </Pie>
                     </PieChart>

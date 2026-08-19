@@ -750,7 +750,7 @@ export default function Planejamento2027() {
                         </TableCell>
                         <TableCell className="text-center">{getStatusBadge(row.status_aprovacao, isManagerOrAdmin || false)}</TableCell>
                         <TableCell className="text-center">
-                          {isManagerOrAdmin ? (
+                          {roles?.includes("administrador") ? (
                             <div className="flex items-center justify-center gap-1 flex-wrap">
                               <Button 
                                 variant="ghost" 
@@ -831,7 +831,7 @@ export default function Planejamento2027() {
                               </Button>
                             </div>
                           ) : (
-                            row.status_aprovacao === "Pendente de análise" ? (
+                            row.status_aprovacao === "Pendente de análise" && (!roles?.includes("gestor") || row.created_by === currentUserId) ? (
                               <div className="flex items-center justify-center gap-1.5">
                                 <Button
                                   variant="ghost"

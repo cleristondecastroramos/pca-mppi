@@ -414,19 +414,45 @@ const Relatorios = () => {
       label: "Riscos — Prazos Críticos e Alertas",
       description: "Relatório voltado ao monitoramento das contratações em risco de atraso ou não execução, com destaque para prazos vencidos, demandas próximas do vencimento e contratações que exigem providências imediatas. Serve como instrumento de gestão preventiva para reduzir a chance de descumprimento do PCA ao longo do exercício.",
       icon: AlertCircle,
-      columns: ["Cod. PCA", "Descrição", "Setor", "Data Prevista", "Situação"],
-      csvColumns: ["Cod. PCA", "Descrição", "Setor", "Data Prevista", "Situação"],
+      columns: ["Cod. PCA", "Descrição", "Setor Demandante", "Data Prevista de Início", "Data Prevista de Conclusão", "Valor Previsto para a contratação", "Dias Restantes/Atraso"],
+      csvColumns: ["Cod. PCA", "Descrição", "Setor Demandante", "Data Prevista de Início", "Data Prevista de Conclusão", "Valor Previsto para a contratação", "Dias Restantes/Atraso"],
       mapRow: (r, tipo) => {
-        const status = getPrazoStatus(r);
+        const calculateStart = (tipo: string, mod: string, termino: string) => {
+          if (!termino) return "—";
+          const [y, m, d] = termino.split("-").map(Number);
+          const date = new Date(y, m - 1, d);
+          let days = 120;
+          if (tipo === "Nova Contratação") {
+            if (mod === "Pregão Eletrônico" || mod === "Concorrência" || mod === "Concurso") days = 150;
+            else if (mod === "Dispensa" || mod === "Inexigibilidade" || mod === "ARP (própria)" || mod === "ARP (carona)" || mod === "Credenciamento") days = 90;
+          }
+          date.setDate(date.getDate() - days);
+          return date.toLocaleDateString("pt-BR");
+        };
+        const formatDateStr = (dtStr: string | null) => {
+          if (!dtStr) return "—";
+          const [y, m, d] = dtStr.split("-").map(Number);
+          return new Date(y, m - 1, d).toLocaleDateString("pt-BR");
+        };
+        
+        let dias = "0";
+        if (r.data_prevista_contratacao) {
+          const [y, m, d] = r.data_prevista_contratacao.split("-").map(Number);
+          const dataPrevista = new Date(y, (m || 1) - 1, d || 1);
+          const hoje = new Date();
+          hoje.setHours(0, 0, 0, 0);
+          const diffDays = Math.ceil((dataPrevista.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+          dias = String(diffDays);
+        }
+
         return [
           formatId(r.id, r.codigo),
           String(r.descricao || ""),
           r.setor_requisitante || "",
-          r.data_prevista_contratacao ? (() => {
-            const [y, m, d] = r.data_prevista_contratacao.split("-").map(Number);
-            return new Date(y, m - 1, d).toLocaleDateString("pt-BR");
-          })() : "—",
-          status.label
+          calculateStart(r.tipo_contratacao, r.modalidade, r.data_prevista_contratacao),
+          formatDateStr(r.data_prevista_contratacao),
+          r.valor_estimado || 0,
+          dias
         ];
       },
       title: (n) => `Relatório de Riscos e Prazos (${n} registros)`,
@@ -603,11 +629,23 @@ const Relatorios = () => {
           const status = getPrazoStatus(r);
           return status.variant === 'destructive' || status.variant === 'warning';
         });
+        
+        const getDelayDays = (r: any) => {
+          if (!r.data_prevista_contratacao) return -99999;
+          const [y, m, d] = r.data_prevista_contratacao.split("-").map(Number);
+          const date = new Date(y, (m || 1) - 1, d || 1);
+          const hoje = new Date();
+          hoje.setHours(0, 0, 0, 0);
+          return Math.ceil((hoje.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+        };
+
         sourceRows.sort((a, b) => {
           const sa = getPrazoStatus(a);
           const sb = getPrazoStatus(b);
-          if (sa.variant === sb.variant) return 0;
-          return sa.variant === 'destructive' ? -1 : 1;
+          if (sa.variant !== sb.variant) {
+            return sa.variant === 'destructive' ? -1 : 1;
+          }
+          return getDelayDays(b) - getDelayDays(a);
         });
       } else if (rType === 'sobrestadas') {
         sourceRows = sourceRows.filter(r => r.sobrestado === true);
@@ -1766,20 +1804,21 @@ const Relatorios = () => {
         const widthClass = (col: string) => {
           if (col === "Cod. PCA") return "col-ID";
           if (col === "Descrição") return "col-Descrição";
-          if (col === "Setor") return "col-Setor";
+          if (col === "Setor" || col === "Setor Demandante") return "col-Setor";
           if (col === "Setor Requisitante") return "col-Descrição"; // Para deixar mais largo no relatório setorial
           if (col === "Prioridade" || col === "Prior.") return "col-Prioridade";
           if (col === "Mod." || col === "Modalidade") return "col-Modalidade";
           if (col === "Status" || col === "Situação") return "col-Status";
-          if (col.includes("Data")) return "col-Data";
+          if (col.includes("Data") || col.includes("Início") || col.includes("Conclusão")) return "col-Data";
           if (col === "SEI") return "col-SEI";
           if (col === "Conformidade") return "col-Status";
           if (col === "Valor Planejado") return "col-Valor-Estimado";
           if (col === "Valor Executado") return "col-Valor-Executado";
-          if (["Valor Contratado", "Valor", "Valor Unitário", "Valor Retido", "Saldo Restante"].includes(col)) return "col-Valor";
+          if (["Valor Contratado", "Valor", "Valor Unitário", "Valor Retido", "Saldo Restante", "Valor Previsto", "Valor Previsto para a contratação"].includes(col)) return "col-Valor";
           if (col === "Tipo Sobr.") return "col-Status";
           if (col === "Demandas" || col === "Demandas Ativas") return "col-ID";
           if (col === "Quantidade" || col === "Qtd") return "col-ID";
+          if (col === "Dias Restantes/Atraso") return "col-Status";
           return "";
         };
         const headersHtml = def.columns.map((c) => `<th class="${widthClass(c)}">${c}</th>`).join("");
@@ -1795,7 +1834,7 @@ const Relatorios = () => {
                 val = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v) || 0);
               } else if (col.toLowerCase().includes("quantidade") || col === "Qtd" || col === "Demandas Ativas" || col === "Demandas") {
                 val = new Intl.NumberFormat("pt-BR").format(Number(v) || 0);
-              } else if (col.includes("Data")) {
+              } else if (col.includes("Data") || col.includes("Início") || col.includes("Conclusão")) {
                 const dt = String(v || "");
                 if (dt.includes("-") && dt.length === 10) {
                   const [y, m, d] = dt.split("-").map(Number);
@@ -1803,6 +1842,20 @@ const Relatorios = () => {
                 } else {
                   val = dt;
                 }
+              } else if (col === "Dias Restantes/Atraso") {
+                const diasNum = Number(v);
+                if (diasNum < 0) {
+                  val = `<span style="font-weight: 700; color: #dc2626;">${Math.abs(diasNum)}</span>`;
+                } else {
+                  val = `<span style="font-weight: 700; color: #d97706;">${diasNum}</span>`;
+                }
+              } else if (col === "Situação") {
+                let badgeStyle = "padding: 2.5px 6px; border-radius: 4px; font-weight: 600; font-size: 7.5pt; display: inline-block;";
+                const sVal = String(v);
+                if (sVal.includes("Atrasado") || sVal.includes("Risco")) badgeStyle += " background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;";
+                else if (sVal.includes("Atenção") || sVal.includes("Alerta")) badgeStyle += " background: #fffbeb; color: #d97706; border: 1px solid #fde68a;";
+                else badgeStyle += " background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;";
+                val = `<span style="${badgeStyle}">${sVal}</span>`;
               } else {
                 val = String(v).replace(/</g, "&lt;");
               }
@@ -1811,7 +1864,7 @@ const Relatorios = () => {
                   ? "text-right"
                   : (col === "Descrição" || col === "Setor Requisitante")
                     ? "text-left"
-                    : ["Cod. PCA", "Setor", "Prioridade", "Status", "Situação", "Conformidade", "Demandas Ativas", "Demandas"].includes(col) || col.includes("Data")
+                    : ["Cod. PCA", "Setor", "Setor Demandante", "Prioridade", "Status", "Situação", "Conformidade", "Demandas Ativas", "Demandas", "Dias Restantes/Atraso"].includes(col) || col.includes("Data") || col.includes("Início") || col.includes("Conclusão")
                       ? "text-center"
                       : "text-left";
               return `<td class="${align} ${widthClass(col)}" style="page-break-inside: avoid !important; break-inside: avoid !important;">${val}</td>`;
@@ -1858,7 +1911,7 @@ const Relatorios = () => {
         const totalExecutado = sourceRows.reduce((acc, r) => acc + (Number(r.valor_executado || r.valor_contratado || 0)), 0);
         const formatCurrency = (v: any) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v) || 0);
 
-        const isLandscape = ["gerencial_completo", "sobrestadas", "orcamento_setorial"].includes(rType);
+        const isLandscape = ["gerencial_completo", "sobrestadas", "orcamento_setorial", "prazos_riscos"].includes(rType);
         const primary = "#D9415D";
         const today = new Date().toLocaleString('pt-BR');
         const title = REPORT_TYPES[rType].title(sourceRows.length);
@@ -2102,6 +2155,14 @@ const Relatorios = () => {
                 .col-Valor { width: 11%; }
                 table.data-report-table th, table.data-report-table td { font-size: 8.5px; padding: 3px 5px; }
               ` : ""}
+              ${rType === "prazos_riscos" ? `
+                .col-ID { width: 7%; }
+                .col-Descrição { width: auto; }
+                .col-Setor { width: 12%; }
+                .col-Data { width: 9%; }
+                .col-Valor { width: 12%; }
+                .col-Status { width: 7%; }
+              ` : ""}
 
               td.col-Descrição { white-space: normal; hyphens: auto; line-height: 1.25; font-weight: 500; }
               ${rType === "sei" ? `.col-Descrição{width:40%}.col-SEI{width:24%}` : ""}
@@ -2140,6 +2201,45 @@ const Relatorios = () => {
                     <div class="report-content-body">
                       ${filterHtml}
                       ${rType === "por_status" ? `<div style="font-size: 8.5px; color: #64748b; margin-bottom: 4px; text-align: center;">A coluna "Data de Referência" exibe: se o status for <strong>concluído</strong>, a data de finalização da licitação; caso contrário, a <strong>data de criação</strong> da contratação.</div>` : ""}
+                      ${rType === 'prazos_riscos' ? (() => {
+                         const atrasados = sourceRows.filter(r => {
+                           const st = getPrazoStatus(r);
+                           return st.variant === 'destructive';
+                         });
+                         const alertas = sourceRows.filter(r => {
+                           const st = getPrazoStatus(r);
+                           return st.variant === 'warning';
+                         });
+                         let htmlContent = '';
+                         if (atrasados.length > 0) {
+                             const headersAtraso = headersHtml.replace("Dias Restantes/Atraso", "Dias de Atraso");
+                             htmlContent += `
+                               <div style="margin-top: 10px; margin-bottom: 5px;">
+                                 <h3 style="color: #dc2626; font-size: 11px; margin: 0 0 4px 0; border-bottom: 1.5px solid #dc2626; padding-bottom: 2px;">🔴 DEMANDAS ATRASADAS / EM RISCO (${atrasados.length} processos)</h3>
+                                 <table class="data-report-table">
+                                   <thead><tr>${headersAtraso}</tr></thead>
+                                   <tbody>${generateTableRowsHtml(atrasados)}</tbody>
+                                 </table>
+                               </div>
+                             `;
+                         }
+                         if (alertas.length > 0) {
+                             const headersAlerta = headersHtml.replace("Dias Restantes/Atraso", "Dias Restantes");
+                             htmlContent += `
+                               <div style="margin-top: 15px; margin-bottom: 5px;">
+                                 <h3 style="color: #d97706; font-size: 11px; margin: 0 0 4px 0; border-bottom: 1.5px solid #d97706; padding-bottom: 2px;">🟡 DEMANDAS EM ALERTA (${alertas.length} processos)</h3>
+                                 <table class="data-report-table">
+                                   <thead><tr>${headersAlerta}</tr></thead>
+                                   <tbody>${generateTableRowsHtml(alertas)}</tbody>
+                                 </table>
+                               </div>
+                             `;
+                         }
+                         if (atrasados.length === 0 && alertas.length === 0) {
+                            htmlContent += `<div style="text-align: center; margin-top: 20px; font-size: 10px; color: #64748b;">Nenhuma demanda em risco ou atrasada encontrada para os filtros aplicados.</div>`;
+                         }
+                         return htmlContent;
+                      })() : `
                       <table class="data-report-table">
                         <thead><tr>${headersHtml}</tr></thead>
                         <tbody>
@@ -2147,6 +2247,7 @@ const Relatorios = () => {
                           ${generateFooterRowHtml(sourceRows)}
                         </tbody>
                       </table>
+                      `}
                     </div>
                   </td>
                 </tr>
