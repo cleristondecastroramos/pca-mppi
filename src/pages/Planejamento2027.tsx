@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserProfile, useUserRoles } from "@/lib/auth";
@@ -63,6 +64,62 @@ export default function Planejamento2027() {
   const [filterCategoria, setFilterCategoria] = useState("Todas");
   const [filterPrioridade, setFilterPrioridade] = useState("Todas");
   const [filterAprovacao, setFilterAprovacao] = useState("Todas");
+
+  // Auditoria State
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [loadingAudit, setLoadingAudit] = useState(false);
+  const [auditStartDate, setAuditStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    return d.toISOString().split("T")[0];
+  });
+  const [auditEndDate, setAuditEndDate] = useState(() => {
+    return new Date().toISOString().split("T")[0];
+  });
+
+  const loadAuditLogs = async () => {
+    if (!roles?.includes("administrador")) return;
+    setLoadingAudit(true);
+    try {
+      let start = new Date(auditStartDate);
+      start.setHours(0, 0, 0, 0);
+      let end = new Date(auditEndDate);
+      end.setHours(23, 59, 59, 999);
+
+      const { data, error } = await supabase
+        .from("contratacoes_historico")
+        .select(`
+          id, acao, dados_anteriores, dados_novos, created_at,
+          profiles!contratacoes_historico_user_id_fkey(nome)
+        `)
+        .gte("created_at", start.toISOString())
+        .lte("created_at", end.toISOString())
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      
+      // Filtrar apenas o que é do exercício 2027
+      const filtered = (data || []).filter((log: any) => {
+        const exercicioNovo = log.dados_novos?.exercicio;
+        const exercicioAntigo = log.dados_anteriores?.exercicio;
+        return exercicioNovo === 2027 || exercicioAntigo === 2027;
+      });
+
+      setAuditLogs(filtered);
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Erro ao carregar auditoria: " + (e.message || e));
+    } finally {
+      setLoadingAudit(false);
+    }
+  };
+
+  useEffect(() => {
+    if (roles?.includes("administrador")) {
+      loadAuditLogs();
+    }
+  }, [roles, auditStartDate, auditEndDate]);
+
 
   const loadDemands = async () => {
     if (!profile || !roles) return;
@@ -557,51 +614,60 @@ export default function Planejamento2027() {
           </div>
         </div>
 
-        {/* Dashboard Cards / KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md">
-            <CardHeader className="py-4 pb-2">
-              <CardDescription className="text-xs uppercase font-bold tracking-wider">Demandas Enviadas</CardDescription>
-              <CardTitle className="text-2xl font-bold">{totalSubmitted}</CardTitle>
-            </CardHeader>
-          </Card>
-          <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md">
-            <CardHeader className="py-4 pb-2">
-              <CardDescription className="text-xs uppercase font-bold tracking-wider">Valor Total Estimado</CardDescription>
-              <CardTitle className="text-2xl font-bold text-primary">
-                {totalValue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-          <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md">
-            <CardHeader className="py-4 pb-2">
-              <CardDescription className="text-xs uppercase font-bold tracking-wider">Aprovadas</CardDescription>
-              <CardTitle className="text-2xl font-bold text-emerald-500">{totalApproved}</CardTitle>
-            </CardHeader>
-          </Card>
-          <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md">
-            <CardHeader className="py-4 pb-2">
-              <CardDescription className="text-xs uppercase font-bold tracking-wider">Pendentes</CardDescription>
-              <CardTitle className="text-2xl font-bold text-amber-500">{totalPending}</CardTitle>
-            </CardHeader>
-          </Card>
-          <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md">
-            <CardHeader className="py-4 pb-2">
-              <CardDescription className="text-xs uppercase font-bold tracking-wider">Não Aprovadas</CardDescription>
-              <CardTitle className="text-2xl font-bold text-rose-500">{totalRejected}</CardTitle>
-            </CardHeader>
-          </Card>
-        </div>
+        {/* Tabs for Admin */}
+        {roles?.includes("administrador") ? (
+          <Tabs defaultValue="demandas" className="w-full space-y-6">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="demandas" className="font-bold">Demandas PCA 2027</TabsTrigger>
+              <TabsTrigger value="auditoria" className="font-bold">Auditoria (Logs)</TabsTrigger>
+            </TabsList>
 
-        {/* List of Demands */}
-        <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md shadow-sm">
-          <CardHeader className="pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <CardTitle className="text-lg font-bold">Quadro Geral de Demandas</CardTitle>
-              <CardDescription>Consulte as demandas e acompanhe as decisões da administração</CardDescription>
-            </div>
-            <div className="flex items-center w-full max-w-sm gap-2 bg-slate-50 dark:bg-slate-950 border px-3 py-1 rounded-lg">
-              <Search className="h-4 w-4 text-slate-400" />
+            <TabsContent value="demandas" className="space-y-6 mt-0">
+              {/* Dashboard Cards / KPIs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md">
+                  <CardHeader className="py-4 pb-2">
+                    <CardDescription className="text-xs uppercase font-bold tracking-wider">Demandas Enviadas</CardDescription>
+                    <CardTitle className="text-2xl font-bold">{totalSubmitted}</CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md">
+                  <CardHeader className="py-4 pb-2">
+                    <CardDescription className="text-xs uppercase font-bold tracking-wider">Valor Total Estimado</CardDescription>
+                    <CardTitle className="text-2xl font-bold text-primary">
+                      {totalValue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md">
+                  <CardHeader className="py-4 pb-2">
+                    <CardDescription className="text-xs uppercase font-bold tracking-wider">Aprovadas</CardDescription>
+                    <CardTitle className="text-2xl font-bold text-emerald-500">{totalApproved}</CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md">
+                  <CardHeader className="py-4 pb-2">
+                    <CardDescription className="text-xs uppercase font-bold tracking-wider">Pendentes</CardDescription>
+                    <CardTitle className="text-2xl font-bold text-amber-500">{totalPending}</CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md">
+                  <CardHeader className="py-4 pb-2">
+                    <CardDescription className="text-xs uppercase font-bold tracking-wider">Não Aprovadas</CardDescription>
+                    <CardTitle className="text-2xl font-bold text-rose-500">{totalRejected}</CardTitle>
+                  </CardHeader>
+                </Card>
+              </div>
+
+              {/* List of Demands */}
+              <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md shadow-sm">
+                <CardHeader className="pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <CardTitle className="text-lg font-bold">Quadro Geral de Demandas</CardTitle>
+                    <CardDescription>Consulte as demandas e acompanhe as decisões da administração</CardDescription>
+                  </div>
+                  <div className="flex items-center w-full max-w-sm gap-2 bg-slate-50 dark:bg-slate-950 border px-3 py-1 rounded-lg">
+                    <Search className="h-4 w-4 text-slate-400" />
               <Input
                 placeholder="Pesquisar por descrição, setor, código..."
                 value={search}
@@ -663,18 +729,18 @@ export default function Planejamento2027() {
           </div>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="border-collapse border border-slate-200 dark:border-slate-800 w-full">
                 <TableHeader>
                   <TableRow className="bg-primary hover:bg-primary/90">
-                    {isManagerOrAdmin && <TableHead className="font-bold text-white text-center">Unidade</TableHead>}
-                    <TableHead className="font-bold text-white text-center">Objeto / Descrição</TableHead>
-                    <TableHead className="font-bold text-white text-center">Categoria / Grupo</TableHead>
-                    <TableHead className="font-bold text-white text-center">Qtd</TableHead>
-                    <TableHead className="font-bold text-white text-center">Valor Unitário</TableHead>
-                    <TableHead className="font-bold text-white text-center">Valor Total</TableHead>
-                    <TableHead className="font-bold text-white text-center">Prioridade</TableHead>
-                    <TableHead className="font-bold text-white text-center">Aprovação</TableHead>
-                    <TableHead className="font-bold text-white text-center">{isManagerOrAdmin ? "Ações de Análise" : "Ações"}</TableHead>
+                    {isManagerOrAdmin && <TableHead className="font-bold text-white text-center border border-slate-300 dark:border-slate-700">Unidade</TableHead>}
+                    <TableHead className="font-bold text-white text-center border border-slate-300 dark:border-slate-700">Objeto / Descrição</TableHead>
+                    <TableHead className="font-bold text-white text-center border border-slate-300 dark:border-slate-700">Categoria / Grupo</TableHead>
+                    <TableHead className="font-bold text-white text-center border border-slate-300 dark:border-slate-700">Qtd</TableHead>
+                    <TableHead className="font-bold text-white text-center border border-slate-300 dark:border-slate-700">Valor Unitário</TableHead>
+                    <TableHead className="font-bold text-white text-center border border-slate-300 dark:border-slate-700">Valor Total</TableHead>
+                    <TableHead className="font-bold text-white text-center border border-slate-300 dark:border-slate-700">Prioridade</TableHead>
+                    <TableHead className="font-bold text-white text-center border border-slate-300 dark:border-slate-700">Aprovação</TableHead>
+                    <TableHead className="font-bold text-white text-center border border-slate-300 dark:border-slate-700">{isManagerOrAdmin ? "Ações de Análise" : "Ações"}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -693,8 +759,8 @@ export default function Planejamento2027() {
                   ) : (
                     filteredDemands.map((row) => (
                       <TableRow key={row.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
-                        {isManagerOrAdmin && <TableCell className="font-semibold">{row.unidade_demandante}</TableCell>}
-                        <TableCell className="max-w-xs">
+                        {isManagerOrAdmin && <TableCell className="font-semibold border border-slate-200 dark:border-slate-800">{row.unidade_demandante}</TableCell>}
+                        <TableCell className="max-w-xs border border-slate-200 dark:border-slate-800">
                           <div className="font-medium text-slate-900 dark:text-white line-clamp-2">{row.descricao}</div>
                           {row.justificativa && (
                             <TooltipProvider>
@@ -722,7 +788,7 @@ export default function Planejamento2027() {
                             </div>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="border border-slate-200 dark:border-slate-800">
                           <div className="font-medium text-slate-700 dark:text-slate-300">
                             {row.categoria_material_ou_servico || "—"}
                           </div>
@@ -732,14 +798,14 @@ export default function Planejamento2027() {
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-right font-mono">{row.quantidade_itens || row.quantidade || 0} {row.unidade_fornecimento}</TableCell>
-                        <TableCell className="text-right font-mono">
+                        <TableCell className="text-right font-mono border border-slate-200 dark:border-slate-800">{row.quantidade_itens || row.quantidade || 0} {row.unidade_fornecimento}</TableCell>
+                        <TableCell className="text-right font-mono border border-slate-200 dark:border-slate-800">
                           {Number(row.valor_unitario || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                         </TableCell>
-                        <TableCell className="text-right font-bold font-mono">
+                        <TableCell className="text-right font-bold font-mono border border-slate-200 dark:border-slate-800">
                           {Number(row.valor_estimado || row.valor_total || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="text-center border border-slate-200 dark:border-slate-800">
                           <Badge variant="secondary" className={`font-semibold ${
                             (row.grau_prioridade || row.prioridade) === "Alta" ? "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400" :
                             (row.grau_prioridade || row.prioridade) === "Baixa" ? "bg-slate-100 text-slate-700 dark:bg-slate-850 dark:text-slate-400" :
@@ -748,8 +814,8 @@ export default function Planejamento2027() {
                             {row.grau_prioridade || row.prioridade}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-center">{getStatusBadge(row.status_aprovacao, isManagerOrAdmin || false)}</TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="text-center border border-slate-200 dark:border-slate-800">{getStatusBadge(row.status_aprovacao, isManagerOrAdmin || false)}</TableCell>
+                        <TableCell className="text-center border border-slate-200 dark:border-slate-800">
                           {roles?.includes("administrador") ? (
                             <div className="flex items-center justify-center gap-1 flex-wrap">
                               <Button 
@@ -875,6 +941,345 @@ export default function Planejamento2027() {
             </div>
           </CardContent>
         </Card>
+            </TabsContent>
+
+            <TabsContent value="auditoria" className="space-y-6">
+              <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md shadow-sm">
+                <CardHeader className="pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b">
+                  <div>
+                    <CardTitle className="text-lg font-bold flex items-center gap-2">
+                      <RefreshCw className="h-5 w-5 text-primary" />
+                      Auditoria de Alterações (PCA 2027)
+                    </CardTitle>
+                    <CardDescription>Consulte o histórico de inclusões, edições e exclusões no PCA 2027</CardDescription>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Data Inicial</Label>
+                      <Input 
+                        type="date" 
+                        value={auditStartDate} 
+                        onChange={(e) => setAuditStartDate(e.target.value)} 
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Data Final</Label>
+                      <Input 
+                        type="date" 
+                        value={auditEndDate} 
+                        onChange={(e) => setAuditEndDate(e.target.value)} 
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div className="pt-5">
+                      <Button size="sm" variant="outline" onClick={loadAuditLogs} disabled={loadingAudit}>
+                        <RefreshCw className={`h-4 w-4 mr-2 ${loadingAudit ? 'animate-spin' : ''}`} /> Filtrar
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <Table className="border-collapse border border-slate-200 dark:border-slate-800 w-full">
+                      <TableHeader>
+                        <TableRow className="bg-slate-100 dark:bg-slate-800/50">
+                          <TableHead className="font-bold border border-slate-200 dark:border-slate-800">Data/Hora</TableHead>
+                          <TableHead className="font-bold border border-slate-200 dark:border-slate-800">Usuário</TableHead>
+                          <TableHead className="font-bold border border-slate-200 dark:border-slate-800">Ação</TableHead>
+                          <TableHead className="font-bold border border-slate-200 dark:border-slate-800">Detalhes</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {loadingAudit ? (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center py-10 text-slate-500">
+                              <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" /> Carregando logs de auditoria...
+                            </TableCell>
+                          </TableRow>
+                        ) : auditLogs.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center py-10 text-slate-500">
+                              Nenhum registro de auditoria encontrado para o período.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          auditLogs.map((log) => (
+                            <TableRow key={log.id}>
+                              <TableCell className="border border-slate-200 dark:border-slate-800 whitespace-nowrap text-sm">
+                                {new Date(log.created_at).toLocaleString('pt-BR')}
+                              </TableCell>
+                              <TableCell className="border border-slate-200 dark:border-slate-800 font-medium">
+                                {log.profiles?.nome || 'Usuário Desconhecido'}
+                              </TableCell>
+                              <TableCell className="border border-slate-200 dark:border-slate-800">
+                                <Badge variant="outline" className={
+                                  log.acao === 'Criação' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                  log.acao === 'Edição' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                  log.acao === 'Exclusão' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                                  'bg-slate-50 text-slate-700 border-slate-200'
+                                }>
+                                  {log.acao}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="border border-slate-200 dark:border-slate-800">
+                                <div className="text-xs space-y-1">
+                                  {log.acao === 'Criação' && log.dados_novos && (
+                                    <>
+                                      <div><strong>Objeto:</strong> {log.dados_novos.descricao}</div>
+                                      <div><strong>Unidade:</strong> {log.dados_novos.unidade_demandante}</div>
+                                    </>
+                                  )}
+                                  {log.acao === 'Exclusão' && log.dados_anteriores && (
+                                    <>
+                                      <div><strong>Objeto Removido:</strong> {log.dados_anteriores.descricao}</div>
+                                      <div><strong>Unidade:</strong> {log.dados_anteriores.unidade_demandante}</div>
+                                    </>
+                                  )}
+                                  {log.acao === 'Edição' && (
+                                    <div className="flex flex-col gap-1">
+                                      <div className="text-slate-500 line-clamp-1"><strong>Antes:</strong> Qtd: {log.dados_anteriores?.quantidade_itens || log.dados_anteriores?.quantidade}, Valor: R$ {log.dados_anteriores?.valor_unitario}, Justificativa: {log.dados_anteriores?.justificativa || log.dados_anteriores?.justificativa_alteracao}</div>
+                                      <div className="text-primary line-clamp-1"><strong>Depois:</strong> Qtd: {log.dados_novos?.quantidade_itens || log.dados_novos?.quantidade}, Valor: R$ {log.dados_novos?.valor_unitario}, Justificativa: {log.dados_novos?.justificativa || log.dados_novos?.justificativa_alteracao || log.dados_novos?.justificativa_nao_aprovacao}</div>
+                                    </div>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <div className="space-y-6 mt-0">
+            {/* Renderiza o mesmo conteúdo original de Demandas para Não-Administradores */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md">
+                <CardHeader className="py-4 pb-2">
+                  <CardDescription className="text-xs uppercase font-bold tracking-wider">Demandas Enviadas</CardDescription>
+                  <CardTitle className="text-2xl font-bold">{totalSubmitted}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md">
+                <CardHeader className="py-4 pb-2">
+                  <CardDescription className="text-xs uppercase font-bold tracking-wider">Valor Total Estimado</CardDescription>
+                  <CardTitle className="text-2xl font-bold text-primary">
+                    {totalValue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+              <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md">
+                <CardHeader className="py-4 pb-2">
+                  <CardDescription className="text-xs uppercase font-bold tracking-wider">Aprovadas</CardDescription>
+                  <CardTitle className="text-2xl font-bold text-emerald-500">{totalApproved}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md">
+                <CardHeader className="py-4 pb-2">
+                  <CardDescription className="text-xs uppercase font-bold tracking-wider">Pendentes</CardDescription>
+                  <CardTitle className="text-2xl font-bold text-amber-500">{totalPending}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md">
+                <CardHeader className="py-4 pb-2">
+                  <CardDescription className="text-xs uppercase font-bold tracking-wider">Não Aprovadas</CardDescription>
+                  <CardTitle className="text-2xl font-bold text-rose-500">{totalRejected}</CardTitle>
+                </CardHeader>
+              </Card>
+            </div>
+
+            {/* List of Demands for Non-Admin */}
+            <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md shadow-sm">
+              <CardHeader className="pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <CardTitle className="text-lg font-bold">Quadro Geral de Demandas</CardTitle>
+                  <CardDescription>Consulte as demandas e acompanhe as decisões da administração</CardDescription>
+                </div>
+                <div className="flex items-center w-full max-w-sm gap-2 bg-slate-50 dark:bg-slate-950 border px-3 py-1 rounded-lg">
+                  <Search className="h-4 w-4 text-slate-400" />
+                  <Input
+                    placeholder="Pesquisar por descrição, setor, código..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="border-none bg-transparent h-8 focus-visible:ring-0 p-0 text-sm"
+                  />
+                </div>
+              </CardHeader>
+              <div className="px-6 pb-4 pt-0 grid grid-cols-1 md:grid-cols-4 gap-4 border-b border-slate-100 dark:border-slate-800">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Categoria / Grupo</Label>
+                  <Select value={filterCategoria} onValueChange={setFilterCategoria}>
+                    <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Todas" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Todas">Todas as categorias</SelectItem>
+                      {uniqueCategorias.map(c => <SelectItem key={c as string} value={c as string}>{c as string}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Grau de Prioridade</Label>
+                  <Select value={filterPrioridade} onValueChange={setFilterPrioridade}>
+                    <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Todas" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Todas">Todas as prioridades</SelectItem>
+                      <SelectItem value="Alta">Alta</SelectItem>
+                      <SelectItem value="Média">Média</SelectItem>
+                      <SelectItem value="Baixa">Baixa</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Aprovação</Label>
+                  <Select value={filterAprovacao} onValueChange={setFilterAprovacao}>
+                    <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Todas" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Todas">Todas</SelectItem>
+                      <SelectItem value="Aprovada integralmente">Aprovada Integralmente</SelectItem>
+                      <SelectItem value="Aprovada parcialmente">Aprovada Parcialmente</SelectItem>
+                      <SelectItem value="Não aprovada">Não Aprovada</SelectItem>
+                      <SelectItem value="Pendente de análise">
+                        {isManagerOrAdmin ? "Pendente" : "Aguardando Análise"}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table className="border-collapse border border-slate-200 dark:border-slate-800 w-full">
+                    <TableHeader>
+                      <TableRow className="bg-primary hover:bg-primary/90">
+                        <TableHead className="font-bold text-white text-center border border-slate-300 dark:border-slate-700">Objeto / Descrição</TableHead>
+                        <TableHead className="font-bold text-white text-center border border-slate-300 dark:border-slate-700">Categoria / Grupo</TableHead>
+                        <TableHead className="font-bold text-white text-center border border-slate-300 dark:border-slate-700">Qtd</TableHead>
+                        <TableHead className="font-bold text-white text-center border border-slate-300 dark:border-slate-700">Valor Unitário</TableHead>
+                        <TableHead className="font-bold text-white text-center border border-slate-300 dark:border-slate-700">Valor Total</TableHead>
+                        <TableHead className="font-bold text-white text-center border border-slate-300 dark:border-slate-700">Prioridade</TableHead>
+                        <TableHead className="font-bold text-white text-center border border-slate-300 dark:border-slate-700">Aprovação</TableHead>
+                        <TableHead className="font-bold text-white text-center border border-slate-300 dark:border-slate-700">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {loading ? (
+                        <TableRow>
+                          <TableCell colSpan={8} className="text-center py-10 text-slate-500 border border-slate-200 dark:border-slate-800">
+                            <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" /> Carregando demandas...
+                          </TableCell>
+                        </TableRow>
+                      ) : filteredDemands.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={8} className="text-center py-10 text-slate-500 border border-slate-200 dark:border-slate-800">
+                            Nenhuma demanda encontrada.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        filteredDemands.map((row) => (
+                          <TableRow key={row.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                            <TableCell className="max-w-xs border border-slate-200 dark:border-slate-800">
+                              <div className="font-medium text-slate-900 dark:text-white line-clamp-2">{row.descricao}</div>
+                              {row.justificativa && (
+                                <TooltipProvider>
+                                  <Tooltip delayDuration={150}>
+                                    <TooltipTrigger asChild>
+                                      <div className="mt-1.5 inline-flex items-center gap-1.5 text-[11px] text-amber-900 dark:text-amber-300 bg-amber-50/90 dark:bg-amber-950/50 border border-amber-200/80 dark:border-amber-800/60 px-2 py-0.5 rounded-md cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/70 transition-colors max-w-full">
+                                        <FileText className="h-3 w-3 text-amber-600 dark:text-amber-400 shrink-0" />
+                                        <span className="font-medium truncate max-w-[220px]">Justificativa: {row.justificativa}</span>
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top" align="start" className="max-w-md p-3.5 bg-slate-900 text-slate-100 border border-slate-700 shadow-2xl rounded-xl z-[999]">
+                                      <p className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                                        <FileText className="h-3.5 w-3.5 text-amber-400" /> Justificativa do Setor Requisitante
+                                      </p>
+                                      <p className="text-xs leading-relaxed text-slate-200 whitespace-pre-wrap font-normal">
+                                        {row.justificativa}
+                                      </p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              )}
+                              {row.status_aprovacao === "Não aprovada" && row.justificativa_nao_aprovacao && (
+                                <div className="text-xs text-rose-500 mt-1.5 p-2 bg-rose-500/5 border border-rose-500/10 rounded">
+                                  <span className="font-bold">Motivo Rejeição:</span> {row.justificativa_nao_aprovacao}
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell className="border border-slate-200 dark:border-slate-800">
+                              <div className="font-medium text-slate-700 dark:text-slate-300">
+                                {row.categoria_material_ou_servico || "—"}
+                              </div>
+                              {row.catmat_catser_codigo && (
+                                <Badge variant="outline" className="mt-1.5 text-[10px] text-slate-500 font-mono">
+                                  {row.catmat_catser_tipo}: {row.catmat_catser_codigo}
+                                </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right font-mono border border-slate-200 dark:border-slate-800">{row.quantidade_itens || row.quantidade || 0} {row.unidade_fornecimento}</TableCell>
+                            <TableCell className="text-right font-mono border border-slate-200 dark:border-slate-800">
+                              {Number(row.valor_unitario || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                            </TableCell>
+                            <TableCell className="text-right font-bold font-mono border border-slate-200 dark:border-slate-800">
+                              {Number(row.valor_estimado || row.valor_total || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                            </TableCell>
+                            <TableCell className="text-center border border-slate-200 dark:border-slate-800">
+                              <Badge variant="secondary" className={`font-semibold ${
+                                (row.grau_prioridade || row.prioridade) === "Alta" ? "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400" :
+                                (row.grau_prioridade || row.prioridade) === "Baixa" ? "bg-slate-100 text-slate-700 dark:bg-slate-850 dark:text-slate-400" :
+                                "bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400"
+                              }`}>
+                                {row.grau_prioridade || row.prioridade}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-center border border-slate-200 dark:border-slate-800">{getStatusBadge(row.status_aprovacao, false)}</TableCell>
+                            <TableCell className="text-center border border-slate-200 dark:border-slate-800">
+                              {row.status_aprovacao === "Pendente de análise" && (!roles?.includes("gestor") || row.created_by === currentUserId) ? (
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                                    title="Editar Demanda"
+                                    onClick={() => handleEditDemand(row)}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                                    title="Excluir Demanda"
+                                    onClick={() => openDeleteDemand(row)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                (row.status_aprovacao === "Aprovada parcialmente" || row.status_aprovacao === "Não aprovada") ? (
+                                  <Button
+                                    size="sm"
+                                    className="h-8 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                                    onClick={() => handleViewReason(row)}
+                                  >
+                                    <Eye className="h-3 w-3 mr-1" /> Ver Motivo
+                                  </Button>
+                                ) : (
+                                  <span className="text-[11px] text-emerald-600 font-semibold">Aprovada</span>
+                                )
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Modal: Approve Partially */}
         <Dialog open={isPartialOpen} onOpenChange={setIsPartialOpen}>
