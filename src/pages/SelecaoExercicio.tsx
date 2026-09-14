@@ -20,10 +20,11 @@ export default function SelecaoExercicio() {
   const { data: profile, isLoading: isProfileLoading } = useUserProfile(userId);
   const { data: roles } = useUserRoles(userId);
 
+  const isAdmin = roles?.includes("administrador");
   const exerciciosPermitidos: number[] = (profile as any)?.exercicios_permitidos ?? [];
-  const hasAccess2026 = exerciciosPermitidos.includes(2026);
+  const hasAccess2026 = isAdmin || exerciciosPermitidos.includes(2026);
   const pca2027Locked = isPca2027LockedForRoles(roles);
-  const hasAccess2027 = exerciciosPermitidos.includes(2027) && !pca2027Locked;
+  const hasAccess2027 = isAdmin || (exerciciosPermitidos.includes(2027) && !pca2027Locked);
 
   // Redireciona para /auth se não houver sessão
   useEffect(() => {
@@ -32,9 +33,9 @@ export default function SelecaoExercicio() {
     }
   }, [isSessionLoading, session, navigate]);
 
-  // Auto-seleciona exercício se o usuário tiver acesso a apenas um
+  // Auto-seleciona exercício se o usuário tiver acesso a apenas um (exceto admin)
   useEffect(() => {
-    if (!isProfileLoading && profile && exerciciosPermitidos.length === 1) {
+    if (!isProfileLoading && profile && !isAdmin && exerciciosPermitidos.length === 1) {
       const unico = exerciciosPermitidos[0];
       if (unico === 2027 && pca2027Locked) {
         navigate("/pca-2027-indisponivel", { replace: true });
@@ -47,7 +48,7 @@ export default function SelecaoExercicio() {
         navigate("/nova-demanda", { replace: true });
       }
     }
-  }, [profile, isProfileLoading, exerciciosPermitidos, navigate, setExercise, pca2027Locked]);
+  }, [profile, isProfileLoading, exerciciosPermitidos, navigate, setExercise, pca2027Locked, isAdmin]);
 
   // -----------------------------------------------------------------------
   // Verificação de troca de senha obrigatória
