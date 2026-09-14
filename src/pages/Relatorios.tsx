@@ -338,6 +338,46 @@ const Relatorios = () => {
       },
       title: (n) => `Plano de Contratações Anual — PCA ${exercise} (Lista de ${n} Itens)`,
     },
+    pca_4_0: {
+      label: `Documento — PCA ${exercise} (Versão 4.0)`,
+      description: `Nova versão atualizada do Plano de Contratações Anual do MPPI para ${exercise}, consolidando as demandas atuais e os valores vigentes. Este documento atualiza a visão formal do planejamento institucional.`,
+      icon: FileText,
+      columns: ["Cod. PCA", "Objeto", "UO", "Qtd", "V. Unit", "Valor Total", "Tipo", "Mod.", "Prior.", "Início", "Concl."],
+      csvColumns: ["Cod. PCA", "Descrição", "Unidade Requisitante", "UO", "Quantidade", "Valor Unitário", "Valor Planejado", "Tipo de Contratação", "Modalidade", "Grau de Prioridade", "Data Prevista Inicio", "Data Prevista Conclusão"],
+      mapRow: (r, tipo) => {
+        const calculateStart = (tipo: string, mod: string, termino: string) => {
+          if (!termino) return "-";
+          const [y, m, d] = termino.split("-").map(Number);
+          const date = new Date(y, m - 1, d);
+          let days = 120;
+          if (tipo === "Nova Contratação") {
+            if (mod === "Pregão Eletrônico" || mod === "Concorrência" || mod === "Concurso") days = 150;
+            else if (mod === "Dispensa" || mod === "Inexigibilidade" || mod === "ARP (própria)" || mod === "ARP (carona)" || mod === "Credenciamento") days = 90;
+          }
+          date.setDate(date.getDate() - days);
+          return date.toLocaleDateString("pt-BR");
+        };
+        const formatDateStr = (dtStr: string) => {
+          if (!dtStr) return "-";
+          const [y, m, d] = dtStr.split("-").map(Number);
+          return new Date(y, m - 1, d).toLocaleDateString("pt-BR");
+        };
+        return [
+          formatId(r.id, r.codigo),
+          r.descricao || "",
+          r.unidade_orcamentaria || "",
+          r.quantidade_itens || 0,
+          r.valor_unitario || 0,
+          r.valor_estimado || 0,
+          r.tipo_contratacao || "",
+          r.modalidade || "",
+          r.grau_prioridade || "",
+          calculateStart(r.tipo_contratacao, r.modalidade, r.data_prevista_contratacao),
+          formatDateStr(r.data_prevista_contratacao),
+        ];
+      },
+      title: (n) => `Plano de Contratações Anual — PCA ${exercise} (Lista de ${n} Itens)`,
+    },
     gerencial_completo: {
       label: "Gerencial — Base de Dados Completa",
       description: "Relatório analítico com a consolidação detalhada de todas as demandas cadastradas no sistema, incluindo informações de planejamento, execução, valores, setores, status e demais atributos operacionais. É um documento voltado ao acompanhamento gerencial e à análise ampla da base de dados do PCA.",
@@ -684,8 +724,8 @@ const Relatorios = () => {
         a.download = `relatorio_${rType}.csv`;
         a.click();
         URL.revokeObjectURL(url);
-      } else if (rType === "pca_2_0" || rType === "pca_3_0") {
-        if (rType === "pca_3_0") {
+      } else if (rType === "pca_2_0" || rType === "pca_3_0" || rType === "pca_4_0") {
+        if (rType === "pca_3_0" || rType === "pca_4_0") {
           sourceRows = sourceRows.filter(r => r.sobrestado !== true);
         }
         const logo = `${location.origin}/logo-mppi.png`;
@@ -878,7 +918,7 @@ const Relatorios = () => {
           <html>
           <head>
             <meta charset="utf-8">
-            <title>PCA 2026 - ${rType === "pca_3_0" ? "Versão 3.0" : "Versão 2.0"} - MPPI</title>
+            <title>PCA 2026 - ${rType === "pca_4_0" ? "Versão 4.0" : rType === "pca_3_0" ? "Versão 3.0" : "Versão 2.0"} - MPPI</title>
             <style>
               @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
               * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
@@ -1053,7 +1093,7 @@ const Relatorios = () => {
               <div class="title-box">
                 <h1 class="main-title">Plano de<br>Contratações<br><span>Anual</span></h1>
                 <div class="sub-title">Ministério Público do Estado do Piauí</div>
-                <div class="version-badge">Exercício 2026 • ${rType === "pca_3_0" ? "Versão 3.0" : "Versão 2.0"}</div>
+                <div class="version-badge">Exercício 2026 • ${rType === "pca_4_0" ? "Versão 4.0" : rType === "pca_3_0" ? "Versão 3.0" : "Versão 2.0"}</div>
               </div>
             </div> <!-- End cover -->
             
@@ -1264,7 +1304,7 @@ const Relatorios = () => {
               <h2>1. Apresentação</h2>
               <p>O Plano de Contratações Anual (PCA) do Ministério Público do Estado do Piauí, referente ao exercício de 2026, consolida-se como o instrumento central de governança estruturante e planejamento logístico institucional. Alinhado aos preceitos da Nova Lei de Licitações e Contratos (Lei nº 14.133/2021), o PCA transcende a mera formalidade administrativa para atuar como um guia estratégico, assegurando que as aquisições e contratações de serviços e obras guardem estrita consonância com o Planejamento Estratégico e as diretrizes orçamentárias deste Parquet.</p>
               
-              <p>Esta ${rType === "pca_3_0" ? "Versão 3.0" : "Versão 2.0"} reflete um processo de amadurecimento na gestão de insumos, fundamentado em análises de dados precisas e na interlocução direta entre as unidades requisitantes e a Administração Superior. Por meio da racionalização de demandas e da busca contínua pela economia de escala e padronização, o plano visa otimizar a alocação de recursos públicos, mitigando riscos de descontinuidade administrativa e elevando os padrões de transparência, eficácia e eficiência operacional.</p>
+              <p>Esta ${rType === "pca_4_0" ? "Versão 4.0" : rType === "pca_3_0" ? "Versão 3.0" : "Versão 2.0"} reflete um processo de amadurecimento na gestão de insumos, fundamentado em análises de dados precisas e na interlocução direta entre as unidades requisitantes e a Administração Superior. Por meio da racionalização de demandas e da busca contínua pela economia de escala e padronização, o plano visa otimizar a alocação de recursos públicos, mitigando riscos de descontinuidade administrativa e elevando os padrões de transparência, eficácia e eficiência operacional.</p>
 
               <p>As métricas consolidadas a seguir sintetizam a magnitude do planejamento para o próximo exercício, refletindo o compromisso do MPPI com a excelência e a responsabilidade na gestão da coisa pública.</p>
 
@@ -2417,7 +2457,7 @@ const Relatorios = () => {
               <p className="text-sm text-muted-foreground mt-1">Documentos formais de publicação e consolidação do plano.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Object.entries(REPORT_TYPES).filter(([key]) => key === 'pca_3_0' || key === 'pca_2_0').map(([key, def]) => (
+              {Object.entries(REPORT_TYPES).filter(([key]) => key === 'pca_4_0' || key === 'pca_3_0' || key === 'pca_2_0').map(([key, def]) => (
                 <div 
                   key={key} 
                   className="group relative flex flex-col justify-between p-6 rounded-xl border border-border bg-card transition-all duration-300 hover:shadow-xl hover:border-primary/40 hover:-translate-y-1 overflow-hidden"
@@ -2465,7 +2505,7 @@ const Relatorios = () => {
               <p className="text-sm text-muted-foreground mt-1">Painel analítico e detalhado para apoio à tomada de decisão.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Object.entries(REPORT_TYPES).filter(([key]) => key !== 'pca_3_0' && key !== 'pca_2_0').map(([key, def]) => (
+              {Object.entries(REPORT_TYPES).filter(([key]) => key !== 'pca_4_0' && key !== 'pca_3_0' && key !== 'pca_2_0').map(([key, def]) => (
                 <div 
                   key={key} 
                   className="group relative flex flex-col justify-between p-6 rounded-xl border border-border bg-card transition-all duration-300 hover:shadow-xl hover:border-primary/40 hover:-translate-y-1 overflow-hidden"
