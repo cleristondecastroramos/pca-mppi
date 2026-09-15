@@ -918,7 +918,7 @@ const Relatorios = () => {
           <html>
           <head>
             <meta charset="utf-8">
-            <title>PCA 2026 - ${rType === "pca_4_0" ? "Versão 4.0" : rType === "pca_3_0" ? "Versão 3.0" : "Versão 2.0"} - MPPI</title>
+            <title>PCA ${exercise} - ${rType === "pca_4_0" ? "Versão 4.0" : rType === "pca_3_0" ? "Versão 3.0" : "Versão 2.0"} - MPPI</title>
             <style>
               @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
               * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
@@ -1093,7 +1093,7 @@ const Relatorios = () => {
               <div class="title-box">
                 <h1 class="main-title">Plano de<br>Contratações<br><span>Anual</span></h1>
                 <div class="sub-title">Ministério Público do Estado do Piauí</div>
-                <div class="version-badge">Exercício 2026 • ${rType === "pca_4_0" ? "Versão 4.0" : rType === "pca_3_0" ? "Versão 3.0" : "Versão 2.0"}</div>
+                <div class="version-badge">Exercício ${exercise} • ${rType === "pca_4_0" ? "Versão 4.0" : rType === "pca_3_0" ? "Versão 3.0" : "Versão 2.0"}</div>
               </div>
             </div> <!-- End cover -->
             

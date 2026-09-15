@@ -14,13 +14,12 @@ export default function SelecaoExercicio() {
   const navigate = useNavigate();
   const { setExercise } = useExercise();
 
-  // Usa o cache centralizado da sessão (sem useEffect extra para buscar userId)
   const { data: session, isLoading: isSessionLoading } = useAuthSession();
   const userId = session?.user?.id;
   const { data: profile, isLoading: isProfileLoading } = useUserProfile(userId);
-  const { data: roles } = useUserRoles(userId);
+  const { data: roles, isLoading: isRolesLoading } = useUserRoles(userId);
 
-  const isAdmin = roles?.includes("administrador");
+  const isAdmin = roles?.includes("administrador") || false;
   const exerciciosPermitidos: number[] = (profile as any)?.exercicios_permitidos ?? [];
   const hasAccess2026 = isAdmin || exerciciosPermitidos.includes(2026);
   const pca2027Locked = isPca2027LockedForRoles(roles);
@@ -35,7 +34,7 @@ export default function SelecaoExercicio() {
 
   // Auto-seleciona exercício se o usuário tiver acesso a apenas um (exceto admin)
   useEffect(() => {
-    if (!isProfileLoading && profile && !isAdmin && exerciciosPermitidos.length === 1) {
+    if (!isProfileLoading && !isRolesLoading && profile && !isAdmin && exerciciosPermitidos.length === 1) {
       const unico = exerciciosPermitidos[0];
       if (unico === 2027 && pca2027Locked) {
         navigate("/pca-2027-indisponivel", { replace: true });
@@ -48,7 +47,7 @@ export default function SelecaoExercicio() {
         navigate("/nova-demanda", { replace: true });
       }
     }
-  }, [profile, isProfileLoading, exerciciosPermitidos, navigate, setExercise, pca2027Locked, isAdmin]);
+  }, [profile, isProfileLoading, isRolesLoading, exerciciosPermitidos, navigate, setExercise, pca2027Locked, isAdmin]);
 
   // -----------------------------------------------------------------------
   // Verificação de troca de senha obrigatória
@@ -62,9 +61,9 @@ export default function SelecaoExercicio() {
     return <ForcePasswordChange onSuccess={() => window.location.reload()} userId={userId} />;
   }
 
-  // Loading: aguarda sessão e perfil
+  // Loading: aguarda sessão, perfil e roles
   // Não trava em !profile (pode ser null por erro) — só aguarda o loading
-  if (isSessionLoading || isProfileLoading) {
+  if (isSessionLoading || isProfileLoading || isRolesLoading) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-slate-500 dark:text-slate-400">
         <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
