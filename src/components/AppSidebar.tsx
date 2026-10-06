@@ -45,7 +45,7 @@ const menuItems: MenuItem[] = [
   { title: "Riscos e Pendências", url: "/riscos-pendencias", icon: AlertTriangle, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
   { title: "Prioridades de Contratação", url: "/prioridades-contratacao", icon: BadgeCheck, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
   { title: "Conformidade", url: "/conformidade", icon: CheckSquare, allowedRoles: ["administrador", "gestor"] },
-  { title: "Licitações SRP", url: "/licitacoes-srp", icon: Gavel, allowedRoles: ["administrador", "gestor", "setor_requisitante", "consulta"] },
+
   { title: "Resultados Alcançados", url: "/resultados-alcancados", icon: TrendingUp, allowedRoles: ["administrador", "gestor"] },
   { title: "Relatórios", url: "/relatorios", icon: BarChart3, allowedRoles: ["administrador", "gestor", "setor_requisitante"] },
   { title: "Orçamento", url: "/orcamento", icon: Calculator, allowedRoles: ["administrador"] },
