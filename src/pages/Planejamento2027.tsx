@@ -41,6 +41,8 @@ export default function Planejamento2027() {
   const [editQuantity, setEditQuantity] = useState<number | string>(1);
   const [editValorUnit, setEditValorUnit] = useState<number | string>(0);
   const [editJustificativa, setEditJustificativa] = useState("");
+  const [editUnidadeRequisitanteId, setEditUnidadeRequisitanteId] = useState("");
+  const [unidadesList, setUnidadesList] = useState<any[]>([]);
 
   const [isReasonOpen, setIsReasonOpen] = useState(false);
 
@@ -59,6 +61,13 @@ export default function Planejamento2027() {
       }
     });
   }, [navigate]);
+
+  useEffect(() => {
+    if (roles?.includes("administrador")) {
+      supabase.from("unidades_requisitantes").select("id, nome").eq("ativo", true).order("nome")
+        .then(({ data }) => setUnidadesList(data || []));
+    }
+  }, [roles]);
 
   const [filterUnidade, setFilterUnidade] = useState("Todas");
   const [filterCategoria, setFilterCategoria] = useState("Todas");
@@ -90,7 +99,7 @@ export default function Planejamento2027() {
         .from("contratacoes_historico")
         .select(`
           id, acao, dados_anteriores, dados_novos, created_at,
-          profiles!contratacoes_historico_user_id_fkey(nome)
+          profiles!contratacoes_historico_user_id_fkey(nome_completo)
         `)
         .gte("created_at", start.toISOString())
         .lte("created_at", end.toISOString())
@@ -270,6 +279,7 @@ export default function Planejamento2027() {
     setEditQuantity(row.quantidade_itens || row.quantidade || 1);
     setEditValorUnit(row.valor_unitario || 0);
     setEditJustificativa(row.justificativa || "");
+    setEditUnidadeRequisitanteId(row.unidade_requisitante_id || "");
     setIsEditOpen(true);
   };
 
@@ -283,17 +293,28 @@ export default function Planejamento2027() {
       const parsedUnit = Math.max(0, parseFloat(String(editValorUnit)) || 0);
       const valTotal = parsedQty * parsedUnit;
 
+      let updatePayload: any = {
+        quantidade: parsedQty,
+        quantidade_itens: parsedQty,
+        valor_unitario: parsedUnit,
+        valor_estimado: valTotal,
+        justificativa: editJustificativa,
+        updated_at: new Date().toISOString(),
+        updated_by: currentUserId || profile?.id || undefined,
+      };
+
+      if (roles?.includes("administrador") && editUnidadeRequisitanteId) {
+        const selectedUnidade = unidadesList.find(u => u.id === editUnidadeRequisitanteId);
+        if (selectedUnidade) {
+          updatePayload.unidade_requisitante_id = editUnidadeRequisitanteId;
+          updatePayload.unidade_demandante = selectedUnidade.nome;
+          updatePayload.setor_requisitante = selectedUnidade.nome;
+        }
+      }
+
       const { error } = await supabase
         .from("contratacoes")
-        .update({
-          quantidade: parsedQty,
-          quantidade_itens: parsedQty,
-          valor_unitario: parsedUnit,
-          valor_estimado: valTotal,
-          justificativa: editJustificativa,
-          updated_at: new Date().toISOString(),
-          updated_by: currentUserId || profile?.id || undefined,
-        })
+        .update(updatePayload)
         .eq("id", selectedDemand.id);
 
       if (error) throw error;
@@ -1010,7 +1031,7 @@ export default function Planejamento2027() {
                                 {new Date(log.created_at).toLocaleString('pt-BR')}
                               </TableCell>
                               <TableCell className="border border-slate-200 dark:border-slate-800 font-medium">
-                                {log.profiles?.nome || 'Usuário Desconhecido'}
+                                {log.profiles?.nome_completo || 'Usuário Desconhecido'}
                               </TableCell>
                               <TableCell className="border border-slate-200 dark:border-slate-800">
                                 <Badge variant="outline" className={
@@ -1399,6 +1420,21 @@ export default function Planejamento2027() {
                 <Label className="text-xs text-muted-foreground">Objeto</Label>
                 <div className="text-sm font-semibold p-2.5 bg-muted/30 rounded border line-clamp-2">{selectedDemand?.descricao}</div>
               </div>
+              {roles?.includes("administrador") && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit_unidade">Unidade Requisitante</Label>
+                  <Select value={editUnidadeRequisitanteId} onValueChange={setEditUnidadeRequisitanteId}>
+                    <SelectTrigger id="edit_unidade">
+                      <SelectValue placeholder="Selecione a unidade requisitante..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {unidadesList.map(u => (
+                        <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="edit_qty">Quantidade</Label>
